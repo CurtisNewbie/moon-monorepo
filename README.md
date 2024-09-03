@@ -1,6 +1,6 @@
 # moon-monorepo
 
-This is a moon monorepo.
+This is moon monorepo, a privately hosted personal website (the private cloud).
 
 **Frontend Projects:**
 
@@ -8,12 +8,12 @@ This is a moon monorepo.
 
 **Backend Projects:**
 
-- user-vault
-- gatekeeper
-- logbot
-- mini-fstore
-- vfm
-- acct
+- user-vault (User Authentication and Authorization Service)
+- gatekeeper (Application Gateway)
+- logbot (Error Log Watching Service)
+- mini-fstore (Simple File Storage Service)
+- vfm (Virtual File Managemeng Service)
+- acct (Simple Personal Accounting Service)
 
 ## Original Repositories
 
