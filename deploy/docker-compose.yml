@@ -1,0 +1,270 @@
+version: "3.9"
+
+services:
+
+  # 8084
+  mini-fstore:
+    build: ./mini-fstore/build
+    env_file:
+      - ./backend.env
+    volumes:
+      - /mnt/extdrive/fstore/:/fstore/ # it's mounted to an external drive, feel free to change this
+      - /services/mini-fstore/logs:/usr/src/logs
+      - /services/mini-fstore/config:/usr/src/config
+      - /services/mini-fstore/tmp:/usr/src/tmp
+    networks:
+      - backend
+    restart: always
+    stop_signal: SIGTERM
+    depends_on:
+      - "consul"
+      - "redis"
+      - "rabbitmq"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '300m'
+
+  # 8086
+  vfm:
+    build: ./vfm/build
+    env_file:
+      - ./backend.env
+    volumes:
+      - /services/vfm/logs:/usr/src/logs
+      - /services/vfm/config:/usr/src/config
+    networks:
+      - backend
+    restart: always
+    stop_signal: SIGTERM
+    depends_on:
+      - "consul"
+      - "redis"
+      - "rabbitmq"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '100m'
+
+  # 8087
+  logbot:
+    build: ./logbot/build
+    env_file:
+      - ./backend.env
+    volumes:
+      - /services/logbot/config:/usr/src/config
+      - /services/logbot/logs:/usr/src/logs
+      - /services/vfm/logs/vfm.log:/usr/src/logs/watch/vfm.log
+      - /services/mini-fstore/logs/mini-fstore.log:/usr/src/logs/watch/mini-fstore.log
+      - /services/user-vault/logs/user-vault.log:/usr/src/logs/watch/user-vault.log
+      - /services/event-pump/logs/event-pump.log:/usr/src/logs/watch/event-pump.log
+      - /services/gatekeeper/logs/gatekeeper.log:/usr/src/logs/watch/gatekeeper.log
+    networks:
+      - backend
+    restart: always
+    stop_signal: SIGTERM
+    depends_on:
+      - "consul"
+      - "redis"
+      - "rabbitmq"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '100m'
+
+  # 8088
+  event-pump:
+    build: ./event-pump/build
+    env_file:
+      - ./backend.env
+    volumes:
+      - /services/event-pump/config:/usr/src/config
+      - /services/event-pump/logs:/usr/src/logs
+      - /services/event-pump/data:/usr/src/data
+    networks:
+      - backend
+    restart: always
+    stop_signal: SIGTERM
+    depends_on:
+      - "consul"
+      - "redis"
+      - "rabbitmq"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '200m'
+
+  # 8089
+  user-vault:
+    build: ./user-vault/build
+    env_file:
+      - ./backend.env
+    volumes:
+      - /services/user-vault/config:/usr/src/config
+      - /services/user-vault/logs:/usr/src/logs
+    networks:
+      - backend
+    restart: always
+    stop_signal: SIGTERM
+    depends_on:
+      - "consul"
+      - "redis"
+      - "rabbitmq"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '100m'
+
+  # 7070
+  gatekeeper:
+    build: ./gatekeeper/build
+    env_file:
+      - ./backend.env
+    volumes:
+      - /services/gatekeeper/config:/usr/src/config
+      - /services/gatekeeper/logs:/usr/src/logs
+    networks:
+      - backend
+    restart: always
+    stop_signal: SIGTERM
+    expose:
+      - 7070
+    depends_on:
+      - "consul"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '300m'
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - /services/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /services/nginx/cert:/etc/nginx/cert
+      - /services/nginx/html:/usr/share/nginx/html
+      - /services/nginx/logs:/var/log/nginx
+    ports:
+      - "0.0.0.0:443:443"
+      - "0.0.0.0:3000:3000"
+      - "0.0.0.0:3100:3100"
+    networks:
+      - backend
+    restart: always
+    depends_on:
+      - "gatekeeper"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '300m'
+
+  redis:
+    image: redis:7.0.5
+    networks:
+      - backend
+    restart: always
+    volumes:
+      - /services/redis/data:/data
+
+  rabbitmq:
+    hostname: 'myrabbit'
+    image: rabbitmq:3.12.0-management-alpine
+    ports:
+      - "0.0.0.0:15672:15672"
+    env_file:
+      - ./backend.env
+    volumes:
+      - /services/rabbitmq/data:/var/lib/rabbitmq/mnesia/
+    networks:
+      - backend
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '500m'
+
+  consul:
+    image: consul:1.13.2
+    networks:
+      - backend
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '500m'
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
+      - '/:/rootfs:ro'
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - backend
+    expose:
+      - 9100
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '500m'
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    user: root
+    volumes:
+      - /services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /services/prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    expose:
+      - 9090
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '500m'
+
+  grafana:
+    image: grafana/grafana:7.5.7
+    restart: unless-stopped
+    volumes:
+      - /services/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - /services/grafana/grafana-data:/var/lib/grafana
+    env_file:
+      - /services/grafana/config.monitoring
+    user: root
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '500m'
+
+networks:
+  backend:

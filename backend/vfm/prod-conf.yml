@@ -42,4 +42,4 @@ logging:
 
 vfm:
   site:
-    host: "https://curtisnewbie.com"
+    host: "${SITE_HOST}"

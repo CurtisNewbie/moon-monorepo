@@ -13,7 +13,7 @@ This is moon monorepo, a privately hosted personal website (the private cloud).
 - logbot (Error Log Watching Service)
 - mini-fstore (Simple File Storage Service)
 - vfm (Virtual File Management Service)
-<!-- - acct (Simple Personal Accounting Service) -->
+- acct (Simple Personal Accounting Service) \[**Developing, not deployed yet**\]
 
 ## Original Repositories
 
@@ -24,7 +24,7 @@ This is moon monorepo, a privately hosted personal website (the private cloud).
 - [https://github.com/CurtisNewbie/mini-fstore](https://github.com/CurtisNewbie/mini-fstore)
 - [https://github.com/CurtisNewbie/user-vault](https://github.com/CurtisNewbie/user-vault)
 - [https://github.com/CurtisNewbie/vfm](https://github.com/CurtisNewbie/vfm)
-<!-- - [https://github.com/CurtisNewbie/acct](https://github.com/CurtisNewbie/acct) -->
+- [https://github.com/CurtisNewbie/acct](https://github.com/CurtisNewbie/acct)
 
 ## Environment Preparation
 
