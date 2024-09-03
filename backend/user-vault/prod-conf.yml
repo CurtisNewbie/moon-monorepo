@@ -4,10 +4,10 @@ app.name: "user-vault"
 
 mysql:
   enabled: true
-  user: "${mysqlusername}"
-  password: "${mysqlpassword}"
+  user: "${MYSQL_USERNAME}"
+  password: "${MYSQL_PASSWORD}"
   database: "authserver"
-  host: "${mysqladdr}"
+  host: "${MYSQL_HOST}"
   port: 3306
 
 redis:
@@ -20,10 +20,10 @@ redis:
 
 rabbitmq:
   enabled: true
-  host: "rabbitmq"
+  host: "${RABBITMQ_ADDR}"
   port: 5672
-  username: "${rabbitmqusername}"
-  password: "${rabbitmqpassword}"
+  username: "${RABBITMQ_USERNAME}"
+  password: "${RABBITMQ_PASSWORD}"
   vhost: "/"
 
 server:
@@ -32,15 +32,15 @@ server:
 
 consul:
   enabled: true
-  consulAddress: consul:8500
+  consulAddress: "${CONSUL_HOST}:8500"
 
 logging.rolling.file: "/usr/src/logs/${app.name}.log"
 
 jwt:
   key:
-    public: ${jwt-module.publicKey}
-    private: ${jwt-module.privateKey}
-    issuer: "yongj.zhuang-auth-service"
+    public: ${jwt.publicKey}
+    private: ${jwt.privateKey}
+    issuer: ${jwt.issuer}
 
 monitor:
   - service: "logbot"

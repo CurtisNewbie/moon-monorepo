@@ -4,10 +4,10 @@ app.name: "vfm"
 
 mysql:
   enabled: true
-  user: "${mysqlusername}"
-  password: "${mysqlpassword}"
+  user: "${MYSQL_USERNAME}"
+  password: "${MYSQL_PASSWORD}"
   database: "fileserver"
-  host: "${mysqladdr}"
+  host: "${MYSQL_HOST}"
   port: 3306
 
 redis:
@@ -32,8 +32,8 @@ rabbitmq:
   enabled: true
   host: "rabbitmq"
   port: 5672
-  username: "${rabbitmqusername}"
-  password: "${rabbitmqpassword}"
+  username: "${RABBITMQ_USERNAME}"
+  password: "${RABBITMQ_PASSWORD}"
   vhost: "/"
 
 logging:
