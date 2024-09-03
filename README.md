@@ -132,8 +132,13 @@ go run cmd/main.go
 
 7. Finally, if everything goes right, you can visit the website via `https://localhost:4200`.
 
-## Todo
+## Deployment
 
-- [ ] Provide Prometheus and Grafana Configuration Example.
-- [ ] Provide Demo Snapshot.
-- [ ] Provide Docker-Compose Example.
+This project is privately hosted on my machine using Docker Compose. Most of the configurations are externalized, it should be relatively easy for you to change them.
+
+- [Docker-Compose Conf](./deploy/docker-compose.yml)
+- [Environment Variables And Secrets](./deploy/backend.env)
+- [Nginx Conf](./deploy/nginx.conf)
+- [Prometheus Conf](./deploy/prometheus.yml)
+
+TODO ...
