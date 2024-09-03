@@ -1,0 +1,11 @@
+.mat-column-rtime {
+  max-width: 30px;
+}
+
+.mat-column-app {
+  max-width: 15px;
+}
+
+.mat-column-caller {
+  max-width: 50px;
+}

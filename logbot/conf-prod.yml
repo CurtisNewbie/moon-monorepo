@@ -1,0 +1,81 @@
+mode.production: true
+
+app.name: "logbot"
+
+mysql:
+  enabled: true
+  user: "${mysqlusername}"
+  password: "${mysqlpassword}"
+  database: "logbot"
+  host: "${mysqladdr}"
+  port: 3306
+
+redis:
+  enabled: true
+  address: "redis"
+  port: 6379
+  username:
+  password:
+  database: 0
+
+server:
+  host: "0.0.0.0"
+  port: 8087
+  gracefulShutdownTimeSec: 5
+  perf.enabled: false
+
+consul:
+  enabled: true
+  consulAddress: consul:8500
+  healthCheckUrl: /health
+
+logging.rolling.file: "/usr/src/logs/${app.name}.log"
+
+log:
+  pattern:
+    go: '^([0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9:\.]+) +(\w+) +\[([\w ]+),([\w ]+)\] ([\w\.]+) +: *((?s).*)'
+    java: '^([0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9:\.]+) +(\w+) +\[[\w \-]+,([\w ]*),([\w ]*),[\w ]*\] [\w\.]+ \-\-\- \[[\w\- ]+\] ([\w\-\.]+) +: *((?s).*)'
+
+rabbitmq:
+  enabled: true
+  host: "rabbitmq"
+  port: 5672
+  username: "${rabbitmqusername}"
+  password: "${rabbitmqpassword}"
+  vhost: "/"
+
+logbot:
+  node: docker-compose-1
+  watch:
+    - app: event-pump
+      type: go
+      file: /usr/src/logs/watch/event-pump.log
+
+#     - app: goauth
+#       type: go
+#       file: /usr/src/logs/watch/goauth.log
+#     - app: hammer
+#       type: go
+#       file: /usr/src/logs/watch/hammer.log
+#     - app: vfm
+#       type: go
+#       file: /usr/src/logs/watch/vfm.log
+#     - app: mini-fstore
+#       type: go
+#       file: /usr/src/logs/watch/mini-fstore.log
+#     - app: postbox
+#       type: go
+#       file: /usr/src/logs/watch/postbox.log
+#     - app: user-vault
+#       type: go
+#       file: /usr/src/logs/watch/user-vault.log
+#     - app: gatekeeper
+#       type: go
+#       file: /usr/src/logs/watch/gatekeeper.log
+#     - app: docindexer
+#       type: go
+#       file: /usr/src/logs/watch/docindexer.log
+
+# admin:
+#   user-no:
+#     - "UE202205142344122020573"

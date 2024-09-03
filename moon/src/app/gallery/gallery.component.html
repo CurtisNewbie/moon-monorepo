@@ -1,0 +1,109 @@
+<div class="mt-3 mb-5">
+    <div class="container bootstrap p-3 mt-3 mb-5 shadow" *ngIf="showCreateGalleryDiv">
+        <h4 class="mt-2 mb-2">Create New Gallery</h4>
+
+        <mat-form-field style="width: 100%;">
+            <mat-label>Gallery Name</mat-label>
+            <input matInput type="text" [(ngModel)]="newGalleryName">
+            <button *ngIf="newGalleryName" class="btn-close" matSuffix aria-label="Clear" (click)="newGalleryName=''">
+            </button>
+        </mat-form-field>
+
+        <div class="justify-content-md-end d-md-flex">
+            <button mat-raised-button class="mt-2" (click)="createGallery()">Create</button>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="mt-5">
+    <h3>Galleries</h3>
+
+    <div class="d-md-flex justify-content-end mb-2">
+        <button mat-raised-button class="m-2" (click)="showCreateGalleryDiv=!showCreateGalleryDiv">Create
+            Gallery</button>
+        <button mat-raised-button class="m-2" id="reloadBtn" (click)="fetchGalleries()">Fetch</button>
+    </div>
+
+    <table mat-table [dataSource]="galleries" class="mat-elevation-z8 mb-4" style="width: 100%;" multiTemplateDataRows>
+        <ng-container matColumnDef="galleryNo">
+            <th mat-header-cell *matHeaderCellDef> Gallery No </th>
+            <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.galleryNo}}
+                </span></td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Name </th>
+            <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.name}} </span></td>
+        </ng-container>
+
+        <ng-container matColumnDef="userNo">
+            <th mat-header-cell *matHeaderCellDef> User No </th>
+            <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.userNo}} </span></td>
+        </ng-container>
+
+        <ng-container matColumnDef="createTime">
+            <th mat-header-cell *matHeaderCellDef> Create Time </th>
+            <td mat-cell *matCellDef="let f"> {{f.createTime }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="updateTime">
+            <th mat-header-cell *matHeaderCellDef> Update Time </th>
+            <td mat-cell *matCellDef="let f"> {{f.updateTime }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createBy">
+            <th mat-header-cell *matHeaderCellDef> Created By </th>
+            <td mat-cell *matCellDef="let f"> {{f.createBy}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="expandedElement">
+            <td mat-cell *matCellDef="let u" [attr.colspan]="(isMobile ? MOBILE_COLUMNS : DESKTOP_COLUMNS).length">
+                <div class="element-detail" [@detailExpand]="idEquals(u, expandedElement) ? 'expanded' : 'collapsed'">
+                    <div class="row row-cols-lg-auto g-3 align-items-center" *ngIf="expandedElement != null">
+                        <div class="col-12">
+                            <mat-form-field style="width: 100%;">
+                                <mat-label>Name</mat-label>
+                                <input matInput type="text" [(ngModel)]="expandedElement.name"
+                                    [disabled]="!expandedElement.isOwner">
+                            </mat-form-field>
+                        </div>
+                        <ng-container *ngIf="u.isOwner">
+                            <div class="col-12 m-2">
+                                <button mat-raised-button (click)="updateGallery(u.galleryNo, u.name)">
+                                    Update
+                                </button>
+                            </div>
+                            <div class="col-12 m-2">
+                                <button mat-raised-button (click)="deleteGallery(u.galleryNo, u.name)">
+                                    Delete
+                                </button>
+                            </div>
+                            <div class="col-12 m-2">
+                                <button mat-raised-button (click)="popToGrantAccess(u)">
+                                    Share
+                                </button>
+                            </div>
+                        </ng-container>
+                        <div class="col-12 m-2">
+                            <button mat-raised-button (click)="browse(expandedElement.galleryNo)">
+                                Browse
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="isMobile ? MOBILE_COLUMNS : DESKTOP_COLUMNS"></tr>
+        <tr mat-row *matRowDef="let row; columns: (isMobile ? MOBILE_COLUMNS: DESKTOP_COLUMNS);" class="element-row"
+            [class.expanded-row]="idEquals(row, expandedElement)" (click)="expandedElement = getExpandedEle(row)"
+            [matTooltip]="row.isOwner ? 'Click to expand' : ''">
+        </tr>
+        <tr mat-row *matRowDef="let element; columns: ['expandedElement'];" class="detail-row">
+
+    </table>
+
+    <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+</div>

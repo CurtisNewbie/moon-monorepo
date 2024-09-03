@@ -1,0 +1,38 @@
+mode.production: false
+
+app.name: "vfm"
+
+mysql:
+  enabled: true
+  user: root
+  database: "vfm"
+  host: localhost
+  port: 3306
+
+redis:
+  enabled: true
+  address: localhost
+  port: 6379
+  username:
+  password:
+  database: 0
+
+server:
+  web.enabled: true
+  host: localhost
+  port: 8086
+  gracefulShutdownTimeSec: 5
+
+consul:
+  enabled: true
+  consulAddress: localhost:8500
+
+rabbitmq:
+  enabled: true
+  username: guest
+  password: guest
+  vhost: "/"
+
+vfm:
+  site:
+    host: "http://localhost:4200"

@@ -1,0 +1,13 @@
+<div class="mt-2">
+    <h4 style="word-wrap: break-word;">{{name}}</h4>
+    <div style="height: 100%;">
+        <div *ngIf="!name" class="ml-5 mr-5 alert alert-secondary">
+            No file selected. Consider picking one to read?
+        </div>
+        <div class="container mt-4 border rounded" style="height: 80vh;">
+            <div style="touch-action: manipulation; overflow: auto; height: 100%;">
+                <pre style="min-height: 75vh;">{{content}}</pre>
+            </div>
+        </div>
+    </div>
+</div>

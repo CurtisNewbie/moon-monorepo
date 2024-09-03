@@ -1,0 +1,15 @@
+FROM alpine:3.17
+
+LABEL author="Yongjie Zhuang"
+LABEL descrption="User-Vault, a simple user management service"
+
+RUN apk --no-cache add tzdata
+
+WORKDIR /usr/src/
+
+# binary is pre-compiled
+COPY user-vault_build ./app_user-vault
+
+ENV TZ=Asia/Shanghai
+
+CMD ["./app_user-vault", "configFile=/usr/src/config/conf.yml"]

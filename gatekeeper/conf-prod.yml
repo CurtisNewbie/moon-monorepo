@@ -1,0 +1,42 @@
+mode.production: true
+
+app.name: "gatekeeper"
+
+server:
+  port: 7070
+  gracefulShutdownTimeSec: 5
+  perf.enabled: false
+
+consul:
+  enabled: true
+  consulAddress: consul:8500
+
+logging:
+  rolling:
+    file: "/usr/src/logs/${app.name}.log"
+  level: "info"
+
+jwt:
+  key:
+    public: ${jwt-module.publicKey}
+    private: ${jwt-module.privateKey}
+    issuer: "yongj.zhuang-auth-service"
+
+metrics:
+  enabled: true
+  auth:
+    enabled: true
+    bearer: ${METRICS_BEARER}
+
+rabbitmq:
+  enabled: true
+  host: "rabbitmq"
+  port: 5672
+  username: "${rabbitmqusername}"
+  password: "${rabbitmqpassword}"
+  vhost: "/"
+
+gatekeeper.timer.path.excl:
+  - "/fstore/file/raw"
+  - "/fstore/file/stream"
+  - "/metrics"

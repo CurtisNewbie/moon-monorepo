@@ -1,0 +1,56 @@
+<h1 mat-dialog-title>Mange Role Resources</h1>
+
+<div class="m-1">
+    <mat-form-field appearance="fill" class="m-1">
+        <mat-label>Add Resource</mat-label>
+        <mat-select [(value)]="addResCode">
+            <mat-option [value]="option.code" *ngFor="let option of resBriefs">
+                {{option.name}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <div class="justify-content-md-end d-md-flex">
+        <button mat-raised-button class="mt-2" (click)="addResource()">Add Resource</button>
+    </div>
+</div>
+
+<!-- table -->
+<div mat-dialog-content>
+    <table mat-table [dataSource]="roleRes" class="mat-elevation-z8 mb-4" style="width: 100%;" multiTemplateDataRows>
+
+        <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef> ID </th>
+            <td mat-cell *matCellDef="let u"> {{u.id}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="resCode">
+            <th mat-header-cell *matHeaderCellDef> Resource Code </th>
+            <td mat-cell *matCellDef="let u"> {{u.resCode}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="resName">
+            <th mat-header-cell *matHeaderCellDef> Resource Name </th>
+            <td mat-cell *matCellDef="let u"> {{u.resName}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createBy">
+            <th mat-header-cell *matHeaderCellDef> Create By </th>
+            <td mat-cell *matCellDef="let u"> {{u.createBy}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createTime">
+            <th mat-header-cell *matHeaderCellDef> Create Time </th>
+            <td mat-cell *matCellDef="let u"> {{u.createTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="operation">
+            <th mat-header-cell *matHeaderCellDef> Operation </th>
+            <td mat-cell *matCellDef="let u"> <button mat-raised-button class="m-2" (click)="delRes(u)">Delete</button>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="tabcol"></tr>
+        <tr mat-row *matRowDef="let row; columns: tabcol;"></tr>
+    </table>
+
+    <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>

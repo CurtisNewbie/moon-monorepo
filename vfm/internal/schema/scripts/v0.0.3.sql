@@ -1,0 +1,1 @@
+alter table file_info add column thumbnail VARCHAR(32) NOT NULL DEFAULT '' COMMENT 'thumbnail, mini-fstore file id';

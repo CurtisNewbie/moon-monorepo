@@ -1,0 +1,58 @@
+mode.production: false
+app.name: 'event-pump'
+
+server:
+  host: "0.0.0.0"
+  port: 8088
+
+rabbitmq:
+  enabled: true
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+  vhost: "/"
+
+tracing.propagation.keys:
+  - id
+  - userno
+  - username
+  - role
+  - roleno
+
+sync:
+  server-id: 100
+  host: localhost
+  port: 3306
+  user: root
+  password:
+  max-reconnect: 10
+
+filter:
+  include: ''
+  exclude: ''
+
+pipeline:
+  - schema: 'vfm'
+    table: 'file_info'
+    type: '^(INS)$'
+    stream: 'event.bus.vfm.file.saved'
+    enabled: true
+
+  - schema: 'vfm'
+    table: 'file_info'
+    type: '^(UPD)$'
+    stream: 'event.bus.vfm.file.thumbnail.updated'
+    enabled: true
+    condition:
+      column-changed:
+        - "thumbnail"
+
+  - schema: 'vfm'
+    table: 'file_info'
+    type: '^(UPD)$'
+    stream: 'event.bus.vfm.file.logic.deleted'
+    enabled: true
+    condition:
+      column-changed:
+        - "is_logic_deleted"

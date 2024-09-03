@@ -1,0 +1,28 @@
+<h1 mat-dialog-title>Adding Files to VFolder</h1>
+<div mat-dialog-content>
+    <div class="row row-cols-lg-auto g-3 align-items-center">
+        <div class="col">
+            <mat-form-field>
+                <mat-label>Virtual Folder</mat-label>
+                <input matInput type="text" [(ngModel)]="addToVFolderName" (ngModelChange)="onAddToVFolderNameChanged()"
+                    [matAutocomplete]="auto1">
+                <mat-autocomplete #auto1="matAutocomplete">
+                    <mat-option *ngFor="let option of autoCompAddToVFolderName" [value]="option">
+                        {{option}}
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+        </div>
+    </div>
+    <h4 class="mt-4">Files Selected:</h4>
+    <div>
+        <p *ngFor="let f of dat.files">
+            {{f.name}}
+        </p>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button mat-raised-button class="m-2" mat-dialog-close (click)="addToVirtualFolder()">Add To Vitual
+            Folder</button>
+    </div>
+</div>

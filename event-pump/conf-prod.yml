@@ -1,0 +1,62 @@
+mode.production: true
+
+app.name: "event-pump"
+
+server:
+  host: "0.0.0.0"
+  port: 8088
+
+rabbitmq:
+  enabled: true
+  host: "rabbitmq"
+  port: 5672
+  username: "${rabbitmqusername}"
+  password: "${rabbitmqpassword}"
+  vhost: "/"
+
+tracing.propagation.keys:
+  - id
+  - userno
+  - username
+  - role
+  - roleno
+
+logging.rolling.file: "/usr/src/logs/${app.name}.log"
+
+sync:
+  server-id: 100
+  user: "${mysqlusername}"
+  password: "${mysqlpassword}"
+  host: "${mysqladdr}"
+  port: 3306
+  pos.file: "/usr/src/data/binlog_pos"
+  max-reconnect: 30
+
+filter:
+  include: 'fileserver'
+  exclude: ''
+
+pipeline:
+  - schema: 'fileserver'
+    table: 'file_info'
+    type: '^(INS)$'
+    stream: 'event.bus.vfm.file.saved'
+    enabled: true
+
+  - schema: 'fileserver'
+    table: 'file_info'
+    type: '^(UPD)$'
+    stream: 'event.bus.vfm.file.thumbnail.updated'
+    enabled: true
+    condition:
+      column-changed:
+        - "thumbnail"
+
+  - schema: 'fileserver'
+    table: 'file_info'
+    type: '^(UPD)$'
+    stream: 'event.bus.vfm.file.logic.deleted'
+    enabled: true
+    condition:
+      column-changed:
+        - "is_logic_deleted"

@@ -1,0 +1,25 @@
+<div class="container bootstrap mt-3 mb-5 p-3 shadow">
+    <mat-form-field style="width: 100%;">
+        <mat-label>Username</mat-label>
+        <input matInput type="text" id="usernameInput" [(ngModel)]="usernameInput">
+        <button *ngIf="usernameInput" matSuffix aria-label="Clear" (click)="usernameInput=''; passwordInput = ''"
+            class="btn-close">
+        </button>
+    </mat-form-field>
+
+    <mat-form-field style="width: 100%;">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" id="passwordInput" [(ngModel)]="passwordInput"
+            (keyup)="passwordInputKeyPressed($event)">
+        <button *ngIf="passwordInput" matSuffix aria-label="Clear" (click)="passwordInput=''" class="btn-close">
+        </button>
+    </mat-form-field>
+
+    <div class="d-flex justify-content-end">
+        <button mat-raised-button class="m-2" (click)="login()">Submit</button>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button mat-button class="m-2" (click)="goToRegisterPage()">Don't have an account? Register first!</button>
+    </div>
+</div>

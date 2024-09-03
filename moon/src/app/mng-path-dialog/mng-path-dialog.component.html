@@ -1,0 +1,26 @@
+<h1 mat-dialog-title>Manage Path Detail</h1>
+<div mat-dialog-content>
+    <p>Path: {{dat.path.pathNo}}</p>
+    <p>URL: {{dat.path.url}}</p>
+    <p>Description: {{dat.path.desc}}</p>
+    <p *ngIf="dat.path.ptype == 'PUBLIC'">Path Type: <span class="status-green">Public</span></p>
+    <p *ngIf="dat.path.ptype == 'PROTECTED'">Path Type: <span class="status-red">Protected</span></p>
+
+
+    <div class="row row-cols-lg-auto g-3 align-items-center">
+        <div class="col-12">
+            <mat-form-field appearance="fill" class="">
+                <mat-label>New Path Type:</mat-label>
+                <mat-select [(value)]="dat.path.ptype">
+                    <mat-option [value]="option.val" *ngFor="let option of PATH_TYPES">
+                        {{option.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-md-end">
+        <button mat-raised-button class="m-2" (click)="update()">Update</button>
+    </div>
+</div>

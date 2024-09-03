@@ -1,0 +1,14 @@
+<div class="container">
+    <ng-container *ngIf="srcUrl">
+        <span class="alert alert-success" style="display: block; word-break: break-all">Currently
+            Playing:
+            {{name}}</span>
+    </ng-container>
+    <div #playerRef>
+        <div class="embed-responsive embed-responsive-16by9">
+            <video #videoPlayer id="player" [src]="srcUrl" class="p-3 embed-responsive-item" controls preload="metadata"
+                style="max-height: 70vh; max-width: 70vw; overflow: auto">
+            </video>
+        </div>
+    </div>
+</div>

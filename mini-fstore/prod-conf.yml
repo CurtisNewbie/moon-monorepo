@@ -1,0 +1,62 @@
+mode.production: true
+
+app.name: "fstore"
+
+mysql:
+  enabled: true
+  user: "${mysqlusername}"
+  password: "${mysqlpassword}"
+  database: "mini_fstore"
+  host: "${mysqladdr}"
+  port: 3306
+
+redis:
+  enabled: true
+  address: "redis"
+  port: 6379
+  username:
+  password:
+  database: 0
+
+rabbitmq:
+  enabled: true
+  host: "rabbitmq"
+  port: 5672
+  username: "${rabbitmqusername}"
+  password: "${rabbitmqpassword}"
+  vhost: "/"
+
+server:
+  host: "0.0.0.0"
+  port: 8084
+  gracefulShutdownTimeSec: 5
+  perf.enabled: false
+
+consul:
+  enabled: true
+  consulAddress: consul:8500
+  healthCheckUrl: /health
+  healthCheckInterval: 120s
+  healthCheckTimeout: 120s
+  healthCheckFailedDeregisterAfter: 5s
+
+logging.rolling.file: "/usr/src/logs/mini-fstore.log"
+
+fstore:
+  storage.dir: ${fstorestorage}
+  trash.dir: "${fstoretrash}"
+  tmp.dir: "${fstoretemp}"
+  migr:
+    file-server:
+      storage: "/home/alphaboi/file/fileserver"
+      enabled: false
+      dry-run: true
+      mysql:
+        user: "${mysqlusername}"
+        password: "${mysqlpassword}"
+        database: fileserver
+        host: "${mysqladdr}"
+        port: 3306
+  backup:
+    enabled: true
+    secret: "${MINI_FSTORE_BACKUP_SECRET}"

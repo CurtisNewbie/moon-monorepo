@@ -1,0 +1,9 @@
+<h1 mat-dialog-title>{{data.title}}
+</h1>
+<div mat-dialog-content>
+    <p *ngFor="let line of data.msg">{{ line }}</p>
+    <img [src]="data.img" height="300" />
+</div>
+<div mat-dialog-actions>
+    <button mat-button [mat-dialog-close]="true">Close</button>
+</div>
