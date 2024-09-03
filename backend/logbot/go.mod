@@ -2,6 +2,7 @@ module github.com/curtisnewbie/log-bot
 
 go 1.18
 
+// TODO: Upgrade miso to use replace for user-vault
 require (
 	github.com/curtisnewbie/miso v0.0.33
 	github.com/curtisnewbie/user-vault v0.0.22-0.20240603100433-98ebe0bb3b31
