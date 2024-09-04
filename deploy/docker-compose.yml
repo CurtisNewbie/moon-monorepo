@@ -150,9 +150,8 @@ services:
       - /services/nginx/html:/usr/share/nginx/html
       - /services/nginx/logs:/var/log/nginx
     ports:
-      - "0.0.0.0:443:443"
-      - "0.0.0.0:3000:3000"
-      - "0.0.0.0:3100:3100"
+      - "0.0.0.0:443:443"   # for our website
+      - "0.0.0.0:3000:3000" # for grafana
     networks:
       - backend
     restart: always
