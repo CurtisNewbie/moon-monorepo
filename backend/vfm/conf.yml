@@ -21,7 +21,8 @@ server:
   web.enabled: true
   host: localhost
   port: 8086
-  gracefulShutdownTimeSec: 5
+  generate-endpoint-doc:
+    file: "./doc/api.md"
 
 consul:
   enabled: true
@@ -36,3 +37,9 @@ rabbitmq:
 vfm:
   site:
     host: "http://localhost:4200"
+
+client:
+  addr:
+    event-pump:
+      host: "localhost"
+      port: "8088"

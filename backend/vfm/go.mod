@@ -9,16 +9,12 @@ require (
 )
 
 require (
-	github.com/curtisnewbie/miso v0.1.4
-	github.com/curtisnewbie/mini-fstore v0.0.0
-	github.com/curtisnewbie/user-vault v0.0.0
+	github.com/curtisnewbie/event-pump v0.0.11
+	github.com/curtisnewbie/mini-fstore v0.1.18
+	github.com/curtisnewbie/miso v0.1.7-beta.1
+	github.com/curtisnewbie/user-vault v0.0.23
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	golang.org/x/net v0.25.0
-)
-
-replace (
-	github.com/curtisnewbie/user-vault => ../user-vault
-	github.com/curtisnewbie/mini-fstore => ../mini-fstore
 )
 
 require (

@@ -15,7 +15,7 @@ import (
 
 // Gallery
 type Gallery struct {
-	ID         int64
+	Id         int64
 	GalleryNo  string
 	UserNo     string
 	Name       string

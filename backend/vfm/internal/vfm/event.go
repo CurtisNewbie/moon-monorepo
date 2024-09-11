@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	ep "github.com/curtisnewbie/event-pump/client"
 	fstore "github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
@@ -30,9 +31,9 @@ var (
 	CompressImgNotifyPipeline       = rabbit.NewEventPipeline[fstore.ImageCompressReplyEvent](CompressImgNotifyEventBus)
 	AddFileToVFolderPipeline        = rabbit.NewEventPipeline[AddFileToVfolderEvent](AddFileToVFolderEventBus)
 	CalcDirSizePipeline             = rabbit.NewEventPipeline[CalcDirSizeEvt](CalcDirSizeEventBus)
-	FileLDeletedPipeline            = rabbit.NewEventPipeline[StreamEvent](FileLDeletedEventBus)
-	ThumbnailUpdatedPipeline        = rabbit.NewEventPipeline[StreamEvent](ThumbnailUpdatedEventBus)
-	FileSavedPipeline               = rabbit.NewEventPipeline[StreamEvent](FileSavedEventBus)
+	FileLDeletedPipeline            = rabbit.NewEventPipeline[ep.StreamEvent](FileLDeletedEventBus)
+	ThumbnailUpdatedPipeline        = rabbit.NewEventPipeline[ep.StreamEvent](ThumbnailUpdatedEventBus)
+	FileSavedPipeline               = rabbit.NewEventPipeline[ep.StreamEvent](FileSavedEventBus)
 	AddDirGalleryImgPipeline        = rabbit.NewEventPipeline[CreateGalleryImgEvent](AddDirGalleryImgEventBus)
 	SyncGalleryFileDeletedPipeline  = rabbit.NewEventPipeline[NotifyFileDeletedEvent](SyncGalleryFileDeletedEventBus)
 )
@@ -55,25 +56,11 @@ type NotifyFileDeletedEvent struct {
 	FileKey string `json:"fileKey"`
 }
 
-type StreamEvent struct {
-	Timestamp uint32                       `json:"timestamp"` // epoch time second
-	Schema    string                       `json:"schema"`
-	Table     string                       `json:"table"`
-	Type      string                       `json:"type"`    // INS-INSERT, UPD-UPDATE, DEL-DELETE
-	Columns   map[string]StreamEventColumn `json:"columns"` // key is the column name
-}
-
-type StreamEventColumn struct {
-	DataType string `json:"dataType"`
-	Before   string `json:"before"`
-	After    string `json:"after"`
-}
-
 // event-pump send binlog event when a file_info record is saved.
 // vfm guesses if the file is an image by file name,
 // if so, vfm sends events to hammer to compress the image as a thumbnail
-func OnFileSaved(rail miso.Rail, evt StreamEvent) error {
-	if evt.Type != "INS" {
+func OnFileSaved(rail miso.Rail, evt ep.StreamEvent) error {
+	if evt.Type != ep.EventTypeInsert {
 		return nil
 	}
 
@@ -171,21 +158,19 @@ func OnThumbnailGenerated(rail miso.Rail, tx *gorm.DB, identifier string, fileId
 // vfm receives the event and check if the file has a thumbnail,
 // if so, sends events to fantahsea to create a gallery image,
 // adding current image to the gallery for its directory
-func OnThumbnailUpdated(rail miso.Rail, evt StreamEvent) error {
-	if evt.Type != "UPD" {
+func OnThumbnailUpdated(rail miso.Rail, evt ep.StreamEvent) error {
+	if evt.Type != ep.EventTypeUpdate {
 		return nil
 	}
 
-	var uuid string
-	uuidCol, ok := evt.Columns["uuid"]
+	uuid, ok := evt.ColumnAfter("uuid")
 	if !ok {
 		rail.Errorf("Event doesn't contain uuid column, %+v", evt)
 		return nil
 	}
-	uuid = uuidCol.After
 
-	thumbnailCol, ok := evt.Columns["thumbnail"]
-	if !ok || thumbnailCol.After == "" {
+	thumbnail, ok := evt.ColumnAfter("thumbnail")
+	if !ok || thumbnail == "" {
 		return nil
 	}
 
@@ -238,26 +223,24 @@ func OnThumbnailUpdated(rail miso.Rail, evt StreamEvent) error {
 
 // event-pump send binlog event when a file_info is deleted (is_logic_deleted changed)
 // vfm notifies fantahsea about the delete
-func OnFileDeleted(rail miso.Rail, evt StreamEvent) error {
-	if evt.Type != "UPD" {
+func OnFileDeleted(rail miso.Rail, evt ep.StreamEvent) error {
+	if evt.Type != ep.EventTypeUpdate {
 		return nil
 	}
 
-	var uuid string
-	uuidCol, ok := evt.Columns["uuid"]
+	uuid, ok := evt.ColumnAfter("uuid")
 	if !ok {
-		rail.Errorf("Event doesn't contain uuid, %+v", evt)
+		rail.Errorf("Event doesn't contain uuid column, %+v", evt)
 		return nil
 	}
-	uuid = uuidCol.After
 
-	isLogicDeletedCol, ok := evt.Columns["is_logic_deleted"]
+	isLogicDeleted, ok := evt.ColumnAfter("is_logic_deleted")
 	if !ok {
 		rail.Errorf("Event doesn't contain is_logic_deleted, %+v", evt)
 		return nil
 	}
 
-	if isLogicDeletedCol.After != "1" { // FILE_LDEL_Y
+	if isLogicDeleted != "1" { // FILE_LDEL_Y
 		return nil
 	}
 

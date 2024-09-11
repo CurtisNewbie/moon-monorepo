@@ -22,6 +22,7 @@ func PrepareServer() {
 	miso.PreServerBootstrap(PrepareEventBus)
 	miso.PreServerBootstrap(RegisterHttpRoutes)
 	miso.PreServerBootstrap(MakeTempDirs)
+	miso.PostServerBootstrapped(SubscribeBinlogChanges)
 }
 
 func BootstrapServer(args []string) {

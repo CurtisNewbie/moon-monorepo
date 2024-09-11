@@ -43,3 +43,9 @@ logging:
 vfm:
   site:
     host: "${SITE_HOST}"
+
+client:
+  addr:
+    event-pump:
+      host: "event-pump"
+      port: "8088"

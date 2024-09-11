@@ -4,8 +4,8 @@
   - Description: Preflight check for duplicate file uploads
   - Bound to Resource: `"manage-files"`
   - Query Parameter:
-    - "fileName":
-    - "parentFileKey":
+    - "fileName": 
+    - "parentFileKey": 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -38,7 +38,7 @@
 
     let fileName: any | null = null;
     let parentFileKey: any | null = null;
-    this.http.get<any>(`/open/api/file/upload/duplication/preflight?fileName=${fileName}&parentFileKey=${parentFileKey}`)
+    this.http.get<any>(`/vfm/open/api/file/upload/duplication/preflight?fileName=${fileName}&parentFileKey=${parentFileKey}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -58,14 +58,14 @@
   - Description: User fetch parent file info
   - Bound to Resource: `"manage-files"`
   - Query Parameter:
-    - "fileKey":
+    - "fileKey": 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (*vfm.ParentFileInfo) response data
-      - "fileKey": (string)
-      - "fileName": (string)
+      - "fileKey": (string) 
+      - "fileName": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8086/open/api/file/parent?fileKey='
@@ -96,7 +96,7 @@
     ) {}
 
     let fileKey: any | null = null;
-    this.http.get<any>(`/open/api/file/parent?fileKey=${fileKey}`)
+    this.http.get<any>(`/vfm/open/api/file/parent?fileKey=${fileKey}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -116,8 +116,8 @@
   - Description: User move files into directory
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "uuid": (string)
-    - "parentFileUuid": (string)
+    - "uuid": (string) 
+    - "parentFileUuid": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -157,7 +157,7 @@
     ) {}
 
     let req: MoveIntoDirReq | null = null;
-    this.http.post<any>(`/open/api/file/move-to-dir`, req)
+    this.http.post<any>(`/vfm/open/api/file/move-to-dir`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -176,8 +176,8 @@
   - Description: User make directory
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "parentFile": (string)
-    - "name": (string)
+    - "parentFile": (string) 
+    - "name": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -187,7 +187,7 @@
     ```sh
     curl -X POST 'http://localhost:8086/open/api/file/make-dir' \
       -H 'Content-Type: application/json' \
-      -d '{"parentFile":"","name":""}'
+      -d '{"name":"","parentFile":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -219,7 +219,7 @@
     ) {}
 
     let req: MakeDirReq | null = null;
-    this.http.post<any>(`/open/api/file/make-dir`, req)
+    this.http.post<any>(`/vfm/open/api/file/make-dir`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -243,9 +243,9 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]vfm.ListedDir) response data
-      - "id": (int)
-      - "uuid": (string)
-      - "name": (string)
+      - "id": (int) 
+      - "uuid": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8086/open/api/file/dir/list'
@@ -276,7 +276,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/file/dir/list`)
+    this.http.get<any>(`/vfm/open/api/file/dir/list`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -296,15 +296,15 @@
   - Description: User list files
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "filename": (*string)
-    - "folderNo": (*string)
-    - "fileType": (*string)
-    - "parentFile": (*string)
-    - "sensitive": (*bool)
+    - "filename": (*string) 
+    - "folderNo": (*string) 
+    - "fileType": (*string) 
+    - "parentFile": (*string) 
+    - "sensitive": (*bool) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -315,22 +315,22 @@
         - "page": (int) page number, 1-based
         - "total": (int) total count
       - "payload": ([]vfm.ListedFile) payload values in current page
-        - "id": (int)
-        - "uuid": (string)
-        - "name": (string)
-        - "uploadTime": (int64)
-        - "uploaderName": (string)
-        - "sizeInBytes": (int64)
-        - "fileType": (string)
-        - "updateTime": (int64)
-        - "parentFileName": (string)
-        - "sensitiveMode": (string)
-        - "thumbnailToken": (string)
+        - "id": (int) 
+        - "uuid": (string) 
+        - "name": (string) 
+        - "uploadTime": (int64) 
+        - "uploaderName": (string) 
+        - "sizeInBytes": (int64) 
+        - "fileType": (string) 
+        - "updateTime": (int64) 
+        - "parentFileName": (string) 
+        - "sensitiveMode": (string) 
+        - "thumbnailToken": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8086/open/api/file/list' \
       -H 'Content-Type: application/json' \
-      -d '{"paging":{"limit":0,"page":0,"total":0},"filename":"","folderNo":"","fileType":"","parentFile":"","sensitive":false}'
+      -d '{"fileType":"","filename":"","folderNo":"","paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -393,7 +393,7 @@
     ) {}
 
     let req: ListFileReq | null = null;
-    this.http.post<any>(`/open/api/file/list`, req)
+    this.http.post<any>(`/vfm/open/api/file/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -413,7 +413,7 @@
   - Description: User delete file
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "uuid": (string)
+    - "uuid": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -452,7 +452,7 @@
     ) {}
 
     let req: DeleteFileReq | null = null;
-    this.http.post<any>(`/open/api/file/delete`, req)
+    this.http.post<any>(`/vfm/open/api/file/delete`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -471,7 +471,7 @@
   - Description: User delete truncate directory recursively
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "uuid": (string)
+    - "uuid": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -510,7 +510,7 @@
     ) {}
 
     let req: DeleteFileReq | null = null;
-    this.http.post<any>(`/open/api/file/dir/truncate`, req)
+    this.http.post<any>(`/vfm/open/api/file/dir/truncate`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -529,7 +529,7 @@
   - Description: User delete file in batch
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "fileKeys": ([]string)
+    - "fileKeys": ([]string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -568,7 +568,7 @@
     ) {}
 
     let req: BatchDeleteFileReq | null = null;
-    this.http.post<any>(`/open/api/file/delete/batch`, req)
+    this.http.post<any>(`/vfm/open/api/file/delete/batch`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -587,9 +587,9 @@
   - Description: User create file
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "filename": (string)
-    - "fstoreFileId": (string)
-    - "parentFile": (string)
+    - "filename": (string) 
+    - "fstoreFileId": (string) 
+    - "parentFile": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -630,7 +630,7 @@
     ) {}
 
     let req: CreateFileReq | null = null;
-    this.http.post<any>(`/open/api/file/create`, req)
+    this.http.post<any>(`/vfm/open/api/file/create`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -649,9 +649,9 @@
   - Description: User update file
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "id": (int)
-    - "name": (string)
-    - "sensitiveMode": (string)
+    - "id": (int) 
+    - "name": (string) 
+    - "sensitiveMode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -692,7 +692,7 @@
     ) {}
 
     let req: UpdateFileReq | null = null;
-    this.http.post<any>(`/open/api/file/info/update`, req)
+    this.http.post<any>(`/vfm/open/api/file/info/update`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -711,7 +711,7 @@
   - Description: User generate temporary token
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "fileKey": (string)
+    - "fileKey": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -752,7 +752,7 @@
     ) {}
 
     let req: GenerateTempTokenReq | null = null;
-    this.http.post<any>(`/open/api/file/token/generate`, req)
+    this.http.post<any>(`/vfm/open/api/file/token/generate`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -772,8 +772,8 @@
   - Description: User unpack zip
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "fileKey": (string)
-    - "parentFileKey": (string)
+    - "fileKey": (string) 
+    - "parentFileKey": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -813,7 +813,7 @@
     ) {}
 
     let req: UnpackZipReq | null = null;
-    this.http.post<any>(`/open/api/file/unpack`, req)
+    this.http.post<any>(`/vfm/open/api/file/unpack`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -849,7 +849,7 @@
     ) {}
 
     let token: any | null = null;
-    this.http.get<any>(`/open/api/file/token/qrcode?token=${token}`)
+    this.http.get<any>(`/vfm/open/api/file/token/qrcode?token=${token}`)
       .subscribe({
         next: () => {
         },
@@ -868,8 +868,8 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]vfm.VFolderBrief) response data
-      - "folderNo": (string)
-      - "name": (string)
+      - "folderNo": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8086/open/api/vfolder/brief/owned'
@@ -899,7 +899,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/vfolder/brief/owned`)
+    this.http.get<any>(`/vfm/open/api/vfolder/brief/owned`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -919,34 +919,34 @@
   - Description: User list virtual folders
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "name": (string)
+    - "name": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ListVFolderRes) response data
-      - "paging": (Paging)
+      - "paging": (Paging) 
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vfm.ListedVFolder)
-        - "id": (int)
-        - "folderNo": (string)
-        - "name": (string)
-        - "createTime": (int64)
-        - "createBy": (string)
-        - "updateTime": (int64)
-        - "updateBy": (string)
-        - "ownership": (string)
+      - "payload": ([]vfm.ListedVFolder) 
+        - "id": (int) 
+        - "folderNo": (string) 
+        - "name": (string) 
+        - "createTime": (int64) 
+        - "createBy": (string) 
+        - "updateTime": (int64) 
+        - "updateBy": (string) 
+        - "ownership": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8086/open/api/vfolder/list' \
       -H 'Content-Type: application/json' \
-      -d '{"paging":{"limit":0,"page":0,"total":0},"name":""}'
+      -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1002,7 +1002,7 @@
     ) {}
 
     let req: ListVFolderReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/list`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1022,7 +1022,7 @@
   - Description: User create virtual folder
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "name": (string)
+    - "name": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1063,7 +1063,7 @@
     ) {}
 
     let req: CreateVFolderReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/create`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/create`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1083,8 +1083,8 @@
   - Description: User add file to virtual folder
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "folderNo": (string)
-    - "fileKeys": ([]string)
+    - "folderNo": (string) 
+    - "fileKeys": ([]string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1093,7 +1093,7 @@
     ```sh
     curl -X POST 'http://localhost:8086/open/api/vfolder/file/add' \
       -H 'Content-Type: application/json' \
-      -d '{"folderNo":"","fileKeys":[]}'
+      -d '{"fileKeys":[],"folderNo":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1124,7 +1124,7 @@
     ) {}
 
     let req: AddFileToVfolderReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/file/add`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/file/add`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1143,8 +1143,8 @@
   - Description: User remove file from virtual folder
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "folderNo": (string)
-    - "fileKeys": ([]string)
+    - "folderNo": (string) 
+    - "fileKeys": ([]string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1184,7 +1184,7 @@
     ) {}
 
     let req: RemoveFileFromVfolderReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/file/remove`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/file/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1203,8 +1203,8 @@
   - Description: Share access to virtual folder
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "folderNo": (string)
-    - "username": (string)
+    - "folderNo": (string) 
+    - "username": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1213,7 +1213,7 @@
     ```sh
     curl -X POST 'http://localhost:8086/open/api/vfolder/share' \
       -H 'Content-Type: application/json' \
-      -d '{"username":"","folderNo":""}'
+      -d '{"folderNo":"","username":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1244,7 +1244,7 @@
     ) {}
 
     let req: ShareVfolderReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/share`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/share`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1263,8 +1263,8 @@
   - Description: Remove granted access to virtual folder
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "folderNo": (string)
-    - "userNo": (string)
+    - "folderNo": (string) 
+    - "userNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1304,7 +1304,7 @@
     ) {}
 
     let req: RemoveGrantedFolderAccessReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/access/remove`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/access/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1323,29 +1323,29 @@
   - Description: List granted access to virtual folder
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "folderNo": (string)
+    - "folderNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ListGrantedFolderAccessRes) response data
-      - "paging": (Paging)
+      - "paging": (Paging) 
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vfm.ListedFolderAccess)
-        - "userNo": (string)
-        - "username": (string)
-        - "createTime": (int64)
+      - "payload": ([]vfm.ListedFolderAccess) 
+        - "userNo": (string) 
+        - "username": (string) 
+        - "createTime": (int64) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8086/open/api/vfolder/granted/list' \
       -H 'Content-Type: application/json' \
-      -d '{"paging":{"total":0,"limit":0,"page":0},"folderNo":""}'
+      -d '{"folderNo":"","paging":{"limit":0,"page":0,"total":0}}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1396,7 +1396,7 @@
     ) {}
 
     let req: ListGrantedFolderAccessReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/granted/list`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/granted/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1416,7 +1416,7 @@
   - Description: Remove virtual folder
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "folderNo": (string)
+    - "folderNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1455,7 +1455,7 @@
     ) {}
 
     let req: RemoveVFolderReq | null = null;
-    this.http.post<any>(`/open/api/vfolder/remove`, req)
+    this.http.post<any>(`/vfm/open/api/vfolder/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1478,8 +1478,8 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]vfm.VGalleryBrief) response data
-      - "galleryNo": (string)
-      - "name": (string)
+      - "galleryNo": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8086/open/api/gallery/brief/owned'
@@ -1509,7 +1509,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/gallery/brief/owned`)
+    this.http.get<any>(`/vfm/open/api/gallery/brief/owned`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1529,22 +1529,22 @@
   - Description: Create new gallery
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "name": (string)
+    - "name": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (*vfm.Gallery) response data
-      - "iD": (int64)
-      - "galleryNo": (string)
-      - "userNo": (string)
-      - "name": (string)
-      - "dirFileKey": (string)
-      - "createTime": (int64)
-      - "createBy": (string)
-      - "updateTime": (int64)
-      - "updateBy": (string)
-      - "isDel": (bool)
+      - "id": (int64) 
+      - "galleryNo": (string) 
+      - "userNo": (string) 
+      - "name": (string) 
+      - "dirFileKey": (string) 
+      - "createTime": (int64) 
+      - "createBy": (string) 
+      - "updateTime": (int64) 
+      - "updateBy": (string) 
+      - "isDel": (bool) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8086/open/api/gallery/new' \
@@ -1568,7 +1568,7 @@
       data?: Gallery
     }
     export interface Gallery {
-      iD?: number
+      id?: number
       galleryNo?: string
       userNo?: string
       name?: string
@@ -1592,7 +1592,7 @@
     ) {}
 
     let req: CreateGalleryCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/new`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/new`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1612,8 +1612,8 @@
   - Description: Update gallery
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "galleryNo": (string)
-    - "name": (string)
+    - "galleryNo": (string) 
+    - "name": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1653,7 +1653,7 @@
     ) {}
 
     let req: UpdateGalleryCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/update`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/update`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1672,7 +1672,7 @@
   - Description: Delete gallery
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "galleryNo": (string)
+    - "galleryNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1711,7 +1711,7 @@
     ) {}
 
     let req: DeleteGalleryCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/delete`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/delete`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1730,7 +1730,7 @@
   - Description: List galleries
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -1744,15 +1744,15 @@
         - "page": (int) page number, 1-based
         - "total": (int) total count
       - "payload": ([]vfm.VGallery) payload values in current page
-        - "id": (int64)
-        - "galleryNo": (string)
-        - "userNo": (string)
-        - "name": (string)
-        - "createBy": (string)
-        - "updateBy": (string)
-        - "isOwner": (bool)
-        - "createTime": (string)
-        - "updateTime": (string)
+        - "id": (int64) 
+        - "galleryNo": (string) 
+        - "userNo": (string) 
+        - "name": (string) 
+        - "createBy": (string) 
+        - "updateBy": (string) 
+        - "isOwner": (bool) 
+        - "createTime": (string) 
+        - "updateTime": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8086/open/api/gallery/list' \
@@ -1813,7 +1813,7 @@
     ) {}
 
     let req: ListGalleriesCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/list`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1833,8 +1833,8 @@
   - Description: Grant access to the galleries
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "galleryNo": (string)
-    - "username": (string)
+    - "galleryNo": (string) 
+    - "username": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1874,7 +1874,7 @@
     ) {}
 
     let req: PermitGalleryAccessCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/access/grant`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/access/grant`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1893,8 +1893,8 @@
   - Description: Remove access to the galleries
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "galleryNo": (string)
-    - "userNo": (string)
+    - "galleryNo": (string) 
+    - "userNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1934,7 +1934,7 @@
     ) {}
 
     let req: RemoveGalleryAccessCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/access/remove`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/access/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1953,8 +1953,8 @@
   - Description: List granted access to the galleries
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "galleryNo": (string)
-    - "paging": (Paging)
+    - "galleryNo": (string) 
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -1968,11 +1968,11 @@
         - "page": (int) page number, 1-based
         - "total": (int) total count
       - "payload": ([]vfm.ListedGalleryAccessRes) payload values in current page
-        - "id": (int)
-        - "galleryNo": (string)
-        - "userNo": (string)
-        - "username": (string)
-        - "createTime": (int64)
+        - "id": (int) 
+        - "galleryNo": (string) 
+        - "userNo": (string) 
+        - "username": (string) 
+        - "createTime": (int64) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8086/open/api/gallery/access/list' \
@@ -2030,7 +2030,7 @@
     ) {}
 
     let req: ListGrantedGalleryAccessCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/access/list`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/access/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2050,8 +2050,8 @@
   - Description: List images of gallery
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "galleryNo": (string)
-    - "paging": (Paging)
+    - "galleryNo": (string) 
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -2060,10 +2060,10 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (*vfm.ListGalleryImagesResp) response data
-      - "images": ([]vfm.ImageInfo)
-        - "thumbnailToken": (string)
-        - "fileTempToken": (string)
-      - "paging": (Paging)
+      - "images": ([]vfm.ImageInfo) 
+        - "thumbnailToken": (string) 
+        - "fileTempToken": (string) 
+      - "paging": (Paging) 
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
@@ -2121,7 +2121,7 @@
     ) {}
 
     let req: ListGalleryImagesCmd | null = null;
-    this.http.post<any>(`/open/api/gallery/images`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/images`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2141,10 +2141,10 @@
   - Description: Host selected images on gallery
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "images": ([]vfm.CreateGalleryImageCmd)
-      - "galleryNo": (string)
-      - "name": (string)
-      - "fileKey": (string)
+    - "images": ([]vfm.CreateGalleryImageCmd) 
+      - "galleryNo": (string) 
+      - "name": (string) 
+      - "fileKey": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2153,7 +2153,7 @@
     ```sh
     curl -X POST 'http://localhost:8086/open/api/gallery/image/transfer' \
       -H 'Content-Type: application/json' \
-      -d '{"images":{"name":"","fileKey":"","galleryNo":""}}'
+      -d '{"images":{"fileKey":"","galleryNo":"","name":""}}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2188,7 +2188,7 @@
     ) {}
 
     let req: TransferGalleryImageReq | null = null;
-    this.http.post<any>(`/open/api/gallery/image/transfer`, req)
+    this.http.post<any>(`/vfm/open/api/gallery/image/transfer`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2234,7 +2234,7 @@
     ```sh
     curl -X POST 'http://localhost:8086/open/api/versioned-file/list' \
       -H 'Content-Type: application/json' \
-      -d '{"paging":{"limit":0,"page":0,"total":0},"name":""}'
+      -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2290,7 +2290,7 @@
     ) {}
 
     let req: ApiListVerFileReq | null = null;
-    this.http.post<any>(`/open/api/versioned-file/list`, req)
+    this.http.post<any>(`/vfm/open/api/versioned-file/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2387,7 +2387,7 @@
     ) {}
 
     let req: ApiListVerFileHistoryReq | null = null;
-    this.http.post<any>(`/open/api/versioned-file/history`, req)
+    this.http.post<any>(`/vfm/open/api/versioned-file/history`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2452,7 +2452,7 @@
     ) {}
 
     let req: ApiQryVerFileAccuSizeReq | null = null;
-    this.http.post<any>(`/open/api/versioned-file/accumulated-size`, req)
+    this.http.post<any>(`/vfm/open/api/versioned-file/accumulated-size`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2472,8 +2472,8 @@
   - Description: Create versioned file
   - Bound to Resource: `"manage-files"`
   - JSON Request:
-    - "filename": (string)
-    - "fstoreFileId": (string)
+    - "filename": (string) 
+    - "fstoreFileId": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2519,7 +2519,7 @@
     ) {}
 
     let req: ApiCreateVerFileReq | null = null;
-    this.http.post<any>(`/open/api/versioned-file/create`, req)
+    this.http.post<any>(`/vfm/open/api/versioned-file/create`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2540,8 +2540,8 @@
   - Bound to Resource: `"manage-files"`
   - JSON Request:
     - "verFileId": (string) versioned file id
-    - "filename": (string)
-    - "fstoreFileId": (string)
+    - "filename": (string) 
+    - "fstoreFileId": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2550,7 +2550,7 @@
     ```sh
     curl -X POST 'http://localhost:8086/open/api/versioned-file/update' \
       -H 'Content-Type: application/json' \
-      -d '{"verFileId":"","filename":"","fstoreFileId":""}'
+      -d '{"filename":"","fstoreFileId":"","verFileId":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2582,7 +2582,7 @@
     ) {}
 
     let req: ApiUpdateVerFileReq | null = null;
-    this.http.post<any>(`/open/api/versioned-file/update`, req)
+    this.http.post<any>(`/vfm/open/api/versioned-file/update`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2640,7 +2640,7 @@
     ) {}
 
     let req: ApiDelVerFileReq | null = null;
-    this.http.post<any>(`/open/api/versioned-file/delete`, req)
+    this.http.post<any>(`/vfm/open/api/versioned-file/delete`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2685,7 +2685,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/compensate/thumbnail`)
+    this.http.post<any>(`/vfm/compensate/thumbnail`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2730,7 +2730,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/compensate/dir/calculate-size`)
+    this.http.post<any>(`/vfm/compensate/dir/calculate-size`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2776,7 +2776,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.put<any>(`/bookmark/file/upload`)
+    this.http.put<any>(`/vfm/bookmark/file/upload`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2795,8 +2795,8 @@
   - Description: List bookmarks
   - Bound to Resource: `"manage-bookmarks"`
   - JSON Request:
-    - "name": (*string)
-    - "paging": (Paging)
+    - "name": (*string) 
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -2844,7 +2844,7 @@
     ) {}
 
     let req: ListBookmarksReq | null = null;
-    this.http.post<any>(`/bookmark/list`, req)
+    this.http.post<any>(`/vfm/bookmark/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2863,7 +2863,7 @@
   - Description: Remove bookmark
   - Bound to Resource: `"manage-bookmarks"`
   - JSON Request:
-    - "id": (int64)
+    - "id": (int64) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2902,7 +2902,7 @@
     ) {}
 
     let req: RemoveBookmarkReq | null = null;
-    this.http.post<any>(`/bookmark/remove`, req)
+    this.http.post<any>(`/vfm/bookmark/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2921,8 +2921,8 @@
   - Description: List bookmark blacklist
   - Bound to Resource: `"manage-bookmarks"`
   - JSON Request:
-    - "name": (*string)
-    - "paging": (Paging)
+    - "name": (*string) 
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -2970,7 +2970,7 @@
     ) {}
 
     let req: ListBookmarksReq | null = null;
-    this.http.post<any>(`/bookmark/blacklist/list`, req)
+    this.http.post<any>(`/vfm/bookmark/blacklist/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2989,7 +2989,7 @@
   - Description: Remove bookmark blacklist
   - Bound to Resource: `"manage-bookmarks"`
   - JSON Request:
-    - "id": (int64)
+    - "id": (int64) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3028,7 +3028,7 @@
     ) {}
 
     let req: RemoveBookmarkReq | null = null;
-    this.http.post<any>(`/bookmark/blacklist/remove`, req)
+    this.http.post<any>(`/vfm/bookmark/blacklist/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -3051,10 +3051,10 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ResourceInfoRes) response data
-      - "resources": ([]auth.Resource)
+      - "resources": ([]auth.Resource) 
         - "name": (string) resource name
         - "code": (string) resource code, unique identifier
-      - "paths": ([]auth.Endpoint)
+      - "paths": ([]auth.Endpoint) 
         - "type": (string) access scope type: PROTECTED/PUBLIC
         - "url": (string) endpoint url
         - "group": (string) app name
@@ -3102,7 +3102,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/auth/resource`)
+    this.http.get<any>(`/vfm/auth/resource`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -3139,7 +3139,7 @@
     ) {}
 
     let authorization: any | null = null;
-    this.http.get<any>(`/metrics`,
+    this.http.get<any>(`/vfm/metrics`,
       {
         headers: {
           "Authorization": authorization
@@ -3171,7 +3171,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof`)
+    this.http.get<any>(`/vfm/debug/pprof`)
       .subscribe({
         next: () => {
         },
@@ -3198,7 +3198,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/:name`)
+    this.http.get<any>(`/vfm/debug/pprof/:name`)
       .subscribe({
         next: () => {
         },
@@ -3225,7 +3225,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/cmdline`)
+    this.http.get<any>(`/vfm/debug/pprof/cmdline`)
       .subscribe({
         next: () => {
         },
@@ -3252,7 +3252,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/profile`)
+    this.http.get<any>(`/vfm/debug/pprof/profile`)
       .subscribe({
         next: () => {
         },
@@ -3279,7 +3279,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/symbol`)
+    this.http.get<any>(`/vfm/debug/pprof/symbol`)
       .subscribe({
         next: () => {
         },
@@ -3306,7 +3306,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/trace`)
+    this.http.get<any>(`/vfm/debug/pprof/trace`)
       .subscribe({
         next: () => {
         },
@@ -3335,7 +3335,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/doc/api`)
+    this.http.get<any>(`/vfm/doc/api`)
       .subscribe({
         next: () => {
         },
