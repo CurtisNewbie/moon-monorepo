@@ -136,9 +136,11 @@ go run cmd/main.go
 
 > [!NOTE]
 >
-> The whole setup is based on docker-compose and this project is privately hosted on my machine. Below is some of the configuration examples. Instead of using `conf.yml`, you should be using `conf-prod.yml` instead, because most of the configurations are externalized. The `conf-prod.yml` configuration file uses `${...}` syntax to reads values from environment variables.
+> The whole setup is based on docker-compose and this project is privately hosted on my machine. Below includes examples of some of the configuration files.
+>
+> Instead of using `conf.yml`, you should be using `conf-prod.yml` instead, because most of the configurations are externalized.
 
-e.g., the example below loads `rabbitmq.host`, `rabbitmq.username`, `rabbitmq.password` from environment variables `RABBITMQ_ADDR=`, `RABBITMQ_USERNAME=`, and `RABBITMQ_PASSWORD=`.
+The `conf-prod.yml` configuration file uses `${...}` syntax to read values from environment variables. E.g., the example below loads `rabbitmq.host`, `rabbitmq.username`, `rabbitmq.password` from environment variables `RABBITMQ_ADDR=`, `RABBITMQ_USERNAME=`, and `RABBITMQ_PASSWORD=`.
 
 ```yaml
 rabbitmq:
