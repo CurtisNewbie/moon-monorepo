@@ -3,6 +3,8 @@ package vault
 import (
 	"testing"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
@@ -11,10 +13,10 @@ import (
 func before(t *testing.T) {
 	rail := miso.EmptyRail()
 	miso.LoadConfigFromFile("../app-conf-dev.yml", rail)
-	if _, e := miso.InitRedisFromProp(rail); e != nil {
+	if _, e := redis.InitRedisFromProp(rail); e != nil {
 		t.Fatal(e)
 	}
-	if e := miso.InitMySQLFromProp(rail); e != nil {
+	if e := mysql.InitMySQLFromProp(rail); e != nil {
 		t.Fatal(e)
 	}
 }

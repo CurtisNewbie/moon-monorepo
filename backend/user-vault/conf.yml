@@ -28,6 +28,8 @@ rabbitmq:
 server:
   host: localhost
   port: 8089
+  generate-endpoint-doc:
+    file: "./doc/api.md"
 
 consul:
   enabled: true
@@ -44,3 +46,9 @@ monitor:
   - service: "vfm"
   - service: "fstore"
   - service: "acct"
+
+client:
+  addr:
+    event-pump:
+      host: "localhost"
+      port: "8088"

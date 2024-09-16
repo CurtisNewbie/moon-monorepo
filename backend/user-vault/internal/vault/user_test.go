@@ -4,7 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/curtisnewbie/miso/middleware/crypto"
+	"github.com/curtisnewbie/miso/middleware/jwt"
+	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
@@ -20,14 +22,14 @@ func preTest(t *testing.T) miso.Rail {
 
 func preUserTest(t *testing.T) miso.Rail {
 	rail := preTest(t)
-	if miso.InitMySQLFromProp(rail) != nil {
+	if mysql.InitMySQLFromProp(rail) != nil {
 		t.FailNow()
 	}
 	if e := miso.InitConsulClient(); e != nil {
 		t.Log(e)
 		t.FailNow()
 	}
-	if _, e := miso.InitRedisFromProp(rail); e != nil {
+	if _, e := redis.InitRedisFromProp(rail); e != nil {
 		t.Log(e)
 		t.FailNow()
 	}
@@ -55,7 +57,7 @@ func TestUserLogin(t *testing.T) {
 	uname := "banana"
 	pword := "12345678"
 
-	usr, err := userLogin(rail, miso.GetMySQL(), uname, pword)
+	usr, err := userLogin(rail, mysql.GetMySQL(), uname, pword)
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -75,7 +77,7 @@ func TestUserLogin(t *testing.T) {
 	}
 	t.Logf("tkn: %+v", tkn)
 
-	decoded, err := crypto.JwtDecode(tkn)
+	decoded, err := jwt.JwtDecode(tkn)
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -92,7 +94,7 @@ func TestUserLogin(t *testing.T) {
 
 func TestAdminAddUser(t *testing.T) {
 	rail := preUserTest(t)
-	e := NewUser(rail, miso.GetMySQL(), CreateUserParam{
+	e := NewUser(rail, mysql.GetMySQL(), CreateUserParam{
 		Username:     "dummydummy2",
 		Password:     "12345678",
 		RoleNo:       "role_628043111874560208429",
@@ -105,7 +107,7 @@ func TestAdminAddUser(t *testing.T) {
 
 func TestListUsers(t *testing.T) {
 	rail := preUserTest(t)
-	users, err := ListUsers(rail, miso.GetMySQL(), ListUserReq{})
+	users, err := ListUsers(rail, mysql.GetMySQL(), ListUserReq{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +116,7 @@ func TestListUsers(t *testing.T) {
 
 func TestAdminUpdateUser(t *testing.T) {
 	rail := preUserTest(t)
-	err := AdminUpdateUser(rail, miso.GetMySQL(), AdminUpdateUserReq{
+	err := AdminUpdateUser(rail, mysql.GetMySQL(), AdminUpdateUserReq{
 		UserNo:     "",
 		RoleNo:     "role_628043111874560208429",
 		IsDisabled: 0,
@@ -126,7 +128,7 @@ func TestAdminUpdateUser(t *testing.T) {
 
 func TestReviewUserRegistration(t *testing.T) {
 	rail := preUserTest(t)
-	err := ReviewUserRegistration(rail, miso.GetMySQL(), AdminReviewUserReq{
+	err := ReviewUserRegistration(rail, mysql.GetMySQL(), AdminReviewUserReq{
 		UserId:       1107,
 		ReviewStatus: api.ReviewApproved,
 	})
@@ -137,7 +139,7 @@ func TestReviewUserRegistration(t *testing.T) {
 
 func TestLoadUserInfoBrief(t *testing.T) {
 	rail := preUserTest(t)
-	uib, err := LoadUserInfoBrief(rail, miso.GetMySQL(), "dummydummy2")
+	uib, err := LoadUserInfoBrief(rail, mysql.GetMySQL(), "dummydummy2")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +148,7 @@ func TestLoadUserInfoBrief(t *testing.T) {
 
 func TestFindUserWithRes(t *testing.T) {
 	rail := preUserTest(t)
-	u, err := FindUserWithRes(rail, miso.GetMySQL(), api.FetchUserWithResourceReq{
+	u, err := FindUserWithRes(rail, mysql.GetMySQL(), api.FetchUserWithResourceReq{
 		ResourceCode: "manage-resources",
 	})
 	if err != nil {

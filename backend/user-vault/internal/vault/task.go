@@ -1,12 +1,13 @@
 package vault
 
 import (
+	"github.com/curtisnewbie/miso/middleware/task"
 	"github.com/curtisnewbie/miso/miso"
 )
 
 func ScheduleTasks(rail miso.Rail) error {
 	// distributed tasks
-	var err error = miso.ScheduleDistributedTask(miso.Job{
+	var err error = task.ScheduleDistributedTask(miso.Job{
 		Cron:                   "*/15 * * * *",
 		CronWithSeconds:        false,
 		Name:                   "LoadRoleResCacheTask",
@@ -16,7 +17,7 @@ func ScheduleTasks(rail miso.Rail) error {
 	if err != nil {
 		return err
 	}
-	err = miso.ScheduleDistributedTask(miso.Job{
+	err = task.ScheduleDistributedTask(miso.Job{
 		Cron:                   "*/15 * * * *",
 		CronWithSeconds:        false,
 		Name:                   "LoadPathResCacheTask",

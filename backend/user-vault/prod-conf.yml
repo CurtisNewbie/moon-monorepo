@@ -47,3 +47,9 @@ monitor:
   - service: "vfm"
   - service: "fstore"
   - service: "acct"
+
+client:
+  addr:
+    event-pump:
+      host: "event-pump"
+      port: "8088"

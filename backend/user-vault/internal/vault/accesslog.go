@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -51,7 +52,7 @@ type ListAccessLogReq struct {
 }
 
 func ListAccessLogs(rail miso.Rail, tx *gorm.DB, user common.User, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
-	return miso.NewPageQuery[ListedAccessLog]().
+	return mysql.NewPageQuery[ListedAccessLog]().
 		WithPage(req.Paging).
 		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
 			return tx.Select("id", "access_time", "ip_address", "username", "url", "user_agent", "success").

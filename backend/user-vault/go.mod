@@ -3,7 +3,8 @@ module github.com/curtisnewbie/user-vault
 go 1.20
 
 require (
-	github.com/curtisnewbie/miso v0.1.0
+	github.com/curtisnewbie/event-pump v0.0.13-0.20240916123049-b333ce31742d
+	github.com/curtisnewbie/miso v0.1.8
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.6.0
 	gorm.io/gorm v1.23.8
@@ -63,11 +64,11 @@ require (
 	github.com/spf13/viper v1.14.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

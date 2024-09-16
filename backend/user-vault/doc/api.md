@@ -4,11 +4,11 @@
   - Description: User Login using password, a JWT token is generated and returned
   - Expected Access Scope: PUBLIC
   - Header Parameter:
-    - "x-forwarded-for":
-    - "user-agent":
+    - "x-forwarded-for": 
+    - "user-agent": 
   - JSON Request:
-    - "username": (string)
-    - "password": (string)
+    - "username": (string) 
+    - "password": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -20,7 +20,7 @@
       -H 'x-forwarded-for: ' \
       -H 'user-agent: ' \
       -H 'Content-Type: application/json' \
-      -d '{"username":"","password":""}'
+      -d '{"password":"","username":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -54,7 +54,7 @@
     let xForwardedFor: any | null = null;
     let userAgent: any | null = null;
     let req: LoginReq | null = null;
-    this.http.post<any>(`/open/api/user/login`, req,
+    this.http.post<any>(`/user-vault/open/api/user/login`, req,
       {
         headers: {
           "x-forwarded-for": xForwardedFor
@@ -80,8 +80,8 @@
   - Description: User request registration, approval needed
   - Expected Access Scope: PUBLIC
   - JSON Request:
-    - "username": (string)
-    - "password": (string)
+    - "username": (string) 
+    - "password": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -90,7 +90,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/register/request' \
       -H 'Content-Type: application/json' \
-      -d '{"username":"","password":""}'
+      -d '{"password":"","username":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -121,7 +121,7 @@
     ) {}
 
     let req: RegisterReq | null = null;
-    this.http.post<any>(`/open/api/user/register/request`, req)
+    this.http.post<any>(`/user-vault/open/api/user/register/request`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -140,9 +140,9 @@
   - Description: Admin create new user
   - Bound to Resource: `"manage-users"`
   - JSON Request:
-    - "username": (string)
-    - "password": (string)
-    - "roleNo": (string)
+    - "username": (string) 
+    - "password": (string) 
+    - "roleNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -151,7 +151,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/add' \
       -H 'Content-Type: application/json' \
-      -d '{"username":"","password":"","roleNo":""}'
+      -d '{"password":"","roleNo":"","username":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -183,7 +183,7 @@
     ) {}
 
     let req: AddUserParam | null = null;
-    this.http.post<any>(`/open/api/user/add`, req)
+    this.http.post<any>(`/user-vault/open/api/user/add`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -202,10 +202,10 @@
   - Description: Admin list users
   - Bound to Resource: `"manage-users"`
   - JSON Request:
-    - "username": (*string)
-    - "roleNo": (*string)
-    - "isDisabled": (*int)
-    - "paging": (Paging)
+    - "username": (*string) 
+    - "roleNo": (*string) 
+    - "isDisabled": (*int) 
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -219,22 +219,22 @@
         - "page": (int) page number, 1-based
         - "total": (int) total count
       - "payload": ([]api.UserInfo) payload values in current page
-        - "id": (int)
-        - "username": (string)
-        - "roleName": (string)
-        - "roleNo": (string)
-        - "userNo": (string)
-        - "reviewStatus": (string)
-        - "isDisabled": (int)
-        - "createTime": (int64)
-        - "createBy": (string)
-        - "updateTime": (int64)
-        - "updateBy": (string)
+        - "id": (int) 
+        - "username": (string) 
+        - "roleName": (string) 
+        - "roleNo": (string) 
+        - "userNo": (string) 
+        - "reviewStatus": (string) 
+        - "isDisabled": (int) 
+        - "createTime": (int64) 
+        - "createBy": (string) 
+        - "updateTime": (int64) 
+        - "updateBy": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/list' \
       -H 'Content-Type: application/json' \
-      -d '{"username":"","roleNo":"","isDisabled":0,"paging":{"limit":0,"page":0,"total":0}}'
+      -d '{"isDisabled":0,"paging":{"limit":0,"page":0,"total":0},"roleNo":"","username":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -295,7 +295,7 @@
     ) {}
 
     let req: ListUserReq | null = null;
-    this.http.post<any>(`/open/api/user/list`, req)
+    this.http.post<any>(`/user-vault/open/api/user/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -315,9 +315,9 @@
   - Description: Admin update user info
   - Bound to Resource: `"manage-users"`
   - JSON Request:
-    - "userNo": (string)
-    - "roleNo": (string)
-    - "isDisabled": (int)
+    - "userNo": (string) 
+    - "roleNo": (string) 
+    - "isDisabled": (int) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -326,7 +326,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/info/update' \
       -H 'Content-Type: application/json' \
-      -d '{"userNo":"","roleNo":"","isDisabled":0}'
+      -d '{"isDisabled":0,"roleNo":"","userNo":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -358,7 +358,7 @@
     ) {}
 
     let req: AdminUpdateUserReq | null = null;
-    this.http.post<any>(`/open/api/user/info/update`, req)
+    this.http.post<any>(`/user-vault/open/api/user/info/update`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -377,8 +377,8 @@
   - Description: Admin review user registration
   - Bound to Resource: `"manage-users"`
   - JSON Request:
-    - "userId": (int)
-    - "reviewStatus": (string)
+    - "userId": (int) 
+    - "reviewStatus": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -387,7 +387,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/registration/review' \
       -H 'Content-Type: application/json' \
-      -d '{"userId":0,"reviewStatus":""}'
+      -d '{"reviewStatus":"","userId":0}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -418,7 +418,7 @@
     ) {}
 
     let req: AdminReviewUserReq | null = null;
-    this.http.post<any>(`/open/api/user/registration/review`, req)
+    this.http.post<any>(`/user-vault/open/api/user/registration/review`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -441,12 +441,12 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (UserInfoRes) response data
-      - "id": (int)
-      - "username": (string)
-      - "roleName": (string)
-      - "roleNo": (string)
-      - "userNo": (string)
-      - "registerDate": (string)
+      - "id": (int) 
+      - "username": (string) 
+      - "roleName": (string) 
+      - "roleNo": (string) 
+      - "userNo": (string) 
+      - "registerDate": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8089/open/api/user/info'
@@ -480,7 +480,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/user/info`)
+    this.http.get<any>(`/user-vault/open/api/user/info`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -500,8 +500,8 @@
   - Description: User update password
   - Bound to Resource: `"basic-user"`
   - JSON Request:
-    - "prevPassword": (string)
-    - "newPassword": (string)
+    - "prevPassword": (string) 
+    - "newPassword": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -510,7 +510,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/password/update' \
       -H 'Content-Type: application/json' \
-      -d '{"prevPassword":"","newPassword":""}'
+      -d '{"newPassword":"","prevPassword":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -541,7 +541,7 @@
     ) {}
 
     let req: UpdatePasswordReq | null = null;
-    this.http.post<any>(`/open/api/user/password/update`, req)
+    this.http.post<any>(`/user-vault/open/api/user/password/update`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -560,7 +560,7 @@
   - Description: Exchange token
   - Expected Access Scope: PUBLIC
   - JSON Request:
-    - "token": (string)
+    - "token": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -601,7 +601,7 @@
     ) {}
 
     let req: ExchangeTokenReq | null = null;
-    this.http.post<any>(`/open/api/token/exchange`, req)
+    this.http.post<any>(`/user-vault/open/api/token/exchange`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -627,12 +627,12 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (UserInfoBrief) response data
-      - "id": (int)
-      - "username": (string)
-      - "roleName": (string)
-      - "roleNo": (string)
-      - "userNo": (string)
-      - "registerDate": (string)
+      - "id": (int) 
+      - "username": (string) 
+      - "roleName": (string) 
+      - "roleNo": (string) 
+      - "userNo": (string) 
+      - "registerDate": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8089/open/api/token/user?token='
@@ -667,7 +667,7 @@
     ) {}
 
     let token: any | null = null;
-    this.http.get<any>(`/open/api/token/user?token=${token}`)
+    this.http.get<any>(`/user-vault/open/api/token/user?token=${token}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -687,7 +687,7 @@
   - Description: User list access logs
   - Bound to Resource: `"basic-user"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -701,13 +701,13 @@
         - "page": (int) page number, 1-based
         - "total": (int) total count
       - "payload": ([]vault.ListedAccessLog) payload values in current page
-        - "id": (int)
-        - "userAgent": (string)
-        - "ipAddress": (string)
-        - "username": (string)
-        - "url": (string)
-        - "accessTime": (int64)
-        - "success": (bool)
+        - "id": (int) 
+        - "userAgent": (string) 
+        - "ipAddress": (string) 
+        - "username": (string) 
+        - "url": (string) 
+        - "accessTime": (int64) 
+        - "success": (bool) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/open/api/access/history' \
@@ -766,7 +766,7 @@
     ) {}
 
     let req: ListAccessLogReq | null = null;
-    this.http.post<any>(`/open/api/access/history`, req)
+    this.http.post<any>(`/user-vault/open/api/access/history`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -786,8 +786,8 @@
   - Description: User generate user key
   - Bound to Resource: `"basic-user"`
   - JSON Request:
-    - "password": (string)
-    - "keyName": (string)
+    - "password": (string) 
+    - "keyName": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -796,7 +796,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/key/generate' \
       -H 'Content-Type: application/json' \
-      -d '{"password":"","keyName":""}'
+      -d '{"keyName":"","password":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -827,7 +827,7 @@
     ) {}
 
     let req: GenUserKeyReq | null = null;
-    this.http.post<any>(`/open/api/user/key/generate`, req)
+    this.http.post<any>(`/user-vault/open/api/user/key/generate`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -846,11 +846,11 @@
   - Description: User list user keys
   - Bound to Resource: `"basic-user"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "name": (string)
+    - "name": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -861,16 +861,16 @@
         - "page": (int) page number, 1-based
         - "total": (int) total count
       - "payload": ([]vault.ListedUserKey) payload values in current page
-        - "id": (int)
-        - "secretKey": (string)
-        - "name": (string)
-        - "expirationTime": (int64)
-        - "createTime": (int64)
+        - "id": (int) 
+        - "secretKey": (string) 
+        - "name": (string) 
+        - "expirationTime": (int64) 
+        - "createTime": (int64) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/open/api/user/key/list' \
       -H 'Content-Type: application/json' \
-      -d '{"paging":{"limit":0,"page":0,"total":0},"name":""}'
+      -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -923,7 +923,7 @@
     ) {}
 
     let req: ListUserKeysReq | null = null;
-    this.http.post<any>(`/open/api/user/key/list`, req)
+    this.http.post<any>(`/user-vault/open/api/user/key/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -943,7 +943,7 @@
   - Description: User delete user key
   - Bound to Resource: `"basic-user"`
   - JSON Request:
-    - "userKeyId": (int)
+    - "userKeyId": (int) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -982,7 +982,7 @@
     ) {}
 
     let req: DeleteUserKeyReq | null = null;
-    this.http.post<any>(`/open/api/user/key/delete`, req)
+    this.http.post<any>(`/user-vault/open/api/user/key/delete`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1001,8 +1001,8 @@
   - Description: Admin add resource
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "name": (string)
-    - "code": (string)
+    - "name": (string) 
+    - "code": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1011,7 +1011,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/resource/add' \
       -H 'Content-Type: application/json' \
-      -d '{"name":"","code":""}'
+      -d '{"code":"","name":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1042,7 +1042,7 @@
     ) {}
 
     let req: CreateResReq | null = null;
-    this.http.post<any>(`/open/api/resource/add`, req)
+    this.http.post<any>(`/user-vault/open/api/resource/add`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1061,7 +1061,7 @@
   - Description: Admin remove resource
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "resCode": (string)
+    - "resCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1100,7 +1100,7 @@
     ) {}
 
     let req: DeleteResourceReq | null = null;
-    this.http.post<any>(`/open/api/resource/remove`, req)
+    this.http.post<any>(`/user-vault/open/api/resource/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1125,8 +1125,8 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]vault.ResBrief) response data
-      - "code": (string)
-      - "name": (string)
+      - "code": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8089/open/api/resource/brief/candidates?roleNo='
@@ -1157,7 +1157,7 @@
     ) {}
 
     let roleNo: any | null = null;
-    this.http.get<any>(`/open/api/resource/brief/candidates?roleNo=${roleNo}`)
+    this.http.get<any>(`/user-vault/open/api/resource/brief/candidates?roleNo=${roleNo}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1177,7 +1177,7 @@
   - Description: Admin list resources
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -1186,18 +1186,18 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ListResResp) response data
-      - "paging": (Paging)
+      - "paging": (Paging) 
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.WRes)
-        - "id": (int)
-        - "code": (string)
-        - "name": (string)
-        - "createTime": (int64)
-        - "createBy": (string)
-        - "updateTime": (int64)
-        - "updateBy": (string)
+      - "payload": ([]vault.WRes) 
+        - "id": (int) 
+        - "code": (string) 
+        - "name": (string) 
+        - "createTime": (int64) 
+        - "createBy": (string) 
+        - "updateTime": (int64) 
+        - "updateBy": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/open/api/resource/list' \
@@ -1256,7 +1256,7 @@
     ) {}
 
     let req: ListResReq | null = null;
-    this.http.post<any>(`/open/api/resource/list`, req)
+    this.http.post<any>(`/user-vault/open/api/resource/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1280,8 +1280,8 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]vault.ResBrief) response data
-      - "code": (string)
-      - "name": (string)
+      - "code": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8089/open/api/resource/brief/user'
@@ -1311,7 +1311,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/resource/brief/user`)
+    this.http.get<any>(`/user-vault/open/api/resource/brief/user`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1335,8 +1335,8 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]vault.ResBrief) response data
-      - "code": (string)
-      - "name": (string)
+      - "code": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8089/open/api/resource/brief/all'
@@ -1366,7 +1366,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/resource/brief/all`)
+    this.http.get<any>(`/user-vault/open/api/resource/brief/all`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1386,8 +1386,8 @@
   - Description: Admin add resource to role
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "roleNo": (string)
-    - "resCode": (string)
+    - "roleNo": (string) 
+    - "resCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1396,7 +1396,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/role/resource/add' \
       -H 'Content-Type: application/json' \
-      -d '{"roleNo":"","resCode":""}'
+      -d '{"resCode":"","roleNo":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1427,7 +1427,7 @@
     ) {}
 
     let req: AddRoleResReq | null = null;
-    this.http.post<any>(`/open/api/role/resource/add`, req)
+    this.http.post<any>(`/user-vault/open/api/role/resource/add`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1446,8 +1446,8 @@
   - Description: Admin remove resource from role
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "roleNo": (string)
-    - "resCode": (string)
+    - "roleNo": (string) 
+    - "resCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1456,7 +1456,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/role/resource/remove' \
       -H 'Content-Type: application/json' \
-      -d '{"roleNo":"","resCode":""}'
+      -d '{"resCode":"","roleNo":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1487,7 +1487,7 @@
     ) {}
 
     let req: RemoveRoleResReq | null = null;
-    this.http.post<any>(`/open/api/role/resource/remove`, req)
+    this.http.post<any>(`/user-vault/open/api/role/resource/remove`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1506,7 +1506,7 @@
   - Description: Admin add role
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "name": (string)
+    - "name": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1545,7 +1545,7 @@
     ) {}
 
     let req: AddRoleReq | null = null;
-    this.http.post<any>(`/open/api/role/add`, req)
+    this.http.post<any>(`/user-vault/open/api/role/add`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1564,7 +1564,7 @@
   - Description: Admin list roles
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -1573,15 +1573,15 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ListRoleResp) response data
-      - "payload": ([]vault.WRole)
-        - "id": (int)
-        - "roleNo": (string)
-        - "name": (string)
-        - "createTime": (int64)
-        - "createBy": (string)
-        - "updateTime": (int64)
-        - "updateBy": (string)
-      - "paging": (Paging)
+      - "payload": ([]vault.WRole) 
+        - "id": (int) 
+        - "roleNo": (string) 
+        - "name": (string) 
+        - "createTime": (int64) 
+        - "createBy": (string) 
+        - "updateTime": (int64) 
+        - "updateBy": (string) 
+      - "paging": (Paging) 
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
@@ -1589,7 +1589,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/role/list' \
       -H 'Content-Type: application/json' \
-      -d '{"paging":{"total":0,"limit":0,"page":0}}'
+      -d '{"paging":{"limit":0,"page":0,"total":0}}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1643,7 +1643,7 @@
     ) {}
 
     let req: ListRoleReq | null = null;
-    this.http.post<any>(`/open/api/role/list`, req)
+    this.http.post<any>(`/user-vault/open/api/role/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1667,8 +1667,8 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]vault.RoleBrief) response data
-      - "roleNo": (string)
-      - "name": (string)
+      - "roleNo": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8089/open/api/role/brief/all'
@@ -1698,7 +1698,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/role/brief/all`)
+    this.http.get<any>(`/user-vault/open/api/role/brief/all`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1718,26 +1718,26 @@
   - Description: Admin list resources of role
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "roleNo": (string)
+    - "roleNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ListRoleResResp) response data
-      - "paging": (Paging)
+      - "paging": (Paging) 
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.ListedRoleRes)
-        - "id": (int)
-        - "resCode": (string)
-        - "resName": (string)
-        - "createTime": (int64)
-        - "createBy": (string)
+      - "payload": ([]vault.ListedRoleRes) 
+        - "id": (int) 
+        - "resCode": (string) 
+        - "resName": (string) 
+        - "createTime": (int64) 
+        - "createBy": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/open/api/role/resource/list' \
@@ -1795,7 +1795,7 @@
     ) {}
 
     let req: ListRoleResReq | null = null;
-    this.http.post<any>(`/open/api/role/resource/list`, req)
+    this.http.post<any>(`/user-vault/open/api/role/resource/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1815,14 +1815,14 @@
   - Description: Get role info
   - Expected Access Scope: PUBLIC
   - JSON Request:
-    - "roleNo": (string)
+    - "roleNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (RoleInfoResp) response data
-      - "roleNo": (string)
-      - "name": (string)
+      - "roleNo": (string) 
+      - "name": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/open/api/role/info' \
@@ -1862,7 +1862,7 @@
     ) {}
 
     let req: RoleInfoReq | null = null;
-    this.http.post<any>(`/open/api/role/info`, req)
+    this.http.post<any>(`/user-vault/open/api/role/info`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1882,11 +1882,11 @@
   - Description: Admin list paths
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "resCode": (string)
-    - "pgroup": (string)
-    - "url": (string)
+    - "resCode": (string) 
+    - "pgroup": (string) 
+    - "url": (string) 
     - "ptype": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-    - "paging": (Paging)
+    - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
@@ -1895,27 +1895,27 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ListPathResp) response data
-      - "paging": (Paging)
+      - "paging": (Paging) 
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.WPath)
-        - "id": (int)
-        - "pgroup": (string)
-        - "pathNo": (string)
-        - "method": (string)
-        - "desc": (string)
-        - "url": (string)
+      - "payload": ([]vault.WPath) 
+        - "id": (int) 
+        - "pgroup": (string) 
+        - "pathNo": (string) 
+        - "method": (string) 
+        - "desc": (string) 
+        - "url": (string) 
         - "ptype": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-        - "createTime": (int64)
-        - "createBy": (string)
-        - "updateTime": (int64)
-        - "updateBy": (string)
+        - "createTime": (int64) 
+        - "createBy": (string) 
+        - "updateTime": (int64) 
+        - "updateBy": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/open/api/path/list' \
       -H 'Content-Type: application/json' \
-      -d '{"ptype":"","paging":{"limit":0,"page":0,"total":0},"resCode":"","pgroup":"","url":""}'
+      -d '{"paging":{"limit":0,"page":0,"total":0},"pgroup":"","ptype":"","resCode":"","url":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -1977,7 +1977,7 @@
     ) {}
 
     let req: ListPathReq | null = null;
-    this.http.post<any>(`/open/api/path/list`, req)
+    this.http.post<any>(`/user-vault/open/api/path/list`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -1997,8 +1997,8 @@
   - Description: Admin bind resource to path
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "pathNo": (string)
-    - "resCode": (string)
+    - "pathNo": (string) 
+    - "resCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2007,7 +2007,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/path/resource/bind' \
       -H 'Content-Type: application/json' \
-      -d '{"resCode":"","pathNo":""}'
+      -d '{"pathNo":"","resCode":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2038,7 +2038,7 @@
     ) {}
 
     let req: BindPathResReq | null = null;
-    this.http.post<any>(`/open/api/path/resource/bind`, req)
+    this.http.post<any>(`/user-vault/open/api/path/resource/bind`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2057,8 +2057,8 @@
   - Description: Admin unbind resource and path
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "pathNo": (string)
-    - "resCode": (string)
+    - "pathNo": (string) 
+    - "resCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2098,7 +2098,7 @@
     ) {}
 
     let req: UnbindPathResReq | null = null;
-    this.http.post<any>(`/open/api/path/resource/unbind`, req)
+    this.http.post<any>(`/user-vault/open/api/path/resource/unbind`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2117,7 +2117,7 @@
   - Description: Admin delete path
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
-    - "pathNo": (string)
+    - "pathNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2156,7 +2156,7 @@
     ) {}
 
     let req: DeletePathReq | null = null;
-    this.http.post<any>(`/open/api/path/delete`, req)
+    this.http.post<any>(`/user-vault/open/api/path/delete`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2176,8 +2176,8 @@
   - Bound to Resource: `"manage-resources"`
   - JSON Request:
     - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-    - "pathNo": (string)
-    - "group": (string)
+    - "pathNo": (string) 
+    - "group": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2186,7 +2186,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/path/update' \
       -H 'Content-Type: application/json' \
-      -d '{"pathNo":"","group":"","type":""}'
+      -d '{"group":"","pathNo":"","type":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2218,7 +2218,7 @@
     ) {}
 
     let req: UpdatePathReq | null = null;
-    this.http.post<any>(`/open/api/path/update`, req)
+    this.http.post<any>(`/user-vault/open/api/path/update`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2236,25 +2236,25 @@
 - POST /remote/user/info
   - Description: Fetch user info
   - JSON Request:
-    - "userId": (*int)
-    - "userNo": (*string)
-    - "username": (*string)
+    - "userId": (*int) 
+    - "userNo": (*string) 
+    - "username": (*string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (UserInfo) response data
-      - "id": (int)
-      - "username": (string)
-      - "roleName": (string)
-      - "roleNo": (string)
-      - "userNo": (string)
-      - "reviewStatus": (string)
-      - "isDisabled": (int)
-      - "createTime": (int64)
-      - "createBy": (string)
-      - "updateTime": (int64)
-      - "updateBy": (string)
+      - "id": (int) 
+      - "username": (string) 
+      - "roleName": (string) 
+      - "roleNo": (string) 
+      - "userNo": (string) 
+      - "reviewStatus": (string) 
+      - "isDisabled": (int) 
+      - "createTime": (int64) 
+      - "createBy": (string) 
+      - "updateTime": (int64) 
+      - "updateBy": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/remote/user/info' \
@@ -2305,7 +2305,7 @@
     ) {}
 
     let req: FindUserReq | null = null;
-    this.http.post<any>(`/remote/user/info`, req)
+    this.http.post<any>(`/user-vault/remote/user/info`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2356,7 +2356,7 @@
     ) {}
 
     let username: any | null = null;
-    this.http.get<any>(`/remote/user/id?username=${username}`)
+    this.http.get<any>(`/user-vault/remote/user/id?username=${username}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2375,13 +2375,13 @@
 - POST /remote/user/userno/username
   - Description: Fetch usernames of users with the userNos
   - JSON Request:
-    - "userNos": ([]string)
+    - "userNos": ([]string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (FetchUsernamesRes) response data
-      - "userNoToUsername": (map[string]string)
+      - "userNoToUsername": (map[string]string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/remote/user/userno/username' \
@@ -2420,7 +2420,7 @@
     ) {}
 
     let req: FetchNameByUserNoReq | null = null;
-    this.http.post<any>(`/remote/user/userno/username`, req)
+    this.http.post<any>(`/user-vault/remote/user/userno/username`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2439,23 +2439,23 @@
 - POST /remote/user/list/with-role
   - Description: Fetch users with the role_no
   - JSON Request:
-    - "roleNo": (string)
+    - "roleNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]api.UserInfo) response data
-      - "id": (int)
-      - "username": (string)
-      - "roleName": (string)
-      - "roleNo": (string)
-      - "userNo": (string)
-      - "reviewStatus": (string)
-      - "isDisabled": (int)
-      - "createTime": (int64)
-      - "createBy": (string)
-      - "updateTime": (int64)
-      - "updateBy": (string)
+      - "id": (int) 
+      - "username": (string) 
+      - "roleName": (string) 
+      - "roleNo": (string) 
+      - "userNo": (string) 
+      - "reviewStatus": (string) 
+      - "isDisabled": (int) 
+      - "createTime": (int64) 
+      - "createBy": (string) 
+      - "updateTime": (int64) 
+      - "updateBy": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/remote/user/list/with-role' \
@@ -2504,7 +2504,7 @@
     ) {}
 
     let req: FetchUsersWithRoleReq | null = null;
-    this.http.post<any>(`/remote/user/list/with-role`, req)
+    this.http.post<any>(`/user-vault/remote/user/list/with-role`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2523,23 +2523,23 @@
 - POST /remote/user/list/with-resource
   - Description: Fetch users that have access to the resource
   - JSON Request:
-    - "resourceCode": (string)
+    - "resourceCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": ([]api.UserInfo) response data
-      - "id": (int)
-      - "username": (string)
-      - "roleName": (string)
-      - "roleNo": (string)
-      - "userNo": (string)
-      - "reviewStatus": (string)
-      - "isDisabled": (int)
-      - "createTime": (int64)
-      - "createBy": (string)
-      - "updateTime": (int64)
-      - "updateBy": (string)
+      - "id": (int) 
+      - "username": (string) 
+      - "roleName": (string) 
+      - "roleNo": (string) 
+      - "userNo": (string) 
+      - "reviewStatus": (string) 
+      - "isDisabled": (int) 
+      - "createTime": (int64) 
+      - "createBy": (string) 
+      - "updateTime": (int64) 
+      - "updateBy": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/remote/user/list/with-resource' \
@@ -2588,7 +2588,7 @@
     ) {}
 
     let req: FetchUserWithResourceReq | null = null;
-    this.http.post<any>(`/remote/user/list/with-resource`, req)
+    this.http.post<any>(`/user-vault/remote/user/list/with-resource`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2607,8 +2607,8 @@
 - POST /remote/resource/add
   - Description: Report resource. This endpoint should be used internally by another backend service.
   - JSON Request:
-    - "name": (string)
-    - "code": (string)
+    - "name": (string) 
+    - "code": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2617,7 +2617,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/remote/resource/add' \
       -H 'Content-Type: application/json' \
-      -d '{"name":"","code":""}'
+      -d '{"code":"","name":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2648,7 +2648,7 @@
     ) {}
 
     let req: CreateResReq | null = null;
-    this.http.post<any>(`/remote/resource/add`, req)
+    this.http.post<any>(`/user-vault/remote/resource/add`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2666,20 +2666,20 @@
 - POST /remote/path/resource/access-test
   - Description: Validate resource access
   - JSON Request:
-    - "roleNo": (string)
-    - "url": (string)
-    - "method": (string)
+    - "roleNo": (string) 
+    - "url": (string) 
+    - "method": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (TestResAccessResp) response data
-      - "valid": (bool)
+      - "valid": (bool) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8089/remote/path/resource/access-test' \
       -H 'Content-Type: application/json' \
-      -d '{"url":"","method":"","roleNo":""}'
+      -d '{"method":"","roleNo":"","url":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2715,7 +2715,7 @@
     ) {}
 
     let req: TestResAccessReq | null = null;
-    this.http.post<any>(`/remote/path/resource/access-test`, req)
+    this.http.post<any>(`/user-vault/remote/path/resource/access-test`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2735,11 +2735,11 @@
   - Description: Report endpoint info
   - JSON Request:
     - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-    - "url": (string)
-    - "group": (string)
-    - "method": (string)
-    - "desc": (string)
-    - "resCode": (string)
+    - "url": (string) 
+    - "group": (string) 
+    - "method": (string) 
+    - "desc": (string) 
+    - "resCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2748,7 +2748,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/remote/path/add' \
       -H 'Content-Type: application/json' \
-      -d '{"desc":"","resCode":"","type":"","url":"","group":"","method":""}'
+      -d '{"desc":"","group":"","method":"","resCode":"","type":"","url":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2783,7 +2783,7 @@
     ) {}
 
     let req: CreatePathReq | null = null;
-    this.http.post<any>(`/remote/path/add`, req)
+    this.http.post<any>(`/user-vault/remote/path/add`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2802,9 +2802,9 @@
   - Description: Create platform notification
   - Bound to Resource: `"postbox:notification:create"`
   - JSON Request:
-    - "title": (string)
-    - "message": (string)
-    - "receiverUserNos": ([]string)
+    - "title": (string) 
+    - "message": (string) 
+    - "receiverUserNos": ([]string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2813,7 +2813,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/v1/notification/create' \
       -H 'Content-Type: application/json' \
-      -d '{"receiverUserNos":[],"title":"","message":""}'
+      -d '{"message":"","receiverUserNos":[],"title":""}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -2845,7 +2845,7 @@
     ) {}
 
     let req: CreateNotificationReq | null = null;
-    this.http.post<any>(`/open/api/v1/notification/create`, req)
+    this.http.post<any>(`/user-vault/open/api/v1/notification/create`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2864,11 +2864,11 @@
   - Description: Query platform notification
   - Bound to Resource: `"postbox:notification:query"`
   - JSON Request:
-    - "page": (Paging)
+    - "page": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "status": (string)
+    - "status": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2913,7 +2913,7 @@
     ) {}
 
     let req: QueryNotificationReq | null = null;
-    this.http.post<any>(`/open/api/v1/notification/query`, req)
+    this.http.post<any>(`/user-vault/open/api/v1/notification/query`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2959,7 +2959,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/open/api/v1/notification/count`)
+    this.http.get<any>(`/user-vault/open/api/v1/notification/count`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2978,7 +2978,7 @@
   - Description: Record user opened platform notification
   - Bound to Resource: `"postbox:notification:query"`
   - JSON Request:
-    - "notifiNo": (string)
+    - "notifiNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3017,7 +3017,7 @@
     ) {}
 
     let req: OpenNotificationReq | null = null;
-    this.http.post<any>(`/open/api/v1/notification/open`, req)
+    this.http.post<any>(`/user-vault/open/api/v1/notification/open`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -3063,7 +3063,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/open/api/v1/notification/open-all`)
+    this.http.post<any>(`/user-vault/open/api/v1/notification/open-all`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -3099,7 +3099,7 @@
     ) {}
 
     let authorization: any | null = null;
-    this.http.get<any>(`/metrics`,
+    this.http.get<any>(`/user-vault/metrics`,
       {
         headers: {
           "Authorization": authorization
@@ -3131,7 +3131,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof`)
+    this.http.get<any>(`/user-vault/debug/pprof`)
       .subscribe({
         next: () => {
         },
@@ -3158,7 +3158,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/:name`)
+    this.http.get<any>(`/user-vault/debug/pprof/:name`)
       .subscribe({
         next: () => {
         },
@@ -3185,7 +3185,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/cmdline`)
+    this.http.get<any>(`/user-vault/debug/pprof/cmdline`)
       .subscribe({
         next: () => {
         },
@@ -3212,7 +3212,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/profile`)
+    this.http.get<any>(`/user-vault/debug/pprof/profile`)
       .subscribe({
         next: () => {
         },
@@ -3239,7 +3239,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/symbol`)
+    this.http.get<any>(`/user-vault/debug/pprof/symbol`)
       .subscribe({
         next: () => {
         },
@@ -3266,7 +3266,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/debug/pprof/trace`)
+    this.http.get<any>(`/user-vault/debug/pprof/trace`)
       .subscribe({
         next: () => {
         },
@@ -3295,7 +3295,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/doc/api`)
+    this.http.get<any>(`/user-vault/doc/api`)
       .subscribe({
         next: () => {
         },

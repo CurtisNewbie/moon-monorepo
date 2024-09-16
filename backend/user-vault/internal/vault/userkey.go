@@ -3,6 +3,7 @@ package vault
 import (
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -43,7 +44,7 @@ func GenUserKey(rail miso.Rail, tx *gorm.DB, req GenUserKeyReq, username string)
 		Create(NewUserKey{
 			Name:           req.KeyName,
 			SecretKey:      key,
-			ExpirationTime: util.ETime(time.Now().Add(userKeyExpDur)),
+			ExpirationTime: util.Now().Add(userKeyExpDur),
 			UserId:         user.Id,
 			UserNo:         user.UserNo,
 		}).
@@ -64,7 +65,7 @@ type ListedUserKey struct {
 }
 
 func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.User) (miso.PageRes[ListedUserKey], error) {
-	return miso.NewPageQuery[ListedUserKey]().
+	return mysql.NewPageQuery[ListedUserKey]().
 		WithPage(req.Paging).
 		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
 			tx = tx.Table("user_key").

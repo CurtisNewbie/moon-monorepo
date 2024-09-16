@@ -8,7 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/curtisnewbie/miso/middleware/crypto"
+	"github.com/curtisnewbie/miso/middleware/jwt"
+	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -20,7 +22,7 @@ var (
 	usernameRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-@.]{6,50}$`)
 	passwordMinLen = 8
 
-	userInfoCache = miso.NewRCache[UserDetail]("user-vault:user:info", miso.RCacheConfig{Exp: time.Hour * 1})
+	userInfoCache = redis.NewRCache[UserDetail]("user-vault:user:info", redis.RCacheConfig{Exp: time.Hour * 1})
 )
 
 type PasswordLoginParam struct {
@@ -132,7 +134,7 @@ func buildToken(user TokenUser, exp time.Duration) (string, error) {
 		"roleno":   user.RoleNo,
 	}
 
-	return crypto.JwtEncode(claims, exp)
+	return jwt.JwtEncode(claims, exp)
 }
 
 func userLogin(rail miso.Rail, tx *gorm.DB, username string, password string) (User, error) {
@@ -325,7 +327,7 @@ func prepUserCred(pwd string) NewUserParam {
 }
 
 func ListUsers(rail miso.Rail, tx *gorm.DB, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
-	return miso.NewPageQuery[api.UserInfo]().
+	return mysql.NewPageQuery[api.UserInfo]().
 		WithPage(req.Paging).
 		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
 			return tx.Select("u.*, r.name as role_name").Order("u.id DESC")
@@ -371,7 +373,7 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 			WithInternalMsg("ReviewStatus was neither ReviewApproved nor ReviewRejected, it was %v", req.ReviewStatus)
 	}
 
-	return miso.RLockExec(rail, fmt.Sprintf("auth:user:registration:review:%v", req.UserId),
+	return redis.RLockExec(rail, fmt.Sprintf("auth:user:registration:review:%v", req.UserId),
 		func() error {
 			var user User
 			t := tx.Raw(`SELECT * FROM user WHERE id = ?`, req.UserId).
@@ -417,16 +419,6 @@ func UserRegister(rail miso.Rail, db *gorm.DB, req RegisterReq) error {
 	}); err != nil {
 		return err
 	}
-
-	err := api.CreateNotifiByAccessPipeline.Send(rail, api.CreateNotifiByAccessEvent{
-		Title:   fmt.Sprintf("Review user %v's registration", req.Username),
-		Message: fmt.Sprintf("Please review new user %v's registration. A role should be assigned for the new user.", req.Username),
-		ResCode: ResourceManagerUser,
-	})
-	if err != nil {
-		rail.Errorf("failed to create notification for UserRegister, %v", err)
-	}
-
 	return nil
 }
 
@@ -440,7 +432,7 @@ type UserInfoBrief struct {
 }
 
 func FetchUserBrief(rail miso.Rail, tx *gorm.DB, username string) (UserInfoBrief, error) {
-	ud, err := LoadUserBriefThrCache(rail, miso.GetMySQL(), username)
+	ud, err := LoadUserBriefThrCache(rail, mysql.GetMySQL(), username)
 	if err != nil {
 		return UserInfoBrief{}, err
 	}
@@ -458,7 +450,7 @@ func LoadUserBriefThrCache(rail miso.Rail, tx *gorm.DB, username string) (UserDe
 	rail.Debugf("LoadUserBriefThrCache, username: %v", username)
 	return userInfoCache.Get(rail, username, func() (UserDetail, error) {
 		rail.Debugf("LoadUserInfoBrief, username: %v", username)
-		return LoadUserInfoBrief(rail, miso.GetMySQL(), username)
+		return LoadUserInfoBrief(rail, mysql.GetMySQL(), username)
 	})
 }
 
@@ -529,7 +521,7 @@ type ExchangeTokenReq struct {
 
 func DecodeTokenUser(rail miso.Rail, token string) (TokenUser, error) {
 	tu := TokenUser{}
-	decoded, err := crypto.JwtDecode(token)
+	decoded, err := jwt.JwtDecode(token)
 	if err != nil || !decoded.Valid {
 		return TokenUser{}, miso.NewErrf("Illegal token").WithInternalMsg("Failed to decode jwt token, %v", err)
 	}
@@ -545,7 +537,7 @@ func DecodeTokenUser(rail miso.Rail, token string) (TokenUser, error) {
 }
 
 func DecodeTokenUsername(rail miso.Rail, token string) (string, error) {
-	decoded, err := crypto.JwtDecode(token)
+	decoded, err := jwt.JwtDecode(token)
 	if err != nil || !decoded.Valid {
 		return "", miso.NewErrf("Illegal token").WithInternalMsg("Failed to decode jwt token, %v", err)
 	}

@@ -1,6 +1,7 @@
 package postbox
 
 import (
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
@@ -40,7 +41,7 @@ func RegisterRoutes(rail miso.Rail) error {
 
 func CreateNotificationEp(inb *miso.Inbound, req api.CreateNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, CreateNotification(rail, miso.GetMySQL(), req, common.GetUser(rail))
+	return nil, CreateNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
 type QueryNotificationReq struct {
@@ -50,12 +51,12 @@ type QueryNotificationReq struct {
 
 func QueryNotificationEp(inb *miso.Inbound, req QueryNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return QueryNotification(rail, miso.GetMySQL(), req, common.GetUser(rail))
+	return QueryNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
 func CountNotificationEp(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
-	return CountNotification(rail, miso.GetMySQL(), common.GetUser(rail))
+	return CountNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
 }
 
 type OpenNotificationReq struct {
@@ -64,10 +65,10 @@ type OpenNotificationReq struct {
 
 func OpenNotificationEp(inb *miso.Inbound, req OpenNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, OpenNotification(rail, miso.GetMySQL(), req, common.GetUser(rail))
+	return nil, OpenNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
 func OpenAllNotificationEp(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
-	return nil, OpenAllNotification(rail, miso.GetMySQL(), common.GetUser(rail))
+	return nil, OpenAllNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
 }

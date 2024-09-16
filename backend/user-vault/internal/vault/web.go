@@ -3,6 +3,7 @@ package vault
 import (
 	"strings"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -298,7 +299,7 @@ func RegisterRoutes(rail miso.Rail) error {
 
 func UserLoginEp(inb *miso.Inbound, req LoginReq) (string, error) {
 	rail := inb.Rail()
-	token, user, err := UserLogin(rail, miso.GetMySQL(),
+	token, user, err := UserLogin(rail, mysql.GetMySQL(),
 		PasswordLoginParam{Username: req.Username, Password: req.Password})
 	remoteAddr := RemoteAddr(req.XForwardedFor)
 	userAgent := req.UserAgent
@@ -336,11 +337,11 @@ func RemoteAddr(forwardedFor string) string {
 }
 
 func UserRegisterEp(inb *miso.Inbound, req RegisterReq) (any, error) {
-	return nil, UserRegister(inb.Rail(), miso.GetMySQL(), req)
+	return nil, UserRegister(inb.Rail(), mysql.GetMySQL(), req)
 }
 
 func AdminAddUserEp(inb *miso.Inbound, req AddUserParam) (any, error) {
-	return nil, NewUser(inb.Rail(), miso.GetMySQL(), CreateUserParam{
+	return nil, NewUser(inb.Rail(), mysql.GetMySQL(), CreateUserParam{
 		Username:     req.Username,
 		Password:     req.Password,
 		RoleNo:       req.RoleNo,
@@ -349,17 +350,17 @@ func AdminAddUserEp(inb *miso.Inbound, req AddUserParam) (any, error) {
 }
 
 func AdminListUsersEp(inb *miso.Inbound, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
-	return ListUsers(inb.Rail(), miso.GetMySQL(), req)
+	return ListUsers(inb.Rail(), mysql.GetMySQL(), req)
 }
 
 func AdminUpdateUserEp(inb *miso.Inbound, req AdminUpdateUserReq) (any, error) {
 	rail := inb.Rail()
-	return nil, AdminUpdateUser(rail, miso.GetMySQL(), req, common.GetUser(rail))
+	return nil, AdminUpdateUser(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
 func AdminReviewUserEp(inb *miso.Inbound, req AdminReviewUserReq) (any, error) {
 	rail := inb.Rail()
-	return nil, ReviewUserRegistration(rail, miso.GetMySQL(), req)
+	return nil, ReviewUserRegistration(rail, mysql.GetMySQL(), req)
 }
 
 func UserGetUserInfoEp(inb *miso.Inbound) (UserInfoRes, error) {
@@ -371,7 +372,7 @@ func UserGetUserInfoEp(inb *miso.Inbound) (UserInfoRes, error) {
 		return UserInfoRes{}, nil
 	}
 
-	res, err := LoadUserBriefThrCache(rail, miso.GetMySQL(), u.Username)
+	res, err := LoadUserBriefThrCache(rail, mysql.GetMySQL(), u.Username)
 
 	if err != nil {
 		return UserInfoRes{}, err
@@ -390,39 +391,39 @@ func UserGetUserInfoEp(inb *miso.Inbound) (UserInfoRes, error) {
 func UserUpdatePasswordEp(inb *miso.Inbound, req UpdatePasswordReq) (any, error) {
 	rail := inb.Rail()
 	u := common.GetUser(rail)
-	return nil, UpdatePassword(rail, miso.GetMySQL(), u.Username, req)
+	return nil, UpdatePassword(rail, mysql.GetMySQL(), u.Username, req)
 }
 
 func ExchangeTokenEp(inb *miso.Inbound, req ExchangeTokenReq) (string, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(tokenExchangeHisto)
 	defer timer.ObserveDuration()
-	return ExchangeToken(rail, miso.GetMySQL(), req)
+	return ExchangeToken(rail, mysql.GetMySQL(), req)
 }
 
 func GetTokenUserInfoEp(inb *miso.Inbound, req GetTokenUserReq) (UserInfoBrief, error) {
 	rail := inb.Rail()
-	return GetTokenUser(rail, miso.GetMySQL(), req.Token)
+	return GetTokenUser(rail, mysql.GetMySQL(), req.Token)
 }
 
 func UserListAccessHistoryEp(inb *miso.Inbound, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
 	rail := inb.Rail()
-	return ListAccessLogs(rail, miso.GetMySQL(), common.GetUser(rail), req)
+	return ListAccessLogs(rail, mysql.GetMySQL(), common.GetUser(rail), req)
 }
 
 func UserGenUserKeyEp(inb *miso.Inbound, req GenUserKeyReq) (any, error) {
 	rail := inb.Rail()
-	return nil, GenUserKey(rail, miso.GetMySQL(), req, common.GetUser(rail).Username)
+	return nil, GenUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).Username)
 }
 
 func UserListUserKeysEp(inb *miso.Inbound, req ListUserKeysReq) (miso.PageRes[ListedUserKey], error) {
 	rail := inb.Rail()
-	return ListUserKeys(rail, miso.GetMySQL(), req, common.GetUser(rail))
+	return ListUserKeys(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
 func UserDeleteUserKeyEp(inb *miso.Inbound, req DeleteUserKeyReq) (any, error) {
 	rail := inb.Rail()
-	return nil, DeleteUserKey(rail, miso.GetMySQL(), req, common.GetUser(rail).UserNo)
+	return nil, DeleteUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).UserNo)
 }
 
 func AdminAddResourceEp(inb *miso.Inbound, req CreateResReq) (any, error) {
@@ -524,23 +525,23 @@ func AdminUpdatePathEp(inb *miso.Inbound, req UpdatePathReq) (any, error) {
 
 func ItnFetchUserInfoEp(inb *miso.Inbound, req api.FindUserReq) (api.UserInfo, error) {
 	rail := inb.Rail()
-	return ItnFindUserInfo(rail, miso.GetMySQL(), req)
+	return ItnFindUserInfo(rail, mysql.GetMySQL(), req)
 }
 
 func ItnFetchUserIdByNameEp(inb *miso.Inbound, req FetchUserIdByNameReq) (int, error) {
 	rail := inb.Rail()
-	u, err := LoadUserBriefThrCache(rail, miso.GetMySQL(), req.Username)
+	u, err := LoadUserBriefThrCache(rail, mysql.GetMySQL(), req.Username)
 	return u.Id, err
 }
 
 func ItnFetchUsernamesByNosEp(inb *miso.Inbound, req api.FetchNameByUserNoReq) (api.FetchUsernamesRes, error) {
 	rail := inb.Rail()
-	return ItnFindNameOfUserNo(rail, miso.GetMySQL(), req)
+	return ItnFindNameOfUserNo(rail, mysql.GetMySQL(), req)
 }
 
 func ItnFindUserWithRoleEp(inb *miso.Inbound, req api.FetchUsersWithRoleReq) ([]api.UserInfo, error) {
 	rail := inb.Rail()
-	return ItnFindUsersWithRole(rail, miso.GetMySQL(), req)
+	return ItnFindUsersWithRole(rail, mysql.GetMySQL(), req)
 }
 
 func ItnReportResourceEp(inb *miso.Inbound, req CreateResReq) (any, error) {
@@ -564,5 +565,5 @@ func ItnReportPathEp(inb *miso.Inbound, req CreatePathReq) (any, error) {
 
 func ItnFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
 	rail := inb.Rail()
-	return FindUserWithRes(rail, miso.GetMySQL(), req)
+	return FindUserWithRes(rail, mysql.GetMySQL(), req)
 }

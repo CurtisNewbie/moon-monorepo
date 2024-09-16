@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -11,7 +12,7 @@ var (
 		LogPayload().
 		MaxRetry(2).
 		Listen(2, func(rail miso.Rail, evt AccessLogEvent) error {
-			return SaveAccessLogEvent(rail, miso.GetMySQL(), SaveAccessLogParam(evt))
+			return SaveAccessLogEvent(rail, mysql.GetMySQL(), SaveAccessLogParam(evt))
 		})
 )
 

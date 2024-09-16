@@ -3,6 +3,7 @@ package postbox
 import (
 	"fmt"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -67,7 +68,7 @@ type ListedNotification struct {
 }
 
 func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, user common.User) (miso.PageRes[ListedNotification], error) {
-	return miso.NewPageQuery[ListedNotification]().
+	return mysql.NewPageQuery[ListedNotification]().
 		WithPage(req.Page).
 		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
 			return tx.Table("notification")

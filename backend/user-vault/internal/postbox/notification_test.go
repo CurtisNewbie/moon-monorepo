@@ -3,20 +3,21 @@ package postbox
 import (
 	"testing"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
 )
 
 func _notificationPreTest(t *testing.T) miso.Rail {
-	miso.SetProp(miso.PropMySQLEnabled, true)
-	miso.SetProp(miso.PropMySQLUser, "root")
-	miso.SetProp(miso.PropMySQLSchema, "postbox")
-	miso.SetProp(miso.PropMySQLPassword, "")
+	miso.SetProp(mysql.PropMySQLEnabled, true)
+	miso.SetProp(mysql.PropMySQLUser, "root")
+	miso.SetProp(mysql.PropMySQLSchema, "postbox")
+	miso.SetProp(mysql.PropMySQLPassword, "")
 	miso.SetProp("client.addr.user-vault.host", "localhost")
 	miso.SetProp("client.addr.user-vault.port", "8089")
 	rail := miso.EmptyRail()
-	miso.InitMySQLFromProp(rail)
+	mysql.InitMySQLFromProp(rail)
 	return rail
 }
 
@@ -25,7 +26,7 @@ func TestSaveNotification(t *testing.T) {
 	user := common.User{
 		Username: "postbox",
 	}
-	err := SaveNotification(rail, miso.GetMySQL(), SaveNotifiReq{
+	err := SaveNotification(rail, mysql.GetMySQL(), SaveNotifiReq{
 		UserNo:  "UE1049787455160320075953",
 		Title:   "Some message",
 		Message: "Notification should be saved",
@@ -41,7 +42,7 @@ func TestCreateNotification(t *testing.T) {
 	user := common.User{
 		Username: "postbox",
 	}
-	err := CreateNotification(rail, miso.GetMySQL(), api.CreateNotificationReq{
+	err := CreateNotification(rail, mysql.GetMySQL(), api.CreateNotificationReq{
 		ReceiverUserNos: []string{"UE1049787455160320075953"},
 		Title:           "Some message",
 		Message:         "Notification should be saved",
@@ -58,7 +59,7 @@ func TestCountNotification(t *testing.T) {
 		UserNo:   "UE1049787455160320075953",
 		Username: "postbox",
 	}
-	cnt, err := CountNotification(rail, miso.GetMySQL(), user)
+	cnt, err := CountNotification(rail, mysql.GetMySQL(), user)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +73,7 @@ func TestQueryNotification(t *testing.T) {
 		UserNo:   "UE1049787455160320075953",
 		Username: "postbox",
 	}
-	res, err := QueryNotification(rail, miso.GetMySQL(), QueryNotificationReq{}, user)
+	res, err := QueryNotification(rail, mysql.GetMySQL(), QueryNotificationReq{}, user)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +87,7 @@ func TestOpenNotification(t *testing.T) {
 		UserNo:   "UE1049787455160320075953",
 		Username: "admin",
 	}
-	err := OpenNotification(rail, miso.GetMySQL(), OpenNotificationReq{
+	err := OpenNotification(rail, mysql.GetMySQL(), OpenNotificationReq{
 		NotifiNo: "notif_1082375466205184155465",
 	}, user)
 	if err != nil {

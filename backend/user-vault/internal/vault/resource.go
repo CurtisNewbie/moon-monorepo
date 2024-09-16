@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -19,13 +21,13 @@ var (
 	permitted = TestResAccessResp{Valid: true}
 	forbidden = TestResAccessResp{Valid: false}
 
-	roleInfoCache = miso.NewRCache[api.RoleInfoResp]("user-vault:role:info", miso.RCacheConfig{Exp: 10 * time.Minute, NoSync: true})
+	roleInfoCache = redis.NewRCache[api.RoleInfoResp]("user-vault:role:info", redis.RCacheConfig{Exp: 10 * time.Minute, NoSync: true})
 
 	// cache for url's resource, url -> CachedUrlRes
-	urlResCache = miso.NewRCache[CachedUrlRes]("user-vault:url:res:v2", miso.RCacheConfig{Exp: 30 * time.Minute})
+	urlResCache = redis.NewRCache[CachedUrlRes]("user-vault:url:res:v2", redis.RCacheConfig{Exp: 30 * time.Minute})
 
 	// cache for role's resource, role + res -> flag ("1")
-	roleResCache = miso.NewRCache[string]("user-vault:role:res", miso.RCacheConfig{Exp: 1 * time.Hour, NoSync: true})
+	roleResCache = redis.NewRCache[string]("user-vault:role:res", redis.RCacheConfig{Exp: 1 * time.Hour, NoSync: true})
 )
 
 const (
@@ -238,7 +240,7 @@ type GenResScriptReq struct {
 }
 
 type UpdatePathReq struct {
-	Type   string `json:"type" validation:"notEmpty" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
+	Type   string `json:"type" validation:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
 	PathNo string `json:"pathNo" validation:"notEmpty"`
 	Group  string `json:"group" validation:"notEmpty,maxLen:20"`
 }
@@ -277,7 +279,7 @@ type DeleteResourceReq struct {
 func DeleteResource(rail miso.Rail, req DeleteResourceReq) error {
 
 	_, err := lockResourceGlobal(rail, func() (any, error) {
-		return nil, miso.GetMySQL().Transaction(func(tx *gorm.DB) error {
+		return nil, mysql.GetMySQL().Transaction(func(tx *gorm.DB) error {
 			if t := tx.Exec(`delete from resource where code = ?`, req.ResCode); t != nil {
 				return t.Error
 			}
@@ -314,7 +316,7 @@ func ListResourceCandidatesForRole(ec miso.Rail, roleNo string) ([]ResBrief, err
 	}
 
 	var res []ResBrief
-	tx := miso.GetMySQL().
+	tx := mysql.GetMySQL().
 		Select("r.name, r.code").
 		Table("resource r").
 		Where("NOT EXISTS (SELECT * FROM role_resource WHERE role_no = ? and res_code = r.code)", roleNo).
@@ -335,7 +337,7 @@ func ListAllResBriefsOfRole(ec miso.Rail, roleNo string) ([]ResBrief, error) {
 		return ListAllResBriefs(ec)
 	}
 
-	tx := miso.GetMySQL().
+	tx := mysql.GetMySQL().
 		Select(`r.name, r.code`).
 		Table(`role_resource rr`).
 		Joins(`LEFT JOIN resource r ON r.code = rr.res_code`).
@@ -352,7 +354,7 @@ func ListAllResBriefsOfRole(ec miso.Rail, roleNo string) ([]ResBrief, error) {
 
 func ListAllResBriefs(rail miso.Rail) ([]ResBrief, error) {
 	var res []ResBrief
-	tx := miso.GetMySQL().Raw("select name, code from resource").Scan(&res)
+	tx := mysql.GetMySQL().Raw("select name, code from resource").Scan(&res)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
@@ -364,7 +366,7 @@ func ListAllResBriefs(rail miso.Rail) ([]ResBrief, error) {
 
 func ListResources(ec miso.Rail, req ListResReq) (ListResResp, error) {
 	var resources []WRes
-	tx := miso.GetMySQL().
+	tx := mysql.GetMySQL().
 		Raw("select * from resource order by id desc limit ?, ?", req.Paging.GetOffset(), req.Paging.GetLimit()).
 		Scan(&resources)
 	if tx.Error != nil {
@@ -375,7 +377,7 @@ func ListResources(ec miso.Rail, req ListResReq) (ListResResp, error) {
 	}
 
 	var count int
-	tx = miso.GetMySQL().Raw("select count(*) from resource").Scan(&count)
+	tx = mysql.GetMySQL().Raw("select count(*) from resource").Scan(&count)
 	if tx.Error != nil {
 		return ListResResp{}, tx.Error
 	}
@@ -384,9 +386,8 @@ func ListResources(ec miso.Rail, req ListResReq) (ListResResp, error) {
 }
 
 func UpdatePath(ec miso.Rail, req UpdatePathReq) error {
-	// TODO: validate the ptype value
 	_, e := lockPath(ec, req.PathNo, func() (any, error) {
-		tx := miso.GetMySQL().Exec(`update path set pgroup = ?, ptype = ? where path_no = ?`,
+		tx := mysql.GetMySQL().Exec(`update path set pgroup = ?, ptype = ? where path_no = ?`,
 			req.Group, req.Type, req.PathNo)
 		return nil, tx.Error
 	})
@@ -418,7 +419,7 @@ func loadOnePathResCacheAsync(rail miso.Rail, pathNo string) {
 func GetRoleInfo(ec miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) {
 	resp, err := roleInfoCache.Get(ec, req.RoleNo, func() (api.RoleInfoResp, error) {
 		var resp api.RoleInfoResp
-		tx := miso.GetMySQL().Raw("select role_no, name from role where role_no = ?", req.RoleNo).Scan(&resp)
+		tx := mysql.GetMySQL().Raw("select role_no, name from role where role_no = ?", req.RoleNo).Scan(&resp)
 		if tx.Error != nil {
 			return resp, tx.Error
 		}
@@ -437,7 +438,7 @@ func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user common.User
 
 	_, e := lockResourceGlobal(rail, func() (any, error) {
 		var id int
-		tx := miso.GetMySQL().Raw(`select id from resource where code = ? limit 1`, req.Code).Scan(&id)
+		tx := mysql.GetMySQL().Raw(`select id from resource where code = ? limit 1`, req.Code).Scan(&id)
 		if tx.Error != nil {
 			return nil, tx.Error
 		}
@@ -454,7 +455,7 @@ func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user common.User
 			UpdateBy: user.Username,
 		}
 
-		tx = miso.GetMySQL().
+		tx = mysql.GetMySQL().
 			Table("resource").
 			Omit("Id", "CreateTime", "UpdateTime").
 			Create(&res)
@@ -476,14 +477,14 @@ func CreatePath(rail miso.Rail, req CreatePathReq, user common.User) error {
 
 	changed, err := lockPath(rail, pathNo, func() (bool, error) {
 		var prev EPath
-		tx := miso.GetMySQL().Raw(`select * from path where path_no = ? limit 1`, pathNo).Scan(&prev)
+		tx := mysql.GetMySQL().Raw(`select * from path where path_no = ? limit 1`, pathNo).Scan(&prev)
 		if tx.Error != nil {
 			return false, tx.Error
 		}
 		if prev.Id > 0 { // exists already
 			rail.Debugf("Path '%s %s' (%s) already exists", req.Method, req.Url, pathNo)
 			if prev.Ptype != req.Type {
-				err := miso.GetMySQL().Exec(`UPDATE path SET ptype = ? WHERE path_no = ?`, req.Type, pathNo).Error
+				err := mysql.GetMySQL().Exec(`UPDATE path SET ptype = ? WHERE path_no = ?`, req.Type, pathNo).Error
 				if err != nil {
 					rail.Errorf("failed to update path.ptype, pathNo: %v, %v", pathNo, err)
 					return false, err
@@ -502,7 +503,7 @@ func CreatePath(rail miso.Rail, req CreatePathReq, user common.User) error {
 			CreateBy: user.Username,
 			UpdateBy: user.Username,
 		}
-		tx = miso.GetMySQL().
+		tx = mysql.GetMySQL().
 			Table("path").
 			Omit("Id", "CreateTime", "UpdateTime").
 			Create(&ep)
@@ -531,7 +532,7 @@ func CreatePath(rail miso.Rail, req CreatePathReq, user common.User) error {
 func DeletePath(ec miso.Rail, req DeletePathReq) error {
 	req.PathNo = strings.TrimSpace(req.PathNo)
 	_, e := lockPath(ec, req.PathNo, func() (any, error) {
-		er := miso.GetMySQL().Transaction(func(tx *gorm.DB) error {
+		er := mysql.GetMySQL().Transaction(func(tx *gorm.DB) error {
 			tx = tx.Exec(`delete from path where path_no = ?`, req.PathNo)
 			if tx.Error != nil {
 				return tx.Error
@@ -548,7 +549,7 @@ func DeletePath(ec miso.Rail, req DeletePathReq) error {
 func UnbindPathRes(ec miso.Rail, req UnbindPathResReq) error {
 	req.PathNo = strings.TrimSpace(req.PathNo)
 	_, e := lockPath(ec, req.PathNo, func() (any, error) {
-		tx := miso.GetMySQL().Exec(`delete from path_resource where path_no = ?`, req.PathNo)
+		tx := mysql.GetMySQL().Exec(`delete from path_resource where path_no = ?`, req.PathNo)
 		return nil, tx.Error
 	})
 
@@ -570,7 +571,7 @@ func BindPathRes(rail miso.Rail, req BindPathResReq) error {
 
 			// check if resource exist
 			var resId int
-			tx := miso.GetMySQL().
+			tx := mysql.GetMySQL().
 				Raw(`SELECT id FROM resource WHERE code = ?`, req.ResCode).
 				Scan(&resId)
 			if tx.Error != nil {
@@ -583,7 +584,7 @@ func BindPathRes(rail miso.Rail, req BindPathResReq) error {
 
 			// check if the path is already bound to current resource
 			var prid int
-			tx = miso.GetMySQL().
+			tx = mysql.GetMySQL().
 				Raw(`SELECT id FROM path_resource WHERE path_no = ? AND res_code = ? LIMIT 1`, req.PathNo, req.ResCode).
 				Scan(&prid)
 
@@ -597,7 +598,7 @@ func BindPathRes(rail miso.Rail, req BindPathResReq) error {
 			}
 
 			// bind resource to path
-			return miso.GetMySQL().
+			return mysql.GetMySQL().
 				Exec(`INSERT INTO path_resource (path_no, res_code) VALUES (?, ?)`, req.PathNo, req.ResCode).
 				Error
 		})
@@ -630,7 +631,7 @@ func ListPaths(ec miso.Rail, req ListPathReq) (ListPathResp, error) {
 	}
 
 	var paths []WPath
-	tx := miso.GetMySQL().
+	tx := mysql.GetMySQL().
 		Table("path p").
 		Select("p.*").
 		Order("id DESC")
@@ -644,7 +645,7 @@ func ListPaths(ec miso.Rail, req ListPathReq) (ListPathResp, error) {
 	}
 
 	var count int
-	tx = miso.GetMySQL().
+	tx = mysql.GetMySQL().
 		Table("path p").
 		Select("COUNT(*)")
 
@@ -659,14 +660,14 @@ func ListPaths(ec miso.Rail, req ListPathReq) (ListPathResp, error) {
 }
 
 func AddRole(ec miso.Rail, req AddRoleReq, user common.User) error {
-	_, e := miso.RLockRun(ec, "user-vault:role:add"+req.Name, func() (any, error) {
+	_, e := redis.RLockRun(ec, "user-vault:role:add"+req.Name, func() (any, error) {
 		r := ERole{
 			RoleNo:   util.GenIdP("role_"),
 			Name:     req.Name,
 			CreateBy: user.Username,
 			UpdateBy: user.Username,
 		}
-		return nil, miso.GetMySQL().
+		return nil, mysql.GetMySQL().
 			Table("role").
 			Omit("Id", "CreateTime", "UpdateTime").
 			Create(&r).Error
@@ -675,8 +676,8 @@ func AddRole(ec miso.Rail, req AddRoleReq, user common.User) error {
 }
 
 func RemoveResFromRole(ec miso.Rail, req RemoveRoleResReq) error {
-	_, e := miso.RLockRun(ec, "user-vault:role:"+req.RoleNo, func() (any, error) {
-		tx := miso.GetMySQL().Exec(`delete from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode)
+	_, e := redis.RLockRun(ec, "user-vault:role:"+req.RoleNo, func() (any, error) {
+		tx := mysql.GetMySQL().Exec(`delete from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode)
 		return nil, tx.Error
 	})
 
@@ -689,11 +690,11 @@ func RemoveResFromRole(ec miso.Rail, req RemoveRoleResReq) error {
 
 func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User) error {
 
-	res, e := miso.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) { // lock for role
+	res, e := redis.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) { // lock for role
 		return lockResourceGlobal(rail, func() (any, error) {
 			// check if resource exist
 			var resId int
-			tx := miso.GetMySQL().Raw(`select id from resource where code = ?`, req.ResCode).Scan(&resId)
+			tx := mysql.GetMySQL().Raw(`select id from resource where code = ?`, req.ResCode).Scan(&resId)
 			if tx.Error != nil {
 				return false, tx.Error
 			}
@@ -703,7 +704,7 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 
 			// check if role-resource relation exists
 			var id int
-			tx = miso.GetMySQL().Raw(`select id from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode).Scan(&id)
+			tx = mysql.GetMySQL().Raw(`select id from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode).Scan(&id)
 			if tx.Error != nil {
 				return false, tx.Error
 			}
@@ -719,7 +720,7 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 				UpdateBy: user.Username,
 			}
 
-			return true, miso.GetMySQL().
+			return true, mysql.GetMySQL().
 				Table("role_resource").
 				Omit("Id", "CreateTime", "UpdateTime").
 				Create(&rr).Error
@@ -739,7 +740,7 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 
 func ListRoleRes(ec miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
 	var res []ListedRoleRes
-	tx := miso.GetMySQL().
+	tx := mysql.GetMySQL().
 		Raw(`select rr.id, rr.res_code, rr.create_time, rr.create_by, r.name 'res_name' from role_resource rr
 			left join resource r on rr.res_code = r.code
 			where rr.role_no = ? order by rr.id desc limit ?, ?`, req.RoleNo, req.Paging.GetOffset(), req.Paging.GetLimit()).
@@ -754,7 +755,7 @@ func ListRoleRes(ec miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
 	}
 
 	var count int
-	tx = miso.GetMySQL().
+	tx = mysql.GetMySQL().
 		Raw(`select count(*) from role_resource rr
 			left join resource r on rr.res_code = r.code
 			where rr.role_no = ?`, req.RoleNo).
@@ -769,7 +770,7 @@ func ListRoleRes(ec miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
 
 func ListAllRoleBriefs(ec miso.Rail) ([]RoleBrief, error) {
 	var roles []RoleBrief
-	tx := miso.GetMySQL().Raw("select role_no, name from role").Scan(&roles)
+	tx := mysql.GetMySQL().Raw("select role_no, name from role").Scan(&roles)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
@@ -781,7 +782,7 @@ func ListAllRoleBriefs(ec miso.Rail) ([]RoleBrief, error) {
 
 func ListRoles(ec miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 	var roles []WRole
-	tx := miso.GetMySQL().
+	tx := mysql.GetMySQL().
 		Raw("select * from role order by id desc limit ?, ?", req.Paging.GetOffset(), req.Paging.GetLimit()).
 		Scan(&roles)
 	if tx.Error != nil {
@@ -792,7 +793,7 @@ func ListRoles(ec miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 	}
 
 	var count int
-	tx = miso.GetMySQL().Raw("select count(*) from role").Scan(&count)
+	tx = mysql.GetMySQL().Raw("select count(*) from role").Scan(&count)
 	if tx.Error != nil {
 		return ListRoleResp{}, tx.Error
 	}
@@ -896,7 +897,7 @@ func _loadResOfRole(ec miso.Rail, roleNo string) error {
 
 func listRoleNos(ec miso.Rail) ([]string, error) {
 	var ern []string
-	t := miso.GetMySQL().Raw("select role_no from role").Scan(&ern)
+	t := mysql.GetMySQL().Raw("select role_no from role").Scan(&ern)
 	if t.Error != nil {
 		return nil, t.Error
 	}
@@ -909,7 +910,7 @@ func listRoleNos(ec miso.Rail) ([]string, error) {
 
 func listRoleRes(ec miso.Rail, roleNo string) ([]ERoleRes, error) {
 	var rr []ERoleRes
-	t := miso.GetMySQL().Raw("select * from role_resource where role_no = ?", roleNo).Scan(&rr)
+	t := mysql.GetMySQL().Raw("select * from role_resource where role_no = ?", roleNo).Scan(&rr)
 	if t.Error != nil {
 		if errors.Is(t.Error, gorm.ErrRecordNotFound) {
 			return []ERoleRes{}, nil
@@ -931,9 +932,9 @@ func lookupUrlRes(ec miso.Rail, url string, method string) (CachedUrlRes, error)
 // Load cache for path -> resource
 func LoadPathResCache(rail miso.Rail) error {
 
-	_, e := miso.RLockRun(rail, "user-vault:path:res:cache", func() (any, error) {
+	_, e := redis.RLockRun(rail, "user-vault:path:res:cache", func() (any, error) {
 		var paths []ExtendedPathRes
-		tx := miso.GetMySQL().
+		tx := mysql.GetMySQL().
 			Raw("select p.*, pr.res_code from path p left join path_resource pr on p.path_no = pr.path_no").
 			Scan(&paths)
 		if tx.Error != nil {
@@ -1001,7 +1002,7 @@ func preprocessUrl(url string) string {
 
 func findPathRes(pathNo string) (ExtendedPathRes, error) {
 	var ep ExtendedPathRes
-	tx := miso.GetMySQL().
+	tx := mysql.GetMySQL().
 		Raw("select p.*, pr.res_code from path p left join path_resource pr on p.path_no = pr.path_no where p.path_no = ? limit 1", pathNo).
 		Scan(&ep)
 	if tx.Error != nil {
@@ -1016,26 +1017,26 @@ func findPathRes(pathNo string) (ExtendedPathRes, error) {
 }
 
 // global lock for resources
-func lockResourceGlobal(ec miso.Rail, runnable miso.LRunnable[any]) (any, error) {
-	return miso.RLockRun(ec, "user-vault:resource:global", runnable)
+func lockResourceGlobal(ec miso.Rail, runnable redis.LRunnable[any]) (any, error) {
+	return redis.RLockRun(ec, "user-vault:resource:global", runnable)
 }
 
 // global lock for resources
-func lockResourceGlobalExec(ec miso.Rail, runnable miso.Runnable) error {
-	return miso.RLockExec(ec, "user-vault:resource:global", runnable)
+func lockResourceGlobalExec(ec miso.Rail, runnable redis.Runnable) error {
+	return redis.RLockExec(ec, "user-vault:resource:global", runnable)
 }
 
 // lock for path
-func lockPath[T any](ec miso.Rail, pathNo string, runnable miso.LRunnable[T]) (T, error) {
-	return miso.RLockRun(ec, "user-vault:path:"+pathNo, runnable)
+func lockPath[T any](ec miso.Rail, pathNo string, runnable redis.LRunnable[T]) (T, error) {
+	return redis.RLockRun(ec, "user-vault:path:"+pathNo, runnable)
 }
 
 // lock for path
-func lockPathExec(ec miso.Rail, pathNo string, runnable miso.Runnable) error {
-	return miso.RLockExec(ec, "user-vault:path:"+pathNo, runnable)
+func lockPathExec(ec miso.Rail, pathNo string, runnable redis.Runnable) error {
+	return redis.RLockExec(ec, "user-vault:path:"+pathNo, runnable)
 }
 
 // lock for role-resource cache
-func lockRoleResCache(ec miso.Rail, runnable miso.LRunnable[any]) (any, error) {
-	return miso.RLockRun(ec, "user-vault:role:res:cache", runnable)
+func lockRoleResCache(ec miso.Rail, runnable redis.LRunnable[any]) (any, error) {
+	return redis.RLockRun(ec, "user-vault:role:res:cache", runnable)
 }

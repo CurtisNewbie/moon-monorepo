@@ -2,6 +2,8 @@
 
 > ***main branch is unstable, see tagged versions in releases***
 
+> **_This project is part of a monorepo ([https://github.com/CurtisNewbie/moon-monorepo](https://github.com/CurtisNewbie/moon-monorepo))._**
+
 Simple authentication and authorization service written in Go.
 
 This project internally uses [miso](https://github.com/curtisnewbie/miso).
