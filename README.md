@@ -26,7 +26,7 @@ This is moon monorepo, a privately hosted personal website (the private cloud).
 - [https://github.com/CurtisNewbie/vfm](https://github.com/CurtisNewbie/vfm)
 - [https://github.com/CurtisNewbie/acct](https://github.com/CurtisNewbie/acct)
 
-## Environment Preparation
+## Development Environment Preparation
 
 ### Prepare Frontend Environment
 
@@ -75,7 +75,7 @@ brew services start redis
 ```
 
 3. Configure middlewares authentication/authorization stuff (e.g., for MySQL, RabbitMQ).
-4. For each backend project, open file `conf.yml` and change the configuration for these middlewares:
+4. For each backend project, open the file `conf.yml` and change the configuration:
 
 ```yaml
 # configuration for consul ...
@@ -134,7 +134,21 @@ go run cmd/main.go
 
 ## Deployment
 
-This project is privately hosted on my machine using Docker Compose. Most of the configurations are externalized, it should be relatively easy for you to change them.
+> [!NOTE]
+>
+> The whole setup is based on docker-compose and this project is privately hosted on my machine. Below is some of the configuration examples. Instead of using `conf.yml`, you should be using `conf-prod.yml` instead, because most of the configurations are externalized. The `conf-prod.yml` configuration file uses `${...}` syntax to reads values from environment variables.
+
+e.g., the example below loads `rabbitmq.host`, `rabbitmq.username`, `rabbitmq.password` from environment variables `RABBITMQ_ADDR=`, `RABBITMQ_USERNAME=`, and `RABBITMQ_PASSWORD=`.
+
+```yaml
+rabbitmq:
+  enabled: true
+  host: "${RABBITMQ_ADDR}"
+  port: 5672
+  username: "${RABBITMQ_USERNAME}"
+  password: "${RABBITMQ_PASSWORD}"
+  vhost: "/"
+```
 
 - [Docker-Compose Conf](./deploy/docker-compose.yml)
 - [Environment Variables And Secrets](./deploy/backend.env)
