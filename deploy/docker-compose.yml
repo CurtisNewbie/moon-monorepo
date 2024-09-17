@@ -150,10 +150,8 @@ services:
       - /services/nginx/html:/usr/share/nginx/html
       - /services/nginx/logs:/var/log/nginx
     healthcheck:
-      test: curl --fail https://localhost:443/health --insecure
+      test: curl --retry 3 --retry-delay 1 --fail https://localhost:443/health --insecure || kill 1
       interval: 5s
-      timeout: 1s
-      retries: 3
     ports:
       - "0.0.0.0:443:443"   # for our website
       - "0.0.0.0:3000:3000" # for grafana
