@@ -9,6 +9,7 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/user-vault/api"
+	"gorm.io/gorm"
 )
 
 const (
@@ -129,174 +130,9 @@ func RegisterInternalPathResourcesOnBootstrapped(res []auth.Resource) {
 	})
 }
 
-func RegisterRoutes(rail miso.Rail) error {
-
-	miso.GroupRoute("/open/api",
-
-		miso.IPost("/user/login", UserLoginEp).
-			Desc("User Login using password, a JWT token is generated and returned").
-			Public(),
-
-		miso.IPost("/user/register/request", UserRegisterEp).
-			Desc("User request registration, approval needed").
-			Public(),
-
-		miso.IPost("/user/add", AdminAddUserEp).
-			Desc("Admin create new user").
-			Resource(ResourceManagerUser),
-
-		miso.IPost("/user/list", AdminListUsersEp).
-			Desc("Admin list users").
-			Resource(ResourceManagerUser),
-
-		miso.IPost("/user/info/update", AdminUpdateUserEp).
-			Desc("Admin update user info").
-			Resource(ResourceManagerUser),
-
-		miso.IPost("/user/registration/review", AdminReviewUserEp).
-			Desc("Admin review user registration").
-			Resource(ResourceManagerUser),
-
-		miso.Get("/user/info", UserGetUserInfoEp).
-			Desc("User get user info").
-			Public(),
-
-		miso.IPost("/user/password/update", UserUpdatePasswordEp).
-			Desc("User update password").
-			Resource(ResourceBasicUser),
-
-		miso.IPost("/token/exchange", ExchangeTokenEp).
-			Desc("Exchange token").
-			Public(),
-
-		miso.IGet("/token/user", GetTokenUserInfoEp).
-			Desc("Get user info by token. This endpoint is expected to be accessible publicly").
-			Public(),
-
-		miso.IPost("/access/history", UserListAccessHistoryEp).
-			Desc("User list access logs").
-			Resource(ResourceBasicUser),
-
-		miso.IPost("/user/key/generate", UserGenUserKeyEp).
-			Desc("User generate user key").
-			Resource(ResourceBasicUser),
-
-		miso.IPost("/user/key/list", UserListUserKeysEp).
-			Desc("User list user keys").
-			Resource(ResourceBasicUser),
-
-		miso.IPost("/user/key/delete", UserDeleteUserKeyEp).
-			Desc("User delete user key").
-			Resource(ResourceBasicUser),
-
-		miso.IPost("/resource/add", AdminAddResourceEp).
-			Desc("Admin add resource").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/resource/remove", AdminRemoveResourceEp).
-			Desc("Admin remove resource").
-			Resource(ResourceManageResources),
-
-		miso.IGet("/resource/brief/candidates", ListResCandidatesEp).
-			Desc("List all resource candidates for role").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/resource/list", AdminListResEp).
-			Desc("Admin list resources").
-			Resource(ResourceManageResources),
-
-		miso.Get("/resource/brief/user", ListUserAccessibleResEp).
-			Desc("List resources that are accessible to current user").
-			Public(),
-
-		miso.Get("/resource/brief/all", ListAllResBriefEp).
-			Desc("List all resource brief info").
-			Public(),
-
-		miso.IPost("/role/resource/add", AdminBindRoleResEp).
-			Desc("Admin add resource to role").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/role/resource/remove", AdminUnbindRoleResEp).
-			Desc("Admin remove resource from role").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/role/add", AdminAddRoleEp).
-			Desc("Admin add role").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/role/list", AdminListRolesEp).
-			Desc("Admin list roles").
-			Resource(ResourceManageResources),
-
-		miso.Get("/role/brief/all", AdminListRoleBriefsEp).
-			Desc("Admin list role brief info").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/role/resource/list", AdminListRoleResEp).
-			Desc("Admin list resources of role").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/role/info", GetRoleInfoEp).
-			Desc("Get role info").
-			Public(),
-
-		miso.IPost("/path/list", AdminListPathsEp).
-			Desc("Admin list paths").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/path/resource/bind", AdminBindResPathEp).
-			Desc("Admin bind resource to path").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/path/resource/unbind", AdminUnbindResPathEp).
-			Desc("Admin unbind resource and path").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/path/delete", AdminDeletePathEp).
-			Desc("Admin delete path").
-			Resource(ResourceManageResources),
-
-		miso.IPost("/path/update", AdminUpdatePathEp).
-			Desc("Admin update path").
-			Resource(ResourceManageResources),
-	)
-
-	// ----------------------------------------------------------------------------------------------
-	//
-	// Internal endpoints
-	//
-	// ----------------------------------------------------------------------------------------------
-
-	miso.BaseRoute("/remote").Group(
-
-		miso.IPost("/user/info", ItnFetchUserInfoEp).
-			Desc("Fetch user info"),
-
-		miso.IGet("/user/id", ItnFetchUserIdByNameEp).
-			Desc("Fetch id of user with the username"),
-
-		miso.IPost("/user/userno/username", ItnFetchUsernamesByNosEp).
-			Desc("Fetch usernames of users with the userNos"),
-
-		miso.IPost("/user/list/with-role", ItnFindUserWithRoleEp).
-			Desc("Fetch users with the role_no"),
-
-		miso.IPost("/user/list/with-resource", ItnFindUserWithResourceEp).
-			Desc("Fetch users that have access to the resource"),
-
-		miso.IPost("/resource/add", ItnReportResourceEp).
-			Desc("Report resource. This endpoint should be used internally by another backend service."),
-
-		miso.IPost("/path/resource/access-test", ItnCheckResourceAccessEp).
-			Desc("Validate resource access"),
-
-		miso.IPost("/path/add", ItnReportPathEp).
-			Desc("Report endpoint info"),
-	)
-	return nil
-}
-
+// misoapi-http: POST /open/api/user/login
+// misoapi-desc: User Login using password, a JWT token is generated and returned
+// misoapi-scope: PUBLIC
 func UserLoginEp(inb *miso.Inbound, req LoginReq) (string, error) {
 	rail := inb.Rail()
 	token, user, err := UserLogin(rail, mysql.GetMySQL(),
@@ -336,10 +172,16 @@ func RemoteAddr(forwardedFor string) string {
 	return addr
 }
 
+// misoapi-http: POST /open/api/user/register/request
+// misoapi-desc: User request registration, approval needed
+// misoapi-scope: PUBLIC
 func UserRegisterEp(inb *miso.Inbound, req RegisterReq) (any, error) {
 	return nil, UserRegister(inb.Rail(), mysql.GetMySQL(), req)
 }
 
+// misoapi-http: POST /open/api/user/add
+// misoapi-desc: Admin create new user
+// misoapi-resource: ref(ResourceManagerUser)
 func AdminAddUserEp(inb *miso.Inbound, req AddUserParam) (any, error) {
 	return nil, NewUser(inb.Rail(), mysql.GetMySQL(), CreateUserParam{
 		Username:     req.Username,
@@ -349,20 +191,32 @@ func AdminAddUserEp(inb *miso.Inbound, req AddUserParam) (any, error) {
 	})
 }
 
+// misoapi-http: POST /open/api/user/list
+// misoapi-desc: Admin list users
+// misoapi-resource: ref(ResourceManagerUser)
 func AdminListUsersEp(inb *miso.Inbound, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
 	return ListUsers(inb.Rail(), mysql.GetMySQL(), req)
 }
 
+// misoapi-http: POST /open/api/user/info/update
+// misoapi-desc: Admin update user info
+// misoapi-resource: ref(ResourceManagerUser)
 func AdminUpdateUserEp(inb *miso.Inbound, req AdminUpdateUserReq) (any, error) {
 	rail := inb.Rail()
 	return nil, AdminUpdateUser(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
+// misoapi-http: POST /open/api/user/registration/review
+// misoapi-desc: Admin review user registration
+// misoapi-resource: ref(ResourceManagerUser)
 func AdminReviewUserEp(inb *miso.Inbound, req AdminReviewUserReq) (any, error) {
 	rail := inb.Rail()
 	return nil, ReviewUserRegistration(rail, mysql.GetMySQL(), req)
 }
 
+// misoapi-http: GET /open/api/user/info
+// misoapi-desc: User get user info
+// misoapi-scope: PUBLIC
 func UserGetUserInfoEp(inb *miso.Inbound) (UserInfoRes, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(fetchUserInfoHisto)
@@ -388,12 +242,18 @@ func UserGetUserInfoEp(inb *miso.Inbound) (UserInfoRes, error) {
 	}, nil
 }
 
+// misoapi-http: POST /open/api/user/password/update
+// misoapi-desc: User update password
+// misoapi-resource: ref(ResourceBasicUser)
 func UserUpdatePasswordEp(inb *miso.Inbound, req UpdatePasswordReq) (any, error) {
 	rail := inb.Rail()
 	u := common.GetUser(rail)
 	return nil, UpdatePassword(rail, mysql.GetMySQL(), u.Username, req)
 }
 
+// misoapi-http: POST /open/api/token/exchange
+// misoapi-desc: Exchange token
+// misoapi-scope: PUBLIC
 func ExchangeTokenEp(inb *miso.Inbound, req ExchangeTokenReq) (string, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(tokenExchangeHisto)
@@ -401,52 +261,82 @@ func ExchangeTokenEp(inb *miso.Inbound, req ExchangeTokenReq) (string, error) {
 	return ExchangeToken(rail, mysql.GetMySQL(), req)
 }
 
+// misoapi-http: GET /open/api/token/user
+// misoapi-desc: Get user info by token. This endpoint is expected to be accessible publicly
+// misoapi-scope: PUBLIC
 func GetTokenUserInfoEp(inb *miso.Inbound, req GetTokenUserReq) (UserInfoBrief, error) {
 	rail := inb.Rail()
 	return GetTokenUser(rail, mysql.GetMySQL(), req.Token)
 }
 
+// misoapi-http: POST /open/api/access/history
+// misoapi-desc: User list access logs
+// misoapi-resource: ref(ResourceBasicUser)
 func UserListAccessHistoryEp(inb *miso.Inbound, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
 	rail := inb.Rail()
 	return ListAccessLogs(rail, mysql.GetMySQL(), common.GetUser(rail), req)
 }
 
+// misoapi-http: POST /open/api/user/key/generate
+// misoapi-desc: User generate user key
+// misoapi-resource: ref(ResourceBasicUser)
 func UserGenUserKeyEp(inb *miso.Inbound, req GenUserKeyReq) (any, error) {
 	rail := inb.Rail()
 	return nil, GenUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).Username)
 }
 
+// misoapi-http: POST /open/api/user/key/list
+// misoapi-desc: User list user keys
+// misoapi-resource: ref(ResourceBasicUser)
 func UserListUserKeysEp(inb *miso.Inbound, req ListUserKeysReq) (miso.PageRes[ListedUserKey], error) {
 	rail := inb.Rail()
 	return ListUserKeys(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
+// misoapi-http: POST /open/api/user/key/delete
+// misoapi-desc: User delete user key
+// misoapi-resource: ref(ResourceBasicUser)
 func UserDeleteUserKeyEp(inb *miso.Inbound, req DeleteUserKeyReq) (any, error) {
 	rail := inb.Rail()
 	return nil, DeleteUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).UserNo)
 }
 
+// misoapi-http: POST /open/api/resource/add
+// misoapi-desc: Admin add resource
+// misoapi-resource: ref(ResourceManageResources)
 func AdminAddResourceEp(inb *miso.Inbound, req CreateResReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, CreateResourceIfNotExist(rail, req, user)
 }
 
+// misoapi-http: POST /open/api/resource/remove
+// misoapi-desc: Admin remove resource
+// misoapi-resource: ref(ResourceManageResources)
 func AdminRemoveResourceEp(inb *miso.Inbound, req DeleteResourceReq) (any, error) {
 	rail := inb.Rail()
 	return nil, DeleteResource(rail, req)
 }
 
+// misoapi-http: GET /open/api/resource/brief/candidates
+// misoapi-desc: List all resource candidates for role
+// misoapi-resource: ref(ResourceManageResources)
 func ListResCandidatesEp(inb *miso.Inbound, req ListResCandidatesReq) ([]ResBrief, error) {
 	rail := inb.Rail()
 	return ListResourceCandidatesForRole(rail, req.RoleNo)
 }
 
+// misoapi-http: POST /open/api/resource/list
+// misoapi-desc: Admin list resources
+// misoapi-resource: ref(ResourceManageResources)
 func AdminListResEp(inb *miso.Inbound, req ListResReq) (ListResResp, error) {
 	rail := inb.Rail()
 	return ListResources(rail, req)
 }
 
+// misoapi-http: GET /open/api/resource/brief/user
+// misoapi-desc: List resources that are accessible to current user
+// misoapi-scope: PUBLIC
 func ListUserAccessibleResEp(inb *miso.Inbound) ([]ResBrief, error) {
 	rail := inb.Rail()
 	u := common.GetUser(rail)
@@ -456,100 +346,158 @@ func ListUserAccessibleResEp(inb *miso.Inbound) ([]ResBrief, error) {
 	return ListAllResBriefsOfRole(rail, u.RoleNo)
 }
 
+// misoapi-http: GET /open/api/resource/brief/all
+// misoapi-desc: List all resource brief info
+// misoapi-scope: PUBLIC
 func ListAllResBriefEp(inb *miso.Inbound) ([]ResBrief, error) {
 	rail := inb.Rail()
 	return ListAllResBriefs(rail)
 }
 
+// misoapi-http: POST /open/api/role/resource/add
+// misoapi-desc: Admin add resource to role
+// misoapi-resource: ref(ResourceManageResources)
 func AdminBindRoleResEp(inb *miso.Inbound, req AddRoleResReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, AddResToRoleIfNotExist(rail, req, user)
 }
 
+// misoapi-http: POST /open/api/role/resource/remove
+// misoapi-desc: Admin remove resource from role
+// misoapi-resource: ref(ResourceManageResources)
 func AdminUnbindRoleResEp(inb *miso.Inbound, req RemoveRoleResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, RemoveResFromRole(rail, req)
 }
 
+// misoapi-http: POST /open/api/role/add
+// misoapi-desc: Admin add role
+// misoapi-resource: ref(ResourceManageResources)
 func AdminAddRoleEp(inb *miso.Inbound, req AddRoleReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, AddRole(rail, req, user)
 }
 
+// misoapi-http: POST /open/api/role/list
+// misoapi-desc: Admin list roles
+// misoapi-resource: ref(ResourceManageResources)
 func AdminListRolesEp(inb *miso.Inbound, req ListRoleReq) (ListRoleResp, error) {
 	rail := inb.Rail()
 	return ListRoles(rail, req)
 }
 
+// misoapi-http: GET /open/api/role/brief/all
+// misoapi-desc: Admin list role brief info
+// misoapi-resource: ref(ResourceManageResources)
 func AdminListRoleBriefsEp(inb *miso.Inbound) ([]RoleBrief, error) {
 	rail := inb.Rail()
 	return ListAllRoleBriefs(rail)
 }
 
+// misoapi-http: POST /open/api/role/resource/list
+// misoapi-desc: Admin list resources of role
+// misoapi-resource: ref(ResourceManageResources)
 func AdminListRoleResEp(inb *miso.Inbound, req ListRoleResReq) (ListRoleResResp, error) {
 	rail := inb.Rail()
 	return ListRoleRes(rail, req)
 }
 
+// misoapi-http: POST /open/api/role/info
+// misoapi-desc: Get role info
+// misoapi-scope: PUBLIC
 func GetRoleInfoEp(inb *miso.Inbound, req api.RoleInfoReq) (api.RoleInfoResp, error) {
 	rail := inb.Rail()
 	return GetRoleInfo(rail, req)
 }
 
+// misoapi-http: POST /open/api/path/list
+// misoapi-desc: Admin list paths
+// misoapi-resource: ref(ResourceManageResources)
 func AdminListPathsEp(inb *miso.Inbound, req ListPathReq) (ListPathResp, error) {
 	rail := inb.Rail()
 	return ListPaths(rail, req)
 }
 
+// misoapi-http: POST /open/api/path/resource/bind
+// misoapi-desc: Admin bind resource to path
+// misoapi-resource: ref(ResourceManageResources)
 func AdminBindResPathEp(inb *miso.Inbound, req BindPathResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, BindPathRes(rail, req)
 }
 
+// misoapi-http: POST /open/api/path/resource/unbind
+// misoapi-desc: Admin unbind resource and path
+// misoapi-resource: ref(ResourceManageResources)
 func AdminUnbindResPathEp(inb *miso.Inbound, req UnbindPathResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, UnbindPathRes(rail, req)
 }
 
+// misoapi-http: POST /open/api/path/delete
+// misoapi-desc: Admin delete path
+// misoapi-resource: ref(ResourceManageResources)
 func AdminDeletePathEp(inb *miso.Inbound, req DeletePathReq) (any, error) {
 	rail := inb.Rail()
 	return nil, DeletePath(rail, req)
 }
 
+// misoapi-http: POST /open/api/path/update
+// misoapi-desc: Admin update path
+// misoapi-resource: ref(ResourceManageResources)
 func AdminUpdatePathEp(inb *miso.Inbound, req UpdatePathReq) (any, error) {
 	rail := inb.Rail()
 	return nil, UpdatePath(rail, req)
 }
 
+// misoapi-http: POST /remote/user/info
+// misoapi-desc: Fetch user info
 func ItnFetchUserInfoEp(inb *miso.Inbound, req api.FindUserReq) (api.UserInfo, error) {
 	rail := inb.Rail()
 	return ItnFindUserInfo(rail, mysql.GetMySQL(), req)
 }
 
+// misoapi-http: GET /remote/user/id
+// misoapi-desc: Fetch id of user with the username
 func ItnFetchUserIdByNameEp(inb *miso.Inbound, req FetchUserIdByNameReq) (int, error) {
 	rail := inb.Rail()
 	u, err := LoadUserBriefThrCache(rail, mysql.GetMySQL(), req.Username)
 	return u.Id, err
 }
 
+// misoapi-http: POST /remote/user/userno/username
+// misoapi-desc: Fetch usernames of users with the userNos
 func ItnFetchUsernamesByNosEp(inb *miso.Inbound, req api.FetchNameByUserNoReq) (api.FetchUsernamesRes, error) {
 	rail := inb.Rail()
 	return ItnFindNameOfUserNo(rail, mysql.GetMySQL(), req)
 }
 
+// misoapi-http: POST /remote/user/list/with-role
+// misoapi-desc: Fetch users with the role_no
 func ItnFindUserWithRoleEp(inb *miso.Inbound, req api.FetchUsersWithRoleReq) ([]api.UserInfo, error) {
 	rail := inb.Rail()
 	return ItnFindUsersWithRole(rail, mysql.GetMySQL(), req)
 }
 
+// misoapi-http: POST /remote/user/list/with-resource
+// misoapi-desc: Fetch users that have access to the resource
+func ItnFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
+	rail := inb.Rail()
+	return FindUserWithRes(rail, mysql.GetMySQL(), req)
+}
+
+// misoapi-http: POST /remote/resource/add
+// misoapi-desc: Report resource. This endpoint should be used internally by another backend service.
 func ItnReportResourceEp(inb *miso.Inbound, req CreateResReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, CreateResourceIfNotExist(rail, req, user)
 }
 
+// misoapi-http: POST /remote/path/resource/access-test
+// misoapi-desc: Validate resource access
 func ItnCheckResourceAccessEp(inb *miso.Inbound, req TestResAccessReq) (TestResAccessResp, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(resourceAccessCheckHisto)
@@ -557,13 +505,87 @@ func ItnCheckResourceAccessEp(inb *miso.Inbound, req TestResAccessReq) (TestResA
 	return TestResourceAccess(rail, req)
 }
 
+// misoapi-http: POST /remote/path/add
+// misoapi-desc: Report endpoint info
 func ItnReportPathEp(inb *miso.Inbound, req CreatePathReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, CreatePath(rail, req, user)
 }
 
-func ItnFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
-	rail := inb.Rail()
-	return FindUserWithRes(rail, mysql.GetMySQL(), req)
+type ListSitePasswordReq struct {
+	Alias    string
+	Site     string
+	Username string
+	Paging   miso.Paging
+}
+
+type ListSitePasswordRes struct {
+	RecordId   string
+	Site       string
+	Alias      string
+	Username   string
+	CreateTime util.ETime
+}
+
+// misoapi-http: POST /open/api/password/list-site-passwords
+// misoapi-desc: List site password records
+// misoapi-resource: ref(ResourceBasicUser)
+func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user common.User, db *gorm.DB) (miso.PageRes[ListSitePasswordRes], error) {
+	return ListSitePasswords(rail, req, user, db)
+}
+
+type AddSitePasswordReq struct {
+	Site          string
+	Alias         string
+	Username      string `valid:"notEmpty"`
+	SitePassword  string `valid:"notEmpty"`
+	LoginPassword string `valid:"notEmpty"`
+}
+
+// misoapi-http: POST /open/api/password/add-site-password
+// misoapi-desc: Add site password record
+// misoapi-resource: ref(ResourceBasicUser)
+func ApiAddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, db *gorm.DB) (any, error) {
+	return nil, AddSitePassword(rail, req, user, db)
+}
+
+type RemoveSitePasswordRes struct {
+	RecordId string `valid:"notEmpty"`
+}
+
+// misoapi-http: POST /open/api/password/remove-site-password
+// misoapi-desc: Remove site password record
+// misoapi-resource: ref(ResourceBasicUser)
+func ApiRemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes, user common.User, db *gorm.DB) (any, error) {
+	return nil, RemoveSitePassword(rail, req, user, db)
+}
+
+type DecryptSitePasswordReq struct {
+	LoginPassword string `valid:"notEmpty"`
+	RecordId      string `valid:"notEmpty"`
+}
+
+type DecryptSitePasswordRes struct {
+	Decrypted string
+}
+
+// misoapi-http: POST /open/api/password/decrypt-site-password
+// misoapi-desc: Decrypt site password
+// misoapi-resource: ref(ResourceBasicUser)
+func ApiDecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq, user common.User, db *gorm.DB) (DecryptSitePasswordRes, error) {
+	return DecryptSitePassword(rail, req, user, db)
+}
+
+type EditSitePasswordReq struct {
+	RecordId string
+	Site     string
+	Alias    string
+}
+
+// misoapi-http: POST /open/api/password/edit-site-password
+// misoapi-desc: Edit site password
+// misoapi-resource: ref(ResourceBasicUser)
+func ApiEditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User, db *gorm.DB) (any, error) {
+	return nil, EditSitePassword(rail, req, user, db)
 }

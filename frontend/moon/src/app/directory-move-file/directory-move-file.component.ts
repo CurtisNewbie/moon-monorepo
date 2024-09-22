@@ -83,24 +83,16 @@ export class DirectoryMoveFileComponent implements OnInit {
     if (!key) {
       return;
     }
-    this._moveEachToDir(this.dat.files, key, 0);
+    this.batchMoveEachToDir(this.dat.files, key);
   }
 
-  private _moveEachToDir(files, dirFileKey: string, offset: number) {
-    if (offset >= files.length) {
-      return;
+  private batchMoveEachToDir(files, dirFileKey: string) {
+    let reqs = [];
+    for (let f of files) {
+      reqs.push({uuid: f.fileKey, parentFileUuid: dirFileKey})
     }
-
-    let curr = files[offset];
     this.http
-      .post(`${environment.vfm}/open/api/file/move-to-dir`, {
-        uuid: curr.fileKey,
-        parentFileUuid: dirFileKey,
-      })
-      .subscribe({
-        next: (resp) => {
-          this._moveEachToDir(files, dirFileKey, offset + 1);
-        },
-      });
+      .post(`/vfm/open/api/file/batch-move-to-dir`, {instructions: reqs})
+      .subscribe();
   }
 }

@@ -65,11 +65,30 @@ func GetParentFileEp(inb *miso.Inbound, req FetchParentFileReq) (*ParentFileInfo
 }
 
 // misoapi-http: POST /open/api/file/move-to-dir
-// misoapi-desc: User move files into directory
+// misoapi-desc: User move file into directory
 // misoapi-resource: ref(ManageFilesResource)
 func MoveFileToDirEp(inb *miso.Inbound, req MoveIntoDirReq) (any, error) {
 	rail := inb.Rail()
 	return nil, MoveFileToDir(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+}
+
+type BatchMoveIntoDirReq struct {
+	Instructions []MoveIntoDirReq
+}
+
+// misoapi-http: POST /open/api/file/batch-move-to-dir
+// misoapi-desc: User move files into directory
+// misoapi-resource: ref(ManageFilesResource)
+func BatchMoveFileToDirEp(inb *miso.Inbound, req BatchMoveIntoDirReq) (any, error) {
+	rail := inb.Rail()
+	user := common.GetUser(rail)
+	db := mysql.GetMySQL()
+	for _, r := range req.Instructions {
+		if err := MoveFileToDir(rail, db, r, user); err != nil {
+			return nil, err
+		}
+	}
+	return nil, nil
 }
 
 // misoapi-http: POST /open/api/file/make-dir

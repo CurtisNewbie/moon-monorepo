@@ -13,29 +13,20 @@ import (
 )
 
 const (
-	FileSavedEventBus               = "event.bus.vfm.file.saved"
-	ThumbnailUpdatedEventBus        = "event.bus.vfm.file.thumbnail.updated"
-	FileLDeletedEventBus            = "event.bus.vfm.file.logic.deleted"
 	CalcDirSizeEventBus             = "event.bus.vfm.dir.size.calc"
 	AddFileToVFolderEventBus        = "event.bus.vfm.file.vfolder.add"
 	CompressImgNotifyEventBus       = "vfm.image.compressed.event"
 	GenVideoThumbnailNotifyEventBus = "vfm.video.thumbnail.generate"
 	UnzipResultNotifyEventBus       = "vfm.unzip.result.notify.event"
-	AddDirGalleryImgEventBus        = "event.bus.fantahsea.dir.gallery.image.add"
-	SyncGalleryFileDeletedEventBus  = "event.bus.fantahsea.notify.file.deleted"
 )
 
 var (
 	UnzipResultNotifyPipeline       = rabbit.NewEventPipeline[fstore.UnzipFileReplyEvent](UnzipResultNotifyEventBus)
 	GenVideoThumbnailNotifyPipeline = rabbit.NewEventPipeline[fstore.GenVideoThumbnailReplyEvent](GenVideoThumbnailNotifyEventBus)
 	CompressImgNotifyPipeline       = rabbit.NewEventPipeline[fstore.ImageCompressReplyEvent](CompressImgNotifyEventBus)
-	AddFileToVFolderPipeline        = rabbit.NewEventPipeline[AddFileToVfolderEvent](AddFileToVFolderEventBus)
-	CalcDirSizePipeline             = rabbit.NewEventPipeline[CalcDirSizeEvt](CalcDirSizeEventBus)
-	FileLDeletedPipeline            = rabbit.NewEventPipeline[ep.StreamEvent](FileLDeletedEventBus)
-	ThumbnailUpdatedPipeline        = rabbit.NewEventPipeline[ep.StreamEvent](ThumbnailUpdatedEventBus)
-	FileSavedPipeline               = rabbit.NewEventPipeline[ep.StreamEvent](FileSavedEventBus)
-	AddDirGalleryImgPipeline        = rabbit.NewEventPipeline[CreateGalleryImgEvent](AddDirGalleryImgEventBus)
-	SyncGalleryFileDeletedPipeline  = rabbit.NewEventPipeline[NotifyFileDeletedEvent](SyncGalleryFileDeletedEventBus)
+
+	AddFileToVFolderPipeline = rabbit.NewEventPipeline[AddFileToVfolderEvent](AddFileToVFolderEventBus)
+	CalcDirSizePipeline      = rabbit.NewEventPipeline[CalcDirSizeEvt](CalcDirSizeEventBus)
 )
 
 func PrepareEventBus(rail miso.Rail) error {
@@ -44,11 +35,12 @@ func PrepareEventBus(rail miso.Rail) error {
 	CompressImgNotifyPipeline.Listen(2, OnImageCompressed)
 	AddFileToVFolderPipeline.Listen(2, OnAddFileToVfolderEvent)
 	CalcDirSizePipeline.Listen(1, OnCalcDirSizeEvt)
-	FileLDeletedPipeline.Listen(2, OnFileDeleted)
-	ThumbnailUpdatedPipeline.Listen(2, OnThumbnailUpdated)
-	FileSavedPipeline.Listen(2, OnFileSaved)
-	AddDirGalleryImgPipeline.Listen(2, OnCreateGalleryImgEvent)
-	SyncGalleryFileDeletedPipeline.Listen(2, OnNotifyFileDeletedEvent)
+
+	rabbit.NewEventPipeline[CreateGalleryImgEvent]("event.bus.fantahsea.dir.gallery.image.add").
+		Listen(2, OnCreateGalleryImgEvent) // deprecated
+	rabbit.NewEventPipeline[NotifyFileDeletedEvent]("event.bus.fantahsea.notify.file.deleted").
+		Listen(2, OnNotifyFileDeletedEvent) // deprecated
+
 	return nil
 }
 
@@ -218,7 +210,7 @@ func OnThumbnailUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 		ImageName:    f.Name,
 		ImageFileKey: f.Uuid,
 	}
-	return AddDirGalleryImgPipeline.Send(rail, cfi)
+	return OnCreateGalleryImgEvent(rail, cfi)
 }
 
 // event-pump send binlog event when a file_info is deleted (is_logic_deleted changed)
@@ -246,7 +238,7 @@ func OnFileDeleted(rail miso.Rail, evt ep.StreamEvent) error {
 
 	rail.Infof("File logically deleted, %v", uuid)
 
-	if e := SyncGalleryFileDeletedPipeline.Send(rail, NotifyFileDeletedEvent{FileKey: uuid}); e != nil {
+	if e := OnNotifyFileDeletedEvent(rail, NotifyFileDeletedEvent{FileKey: uuid}); e != nil {
 		return fmt.Errorf("failed to send NotifyFileDeletedEvent, uuid: %v, %v", uuid, e)
 	}
 	return nil
@@ -275,4 +267,67 @@ func OnCalcDirSizeEvt(rail miso.Rail, evt CalcDirSizeEvt) error {
 func OnUnzipFileReplyEvent(rail miso.Rail, evt fstore.UnzipFileReplyEvent) error {
 	rail.Infof("received UnzipFileReplyEvent: %+v", evt)
 	return HandleZipUnpackResult(rail, mysql.GetMySQL(), evt)
+}
+
+// file is moved to another directory.
+func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
+	fileKey, ok := evt.ColumnAfter("uuid")
+	if !ok {
+		rail.Errorf("Event doesn't contain uuid column, %+v", evt)
+		return nil
+	}
+
+	v, ok := evt.Columns["parent_file"]
+	if !ok {
+		rail.Errorf("Event doesn't contain parent_file column, %+v", evt)
+		return nil
+	}
+	rail.Infof("Filed %v is moved from %v to %v", fileKey, v.Before, v.After)
+
+	db := mysql.GetMySQL()
+	if v.Before != "" {
+		// TODO: remove from gallery
+	}
+	if v.After != "" {
+		// lock before we do anything about it
+		lock := fileLock(rail, fileKey)
+		if err := lock.Lock(); err != nil {
+			return err
+		}
+		defer lock.Unlock()
+
+		f, err := findFile(rail, db, fileKey)
+		if err != nil {
+			return err
+		}
+		if f == nil || f.FileType != FileTypeFile ||
+			f.Thumbnail == "" || !isImage(f.Name) {
+			return nil
+		}
+
+		pf, err := findFile(rail, db, v.After)
+		if err != nil {
+			return err
+		}
+		if pf == nil {
+			rail.Infof("parent file not found, %v", f.ParentFile)
+			return nil
+		}
+
+		user, err := CachedFindUser(rail, f.UploaderNo)
+		if err != nil {
+			return err
+		}
+
+		cfi := CreateGalleryImgEvent{
+			Username:     user.Username,
+			UserNo:       user.UserNo,
+			DirFileKey:   pf.Uuid,
+			DirName:      pf.Name,
+			ImageName:    f.Name,
+			ImageFileKey: f.Uuid,
+		}
+		return OnCreateGalleryImgEvent(rail, cfi)
+	}
+	return nil
 }

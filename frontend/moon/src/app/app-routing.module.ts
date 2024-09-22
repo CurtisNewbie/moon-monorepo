@@ -27,6 +27,7 @@ import { VersionedFileComponent } from "./versioned-file/versioned-file.componen
 import { CashflowComponent } from "./cashflow/cashflow.component";
 import { CashflowStatisticsComponent } from "./cashflow-statistics/cashflow-statistics.component";
 import { WebpageViewerComponent } from "./webpage-viewer/webpage-viewer.component";
+import { SitePasswordComponent } from "./site-password/site-password.component";
 
 const routes: Routes = [
   {
@@ -137,6 +138,10 @@ const routes: Routes = [
     path: NavType.WEBPAGE_VIEWER,
     component: WebpageViewerComponent,
   },
+  {
+    path: "site-passwords",
+    component: SitePasswordComponent,
+  },
   { path: "**", redirectTo: "/" + NavType.USER_DETAILS },
 ];
 
@@ -144,4 +149,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes, { relativeLinkResolution: "legacy" })],
   exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

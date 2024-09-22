@@ -245,6 +245,7 @@
       isDisabled?: number
       paging?: Paging
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -260,15 +261,18 @@
       error?: boolean                // whether the request was successful
       data?: PageRes
     }
+
     export interface PageRes {
       paging?: Paging
       payload?: UserInfo[]
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
       total?: number                 // total count
     }
+
     export interface UserInfo {
       id?: number
       username?: string
@@ -460,6 +464,7 @@
       error?: boolean                // whether the request was successful
       data?: UserInfoRes
     }
+
     export interface UserInfoRes {
       id?: number
       username?: string
@@ -646,6 +651,7 @@
       error?: boolean                // whether the request was successful
       data?: UserInfoBrief
     }
+
     export interface UserInfoBrief {
       id?: number
       username?: string
@@ -720,6 +726,7 @@
     export interface ListAccessLogReq {
       paging?: Paging
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -735,15 +742,18 @@
       error?: boolean                // whether the request was successful
       data?: PageRes
     }
+
     export interface PageRes {
       paging?: Paging
       payload?: ListedAccessLog[]
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
       total?: number                 // total count
     }
+
     export interface ListedAccessLog {
       id?: number
       userAgent?: string
@@ -879,6 +889,7 @@
       paging?: Paging
       name?: string
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -894,15 +905,18 @@
       error?: boolean                // whether the request was successful
       data?: PageRes
     }
+
     export interface PageRes {
       paging?: Paging
       payload?: ListedUserKey[]
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
       total?: number                 // total count
     }
+
     export interface ListedUserKey {
       id?: number
       secretKey?: string
@@ -1140,6 +1154,7 @@
       error?: boolean                // whether the request was successful
       data?: ResBrief[]
     }
+
     export interface ResBrief {
       code?: string
       name?: string
@@ -1210,6 +1225,7 @@
     export interface ListResReq {
       paging?: Paging
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -1225,15 +1241,18 @@
       error?: boolean                // whether the request was successful
       data?: ListResResp
     }
+
     export interface ListResResp {
       paging?: Paging
       payload?: WRes[]
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
       total?: number                 // total count
     }
+
     export interface WRes {
       id?: number
       code?: string
@@ -1295,6 +1314,7 @@
       error?: boolean                // whether the request was successful
       data?: ResBrief[]
     }
+
     export interface ResBrief {
       code?: string
       name?: string
@@ -1350,6 +1370,7 @@
       error?: boolean                // whether the request was successful
       data?: ResBrief[]
     }
+
     export interface ResBrief {
       code?: string
       name?: string
@@ -1597,6 +1618,7 @@
     export interface ListRoleReq {
       paging?: Paging
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -1612,10 +1634,12 @@
       error?: boolean                // whether the request was successful
       data?: ListRoleResp
     }
+
     export interface ListRoleResp {
       payload?: WRole[]
       paging?: Paging
     }
+
     export interface WRole {
       id?: number
       roleNo?: string
@@ -1625,6 +1649,7 @@
       updateTime?: number
       updateBy?: string
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -1682,6 +1707,7 @@
       error?: boolean                // whether the request was successful
       data?: RoleBrief[]
     }
+
     export interface RoleBrief {
       roleNo?: string
       name?: string
@@ -1751,6 +1777,7 @@
       paging?: Paging
       roleNo?: string
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -1766,15 +1793,18 @@
       error?: boolean                // whether the request was successful
       data?: ListRoleResResp
     }
+
     export interface ListRoleResResp {
       paging?: Paging
       payload?: ListedRoleRes[]
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
       total?: number                 // total count
     }
+
     export interface ListedRoleRes {
       id?: number
       resCode?: string
@@ -1845,6 +1875,7 @@
       error?: boolean                // whether the request was successful
       data?: RoleInfoResp
     }
+
     export interface RoleInfoResp {
       roleNo?: string
       name?: string
@@ -1927,6 +1958,7 @@
       ptype?: string                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
       paging?: Paging
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -1942,15 +1974,18 @@
       error?: boolean                // whether the request was successful
       data?: ListPathResp
     }
+
     export interface ListPathResp {
       paging?: Paging
       payload?: WPath[]
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
       total?: number                 // total count
     }
+
     export interface WPath {
       id?: number
       pgroup?: string
@@ -2279,6 +2314,7 @@
       error?: boolean                // whether the request was successful
       data?: UserInfo
     }
+
     export interface UserInfo {
       id?: number
       username?: string
@@ -2404,6 +2440,7 @@
       error?: boolean                // whether the request was successful
       data?: FetchUsernamesRes
     }
+
     export interface FetchUsernamesRes {
       userNoToUsername?: map[string]string
     }
@@ -2478,6 +2515,7 @@
       error?: boolean                // whether the request was successful
       data?: UserInfo[]
     }
+
     export interface UserInfo {
       id?: number
       username?: string
@@ -2562,6 +2600,7 @@
       error?: boolean                // whether the request was successful
       data?: UserInfo[]
     }
+
     export interface UserInfo {
       id?: number
       username?: string
@@ -2699,6 +2738,7 @@
       error?: boolean                // whether the request was successful
       data?: TestResAccessResp
     }
+
     export interface TestResAccessResp {
       valid?: boolean
     }
@@ -2784,6 +2824,365 @@
 
     let req: CreatePathReq | null = null;
     this.http.post<any>(`/user-vault/remote/path/add`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
+- POST /open/api/password/list-site-passwords
+  - Description: List site password records
+  - Bound to Resource: `"basic-user"`
+  - JSON Request:
+    - "alias": (string) 
+    - "site": (string) 
+    - "username": (string) 
+    - "paging": (Paging) 
+      - "limit": (int) page limit
+      - "page": (int) page number, 1-based
+      - "total": (int) total count
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/vault.ListSitePasswordRes]) response data
+      - "paging": (Paging) pagination parameters
+        - "limit": (int) page limit
+        - "page": (int) page number, 1-based
+        - "total": (int) total count
+      - "payload": ([]vault.ListSitePasswordRes) payload values in current page
+        - "recordId": (string) 
+        - "site": (string) 
+        - "alias": (string) 
+        - "username": (string) 
+        - "createTime": (int64) 
+  - cURL:
+    ```sh
+    curl -X POST 'http://localhost:8089/open/api/password/list-site-passwords' \
+      -H 'Content-Type: application/json' \
+      -d '{"alias":"","paging":{"limit":0,"page":0,"total":0},"site":"","username":""}'
+    ```
+
+  - JSON Request Object In TypeScript:
+    ```ts
+    export interface ListSitePasswordReq {
+      alias?: string
+      site?: string
+      username?: string
+      paging?: Paging
+    }
+
+    export interface Paging {
+      limit?: number                 // page limit
+      page?: number                  // page number, 1-based
+      total?: number                 // total count
+    }
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string             // error code
+      msg?: string                   // message
+      error?: boolean                // whether the request was successful
+      data?: PageRes
+    }
+
+    export interface PageRes {
+      paging?: Paging
+      payload?: ListSitePasswordRes[]
+    }
+
+    export interface Paging {
+      limit?: number                 // page limit
+      page?: number                  // page number, 1-based
+      total?: number                 // total count
+    }
+
+    export interface ListSitePasswordRes {
+      recordId?: string
+      site?: string
+      alias?: string
+      username?: string
+      createTime?: number
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    let req: ListSitePasswordReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/password/list-site-passwords`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: PageRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
+- POST /open/api/password/add-site-password
+  - Description: Add site password record
+  - Bound to Resource: `"basic-user"`
+  - JSON Request:
+    - "site": (string) 
+    - "alias": (string) 
+    - "username": (string) 
+    - "sitePassword": (string) 
+    - "loginPassword": (string) 
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+  - cURL:
+    ```sh
+    curl -X POST 'http://localhost:8089/open/api/password/add-site-password' \
+      -H 'Content-Type: application/json' \
+      -d '{"alias":"","loginPassword":"","site":"","sitePassword":"","username":""}'
+    ```
+
+  - JSON Request Object In TypeScript:
+    ```ts
+    export interface AddSitePasswordReq {
+      site?: string
+      alias?: string
+      username?: string
+      sitePassword?: string
+      loginPassword?: string
+    }
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string             // error code
+      msg?: string                   // message
+      error?: boolean                // whether the request was successful
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    let req: AddSitePasswordReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/password/add-site-password`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
+- POST /open/api/password/remove-site-password
+  - Description: Remove site password record
+  - Bound to Resource: `"basic-user"`
+  - JSON Request:
+    - "recordId": (string) 
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+  - cURL:
+    ```sh
+    curl -X POST 'http://localhost:8089/open/api/password/remove-site-password' \
+      -H 'Content-Type: application/json' \
+      -d '{"recordId":""}'
+    ```
+
+  - JSON Request Object In TypeScript:
+    ```ts
+    export interface RemoveSitePasswordRes {
+      recordId?: string
+    }
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string             // error code
+      msg?: string                   // message
+      error?: boolean                // whether the request was successful
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    let req: RemoveSitePasswordRes | null = null;
+    this.http.post<any>(`/user-vault/open/api/password/remove-site-password`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
+- POST /open/api/password/decrypt-site-password
+  - Description: Decrypt site password
+  - Bound to Resource: `"basic-user"`
+  - JSON Request:
+    - "loginPassword": (string) 
+    - "recordId": (string) 
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (DecryptSitePasswordRes) response data
+      - "decrypted": (string) 
+  - cURL:
+    ```sh
+    curl -X POST 'http://localhost:8089/open/api/password/decrypt-site-password' \
+      -H 'Content-Type: application/json' \
+      -d '{"loginPassword":"","recordId":""}'
+    ```
+
+  - JSON Request Object In TypeScript:
+    ```ts
+    export interface DecryptSitePasswordReq {
+      loginPassword?: string
+      recordId?: string
+    }
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string             // error code
+      msg?: string                   // message
+      error?: boolean                // whether the request was successful
+      data?: DecryptSitePasswordRes
+    }
+
+    export interface DecryptSitePasswordRes {
+      decrypted?: string
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    let req: DecryptSitePasswordReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/password/decrypt-site-password`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: DecryptSitePasswordRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
+- POST /open/api/password/edit-site-password
+  - Description: Edit site password
+  - Bound to Resource: `"basic-user"`
+  - JSON Request:
+    - "recordId": (string) 
+    - "site": (string) 
+    - "alias": (string) 
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+  - cURL:
+    ```sh
+    curl -X POST 'http://localhost:8089/open/api/password/edit-site-password' \
+      -H 'Content-Type: application/json' \
+      -d '{"alias":"","recordId":"","site":""}'
+    ```
+
+  - JSON Request Object In TypeScript:
+    ```ts
+    export interface EditSitePasswordReq {
+      recordId?: string
+      site?: string
+      alias?: string
+    }
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string             // error code
+      msg?: string                   // message
+      error?: boolean                // whether the request was successful
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    let req: EditSitePasswordReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/password/edit-site-password`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2886,6 +3285,7 @@
       page?: Paging
       status?: string
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -3035,13 +3435,24 @@
 - POST /open/api/v1/notification/open-all
   - Description: Mark all notifications opened
   - Bound to Resource: `"postbox:notification:query"`
+  - JSON Request:
+    - "notifiNo": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
   - cURL:
     ```sh
-    curl -X POST 'http://localhost:8089/open/api/v1/notification/open-all'
+    curl -X POST 'http://localhost:8089/open/api/v1/notification/open-all' \
+      -H 'Content-Type: application/json' \
+      -d '{"notifiNo":""}'
+    ```
+
+  - JSON Request Object In TypeScript:
+    ```ts
+    export interface OpenNotificationReq {
+      notifiNo?: string
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -3063,7 +3474,8 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/user-vault/open/api/v1/notification/open-all`)
+    let req: OpenNotificationReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/v1/notification/open-all`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

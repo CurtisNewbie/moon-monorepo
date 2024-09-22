@@ -99,9 +99,8 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 		WithPage(cmd.Paging).
 		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
 			return tx.Table("gallery g").
-				Joins("LEFT JOIN gallery_user_access ga ON (g.gallery_no = ga.gallery_no)").
 				Where("g.is_del = 0").
-				Where("g.user_no = ? OR (ga.user_no = ? AND ga.is_del = 0)", user.UserNo, user.UserNo)
+				Where("g.user_no = ? OR EXISTS (select * from gallery_user_access ga where ga.user_no = ? AND ga.is_del = 0 AND ga.gallery_no = g.gallery_no)", user.UserNo, user.UserNo)
 		}).
 		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
 			tx = tx.Select("g.*").Order("g.update_time DESC")

@@ -78,6 +78,11 @@ import { CashflowStatisticsComponent } from "./cashflow-statistics/cashflow-stat
 import * as PlotlyJS from "plotly.js-dist";
 import { PlotlyModule } from "angular-plotly.js";
 import { WebpageViewerComponent } from "./webpage-viewer/webpage-viewer.component";
+import {
+  EditSitePasswordDialogComponent,
+  SitePasswordComponent,
+  SitePasswordDecryptedDialogComponent,
+} from "./site-password/site-password.component";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -125,6 +130,9 @@ PlotlyModule.plotlyjs = PlotlyJS;
     CashflowComponent,
     CashflowStatisticsComponent,
     WebpageViewerComponent,
+    SitePasswordComponent,
+    SitePasswordDecryptedDialogComponent,
+    EditSitePasswordDialogComponent,
   ],
   imports: [
     PlotlyModule,

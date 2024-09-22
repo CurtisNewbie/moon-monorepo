@@ -313,7 +313,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         },
       })
       .afterClosed()
-      .subscribe(() => this.fetchFileInfoList());
+      .subscribe(() => {
+        setTimeout(() => this.fetchFileInfoList(), 500);
+      });
   }
 
   private _moveEachToDir(

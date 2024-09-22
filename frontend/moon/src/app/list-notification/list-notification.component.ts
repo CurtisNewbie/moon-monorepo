@@ -115,6 +115,11 @@ export class ListNotificationComponent implements OnInit {
   }
 
   markAllOpened() {
+    if (!this.data) {
+      return;
+    }
+    let last = this.data[0].notifiNo;
+
     const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
       this.dialog.open(ConfirmDialogComponent, {
         width: "700px",
@@ -129,7 +134,9 @@ export class ListNotificationComponent implements OnInit {
         this.http
           .post<any>(
             `${environment.uservault}/open/api/v1/notification/open-all`,
-            null
+            {
+              notifiNo: last,
+            }
           )
           .subscribe({
             next: () => {

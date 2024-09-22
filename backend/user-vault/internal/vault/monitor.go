@@ -72,7 +72,7 @@ func CreateMonitoredServiceWatches(rail miso.Rail) error {
 
 func QueryResourcePathAsync(rail miso.Rail, server miso.Server, m MonitoredService) {
 	monitorPool.Go(func() {
-		rail.Infof("Polling resource path for service: %v from %#v", m.Service, server)
+		rail.Debugf("Polling resource path for service: %v from %#v", m.Service, server)
 		res, err := QueryResourcePath(rail, server, m.Service, m.Path)
 		if err != nil {
 			rail.Errorf("monitor service %v failed, %v", m.Service, err)

@@ -3,8 +3,8 @@ module github.com/curtisnewbie/user-vault
 go 1.20
 
 require (
-	github.com/curtisnewbie/event-pump v0.0.13-0.20240916123049-b333ce31742d
-	github.com/curtisnewbie/miso v0.1.8
+	github.com/curtisnewbie/event-pump v0.0.13
+	github.com/curtisnewbie/miso v0.1.9
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.6.0
 	gorm.io/gorm v1.23.8

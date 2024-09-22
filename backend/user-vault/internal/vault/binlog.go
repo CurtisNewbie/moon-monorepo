@@ -14,28 +14,34 @@ const (
 	BinlogStreamUserCreated = "user-vault:binlog:user-created"
 )
 
-func SubscribeBinlogEvent() {
-	pipeline := pump.Pipeline{
-		Schema:     miso.GetPropStr(mysql.PropMySQLSchema),
-		Table:      "user",
-		EventTypes: []pump.EventType{pump.EventTypeInsert},
-		Stream:     BinlogStreamUserCreated,
-	}
-	concurrency := 2
-	binlog.SubscribeBinlogEventsOnBootstrap(pipeline, concurrency, func(rail miso.Rail, t pump.StreamEvent) error {
-		username, ok := t.ColumnAfter("username")
-		if !ok || username == "" {
-			return nil
-		}
+func SubscribeBinlogEvent(rail miso.Rail) error {
+	binlog.SubscribeBinlogEventsOnBootstrapV2(
+		binlog.SubscribeBinlogOption{
+			ContinueOnErr: true,
+			Pipeline: pump.Pipeline{
+				Schema:     miso.GetPropStr(mysql.PropMySQLSchema),
+				Table:      "user",
+				EventTypes: []pump.EventType{pump.EventTypeInsert},
+				Stream:     BinlogStreamUserCreated,
+			},
+			Concurrency: 2,
+			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
+				username, ok := t.ColumnAfter("username")
+				if !ok || username == "" {
+					return nil
+				}
 
-		err := api.CreateNotifiByAccessPipeline.Send(rail, api.CreateNotifiByAccessEvent{
-			Title:   fmt.Sprintf("Review user %v's registration", username),
-			Message: fmt.Sprintf("Please review new user %v's registration. A role should be assigned for the new user.", username),
-			ResCode: ResourceManagerUser,
-		})
-		if err != nil {
-			rail.Errorf("failed to create notification for UserRegister, %v", err)
-		}
-		return nil
-	})
+				err := api.CreateNotifiByAccessPipeline.Send(rail, api.CreateNotifiByAccessEvent{
+					Title:   fmt.Sprintf("Review user %v's registration", username),
+					Message: fmt.Sprintf("Please review new user %v's registration. A role should be assigned for the new user.", username),
+					ResCode: ResourceManagerUser,
+				})
+				if err != nil {
+					rail.Errorf("failed to create notification for UserRegister, %v", err)
+				}
+				return nil
+			},
+		},
+	)
+	return nil
 }

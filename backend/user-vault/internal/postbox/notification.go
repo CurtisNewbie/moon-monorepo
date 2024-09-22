@@ -103,7 +103,21 @@ func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user
 		StatusOpened, user.Username, req.NotifiNo, user.UserNo).Error
 }
 
-func OpenAllNotification(rail miso.Rail, db *gorm.DB, user common.User) error {
-	return db.Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE user_no = ? AND status = ?`,
-		StatusOpened, user.Username, user.UserNo, StatusInit).Error
+func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
+	var id int
+	n, err := mysql.NewQuery(db).
+		From("notification").
+		Select("id").
+		Eq("user_no", user.UserNo).
+		Eq("notifi_no", req.NotifiNo).
+		Scan(&id)
+	if err != nil {
+		return err
+	}
+	if n < 1 {
+		return miso.NewErrf("Record not found")
+	}
+
+	return db.Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE user_no = ? AND status = ? AND id <= ?`,
+		StatusOpened, user.Username, user.UserNo, StatusInit, id).Error
 }

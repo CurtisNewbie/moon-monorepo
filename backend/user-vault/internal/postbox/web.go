@@ -32,7 +32,7 @@ func RegisterRoutes(rail miso.Rail) error {
 			Desc("Record user opened platform notification").
 			Resource(ResourceQueryNotification),
 
-		miso.Post("/open-all", OpenAllNotificationEp).
+		miso.IPost("/open-all", OpenAllNotificationEp).
 			Desc("Mark all notifications opened").
 			Resource(ResourceQueryNotification),
 	)
@@ -68,7 +68,7 @@ func OpenNotificationEp(inb *miso.Inbound, req OpenNotificationReq) (any, error)
 	return nil, OpenNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
-func OpenAllNotificationEp(inb *miso.Inbound) (any, error) {
+func OpenAllNotificationEp(inb *miso.Inbound, req OpenNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, OpenAllNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
+	return nil, OpenAllNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }

@@ -18,11 +18,11 @@ func PrepareServer() {
 	common.LoadBuiltinPropagationKeys()
 	schema.EnableSchemaMigrate()
 	logbot.EnableLogbotErrLogReport()
+	miso.PreServerBootstrap(SubscribeBinlogChanges)
 	miso.PreServerBootstrap(PrintVersion)
 	miso.PreServerBootstrap(PrepareEventBus)
 	miso.PreServerBootstrap(RegisterHttpRoutes)
 	miso.PreServerBootstrap(MakeTempDirs)
-	miso.PostServerBootstrapped(SubscribeBinlogChanges)
 }
 
 func BootstrapServer(args []string) {

@@ -12,8 +12,8 @@ import (
 func BootstrapServer(args []string) {
 	common.LoadBuiltinPropagationKeys()
 	logbot.EnableLogbotErrLogReport()
-	vault.SubscribeBinlogEvent()
 
+	miso.PreServerBootstrap(vault.SubscribeBinlogEvent)
 	miso.PreServerBootstrap(func(rail miso.Rail) error {
 		vault.RegisterInternalPathResourcesOnBootstrapped([]auth.Resource{
 			{Code: vault.ResourceManageResources, Name: "Manage Resources Access"},
@@ -26,7 +26,6 @@ func BootstrapServer(args []string) {
 	})
 
 	miso.PreServerBootstrap(printVersion)
-	miso.PreServerBootstrap(vault.RegisterRoutes)
 	miso.PreServerBootstrap(vault.ScheduleTasks)
 	miso.PreServerBootstrap(postbox.RegisterRoutes)
 	miso.PreServerBootstrap(postbox.InitPipeline)
