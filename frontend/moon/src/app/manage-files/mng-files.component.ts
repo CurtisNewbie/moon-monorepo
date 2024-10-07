@@ -653,7 +653,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   /** Display the file */
-  preview(u: FileInfo): void {
+  preview(u: FileInfo, idx: number): void {
     const isStreaming = isStreamableVideo(u.name);
     this.fileService
       .generateFileTempToken(
@@ -693,12 +693,41 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             ]);
           } else {
             // image
-            this.dialog.open(ImageViewerComponent, {
+            let dialog = this.dialog.open(ImageViewerComponent, {
               data: {
                 name: u.name,
                 url: getDownloadUrl(),
                 isMobile: this.isMobile,
                 rotate: false,
+              },
+            });
+
+            dialog.keydownEvents().subscribe({
+              next: (v: KeyboardEvent) => {
+                let nextIdx = -1;
+                if (v.code == "ArrowRight") {
+                  for (let j = idx + 1; j < this.fileInfoList.length; j++) {
+                    if (isImageByName(this.fileInfoList[j].name)) {
+                      nextIdx = j;
+                      break;
+                    }
+                  }
+                } else if (v.code == "ArrowLeft") {
+                  for (let j = idx - 1; j > -1; j--) {
+                    if (isImageByName(this.fileInfoList[j].name)) {
+                      nextIdx = j;
+                      break;
+                    }
+                  }
+                }
+                if (nextIdx > -1) {
+                  dialog.afterClosed().subscribe({
+                    next: () => {
+                      this.preview(this.fileInfoList[nextIdx], nextIdx);
+                    },
+                  });
+                  dialog.close();
+                }
               },
             });
           }
@@ -1059,13 +1088,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       .filter((v) => v != null);
   }
 
-  onRowClicked(row: FileInfo) {
+  onRowClicked(row: FileInfo, idx: number) {
     if (row.isDir) {
       this.goToDir(row.name, row.uuid);
       return;
     }
     if (row.isDisplayable) {
-      this.preview(row);
+      this.preview(row, idx);
     }
   }
 

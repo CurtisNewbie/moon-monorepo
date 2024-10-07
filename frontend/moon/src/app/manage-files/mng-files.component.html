@@ -271,8 +271,8 @@
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
                 </tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns" class="element-row"
-                    [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked(row)">
+                <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
+                    [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked(row, i)">
                 </tr>
                 <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
             </table>
