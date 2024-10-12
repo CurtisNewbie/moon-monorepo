@@ -46,7 +46,7 @@ export class MngResDialogComponent implements OnInit {
 
   listPathsBound() {
     this.http
-      .post<any>(`${environment.uservault}/open/api/path/list`, {
+      .post<any>(`user-vault/open/api/path/list`, {
         paging: this.pagingController.paging,
         resCode: this.dat.res.code,
       })
@@ -79,7 +79,7 @@ export class MngResDialogComponent implements OnInit {
       console.log(confirm);
       if (confirm) {
         this.http
-          .post(`${environment.uservault}/open/api/resource/remove`, {
+          .post(`user-vault/open/api/resource/remove`, {
             resCode: this.dat.res.code,
           })
           .subscribe({
@@ -101,7 +101,7 @@ export class MngResDialogComponent implements OnInit {
 
     this.confirmDialog.show(title, msg, () => {
       this.http
-        .post(`${environment.uservault}/open/api/path/resource/unbind`, {
+        .post(`user-vault/open/api/path/resource/unbind`, {
           pathNo: pathNo,
           resCode: resCode,
         })

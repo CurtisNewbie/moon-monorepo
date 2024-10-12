@@ -25,7 +25,7 @@ export class FileInfoService {
     );
 
     return this.http.put<HttpEvent<any>>(
-      environment.fstore + "/file",
+      "fstore/file",
       uploadParam.files[0],
       {
         observe: "events",
@@ -41,7 +41,7 @@ export class FileInfoService {
     tokenType: TokenType = TokenType.DOWNLOAD
   ): Observable<Resp<string>> {
     return this.http.post<Resp<string>>(
-      `${environment.vfm}/open/api/file/token/generate`,
+      `vfm/open/api/file/token/generate`,
       {
         fileKey: fileKey,
         tokenType: tokenType,
@@ -54,7 +54,7 @@ export class FileInfoService {
       next: (resp) => {
         const token = resp.data;
         const url =
-          environment.fstore + "/file/raw?key=" + encodeURIComponent(token);
+          "fstore/file/raw?key=" + encodeURIComponent(token);
         window.open(url, "_parent");
       },
     });

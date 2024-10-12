@@ -47,7 +47,7 @@ export class GrantAccessDialogComponent implements OnInit {
     }
 
     this.http
-      .post<void>(`${environment.vfm}/open/api/vfolder/share`, {
+      .post<void>(`vfm/open/api/vfolder/share`, {
         folderNo: this.data.folderNo,
         username: this.grantedTo,
       })
@@ -65,7 +65,7 @@ export class GrantAccessDialogComponent implements OnInit {
 
   fetchFolderAccessGranted() {
     this.http
-      .post<any>(`${environment.vfm}/open/api/vfolder/granted/list`, {
+      .post<any>(`vfm/open/api/vfolder/granted/list`, {
         folderNo: this.data.folderNo,
         paging: this.pagingController.paging,
       })
@@ -89,7 +89,7 @@ export class GrantAccessDialogComponent implements OnInit {
 
   removeFolderAccess(userNo: string): void {
     this.http
-      .post<void>(`${environment.vfm}/open/api/vfolder/access/remove`, {
+      .post<void>(`vfm/open/api/vfolder/access/remove`, {
         userNo: userNo,
         folderNo: this.data.folderNo,
       })

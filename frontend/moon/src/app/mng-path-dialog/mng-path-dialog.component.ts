@@ -31,7 +31,7 @@ export class MngPathDialogComponent implements OnInit {
 
   update() {
     this.http
-      .post(`${environment.uservault}/open/api/path/update`, {
+      .post(`user-vault/open/api/path/update`, {
         type: this.dat.path.ptype,
         pathNo: this.dat.path.pathNo,
         group: this.dat.path.pgroup,

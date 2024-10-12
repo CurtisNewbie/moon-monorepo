@@ -25,7 +25,7 @@ export class UserDetailComponent implements OnInit {
 
   ngOnInit() {
     this.http
-      .get<any>(`${environment.uservault}/open/api/user/info`)
+      .get<any>(`user-vault/open/api/user/info`)
       .subscribe({
         next: (resp) => {
           if (resp.data) {

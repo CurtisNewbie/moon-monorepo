@@ -245,7 +245,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     this.newDirName = null;
     this.http
-      .post(`${environment.vfm}/open/api/file/make-dir`, {
+      .post(`vfm/open/api/file/make-dir`, {
         name: dirName,
         parentFile: this.inDirFileKey,
       })
@@ -330,7 +330,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     let curr = selected[offset];
     this.http
-      .post(`${environment.vfm}/open/api/file/move-to-dir`, {
+      .post(`vfm/open/api/file/move-to-dir`, {
         uuid: curr.uuid,
         parentFileUuid: dirFileKey,
       })
@@ -346,7 +346,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.searchParam.parentFile = this.inDirFileKey;
 
     this.http
-      .post<any>(`${environment.vfm}/open/api/file/list`, {
+      .post<any>(`vfm/open/api/file/list`, {
         paging: this.pagingController.paging,
         filename: this.searchParam.name,
         folderNo: this.inFolderNo,
@@ -370,8 +370,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
               if (f.thumbnailToken) {
                 f.thumbnailUrl =
-                  environment.fstore +
-                  "/file/raw?key=" +
+                  "fstore/file/raw?key=" +
                   encodeURIComponent(f.thumbnailToken);
               }
             }
@@ -452,7 +451,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.expandUploadPanel = false;
     this.http
       .get<any>(
-        `${environment.vfm}/open/api/file/parent?fileKey=${this.inDirFileKey}`
+        `vfm/open/api/file/parent?fileKey=${this.inDirFileKey}`
       )
       .subscribe({
         next: (resp) => {
@@ -508,7 +507,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         }
 
         this.http
-          .post<any>(`${environment.vfm}/open/api/file/dir/truncate`, {
+          .post<any>(`vfm/open/api/file/dir/truncate`, {
             uuid: f.uuid,
           })
           .subscribe((resp) => {
@@ -556,7 +555,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         }
 
         this.http
-          .post<any>(`${environment.vfm}/open/api/file/delete/batch`, {
+          .post<any>(`vfm/open/api/file/delete/batch`, {
             fileKeys: fks,
           })
           .subscribe((resp) => {
@@ -584,7 +583,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       // console.log(confirm);
       if (confirm) {
         this.http
-          .post<any>(`${environment.vfm}/open/api/file/delete`, { uuid: uuid })
+          .post<any>(`vfm/open/api/file/delete`, { uuid: uuid })
           .subscribe((resp) => {
             this.fetchFileInfoList();
           });
@@ -622,7 +621,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     if (!u) return;
 
     this.http
-      .post<any>(`${environment.vfm}/open/api/file/info/update`, {
+      .post<any>(`vfm/open/api/file/info/update`, {
         id: u.id,
         name: u.name,
         sensitiveMode: u.sensitiveMode,
@@ -665,10 +664,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           const token = resp.data;
 
           const getDownloadUrl = () =>
-            environment.fstore + "/file/raw?key=" + encodeURIComponent(token);
+            "fstore/file/raw?key=" + encodeURIComponent(token);
           const getStreamingUrl = () =>
-            environment.fstore +
-            "/file/stream?key=" +
+            "fstore/file/stream?key=" +
             encodeURIComponent(token);
 
           if (isStreaming) {
@@ -749,9 +747,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 window.location.protocol +
                 "//" +
                 window.location.host +
-                "/" +
-                environment.vfm +
-                "/open/api/file/token/qrcode?token=" +
+                "/vfm/open/api/file/token/qrcode?token=" +
                 encodeURIComponent(resp.data),
             },
           });
@@ -872,9 +868,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       window.location.protocol +
       "//" +
       window.location.host +
-      "/" +
-      environment.fstore +
-      "/file/raw?key=" +
+      "/fstore/file/raw?key=" +
       encodeURIComponent(tempToken)
     );
   }
@@ -1010,7 +1004,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
               // create the record in vfm
               this.http
-                .post(`${environment.vfm}/open/api/file/create`, {
+                .post(`vfm/open/api/file/create`, {
                   filename: uploadParam.fileName,
                   fstoreFileId: fstoreRes.data,
                   parentFile: uploadParam.parentFile,
@@ -1039,9 +1033,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       // preflight check whether the filename exists already
       this.http
         .get<any>(
-          `${
-            environment.vfm
-          }/open/api/file/upload/duplication/preflight?fileName=${encodeURIComponent(
+          `vfm/open/api/file/upload/duplication/preflight?fileName=${encodeURIComponent(
             name
           )}&parentFileKey=${pf}`
         )
@@ -1109,7 +1101,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   unpack(fi: FileInfo) {
     this.http
-      .post(`${environment.vfm}/open/api/file/unpack`, {
+      .post(`vfm/open/api/file/unpack`, {
         fileKey: fi.uuid,
         parentFileKey: this.inDirFileKey,
       })

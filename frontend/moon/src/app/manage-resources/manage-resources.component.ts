@@ -64,7 +64,7 @@ export class ManageResourcesComponent implements OnInit {
 
   fetchList() {
     this.http
-      .post<any>(`${environment.uservault}/open/api/resource/list`, {
+      .post<any>(`user-vault/open/api/resource/list`, {
         paging: this.pagingController.paging,
       })
       .subscribe({
@@ -99,7 +99,7 @@ export class ManageResourcesComponent implements OnInit {
     }
 
     this.http
-      .post(`${environment.uservault}/open/api/resource/add`, {
+      .post(`user-vault/open/api/resource/add`, {
         name: this.newResName,
         code: this.newResCode,
       })

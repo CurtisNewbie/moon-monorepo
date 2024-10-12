@@ -77,7 +77,7 @@ export class ManagePathsComponent implements OnInit {
   }
 
   fetchList() {
-    this.http.post<any>(`${environment.uservault}/open/api/path/list`, {
+    this.http.post<any>(`user-vault/open/api/path/list`, {
       paging: this.pagingController.paging,
       pgroup: this.searchGroup,
       url: this.searchPath,

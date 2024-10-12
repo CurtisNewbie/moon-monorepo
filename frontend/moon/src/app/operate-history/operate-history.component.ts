@@ -49,7 +49,7 @@ export class OperateHistoryComponent implements OnInit {
 
   fetchOperateLogList(): void {
     this.http.post<any>(
-       `${environment.uservault}/open/api/operate/history`,
+       `user-vault/open/api/operate/history`,
       this.pagingController.paging
     ).subscribe({
       next: (resp) => {

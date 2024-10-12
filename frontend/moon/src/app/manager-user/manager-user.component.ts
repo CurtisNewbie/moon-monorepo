@@ -77,7 +77,7 @@ export class ManagerUserComponent implements OnInit {
     }
 
     this.http
-      .post<any>(`${environment.uservault}/open/api/user/add`, {
+      .post<any>(`user-vault/open/api/user/add`, {
         username: this.usernameToBeAdded,
         password: this.passswordToBeAdded,
         roleNo: this.userRoleOfAddedUser,
@@ -108,7 +108,7 @@ export class ManagerUserComponent implements OnInit {
     this.searchParam.paging = this.pagingController.paging;
     this.http
       .post<any>(
-        `${environment.uservault}/open/api/user/list`,
+        `user-vault/open/api/user/list`,
         this.searchParam
       )
       .subscribe({
@@ -136,7 +136,7 @@ export class ManagerUserComponent implements OnInit {
    */
   updateUserInfo(): void {
     this.http
-      .post<void>(`${environment.uservault}/open/api/user/info/update`, {
+      .post<void>(`user-vault/open/api/user/info/update`, {
         userNo: this.expandedElement.userNo,
         roleNo: this.expandedElement.roleNo,
         isDisabled: this.expandedElement.isDisabled,
@@ -169,7 +169,7 @@ export class ManagerUserComponent implements OnInit {
       console.log(confirm);
       if (confirm) {
         this.http
-          .post<void>(`${environment.uservault}/open/api/user/delete`, {
+          .post<void>(`user-vault/open/api/user/delete`, {
             id: this.expandedElement.id,
           })
           .subscribe({
@@ -185,7 +185,7 @@ export class ManagerUserComponent implements OnInit {
   reviewRegistration(userId: number, reviewStatus: string) {
     this.http
       .post<void>(
-        `${environment.uservault}/open/api/user/registration/review`,
+        `user-vault/open/api/user/registration/review`,
         {
           userId: userId,
           reviewStatus: reviewStatus,

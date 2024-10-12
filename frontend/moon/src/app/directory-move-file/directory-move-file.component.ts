@@ -47,7 +47,7 @@ export class DirectoryMoveFileComponent implements OnInit {
 
   // fetch dir brief list
   private _fetchDirBriefList() {
-    this.http.get<any>(`${environment.vfm}/open/api/file/dir/list`).subscribe({
+    this.http.get<any>(`vfm/open/api/file/dir/list`).subscribe({
       next: (resp) => {
         this.dirBriefList = resp.data;
         this.onMoveIntoDirNameChanged();

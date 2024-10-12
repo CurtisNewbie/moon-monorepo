@@ -57,7 +57,7 @@ export class ManageRoleComponent implements OnInit {
 
   fetchList() {
     this.http
-      .post<any>(`${environment.uservault}/open/api/role/list`, {
+      .post<any>(`user-vault/open/api/role/list`, {
         paging: this.pagingController.paging,
       })
       .subscribe({
@@ -104,7 +104,7 @@ export class ManageRoleComponent implements OnInit {
     }
 
     this.http
-      .post(`${environment.uservault}/open/api/role/add`, {
+      .post(`user-vault/open/api/role/add`, {
         name: this.newRoleName,
       })
       .subscribe({

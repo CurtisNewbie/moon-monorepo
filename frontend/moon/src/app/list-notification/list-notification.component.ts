@@ -45,7 +45,7 @@ export class ListNotificationComponent implements OnInit {
 
   fetchList() {
     this.http
-      .post<any>(`${environment.uservault}/open/api/v1/notification/query`, {
+      .post<any>(`user-vault/open/api/v1/notification/query`, {
         status: this.query.onlyInitMessage ? "INIT" : "",
         page: this.pagingController.paging,
       })
@@ -80,7 +80,7 @@ export class ListNotificationComponent implements OnInit {
 
   markOpened(notifiNo: string) {
     this.http
-      .post<any>(`${environment.uservault}/open/api/v1/notification/open`, {
+      .post<any>(`user-vault/open/api/v1/notification/open`, {
         notifiNo: notifiNo,
       })
       .subscribe({
@@ -133,7 +133,7 @@ export class ListNotificationComponent implements OnInit {
       if (res) {
         this.http
           .post<any>(
-            `${environment.uservault}/open/api/v1/notification/open-all`,
+            `user-vault/open/api/v1/notification/open-all`,
             {
               notifiNo: last,
             }

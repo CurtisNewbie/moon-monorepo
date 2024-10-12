@@ -4,10 +4,6 @@
 
 export const environment = {
   production: false,
-  vfm: "vfm",
-  uservault: "user-vault",
-  fstore: "fstore",
-  logbot: "logbot",
 };
 
 /*

@@ -67,7 +67,7 @@ export class NavComponent implements OnInit, OnDestroy {
 
   fetchUnreadNotificationCount() {
     return this.http
-      .get<any>(`${environment.uservault}/open/api/v1/notification/count`)
+      .get<any>(`user-vault/open/api/v1/notification/count`)
       .subscribe({
         next: (res) => (this.unreadCount = res.data),
       });

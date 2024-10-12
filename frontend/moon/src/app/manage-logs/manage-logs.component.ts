@@ -55,7 +55,7 @@ export class ManageLogsComponent implements OnInit {
 
   fetchList() {
     this.http
-      .post<any>(`${environment.logbot}/log/error/list`, {
+      .post<any>(`logbot/log/error/list`, {
         app: this.qryApp,
         page: this.pagingController.paging,
       })

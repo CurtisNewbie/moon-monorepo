@@ -74,7 +74,7 @@ export class HostOnGalleryComponent implements OnInit {
         });
 
         this.http
-          .post(`${environment.vfm}/open/api/gallery/image/transfer`, {
+          .post(`vfm/open/api/gallery/image/transfer`, {
             images: params,
           })
           .subscribe({
@@ -111,7 +111,7 @@ export class HostOnGalleryComponent implements OnInit {
 
   private _fetchOwnedGalleryBrief() {
     this.http
-      .get<any>(`${environment.vfm}/open/api/gallery/brief/owned`)
+      .get<any>(`vfm/open/api/gallery/brief/owned`)
       .subscribe({
         next: (resp) => {
           this.galleryBriefs = resp.data;

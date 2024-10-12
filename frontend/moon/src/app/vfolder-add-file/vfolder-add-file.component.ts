@@ -50,7 +50,7 @@ export class VfolderAddFileComponent implements OnInit {
 
   fetchOwnedVFolderBrief() {
     this.http
-      .get<any>(`${environment.vfm}/open/api/vfolder/brief/owned`)
+      .get<any>(`vfm/open/api/vfolder/brief/owned`)
       .subscribe({
         next: (resp) => {
           this.vfolderBrief = resp.data;
@@ -89,7 +89,7 @@ export class VfolderAddFileComponent implements OnInit {
       ],
       () => {
         this.http
-          .post(`${environment.vfm}/open/api/vfolder/file/add`, {
+          .post(`vfm/open/api/vfolder/file/add`, {
             folderNo: addToFolderNo,
             fileKeys: this.dat.files.map((f) => f.fileKey),
           })

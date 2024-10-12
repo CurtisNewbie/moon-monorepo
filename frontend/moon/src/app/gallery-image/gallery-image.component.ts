@@ -52,7 +52,7 @@ export class GalleryImageComponent implements OnInit {
 
     this.http
       .post<Resp<ListGalleryImagesResp>>(
-        `${environment.vfm}/open/api/gallery/images`,
+        `vfm/open/api/gallery/images`,
         { galleryNo: this.galleryNo, paging: this.pagingController.paging }
       )
       .subscribe({
@@ -65,12 +65,10 @@ export class GalleryImageComponent implements OnInit {
             this.images = [];
             for (let i = 0; i < imgs.length; i++) {
               let src =
-                environment.fstore +
-                "/file/raw?key=" +
+                "fstore/file/raw?key=" +
                 encodeURIComponent(imgs[i].fileTempToken);
               let thumb =
-                environment.fstore +
-                "/file/raw?key=" +
+                "fstore/file/raw?key=" +
                 encodeURIComponent(imgs[i].thumbnailToken);
               this.images.push({
                 src: src,

@@ -52,7 +52,7 @@ export class GalleryAccessComponent implements OnInit {
     }
 
     this.http
-      .post<void>(`${environment.vfm}/open/api/gallery/access/grant`, {
+      .post<void>(`vfm/open/api/gallery/access/grant`, {
         galleryNo: this.data.galleryNo,
         username: this.grantedTo,
       })
@@ -70,7 +70,7 @@ export class GalleryAccessComponent implements OnInit {
 
   fetchFolderAccessGranted() {
     this.http
-      .post<any>(`${environment.vfm}/open/api/gallery/access/list`, {
+      .post<any>(`vfm/open/api/gallery/access/list`, {
         galleryNo: this.data.galleryNo,
         paging: this.pagingController.paging,
       })
@@ -94,7 +94,7 @@ export class GalleryAccessComponent implements OnInit {
 
   removeFolderAccess(userNo: string): void {
     this.http
-      .post<void>(`${environment.vfm}/open/api/gallery/access/remove`, {
+      .post<void>(`vfm/open/api/gallery/access/remove`, {
         userNo: userNo,
         galleryNo: this.data.galleryNo,
       })

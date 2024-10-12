@@ -63,7 +63,7 @@ export class GalleryComponent implements OnInit {
 
   fetchGalleries() {
     this.http
-      .post<any>(`${environment.vfm}/open/api/gallery/list`, {
+      .post<any>(`vfm/open/api/gallery/list`, {
         paging: this.pagingController.paging,
       })
       .subscribe({
@@ -82,7 +82,7 @@ export class GalleryComponent implements OnInit {
     }
 
     this.http
-      .post<any>(`${environment.vfm}/open/api/gallery/new`, {
+      .post<any>(`vfm/open/api/gallery/new`, {
         name: this.newGalleryName,
       })
       .subscribe({
@@ -120,7 +120,7 @@ export class GalleryComponent implements OnInit {
         }
 
         this.http
-          .post<any>(`${environment.vfm}/open/api/gallery/delete`, {
+          .post<any>(`vfm/open/api/gallery/delete`, {
             galleryNo: galleryNo,
           })
           .subscribe({
@@ -146,7 +146,7 @@ export class GalleryComponent implements OnInit {
     if (!galleryNo || !name) return;
 
     this.http
-      .post(`${environment.vfm}/open/api/gallery/update`, {
+      .post(`vfm/open/api/gallery/update`, {
         galleryNo: galleryNo,
         name: name,
       })

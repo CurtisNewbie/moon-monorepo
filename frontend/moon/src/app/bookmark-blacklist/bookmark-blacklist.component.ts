@@ -34,7 +34,7 @@ export class BookmarkBlacklistComponent implements OnInit {
 
   fetchList() {
     this.http
-      .post<any>(`${environment.vfm}/bookmark/blacklist/list`, {
+      .post<any>(`vfm/bookmark/blacklist/list`, {
         paging: this.pagingController.paging,
         name: this.searchName,
       })
@@ -58,7 +58,7 @@ export class BookmarkBlacklistComponent implements OnInit {
 
   remove(id) {
     this.http
-      .post<any>(`${environment.vfm}/bookmark/blacklist/remove`, { id: id })
+      .post<any>(`vfm/bookmark/blacklist/remove`, { id: id })
       .subscribe({
         complete: () => this.fetchList(),
       });

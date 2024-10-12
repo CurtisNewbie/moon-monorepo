@@ -56,9 +56,9 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
         const token = resp.data;
 
         const getDownloadUrl = () =>
-          environment.fstore + "/file/raw?key=" + encodeURIComponent(token);
+          "fstore/file/raw?key=" + encodeURIComponent(token);
         const getStreamingUrl = () =>
-          environment.fstore + "/file/stream?key=" + encodeURIComponent(token);
+          "fstore/file/stream?key=" + encodeURIComponent(token);
 
         if (isStreaming) {
           dialog.open(MediaStreamerComponent, {
@@ -247,7 +247,7 @@ export class VerFileHistoryComponent implements OnInit {
   qryTotalSize() {
     this.http
       .post<any>(
-        `${environment.vfm}/open/api/versioned-file/accumulated-size`,
+        `vfm/open/api/versioned-file/accumulated-size`,
         { verFileId: this.data.verFileId }
       )
       .subscribe({
@@ -259,7 +259,7 @@ export class VerFileHistoryComponent implements OnInit {
 
   fetch() {
     this.http
-      .post<any>(`${environment.vfm}/open/api/versioned-file/history`, {
+      .post<any>(`vfm/open/api/versioned-file/history`, {
         paging: this.pagingController.paging,
         verFileId: this.data.verFileId,
       })
@@ -273,8 +273,7 @@ export class VerFileHistoryComponent implements OnInit {
           for (let f of this.tabdata) {
             if (f.thumbnail) {
               f.thumbnail =
-                environment.fstore +
-                "/file/raw?key=" +
+                "fstore/file/raw?key=" +
                 encodeURIComponent(f.thumbnail);
             }
             f.sizeLabel = resolveSize(f.sizeInBytes);
@@ -515,7 +514,7 @@ export class VersionedFileComponent implements OnInit {
       name: this.searchName,
     };
     this.http
-      .post<any>(`${environment.vfm}/open/api/versioned-file/list`, req)
+      .post<any>(`vfm/open/api/versioned-file/list`, req)
       .subscribe({
         next: (r) => {
           if (!r.data.payload) {
@@ -526,8 +525,7 @@ export class VersionedFileComponent implements OnInit {
           for (let f of this.tabdat) {
             if (f.thumbnail) {
               f.thumbnail =
-                environment.fstore +
-                "/file/raw?key=" +
+                "fstore/file/raw?key=" +
                 encodeURIComponent(f.thumbnail);
             }
             f.sizeLabel = resolveSize(f.sizeInBytes);
@@ -607,7 +605,7 @@ export class VersionedFileComponent implements OnInit {
             let sub = null;
             if (this.updateVerFileId) {
               sub = this.http.post(
-                `${environment.vfm}/open/api/versioned-file/update`,
+                `vfm/open/api/versioned-file/update`,
                 {
                   filename: this.uploadFileName,
                   fstoreFileId: fstoreRes.data,
@@ -616,7 +614,7 @@ export class VersionedFileComponent implements OnInit {
               );
             } else {
               sub = this.http.post(
-                `${environment.vfm}/open/api/versioned-file/create`,
+                `vfm/open/api/versioned-file/create`,
                 {
                   filename: this.uploadFileName,
                   fstoreFileId: fstoreRes.data,

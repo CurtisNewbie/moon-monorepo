@@ -43,7 +43,7 @@ export class ManageBookmarksComponent implements OnInit {
 
   fetchList() {
     this.http
-      .post<any>(`${environment.vfm}/bookmark/list`, {
+      .post<any>(`vfm/bookmark/list`, {
         paging: this.pagingController.paging,
         name: this.searchName,
       })
@@ -92,7 +92,7 @@ export class ManageBookmarksComponent implements OnInit {
 
   remove(id) {
     this.http
-      .post<any>(`${environment.vfm}/bookmark/remove`, { id: id })
+      .post<any>(`vfm/bookmark/remove`, { id: id })
       .subscribe({
         complete: () => this.fetchList(),
       });
@@ -100,7 +100,7 @@ export class ManageBookmarksComponent implements OnInit {
 
   uploadToTmpFile(file: File): Observable<HttpEvent<any>> {
     return this.http.put<HttpEvent<any>>(
-      environment.vfm + "/bookmark/file/upload",
+      "vfm/bookmark/file/upload",
       file,
       {
         observe: "events",

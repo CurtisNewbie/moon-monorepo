@@ -103,7 +103,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
   removeVFolder(folderNo: string) {
     this.http
-      .post<Resp<any>>(`${environment.vfm}/open/api/vfolder/remove`, {
+      .post<Resp<any>>(`vfm/open/api/vfolder/remove`, {
         folderNo: folderNo,
       })
       .subscribe({
@@ -142,7 +142,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
     this.searchParam.paging = this.pagingController.paging;
     this.http
       .post<Resp<any>>(
-        `${environment.vfm}/open/api/vfolder/list`,
+        `vfm/open/api/vfolder/list`,
         this.searchParam
       )
       .subscribe({
@@ -174,7 +174,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
     this.creatingFolder = false;
     this.http
-      .post<Resp<void>>(`${environment.vfm}/open/api/vfolder/create`, {
+      .post<Resp<void>>(`vfm/open/api/vfolder/create`, {
         name: this.newFolderName,
       })
       .subscribe({

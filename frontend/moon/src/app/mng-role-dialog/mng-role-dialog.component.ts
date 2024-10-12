@@ -51,7 +51,7 @@ export class MngRoleDialogComponent implements OnInit {
   fetchResourceCandidates() {
     this.http
       .get<any>(
-        `${environment.uservault}/open/api/resource/brief/candidates?roleNo=${this.dat.roleNo}`
+        `user-vault/open/api/resource/brief/candidates?roleNo=${this.dat.roleNo}`
       )
       .subscribe({
         next: (res) => {
@@ -67,7 +67,7 @@ export class MngRoleDialogComponent implements OnInit {
     }
 
     this.http
-      .post<any>(`${environment.uservault}/open/api/role/resource/add`, {
+      .post<any>(`user-vault/open/api/role/resource/add`, {
         roleNo: this.dat.roleNo,
         resCode: this.addResCode,
       })
@@ -82,7 +82,7 @@ export class MngRoleDialogComponent implements OnInit {
 
   listResources() {
     this.http
-      .post<any>(`${environment.uservault}/open/api/role/resource/list`, {
+      .post<any>(`user-vault/open/api/role/resource/list`, {
         roleNo: this.dat.roleNo,
         paging: this.pagingController.paging,
       })
@@ -108,7 +108,7 @@ export class MngRoleDialogComponent implements OnInit {
 
   delRes(roleRes: ListedRoleRes) {
     this.http
-      .post<any>(`${environment.uservault}/open/api/role/resource/remove`, {
+      .post<any>(`user-vault/open/api/role/resource/remove`, {
         roleNo: this.dat.roleNo,
         resCode: roleRes.resCode,
       })
