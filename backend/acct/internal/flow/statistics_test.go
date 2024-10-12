@@ -4,7 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -45,11 +47,11 @@ func TestOnCalcCashflowStatsEvent(t *testing.T) {
 		t.Fatal(err)
 	}
 	miso.SetLogLevel("debug")
-	err := miso.InitMySQLFromProp(rail)
+	err := mysql.InitMySQLFromProp(rail)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = miso.InitRedisFromProp(rail)
+	_, err = redis.InitRedisFromProp(rail)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,11 +87,11 @@ func TestOnCashflowChanged(t *testing.T) {
 		t.Fatal(err)
 	}
 	miso.SetLogLevel("debug")
-	err := miso.InitMySQLFromProp(rail)
+	err := mysql.InitMySQLFromProp(rail)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = miso.InitRedisFromProp(rail)
+	_, err = redis.InitRedisFromProp(rail)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +102,7 @@ func TestOnCashflowChanged(t *testing.T) {
 
 	userNo := "UE1049787455160320075953"
 	var tranTimes []util.ETime
-	err = miso.GetMySQL().Raw(`SELECT trans_time FROM cashflow WHERE user_no = ?`, userNo).Scan(&tranTimes).Error
+	err = mysql.GetMySQL().Raw(`SELECT trans_time FROM cashflow WHERE user_no = ?`, userNo).Scan(&tranTimes).Error
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,11 +120,11 @@ func TestPlotCashflowStatistics(t *testing.T) {
 		t.Fatal(err)
 	}
 	miso.SetLogLevel("debug")
-	err := miso.InitMySQLFromProp(rail)
+	err := mysql.InitMySQLFromProp(rail)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = miso.InitRedisFromProp(rail)
+	_, err = redis.InitRedisFromProp(rail)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +136,7 @@ func TestPlotCashflowStatistics(t *testing.T) {
 	tab := []string{AggTypeMonthly, AggTypeWeekly, AggTypeYearly}
 
 	for _, ta := range tab {
-		plots, err := PlotCashflowStatistics(rail, miso.GetMySQL(), ApiPlotStatisticsReq{
+		plots, err := PlotCashflowStatistics(rail, mysql.GetMySQL(), ApiPlotStatisticsReq{
 			StartTime: start,
 			EndTime:   end,
 			AggType:   ta,

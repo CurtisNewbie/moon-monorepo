@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/middleware/money"
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -118,13 +120,13 @@ func CalcCashflowStatsAsync(rail miso.Rail, req ApiCalcCashflowStatsReq, userNo 
 }
 
 func OnCalcCashflowStatsEvent(rail miso.Rail, evt CalcCashflowStatsEvent) error {
-	rlock := miso.NewRLockf(rail, "acct:calc-cashflow-stats:%v:%v:%v", evt.UserNo, evt.AggType, evt.AggRange)
+	rlock := redis.NewRLockf(rail, "acct:calc-cashflow-stats:%v:%v:%v", evt.UserNo, evt.AggType, evt.AggRange)
 	if err := rlock.Lock(); err != nil {
 		return err
 	}
 	defer rlock.Unlock()
 
-	db := miso.GetMySQL()
+	db := mysql.GetMySQL()
 	t := evt.AggTime.ToTime()
 	switch evt.AggType {
 	case AggTypeMonthly:
@@ -249,7 +251,7 @@ func ListCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiListStatisticsRe
 		}
 	}
 
-	return miso.NewPageQuery[ApiListStatisticsRes]().
+	return mysql.NewPageQuery[ApiListStatisticsRes]().
 		WithPage(req.Paging).
 		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
 			tx = tx.Table(`cashflow_statistics`).

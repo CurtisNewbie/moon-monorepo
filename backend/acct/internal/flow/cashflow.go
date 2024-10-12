@@ -1,10 +1,13 @@
 package flow
 
 import (
+	"net/http"
 	"os"
 	"runtime"
 
 	"github.com/curtisnewbie/miso/middleware/money"
+	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -73,7 +76,7 @@ type ListCashFlowRes struct {
 }
 
 func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
-	return miso.NewPageQuery[ListCashFlowRes]().
+	return mysql.NewPageQuery[ListCashFlowRes]().
 		WithPage(req.Paging).
 		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
 			tx = tx.Table(`cashflow`).
@@ -126,12 +129,9 @@ func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFl
 		Exec(rail, db)
 }
 
-func ImportWechatCashflows(inb *miso.Inbound, db *gorm.DB) error {
-	rail := inb.Rail()
-	user := common.GetUser(rail)
+func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user common.User) error {
 	rail.Infof("User %v importing wechat cashflows", user.Username)
 
-	_, r := inb.Unwrap()
 	path, err := util.SaveTmpFile("/tmp", r.Body)
 	if err != nil {
 		return err
@@ -277,8 +277,8 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 	return records, db.Table("cashflow_currency").Clauses(clause.Insert{Modifier: "IGNORE"}).CreateInBatches(newUserCcy, 200).Error
 }
 
-func userCashflowLock(rail miso.Rail, userNo string) *miso.RLock {
-	return miso.NewRLockf(rail, "acct:cashflow:user:%v", userNo)
+func userCashflowLock(rail miso.Rail, userNo string) *redis.RLock {
+	return redis.NewRLockf(rail, "acct:cashflow:user:%v", userNo)
 }
 
 func ListCurrencies(rail miso.Rail, db *gorm.DB, user common.User) ([]string, error) {

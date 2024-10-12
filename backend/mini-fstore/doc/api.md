@@ -153,6 +153,7 @@
       error?: boolean                // whether the request was successful
       data?: FstoreFile
     }
+
     export interface FstoreFile {
       fileId?: string                // file unique identifier
       name?: string                  // file name
@@ -430,9 +431,11 @@
       error?: boolean                // whether the request was successful
       data?: ListBackupFileResp
     }
+
     export interface ListBackupFileResp {
       files?: BackupFileInf[]
     }
+
     export interface BackupFileInf {
       id?: number
       fileId?: string
@@ -683,14 +686,17 @@
       error?: boolean                // whether the request was successful
       data?: ResourceInfoRes
     }
+
     export interface ResourceInfoRes {
       resources?: Resource[]
       paths?: Endpoint[]
     }
+
     export interface Resource {
       name?: string                  // resource name
       code?: string                  // resource code, unique identifier
     }
+
     export interface Endpoint {
       type?: string                  // access scope type: PROTECTED/PUBLIC
       url?: string                   // endpoint url

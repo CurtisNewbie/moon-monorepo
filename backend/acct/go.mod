@@ -3,7 +3,7 @@ module github.com/curtisnewbie/acct
 go 1.21.5
 
 require (
-	github.com/curtisnewbie/miso v0.1.2-beta.3.0.20240623164157-cfb9143fc69b
+	github.com/curtisnewbie/miso v0.1.11-beta.1
 	gorm.io/gorm v1.23.8
 )
 
@@ -63,10 +63,10 @@ require (
 	github.com/spf13/viper v1.14.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

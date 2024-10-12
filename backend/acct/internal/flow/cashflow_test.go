@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -15,54 +17,54 @@ func TestListCashFlows(t *testing.T) {
 		t.Fatal(err)
 	}
 	miso.SetLogLevel("debug")
-	miso.InitMySQLFromProp(rail)
+	mysql.InitMySQLFromProp(rail)
 	LoadCategoryConfs(rail)
 
-	l, err := ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{})
+	l, err := ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("1. l: %+v", l)
 
-	l, err = ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{Direction: "OUT"})
+	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{Direction: "OUT"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("2. l: %+v", l)
 
-	l, err = ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{Direction: "IN"})
+	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{Direction: "IN"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("3. l: %+v", l)
 
-	l, err = ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransId: "123"})
+	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransId: "123"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("4. l: %+v", l)
 
-	l, err = ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransId: "444"})
+	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransId: "444"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("5. l: %+v", l)
 
-	l, err = ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{Category: "WECHAT"})
+	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{Category: "WECHAT"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("6. l: %+v", l)
 
 	tt := util.Now().Add(-time.Hour * 24)
-	l, err = ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransTimeStart: &tt})
+	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransTimeStart: &tt})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("7. l: %+v", l)
 
 	tt = util.Now().Add(time.Hour * 24)
-	l, err = ListCashFlows(rail, miso.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransTimeStart: &tt})
+	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransTimeStart: &tt})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,8 +76,8 @@ func TestSaveCashflows(t *testing.T) {
 	if err := miso.LoadConfigFromFile("../../conf.yml", rail); err != nil {
 		t.Fatal(err)
 	}
-	miso.InitMySQLFromProp(rail)
-	miso.InitRedisFromProp(rail)
+	mysql.InitMySQLFromProp(rail)
+	redis.InitRedisFromProp(rail)
 	miso.SetLogLevel("debug")
 
 	nc := []NewCashflow{
@@ -95,7 +97,7 @@ func TestSaveCashflows(t *testing.T) {
 		User:      common.User{UserNo: "UE1049787455160320075953"},
 		Category:  WechatCategory,
 	}
-	_, err := SaveCashflows(rail, miso.GetMySQL(), p)
+	_, err := SaveCashflows(rail, mysql.GetMySQL(), p)
 	if err != nil {
 		t.Fatal(err)
 	}

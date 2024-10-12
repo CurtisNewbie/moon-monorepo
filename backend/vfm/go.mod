@@ -11,7 +11,7 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.13
 	github.com/curtisnewbie/mini-fstore v0.1.18
-	github.com/curtisnewbie/miso v0.1.9
+	github.com/curtisnewbie/miso v0.1.11-beta.1
 	github.com/curtisnewbie/user-vault v0.0.23
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	golang.org/x/net v0.25.0
