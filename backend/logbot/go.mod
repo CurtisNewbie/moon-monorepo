@@ -3,7 +3,7 @@ module github.com/curtisnewbie/log-bot
 go 1.18
 
 require (
-	github.com/curtisnewbie/miso v0.1.8
+	github.com/curtisnewbie/miso v0.1.11
 	github.com/curtisnewbie/user-vault v0.0.25
 	github.com/go-redis/redis v6.15.9+incompatible
 	gorm.io/gorm v1.23.8

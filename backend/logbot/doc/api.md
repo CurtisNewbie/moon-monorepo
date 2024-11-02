@@ -26,6 +26,7 @@
       app?: string
       page?: Paging
     }
+
     export interface Paging {
       limit?: number                 // page limit
       page?: number                  // page number, 1-based
@@ -99,14 +100,17 @@
       error?: boolean                // whether the request was successful
       data?: ResourceInfoRes
     }
+
     export interface ResourceInfoRes {
       resources?: Resource[]
       paths?: Endpoint[]
     }
+
     export interface Resource {
       name?: string                  // resource name
       code?: string                  // resource code, unique identifier
     }
+
     export interface Endpoint {
       type?: string                  // access scope type: PROTECTED/PUBLIC
       url?: string                   // endpoint url
