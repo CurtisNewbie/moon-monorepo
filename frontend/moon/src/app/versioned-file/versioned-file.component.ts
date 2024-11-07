@@ -83,11 +83,11 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
             { name: u.name, url: getDownloadUrl(), uuid: u.fileKey },
           ]);
         } else if (isWebpage(u.name)) {
-            console.log("is webpage")
-            this.nav.navigateTo(NavType.WEBPAGE_VIEWER, [
-              { name: u.name, url: getDownloadUrl(), uuid: u.uuid },
-            ]);
-          } else {
+          console.log("is webpage");
+          this.nav.navigateTo(NavType.WEBPAGE_VIEWER, [
+            { name: u.name, url: getDownloadUrl(), uuid: u.uuid },
+          ]);
+        } else {
           // image
           dialog.open(ImageViewerComponent, {
             data: {
@@ -138,7 +138,7 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
 
         <ng-container matColumnDef="thumbnail">
           <th mat-header-cell *matHeaderCellDef><b>Preview</b></th>
-          <td mat-cell *matCellDef="let f" (click)="preview(f)">
+          <td mat-cell *matCellDef="let f">
             <img
               style="max-height:50px; padding: 5px 0px 5px 0px;"
               *ngIf="f.thumbnail"
@@ -182,6 +182,7 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
           mat-row
           *matRowDef="let row; columns: columns"
           class="element-row"
+          (click)="preview(row)"
         ></tr>
       </table>
 
@@ -246,10 +247,9 @@ export class VerFileHistoryComponent implements OnInit {
 
   qryTotalSize() {
     this.http
-      .post<any>(
-        `vfm/open/api/versioned-file/accumulated-size`,
-        { verFileId: this.data.verFileId }
-      )
+      .post<any>(`vfm/open/api/versioned-file/accumulated-size`, {
+        verFileId: this.data.verFileId,
+      })
       .subscribe({
         next: (r) => {
           this.totalSizeLabel = resolveSize(r.data.sizeInBytes);
@@ -273,8 +273,7 @@ export class VerFileHistoryComponent implements OnInit {
           for (let f of this.tabdata) {
             if (f.thumbnail) {
               f.thumbnail =
-                "fstore/file/raw?key=" +
-                encodeURIComponent(f.thumbnail);
+                "fstore/file/raw?key=" + encodeURIComponent(f.thumbnail);
             }
             f.sizeLabel = resolveSize(f.sizeInBytes);
           }
@@ -408,7 +407,7 @@ export interface ApiListVerFileRes {
       <table mat-table [dataSource]="tabdat" style="width: 100%;">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef><b>Name</b></th>
-          <td mat-cell *matCellDef="let f">
+          <td mat-cell *matCellDef="let f" (click)="$event.stopPropagation()">
             <span class="pl-1 pr-1">{{ f.name }} </span>
           </td>
         </ng-container>
@@ -422,7 +421,7 @@ export interface ApiListVerFileRes {
 
         <ng-container matColumnDef="thumbnail">
           <th mat-header-cell *matHeaderCellDef><b>Preview</b></th>
-          <td mat-cell *matCellDef="let f" (click)="preview(f)">
+          <td mat-cell *matCellDef="let f">
             <img
               style="max-height:50px; padding: 5px 0px 5px 0px;"
               *ngIf="f.thumbnail"
@@ -451,13 +450,17 @@ export interface ApiListVerFileRes {
         <ng-container matColumnDef="operate">
           <th mat-header-cell *matHeaderCellDef><b>Operate</b></th>
           <td mat-cell *matCellDef="let f">
-            <button mat-raised-button class="m-2" (click)="selectVerFile(f)">
+            <button
+              mat-raised-button
+              class="m-2"
+              (click)="$event.stopPropagation() || selectVerFile(f)"
+            >
               Update
             </button>
             <button
               mat-raised-button
               class="m-2"
-              (click)="showVerFileHistory(f)"
+              (click)="$event.stopPropagation() || showVerFileHistory(f)"
             >
               History
             </button>
@@ -465,7 +468,11 @@ export interface ApiListVerFileRes {
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="tabcol"></tr>
-        <tr mat-row *matRowDef="let row; columns: tabcol"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: tabcol"
+          (click)="preview(row)"
+        ></tr>
       </table>
     </div>
 
@@ -513,25 +520,22 @@ export class VersionedFileComponent implements OnInit {
       paging: this.pagingController.paging,
       name: this.searchName,
     };
-    this.http
-      .post<any>(`vfm/open/api/versioned-file/list`, req)
-      .subscribe({
-        next: (r) => {
-          if (!r.data.payload) {
-            r.data.payload = [];
+    this.http.post<any>(`vfm/open/api/versioned-file/list`, req).subscribe({
+      next: (r) => {
+        if (!r.data.payload) {
+          r.data.payload = [];
+        }
+        this.tabdat = r.data.payload;
+        this.pagingController.onTotalChanged(r.data.paging);
+        for (let f of this.tabdat) {
+          if (f.thumbnail) {
+            f.thumbnail =
+              "fstore/file/raw?key=" + encodeURIComponent(f.thumbnail);
           }
-          this.tabdat = r.data.payload;
-          this.pagingController.onTotalChanged(r.data.paging);
-          for (let f of this.tabdat) {
-            if (f.thumbnail) {
-              f.thumbnail =
-                "fstore/file/raw?key=" +
-                encodeURIComponent(f.thumbnail);
-            }
-            f.sizeLabel = resolveSize(f.sizeInBytes);
-          }
-        },
-      });
+          f.sizeLabel = resolveSize(f.sizeInBytes);
+        }
+      },
+    });
   }
 
   reset() {
@@ -604,22 +608,16 @@ export class VersionedFileComponent implements OnInit {
             }
             let sub = null;
             if (this.updateVerFileId) {
-              sub = this.http.post(
-                `vfm/open/api/versioned-file/update`,
-                {
-                  filename: this.uploadFileName,
-                  fstoreFileId: fstoreRes.data,
-                  verFileId: this.updateVerFileId,
-                }
-              );
+              sub = this.http.post(`vfm/open/api/versioned-file/update`, {
+                filename: this.uploadFileName,
+                fstoreFileId: fstoreRes.data,
+                verFileId: this.updateVerFileId,
+              });
             } else {
-              sub = this.http.post(
-                `vfm/open/api/versioned-file/create`,
-                {
-                  filename: this.uploadFileName,
-                  fstoreFileId: fstoreRes.data,
-                }
-              );
+              sub = this.http.post(`vfm/open/api/versioned-file/create`, {
+                filename: this.uploadFileName,
+                fstoreFileId: fstoreRes.data,
+              });
             }
 
             sub.subscribe({
