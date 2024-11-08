@@ -2,8 +2,6 @@ module github.com/curtisnewbie/gatekeeper
 
 go 1.21
 
-toolchain go1.23.0
-
 require (
 	github.com/curtisnewbie/miso v0.1.12-beta.1
 	github.com/prometheus/client_golang v1.4.0

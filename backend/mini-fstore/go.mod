@@ -2,11 +2,10 @@ module github.com/curtisnewbie/mini-fstore
 
 go 1.21
 
-toolchain go1.23.0
-
 require (
-	github.com/curtisnewbie/miso v0.1.12-beta.1
+	github.com/curtisnewbie/miso v0.1.12-beta.1.0.20241108081344-a671febc8d67
 	github.com/disintegration/gift v1.2.1
+	github.com/gin-gonic/gin v1.8.1
 	golang.org/x/image v0.13.0
 	gorm.io/gorm v1.23.8
 )
@@ -19,7 +18,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/gin v1.8.1 // indirect
 	github.com/go-co-op/gocron v1.17.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect

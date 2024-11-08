@@ -2,8 +2,6 @@ module github.com/curtisnewbie/user-vault
 
 go 1.21
 
-toolchain go1.23.0
-
 require (
 	github.com/curtisnewbie/event-pump v0.0.13
 	github.com/curtisnewbie/miso v0.1.12-beta.1

@@ -21,7 +21,7 @@ func init() {
 func BootstrapServer(args []string) {
 	common.LoadBuiltinPropagationKeys()
 	logbot.EnableLogbotErrLogReport()
-	miso.PreServerBootstrap(web.RegisterRoutes)
+	miso.PreServerBootstrap(web.PrepareWebServer)
 	miso.PreServerBootstrap(fstore.InitPipeline)
 	miso.PreServerBootstrap(fstore.InitTrashDir)
 	miso.PreServerBootstrap(fstore.InitStorageDir)

@@ -18,7 +18,7 @@ func preTest(t *testing.T) {
 	c := miso.EmptyRail()
 	ag := []string{"configFile=../../conf.yml"}
 	miso.DefaultReadConfig(ag, c)
-	miso.ConfigureLogging(c)
+	miso.ConfigureLogging()
 	miso.SetProp(config.PropStorageDir, "../../storage")
 	miso.SetProp(config.PropTrashDir, "../../trash")
 	if err := mysql.InitMySQLFromProp(c); err != nil {

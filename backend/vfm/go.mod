@@ -2,8 +2,6 @@ module github.com/curtisnewbie/vfm
 
 go 1.21
 
-toolchain go1.23.0
-
 require (
 	github.com/gin-gonic/gin v1.8.1 // indirect
 	github.com/sirupsen/logrus v1.9.0
