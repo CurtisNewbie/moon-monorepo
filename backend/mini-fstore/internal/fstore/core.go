@@ -1205,9 +1205,14 @@ func LoadStorageInfo() StorageInfo {
 	parts, _ := disk.Partitions(false)
 	for _, p := range parts {
 		device := p.Mountpoint
+		if strings.HasPrefix(device, "/System/Volumes") {
+			continue // for macos
+		}
 		us, _ := disk.Usage(device)
-
 		if us.Total == 0 {
+			continue
+		}
+		if p.Fstype == "devfs" {
 			continue
 		}
 		v := VolumnInfo{

@@ -28,6 +28,7 @@ import { CashflowComponent } from "./cashflow/cashflow.component";
 import { CashflowStatisticsComponent } from "./cashflow-statistics/cashflow-statistics.component";
 import { WebpageViewerComponent } from "./webpage-viewer/webpage-viewer.component";
 import { SitePasswordComponent } from "./site-password/site-password.component";
+import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.component";
 
 const routes: Routes = [
   {
@@ -141,6 +142,10 @@ const routes: Routes = [
   {
     path: "site-passwords",
     component: SitePasswordComponent,
+  },
+  {
+    path: "fstore-storage",
+    component: FstoreStorageComponent,
   },
   { path: "**", redirectTo: "/" + NavType.USER_DETAILS },
 ];

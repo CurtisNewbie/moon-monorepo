@@ -83,6 +83,7 @@ import {
   SitePasswordComponent,
   SitePasswordDecryptedDialogComponent,
 } from "./site-password/site-password.component";
+import { FstoreStorageComponent } from './fstore-storage/fstore-storage.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -133,6 +134,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     SitePasswordComponent,
     SitePasswordDecryptedDialogComponent,
     EditSitePasswordDialogComponent,
+    FstoreStorageComponent,
   ],
   imports: [
     PlotlyModule,
