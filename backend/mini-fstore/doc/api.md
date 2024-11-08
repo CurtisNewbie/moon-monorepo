@@ -655,6 +655,81 @@
       });
     ```
 
+- GET /storage/info
+  - Description: Fetch storage info
+  - Bound to Resource: `"fstore:fetch-storage-info"`
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (StorageInfo) response data
+      - "volumns": ([]fstore.VolumnInfo) 
+        - "mounted": (string) 
+        - "total": (uint64) 
+        - "used": (uint64) 
+        - "available": (uint64) 
+        - "usedPercent": (float64) 
+        - "totalText": (string) 
+        - "usedText": (string) 
+        - "availableText": (string) 
+        - "usedPercentText": (string) 
+  - cURL:
+    ```sh
+    curl -X GET 'http://localhost:8084/storage/info'
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string             // error code
+      msg?: string                   // message
+      error?: boolean                // whether the request was successful
+      data?: StorageInfo
+    }
+
+    export interface StorageInfo {
+      volumns?: VolumnInfo[]
+    }
+
+    export interface VolumnInfo {
+      mounted?: string
+      total?: number
+      used?: number
+      available?: number
+      usedPercent?: number
+      totalText?: string
+      usedText?: string
+      availableText?: string
+      usedPercentText?: string
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    this.http.get<any>(`/fstore/storage/info`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: StorageInfo = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
 - GET /auth/resource
   - Description: Expose resource and endpoint information to other backend service for authorization.
   - Expected Access Scope: PROTECTED

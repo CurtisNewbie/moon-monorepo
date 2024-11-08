@@ -28,6 +28,11 @@ const (
 	authorization = "Authorization"
 )
 
+const (
+	ResCodeFstoreUpload           = "fstore-upload"
+	ResCodeFstoreFetchStorageInfo = "fstore:fetch-storage-info"
+)
+
 func PrepareWebServer(rail miso.Rail) error {
 
 	miso.AddInterceptor(func(c *gin.Context) (next bool) {
@@ -54,6 +59,7 @@ func PrepareWebServer(rail miso.Rail) error {
 
 	auth.ExposeResourceInfo([]auth.Resource{
 		{Name: "Fstore File Upload", Code: ResCodeFstoreUpload},
+		{Name: "Fstore Fetch Storage Info", Code: ResCodeFstoreFetchStorageInfo},
 	})
 
 	return nil
@@ -370,4 +376,11 @@ func SanitizeStorageEp(inb *miso.Inbound) (any, error) {
 func ComputeChecksumEp(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
 	return nil, fstore.ComputeFilesChecksum(rail, mysql.GetMySQL())
+}
+
+// misoapi-http: Get /storage/info
+// misoapi-desc: Fetch storage info
+// misoapi-resource: ref(ResCodeFstoreFetchStorageInfo)
+func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
+	return fstore.LoadStorageInfo(), nil
 }

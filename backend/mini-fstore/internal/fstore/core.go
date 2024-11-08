@@ -19,7 +19,15 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
+)
+
+const (
+	GbUnit uint64 = MbUnit * 1024
+	MbUnit uint64 = KbUnit * 1024
+	KbUnit uint64 = 1024
 )
 
 const (
@@ -1174,4 +1182,59 @@ func FileStoragePath(fileId, link string) string {
 		dfileId = link
 	}
 	return GenStoragePath(dfileId)
+}
+
+type StorageInfo struct {
+	Volumns []VolumnInfo
+}
+
+type VolumnInfo struct {
+	Mounted         string
+	Total           uint64
+	Used            uint64
+	Available       uint64
+	UsedPercent     float64
+	TotalText       string
+	UsedText        string
+	AvailableText   string
+	UsedPercentText string
+}
+
+func LoadStorageInfo() StorageInfo {
+	si := StorageInfo{}
+	parts, _ := disk.Partitions(false)
+	for _, p := range parts {
+		device := p.Mountpoint
+		us, _ := disk.Usage(device)
+
+		if us.Total == 0 {
+			continue
+		}
+		v := VolumnInfo{
+			Mounted:         p.Mountpoint,
+			Total:           us.Total,
+			Used:            us.Used,
+			Available:       us.Free,
+			UsedPercent:     us.UsedPercent,
+			TotalText:       readableBytes(us.Total),
+			UsedText:        readableBytes(us.Used),
+			AvailableText:   readableBytes(us.Free),
+			UsedPercentText: fmt.Sprintf("%2.f%%", us.UsedPercent),
+		}
+		si.Volumns = append(si.Volumns, v)
+	}
+	return si
+}
+
+func readableBytes(d uint64) string {
+	if d > GbUnit {
+		return cast.ToString(d/GbUnit) + " gb"
+	}
+	if d > MbUnit {
+		return cast.ToString(d/MbUnit) + " mb"
+	}
+	if d > KbUnit {
+		return cast.ToString(d/KbUnit) + " kb"
+	}
+	return cast.ToString(d) + " bytes"
 }

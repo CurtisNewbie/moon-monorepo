@@ -512,3 +512,10 @@ func TestTriggerUnzipFilePipeline(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestLoadStoreInfo(t *testing.T) {
+	si := LoadStorageInfo()
+	for _, v := range si.Volumns {
+		t.Logf("%#v", v)
+	}
+}

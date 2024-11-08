@@ -6,6 +6,8 @@ require (
 	github.com/curtisnewbie/miso v0.1.12-beta.1.0.20241108081344-a671febc8d67
 	github.com/disintegration/gift v1.2.1
 	github.com/gin-gonic/gin v1.8.1
+	github.com/shirou/gopsutil v3.21.11+incompatible
+	github.com/spf13/cast v1.6.0
 	golang.org/x/image v0.13.0
 	gorm.io/gorm v1.23.8
 )
@@ -19,6 +21,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-co-op/gocron v1.17.0 // indirect
+	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
@@ -58,12 +61,12 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
-	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.14.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
