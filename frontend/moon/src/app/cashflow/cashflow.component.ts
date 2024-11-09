@@ -196,7 +196,7 @@ export interface ListCashFlowRes {
         </ng-container> -->
 
         <ng-container matColumnDef="counterparty">
-          <th mat-header-cell *matHeaderCellDef>Counteryparty</th>
+          <th mat-header-cell *matHeaderCellDef>Counterparty</th>
           <td mat-cell *matCellDef="let u">{{ u.counterparty }}</td>
         </ng-container>
 
