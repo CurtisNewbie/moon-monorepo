@@ -36,6 +36,7 @@ var (
 	_videoSuffix = util.NewSet[string]()
 
 	dirTreeCache = redis.NewRCache[*CachedDirTreeNode]("vfm:dir:tree", redis.RCacheConfig{Exp: 1 * time.Hour})
+	dirNameCache = redis.NewRCache[string]("vfm:dir:name", redis.RCacheConfig{Exp: 1 * time.Hour})
 )
 
 func init() {
@@ -1050,10 +1051,12 @@ func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user common.User) 
 		r.SensitiveMode = "N"
 	}
 
-	return tx.
-		Exec("UPDATE file_info SET name = ?, sensitive_mode = ?, update_by = ? WHERE id = ? AND is_logic_deleted = 0 AND is_del = 0",
-			r.Name, r.SensitiveMode, user.Username, r.Id).
-		Error
+	err := tx.Exec("UPDATE file_info SET name = ?, sensitive_mode = ?, update_by = ? WHERE id = ? AND is_logic_deleted = 0 AND is_del = 0",
+		r.Name, r.SensitiveMode, user.Username, r.Id).Error
+	if err == nil {
+		dirNameCache.Del(rail, f.Uuid)
+	}
+	return err
 }
 
 type CreateFileReq struct {
@@ -1662,14 +1665,13 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 
 type CachedDirTreeNode struct {
 	FileKey string
-	Name    string
 }
 
-func FetchDirTree(rail miso.Rail, q *mysql.Query, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
+func FetchDirTree(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
 	if util.IsBlankStr(req.FileKey) {
 		return nil, nil
 	}
-	fi, err := findFile(rail, q.DB(), req.FileKey)
+	fi, err := findFile(rail, db, req.FileKey)
 	if err != nil || fi == nil {
 		return nil, err
 	}
@@ -1677,12 +1679,12 @@ func FetchDirTree(rail miso.Rail, q *mysql.Query, req FetchDirTreeReq, user comm
 		FileKey: req.FileKey,
 		Name:    fi.Name,
 	}
-	return doFetchDirTree(rail, q, bottom)
+	return doFetchDirTree(rail, db, bottom)
 }
 
-func doFetchDirTree(rail miso.Rail, q *mysql.Query, child *DirTreeNode) (*DirTreeNode, error) {
+func doFetchDirTree(rail miso.Rail, db *gorm.DB, child *DirTreeNode) (*DirTreeNode, error) {
 	p, err := dirTreeCache.Get(rail, child.FileKey, func() (*CachedDirTreeNode, error) {
-		pi, err := doFindParentDir(rail, q, child.FileKey)
+		pi, err := doFindParentDir(rail, mysql.NewQuery(db), child.FileKey)
 		if err != nil {
 			return nil, err
 		}
@@ -1691,7 +1693,6 @@ func doFetchDirTree(rail miso.Rail, q *mysql.Query, child *DirTreeNode) (*DirTre
 		}
 		return &CachedDirTreeNode{
 			FileKey: pi.FileKey,
-			Name:    pi.Name,
 		}, nil
 	})
 	if err != nil {
@@ -1700,27 +1701,26 @@ func doFetchDirTree(rail miso.Rail, q *mysql.Query, child *DirTreeNode) (*DirTre
 		}
 		return nil, err
 	}
+
+	name, err := cachedFindDirName(rail, mysql.NewQuery(db), p.FileKey)
+	if err != nil {
+		return nil, err
+	}
 	n := &DirTreeNode{
 		FileKey: p.FileKey,
-		Name:    p.Name,
+		Name:    name,
 		Child:   child,
 	}
-	return doFetchDirTree(rail, mysql.NewQuery(q.DB()), n)
+	return doFetchDirTree(rail, db, n)
 }
 
 type ParentDir struct {
 	FileKey string
-	Name    string
 }
 
 func doFindParentDir(c miso.Rail, q *mysql.Query, fileKey string) (*ParentDir, error) {
 	var pd ParentDir
-	n, err := q.Raw(`
-		SELECT f.name, t.parent_file file_key FROM file_info f
-		INNER JOIN (SELECT parent_file FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1) t ON f.uuid = t.parent_file
-		WHERE f.is_del = 0 AND f.is_logic_deleted = 0
-		LIMIT 1
-	`, fileKey).
+	n, err := q.Raw(`SELECT parent_file file_key FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
 		Scan(&pd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find parent dir, %v", err)
@@ -1729,5 +1729,29 @@ func doFindParentDir(c miso.Rail, q *mysql.Query, fileKey string) (*ParentDir, e
 		return nil, nil
 	}
 
+	// root directory
+	if pd.FileKey == "" {
+		return nil, nil
+	}
+
 	return &pd, nil
+}
+
+func cachedFindDirName(rail miso.Rail, q *mysql.Query, fileKey string) (string, error) {
+	return dirNameCache.Get(rail, fileKey, func() (string, error) {
+		return findDirName(rail, q, fileKey)
+	})
+}
+
+func findDirName(rail miso.Rail, q *mysql.Query, fileKey string) (string, error) {
+	var name string
+	n, err := q.Raw(`SELECT name FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
+		Scan(&name)
+	if err != nil {
+		return "", fmt.Errorf("failed to find dir name, %v", err)
+	}
+	if n < 1 {
+		return "", nil
+	}
+	return name, nil
 }

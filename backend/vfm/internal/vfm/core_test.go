@@ -340,7 +340,7 @@ func TestFetchDirTree(t *testing.T) {
 	corePreTest(t)
 	rail := miso.EmptyRail()
 	dirTreeCache.DelAll(rail)
-	n, err := FetchDirTree(rail, mysql.NewQuery(mysql.GetMySQL()), FetchDirTreeReq{FileKey: "ZZZ1471280777216000148288"}, common.User{})
+	n, err := FetchDirTree(rail, mysql.GetMySQL(), FetchDirTreeReq{FileKey: "ZZZ1471280777216000148288"}, common.User{})
 	if err != nil {
 		t.Fatal(err)
 	}

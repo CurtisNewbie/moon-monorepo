@@ -164,8 +164,8 @@ type DirTreeNode struct {
 //   - misoapi-http: POST /open/api/file/dir/tree
 //   - misoapi-desc: Fetch directory tree.
 //   - misoapi-resource: ref(ManageFilesResource)
-func FetchDirTreeEp(inb *miso.Inbound, q *mysql.Query, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
-	return FetchDirTree(inb.Rail(), q, req, user)
+func FetchDirTreeEp(inb *miso.Inbound, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
+	return FetchDirTree(inb.Rail(), db, req, user)
 }
 
 type BatchDeleteFileReq struct {
