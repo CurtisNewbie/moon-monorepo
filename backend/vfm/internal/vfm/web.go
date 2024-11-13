@@ -149,6 +149,25 @@ func TruncateDirEp(inb *miso.Inbound, req DeleteFileReq) (any, error) {
 	return nil, TruncateDir(rail, mysql.GetMySQL(), req, common.GetUser(rail), true)
 }
 
+type FetchDirTreeReq struct {
+	FileKey string
+}
+
+type DirTreeNode struct {
+	FileKey string
+	Name    string
+	Child   *DirTreeNode
+}
+
+// Fetch dir trees.
+//
+//   - misoapi-http: POST /open/api/file/dir/tree
+//   - misoapi-desc: Fetch directory tree.
+//   - misoapi-resource: ref(ManageFilesResource)
+func FetchDirTreeEp(inb *miso.Inbound, q *mysql.Query, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
+	return FetchDirTree(inb.Rail(), q, req, user)
+}
+
 type BatchDeleteFileReq struct {
 	FileKeys []string
 }

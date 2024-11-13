@@ -335,3 +335,20 @@ func TestUnpackZip(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestFetchDirTree(t *testing.T) {
+	corePreTest(t)
+	rail := miso.EmptyRail()
+	dirTreeCache.DelAll(rail)
+	n, err := FetchDirTree(rail, mysql.NewQuery(mysql.GetMySQL()), FetchDirTreeReq{FileKey: "ZZZ1471280777216000148288"}, common.User{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n == nil {
+		t.Fatal("node is nil")
+	}
+	for n != nil {
+		t.Logf("n: %#v", n)
+		n = n.Child
+	}
+}

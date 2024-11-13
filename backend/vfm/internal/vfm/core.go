@@ -34,6 +34,8 @@ const (
 var (
 	_imageSuffix = util.NewSet[string]()
 	_videoSuffix = util.NewSet[string]()
+
+	dirTreeCache = redis.NewRCache[*CachedDirTreeNode]("vfm:dir:tree", redis.RCacheConfig{Exp: 1 * time.Hour})
 )
 
 func init() {
@@ -466,7 +468,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 		return nil
 	}
 
-	return db.Transaction(func(tx *gorm.DB) error {
+	err = db.Transaction(func(tx *gorm.DB) error {
 
 		// lock directory if necessary, if parentFileUuid is empty, the file is moved out of a directory
 		if req.ParentFileUuid != "" {
@@ -519,6 +521,10 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 			req.ParentFileUuid, user.Username, time.Now(), req.Uuid).
 			Error
 	})
+	if err == nil {
+		dirTreeCache.Del(rail, req.Uuid)
+	}
+	return err
 }
 
 func _saveFile(rail miso.Rail, tx *gorm.DB, f FileInfo, user common.User) error {
@@ -1652,4 +1658,76 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 	}
 
 	return nil
+}
+
+type CachedDirTreeNode struct {
+	FileKey string
+	Name    string
+}
+
+func FetchDirTree(rail miso.Rail, q *mysql.Query, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
+	if util.IsBlankStr(req.FileKey) {
+		return nil, nil
+	}
+	fi, err := findFile(rail, q.DB(), req.FileKey)
+	if err != nil || fi == nil {
+		return nil, err
+	}
+	bottom := &DirTreeNode{
+		FileKey: req.FileKey,
+		Name:    fi.Name,
+	}
+	return doFetchDirTree(rail, q, bottom)
+}
+
+func doFetchDirTree(rail miso.Rail, q *mysql.Query, child *DirTreeNode) (*DirTreeNode, error) {
+	p, err := dirTreeCache.Get(rail, child.FileKey, func() (*CachedDirTreeNode, error) {
+		pi, err := doFindParentDir(rail, q, child.FileKey)
+		if err != nil {
+			return nil, err
+		}
+		if pi == nil {
+			return nil, miso.NoneErr
+		}
+		return &CachedDirTreeNode{
+			FileKey: pi.FileKey,
+			Name:    pi.Name,
+		}, nil
+	})
+	if err != nil {
+		if miso.IsNoneErr(err) {
+			return child, nil
+		}
+		return nil, err
+	}
+	n := &DirTreeNode{
+		FileKey: p.FileKey,
+		Name:    p.Name,
+		Child:   child,
+	}
+	return doFetchDirTree(rail, mysql.NewQuery(q.DB()), n)
+}
+
+type ParentDir struct {
+	FileKey string
+	Name    string
+}
+
+func doFindParentDir(c miso.Rail, q *mysql.Query, fileKey string) (*ParentDir, error) {
+	var pd ParentDir
+	n, err := q.Raw(`
+		SELECT f.name, t.parent_file file_key FROM file_info f
+		INNER JOIN (SELECT parent_file FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1) t ON f.uuid = t.parent_file
+		WHERE f.is_del = 0 AND f.is_logic_deleted = 0
+		LIMIT 1
+	`, fileKey).
+		Scan(&pd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find parent dir, %v", err)
+	}
+	if n < 1 {
+		return nil, nil
+	}
+
+	return &pd, nil
 }

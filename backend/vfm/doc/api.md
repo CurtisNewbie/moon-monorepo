@@ -596,6 +596,76 @@
       });
     ```
 
+- POST /open/api/file/dir/tree
+  - Description: Fetch directory tree.
+  - Bound to Resource: `"manage-files"`
+  - JSON Request:
+    - "fileKey": (string) 
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (*vfm.DirTreeNode) response data
+      - "fileKey": (string) 
+      - "name": (string) 
+      - "child": (*vfm.DirTreeNode) 
+  - cURL:
+    ```sh
+    curl -X POST 'http://localhost:8086/open/api/file/dir/tree' \
+      -H 'Content-Type: application/json' \
+      -d '{"fileKey":""}'
+    ```
+
+  - JSON Request Object In TypeScript:
+    ```ts
+    export interface FetchDirTreeReq {
+      fileKey?: string
+    }
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string             // error code
+      msg?: string                   // message
+      error?: boolean                // whether the request was successful
+      data?: DirTreeNode
+    }
+
+    export interface DirTreeNode {
+      fileKey?: string
+      name?: string
+      child?: DirTreeNode
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    let req: FetchDirTreeReq | null = null;
+    this.http.post<any>(`/vfm/open/api/file/dir/tree`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: DirTreeNode = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
 - POST /open/api/file/delete/batch
   - Description: User delete file in batch
   - Bound to Resource: `"manage-files"`

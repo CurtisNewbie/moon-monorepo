@@ -47,6 +47,17 @@ import { HostOnGalleryComponent } from "../host-on-gallery/host-on-gallery.compo
 import { DirectoryMoveFileComponent } from "../directory-move-file/directory-move-file.component";
 import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { Subscription } from "rxjs";
+import { MatSnackBar } from "@angular/material/snack-bar";
+
+export interface FetchDirTreeReq {
+  fileKey?: string;
+}
+
+export interface DirTreeNode {
+  fileKey?: string;
+  name?: string;
+  child?: DirTreeNode;
+}
 
 @Component({
   selector: "app-mng-files",
@@ -195,7 +206,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     private fileService: FileInfoService,
     private nav: NavigationService,
     private http: HttpClient,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {}
 
   ngDoCheck(): void {
@@ -215,8 +227,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       this.inFolderName = params.get("folderName");
 
       // directory
-      this.inDirFileName = params.get("parentDirName");
       this.inDirFileKey = params.get("parentDirKey");
+      if (this.inDirFileKey) {
+        this.fetchDirTree(this.inDirFileKey);
+      } else {
+        this.inDirFileName = "";
+      }
 
       // if we are already in a directory, by default we upload to current directory
       if (this.expandUploadPanel && this.inDirFileName) {
@@ -262,9 +278,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.expandUploadPanel = false;
     this.curr = null;
     this.resetSearchParam(false, false);
-    this.nav.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirName: name, parentDirKey: fileKey },
-    ]);
+    this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: fileKey }]);
   }
 
   // TODO
@@ -370,8 +384,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
               if (f.thumbnailToken) {
                 f.thumbnailUrl =
-                  "fstore/file/raw?key=" +
-                  encodeURIComponent(f.thumbnailToken);
+                  "fstore/file/raw?key=" + encodeURIComponent(f.thumbnailToken);
               }
             }
           }
@@ -450,9 +463,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     this.expandUploadPanel = false;
     this.http
-      .get<any>(
-        `vfm/open/api/file/parent?fileKey=${this.inDirFileKey}`
-      )
+      .get<any>(`vfm/open/api/file/parent?fileKey=${this.inDirFileKey}`)
       .subscribe({
         next: (resp) => {
           // console.log("fetchParentFileKey", resp)
@@ -666,8 +677,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           const getDownloadUrl = () =>
             "fstore/file/raw?key=" + encodeURIComponent(token);
           const getStreamingUrl = () =>
-            "fstore/file/stream?key=" +
-            encodeURIComponent(token);
+            "fstore/file/stream?key=" + encodeURIComponent(token);
 
           if (isStreaming) {
             this.dialog.open(MediaStreamerComponent, {
@@ -1138,6 +1148,34 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
         dialogRef.afterClosed().subscribe((confirm) => {
           // do nothing
+        });
+      },
+    });
+  }
+
+  fetchDirTree(dirKey) {
+    if (!dirKey) {
+      return;
+    }
+    let req: FetchDirTreeReq | null = { fileKey: dirKey };
+    this.http.post<any>(`/vfm/open/api/file/dir/tree`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: DirTreeNode = resp.data;
+        let b = "";
+        while (dat) {
+          b += "/" + dat.name;
+          dat = dat.child;
+        }
+        this.inDirFileName = b;
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
         });
       },
     });
