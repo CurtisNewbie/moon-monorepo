@@ -132,6 +132,26 @@ go run cmd/main.go
 
 7. Finally, if everything goes right, you can visit the website via `https://localhost:4200`.
 
+### Script Example
+
+For example, to bootstrap all backend and frontend services:
+
+```bash
+for r in $(ls "./moon-monorepo/backend");
+do
+    (
+      cd "./moon-monorepo/backend/$r";
+      if [ -f "main.go" ]; then
+          go run main.go "logging.rolling.file=./logs/$r.log" 'logging.file.max-backups=1' 'logging.file.max-size=30' > /dev/null 2>&1 &
+      else
+          go run cmd/main.go "logging.rolling.file=./logs/$r.log" 'logging.file.max-backups=1' 'logging.file.max-size=30' > /dev/null 2>&1 &
+      fi
+    );
+done;
+
+( cd "./moon-monorepo/frontend/moon"; ng serve > /dev/null 2>&1 & )
+```
+
 ## Deployment
 
 > [!NOTE]
