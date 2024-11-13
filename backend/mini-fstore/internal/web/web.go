@@ -35,7 +35,7 @@ const (
 
 func PrepareWebServer(rail miso.Rail) error {
 
-	miso.AddInterceptor(func(c *gin.Context) (next bool) {
+	miso.AddInterceptor(func(c *gin.Context, next func()) {
 		url := c.Request.RequestURI
 
 		// endpoints for file backup
@@ -45,16 +45,17 @@ func PrepareWebServer(rail miso.Rail) error {
 			if !miso.GetPropBool(config.PropEnableFstoreBackup) || miso.GetPropStr(config.PropBackupAuthSecret) == "" {
 				miso.Infof("Reject request to %v, backup endpoint disabled", url)
 				c.AbortWithStatus(404)
-				return false
+				return
 			}
 			// not authorized
 			if err := fstore.CheckBackupAuth(rail, c.Request.Header.Get(headerAuthorization)); err != nil {
 				miso.Infof("Reject request to %v, request not authorized", url)
 				c.AbortWithStatus(http.StatusForbidden)
-				return false
+				return
 			}
 		}
-		return true
+
+		next()
 	})
 
 	auth.ExposeResourceInfo([]auth.Resource{
