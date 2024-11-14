@@ -35,8 +35,9 @@ var (
 	_imageSuffix = util.NewSet[string]()
 	_videoSuffix = util.NewSet[string]()
 
-	dirParentCache = redis.NewRCache[*CachedDirTreeNode]("vfm:dir:parent", redis.RCacheConfig{Exp: 1 * time.Hour})
-	dirNameCache   = redis.NewRCache[string]("vfm:dir:name", redis.RCacheConfig{Exp: 1 * time.Hour})
+	dirParentCache   = redis.NewRCache[*CachedDirTreeNode]("vfm:dir:parent", redis.RCacheConfig{Exp: 1 * time.Hour})
+	dirNameCache     = redis.NewRCache[string]("vfm:dir:name", redis.RCacheConfig{Exp: 1 * time.Hour})
+	userDirTreeCache = redis.NewRCache[*DirTopDownTreeNode]("vfm:dir:user:tree", redis.RCacheConfig{Exp: 12 * time.Hour})
 )
 
 func init() {
@@ -522,9 +523,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 			req.ParentFileUuid, user.Username, time.Now(), req.Uuid).
 			Error
 	})
-	if err == nil {
-		dirParentCache.Del(rail, req.Uuid)
-	}
+
 	return err
 }
 
@@ -1053,9 +1052,7 @@ func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user common.User) 
 
 	err := tx.Exec("UPDATE file_info SET name = ?, sensitive_mode = ?, update_by = ? WHERE id = ? AND is_logic_deleted = 0 AND is_del = 0",
 		r.Name, r.SensitiveMode, user.Username, r.Id).Error
-	if err == nil {
-		dirNameCache.Del(rail, f.Uuid)
-	}
+
 	return err
 }
 
@@ -1757,14 +1754,16 @@ func findDirName(rail miso.Rail, q *mysql.Query, fileKey string) (string, error)
 }
 
 func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTopDownTreeNode, error) {
-	root := &DirTopDownTreeNode{
-		FileKey: "",
-		Name:    "",
-		Child:   []*DirTopDownTreeNode{},
-	}
-	seen := util.NewSet[string]()
-	seen.Add(root.FileKey)
-	return root, dfsDirTree(rail, db, root, user, seen)
+	return userDirTreeCache.Get(rail, user.UserNo, func() (*DirTopDownTreeNode, error) {
+		root := &DirTopDownTreeNode{
+			FileKey: "",
+			Name:    "",
+			Child:   []*DirTopDownTreeNode{},
+		}
+		seen := util.NewSet[string]()
+		seen.Add(root.FileKey)
+		return root, dfsDirTree(rail, db, root, user, seen)
+	})
 }
 
 type TopDownTreeNodeBrief struct {

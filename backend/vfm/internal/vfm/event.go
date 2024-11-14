@@ -271,11 +271,18 @@ func OnUnzipFileReplyEvent(rail miso.Rail, evt fstore.UnzipFileReplyEvent) error
 
 // file is moved to another directory.
 func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
+
 	fileKey, ok := evt.ColumnAfter("uuid")
 	if !ok {
 		rail.Errorf("Event doesn't contain uuid column, %+v", evt)
 		return nil
 	}
+
+	rail.Infof("File %v moved", fileKey)
+
+	// update dir parent cache
+	dirParentCache.Del(rail, fileKey)
+	rail.Infof("Updated file %v parent dir cache", fileKey)
 
 	parentFile, ok := evt.Columns["parent_file"]
 	if !ok {
@@ -285,6 +292,15 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 	rail.Infof("Filed %v is moved from %v to %v", fileKey, parentFile.Before, parentFile.After)
 
 	db := mysql.GetMySQL()
+	f, err := findFile(rail, db, fileKey)
+	if err != nil {
+		return err
+	}
+
+	// reload user's dir tree cache
+	userDirTreeCache.Del(rail, f.UploaderNo)
+	rail.Infof("Reloaded user %v file directory tree cache", f.UploaderNo)
+
 	if parentFile.Before != "" {
 		// remove from previous directory's gallery
 		err := RemoveGalleryImage(rail, db, parentFile.Before, fileKey)
@@ -294,6 +310,7 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 			rail.Infof("Removed image from gallery, fileKey: %v, dirFileKey: %v", fileKey, parentFile.Before)
 		}
 	}
+
 	if parentFile.After != "" {
 		// lock before we do anything about it
 		lock := fileLock(rail, fileKey)
@@ -302,10 +319,6 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 		}
 		defer lock.Unlock()
 
-		f, err := findFile(rail, db, fileKey)
-		if err != nil {
-			return err
-		}
 		if f == nil || f.FileType != FileTypeFile ||
 			f.Thumbnail == "" || !isImage(f.Name) {
 			return nil
@@ -351,6 +364,9 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 	if err != nil {
 		return err
 	}
+
+	// reload dir name cache
+	dirNameCache.Del(rail, f.Uuid)
 
 	if f.FileType != FileTypeDir {
 		return nil

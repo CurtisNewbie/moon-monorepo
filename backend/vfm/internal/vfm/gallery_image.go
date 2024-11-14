@@ -409,7 +409,7 @@ func RemoveGalleryImage(rail miso.Rail, db *gorm.DB, dirFileKey string, imageFil
 	if err != nil {
 		return err
 	}
-	rail.Infof("found gallery_no of dir %v: %v", dirFileKey, galleryNo)
+	rail.Infof("Found gallery_no of dir %v: %v", dirFileKey, galleryNo)
 
 	lock := NewGalleryFileLock(rail, galleryNo, imageFileKey)
 	if err := lock.Lock(); err != nil {

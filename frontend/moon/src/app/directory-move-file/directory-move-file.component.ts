@@ -58,7 +58,7 @@ export class DirectoryMoveFileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this._fetchDirBriefList();
+    // this._fetchDirBriefList();
     this.fetchTopDownDirTree();
   }
 
