@@ -41,6 +41,21 @@ func SubscribeBinlogChanges(rail miso.Rail) error {
 			Schema:     miso.GetPropStr(mysql.PropMySQLSchema),
 			Table:      "file_info",
 			EventTypes: []client.EventType{client.EventTypeUpdate},
+			Stream:     "event.bus.vfm.dir.name.updated",
+			Condition: client.Condition{
+				ColumnChanged: []string{"name"},
+			},
+		},
+		Concurrency:   2,
+		ContinueOnErr: true,
+		Listener:      OnDirNameUpdated,
+	})
+
+	binlog.SubscribeBinlogEventsOnBootstrapV2(binlog.SubscribeBinlogOption{
+		Pipeline: client.Pipeline{
+			Schema:     miso.GetPropStr(mysql.PropMySQLSchema),
+			Table:      "file_info",
+			EventTypes: []client.EventType{client.EventTypeUpdate},
 			Stream:     "event.bus.vfm.file.logic.deleted",
 			Condition: client.Condition{
 				ColumnChanged: []string{"is_logic_deleted"},

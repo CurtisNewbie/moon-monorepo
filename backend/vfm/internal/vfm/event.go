@@ -337,3 +337,35 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 	}
 	return nil
 }
+
+func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
+
+	fileKey, ok := evt.ColumnAfter("uuid")
+	if !ok {
+		rail.Errorf("Event doesn't contain uuid column, %+v", evt)
+		return nil
+	}
+
+	db := mysql.GetMySQL()
+	f, err := findFile(rail, db, fileKey)
+	if err != nil {
+		return err
+	}
+
+	if f.FileType != FileTypeDir {
+		return nil
+	}
+
+	rail.Infof("Directory name changed, updating directory's gallery name, fileKey: %v", fileKey)
+
+	galleryNo, err := GalleryNoOfDir(fileKey, db)
+	if err != nil || galleryNo == "" {
+		return err
+	}
+
+	return db.Where("gallery_no = ?", galleryNo).
+		Updates(Gallery{
+			Name:     f.Name,
+			UpdateBy: "vfm",
+		}).Error
+}
