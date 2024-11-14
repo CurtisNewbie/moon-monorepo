@@ -3,8 +3,16 @@ import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { DirBrief } from "src/common/file-info";
 import { filterAlike } from "src/common/select-util";
 import { Toaster } from "../notification.service";
-import { environment } from "src/environments/environment";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { NestedTreeControl } from "@angular/cdk/tree";
+import { MatTreeNestedDataSource } from "@angular/material/tree";
+
+export interface DirTopDownTreeNode {
+  fileKey?: string;
+  name?: string;
+  child?: DirTopDownTreeNode[];
+}
 
 type DfFile = {
   fileKey: string;
@@ -27,6 +35,12 @@ export class DirectoryMoveFileComponent implements OnInit {
   autoCompMoveIntoDirs: string[] = [];
   /** name of dir that we may move file into */
   moveIntoDirName: string = null;
+  moveIntoDirKey: string = null;
+
+  dirTreeControl = new NestedTreeControl<DirTopDownTreeNode>(
+    (node) => node.child
+  );
+  dirTreeDataSource = new MatTreeNestedDataSource<DirTopDownTreeNode>();
 
   onMoveIntoDirNameChanged = () =>
     (this.autoCompMoveIntoDirs = filterAlike(
@@ -38,11 +52,14 @@ export class DirectoryMoveFileComponent implements OnInit {
     public dialogRef: MatDialogRef<DirectoryMoveFileComponent, Data>,
     @Inject(MAT_DIALOG_DATA) public dat: Data,
     private http: HttpClient,
-    private toaster: Toaster
-  ) {}
+    private snackBar: MatSnackBar
+  ) {
+    this.dirTreeDataSource.data = [];
+  }
 
   ngOnInit(): void {
     this._fetchDirBriefList();
+    this.fetchTopDownDirTree();
   }
 
   // fetch dir brief list
@@ -55,44 +72,53 @@ export class DirectoryMoveFileComponent implements OnInit {
     });
   }
 
-  findMoveIntoDirFileKey(dirName: string) {
-    let matched: DirBrief[] = this.dirBriefList.filter(
-      (v) => v.name === dirName
-    );
-    if (!matched || matched.length < 1) {
-      this.toaster.toast("Directory not found, please check and try again");
-      return;
-    }
-    if (matched.length > 1) {
-      this.toaster.toast(
-        "Found multiple directories with the same name, please update their names and try again",
-        4000
-      );
-      return;
-    }
-    return matched[0].uuid;
-  }
-
   moveToDir() {
-    const moveIntoDirName = this.moveIntoDirName;
-    if (!moveIntoDirName) {
-      this.toaster.toast("Please select directory");
+    const dk = this.moveIntoDirKey;
+    if (dk == null) {
+      this.snackBar.open("Please select directory", "ok", { duration: 3000 });
       return;
     }
-    const key = this.findMoveIntoDirFileKey(moveIntoDirName);
-    if (!key) {
-      return;
-    }
-    this.batchMoveEachToDir(this.dat.files, key);
+    this.batchMoveEachToDir(this.dat.files, dk);
   }
 
   private batchMoveEachToDir(files, dirFileKey: string) {
     let reqs = [];
     for (let f of files) {
-      reqs.push({uuid: f.fileKey, parentFileUuid: dirFileKey})
+      reqs.push({ uuid: f.fileKey, parentFileUuid: dirFileKey });
     }
     this.http
-      .post(`/vfm/open/api/file/batch-move-to-dir`, {instructions: reqs})
+      .post(`/vfm/open/api/file/batch-move-to-dir`, { instructions: reqs })
       .subscribe();
+  }
+
+  fetchTopDownDirTree() {
+    this.http.get<any>(`/vfm/open/api/file/dir/top-down-tree`).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: DirTopDownTreeNode = resp.data;
+        this.dirTreeDataSource.data = [dat];
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  treeHasChild(_: number, node: DirTopDownTreeNode) {
+    return !!node.child && node.child.length > 0;
+  }
+
+  selectDir(n) {
+    this.moveIntoDirKey = n.fileKey;
+    this.moveIntoDirName = n.name;
+    this.snackBar.open(`Selected directory /${n.name}`, "ok", {
+      duration: 1500,
+    });
   }
 }

@@ -35,8 +35,8 @@ var (
 	_imageSuffix = util.NewSet[string]()
 	_videoSuffix = util.NewSet[string]()
 
-	dirTreeCache = redis.NewRCache[*CachedDirTreeNode]("vfm:dir:tree", redis.RCacheConfig{Exp: 1 * time.Hour})
-	dirNameCache = redis.NewRCache[string]("vfm:dir:name", redis.RCacheConfig{Exp: 1 * time.Hour})
+	dirParentCache = redis.NewRCache[*CachedDirTreeNode]("vfm:dir:parent", redis.RCacheConfig{Exp: 1 * time.Hour})
+	dirNameCache   = redis.NewRCache[string]("vfm:dir:name", redis.RCacheConfig{Exp: 1 * time.Hour})
 )
 
 func init() {
@@ -523,7 +523,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 			Error
 	})
 	if err == nil {
-		dirTreeCache.Del(rail, req.Uuid)
+		dirParentCache.Del(rail, req.Uuid)
 	}
 	return err
 }
@@ -1667,7 +1667,7 @@ type CachedDirTreeNode struct {
 	FileKey string
 }
 
-func FetchDirTree(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
+func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirBottomUpTreeNode, error) {
 	if util.IsBlankStr(req.FileKey) {
 		return nil, nil
 	}
@@ -1675,15 +1675,15 @@ func FetchDirTree(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user common.
 	if err != nil || fi == nil {
 		return nil, err
 	}
-	bottom := &DirTreeNode{
+	bottom := &DirBottomUpTreeNode{
 		FileKey: req.FileKey,
 		Name:    fi.Name,
 	}
-	return doFetchDirTree(rail, db, bottom)
+	return doFetchDirTreeBottomUp(rail, db, bottom)
 }
 
-func doFetchDirTree(rail miso.Rail, db *gorm.DB, child *DirTreeNode) (*DirTreeNode, error) {
-	p, err := dirTreeCache.Get(rail, child.FileKey, func() (*CachedDirTreeNode, error) {
+func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeNode) (*DirBottomUpTreeNode, error) {
+	p, err := dirParentCache.Get(rail, child.FileKey, func() (*CachedDirTreeNode, error) {
 		pi, err := doFindParentDir(rail, mysql.NewQuery(db), child.FileKey)
 		if err != nil {
 			return nil, err
@@ -1706,12 +1706,12 @@ func doFetchDirTree(rail miso.Rail, db *gorm.DB, child *DirTreeNode) (*DirTreeNo
 	if err != nil {
 		return nil, err
 	}
-	n := &DirTreeNode{
+	n := &DirBottomUpTreeNode{
 		FileKey: p.FileKey,
 		Name:    name,
 		Child:   child,
 	}
-	return doFetchDirTree(rail, db, n)
+	return doFetchDirTreeBottomUp(rail, db, n)
 }
 
 type ParentDir struct {
@@ -1754,4 +1754,49 @@ func findDirName(rail miso.Rail, q *mysql.Query, fileKey string) (string, error)
 		return "", nil
 	}
 	return name, nil
+}
+
+func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTopDownTreeNode, error) {
+	root := &DirTopDownTreeNode{
+		FileKey: "",
+		Name:    "",
+		Child:   []*DirTopDownTreeNode{},
+	}
+	seen := util.NewSet[string]()
+	seen.Add(root.FileKey)
+	return root, dfsDirTree(rail, db, root, user, seen)
+}
+
+type TopDownTreeNodeBrief struct {
+	Uuid string
+	Name string
+}
+
+func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen util.Set[string]) error {
+	var cl []TopDownTreeNodeBrief
+	n, err := mysql.NewQuery(db).
+		From("file_info").
+		Select("uuid, name").
+		Eq("parent_file", root.FileKey).
+		Eq("uploader_no", user.UserNo).
+		Eq("file_type", "DIR").
+		Scan(&cl)
+	if err != nil {
+		return err
+	}
+	if n < 1 {
+		return nil
+	}
+	for _, c := range cl {
+		curr := &DirTopDownTreeNode{
+			FileKey: c.Uuid,
+			Name:    c.Name,
+			Child:   []*DirTopDownTreeNode{},
+		}
+		root.Child = append(root.Child, curr)
+		if seen.Add(curr.FileKey) { // just in case if the dir is somehow moved; can be solved by extra lock, not really necessary tho
+			dfsDirTree(rail, db, curr, user, seen)
+		}
+	}
+	return nil
 }

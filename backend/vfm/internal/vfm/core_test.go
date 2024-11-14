@@ -2,6 +2,7 @@ package vfm
 
 import (
 	"bytes"
+	"container/list"
 	"os"
 	"strings"
 	"testing"
@@ -336,11 +337,11 @@ func TestUnpackZip(t *testing.T) {
 	}
 }
 
-func TestFetchDirTree(t *testing.T) {
+func TestFetchDirTreeBottomUp(t *testing.T) {
 	corePreTest(t)
 	rail := miso.EmptyRail()
-	dirTreeCache.DelAll(rail)
-	n, err := FetchDirTree(rail, mysql.GetMySQL(), FetchDirTreeReq{FileKey: "ZZZ1471280777216000148288"}, common.User{})
+	dirParentCache.DelAll(rail)
+	n, err := FetchDirTreeBottomUp(rail, mysql.GetMySQL(), FetchDirTreeReq{FileKey: "ZZZ1471280777216000148288"}, common.User{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -350,5 +351,40 @@ func TestFetchDirTree(t *testing.T) {
 	for n != nil {
 		t.Logf("n: %#v", n)
 		n = n.Child
+	}
+}
+
+func TestFetchDirTreeTopDown(t *testing.T) {
+	corePreTest(t)
+	rail := miso.EmptyRail()
+	dirParentCache.DelAll(rail)
+	root, err := FetchDirTreeTopDown(rail, mysql.GetMySQL(), common.User{UserNo: "UE1049787455160320075953"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if root == nil {
+		t.Fatal("node is nil")
+	}
+
+	l := list.List{}
+	l.PushFront(root)
+	d := 1
+	for l.Len() > 0 {
+		cnt := l.Len()
+		for i := 0; i < cnt; i++ {
+			front := l.Front()
+			l.Remove(front)
+			n := front.Value.(*DirTopDownTreeNode)
+			if n.FileKey == "" {
+				t.Logf("%v /", util.Tabs(d))
+			} else {
+				t.Logf("%v /%v", util.Tabs(d), n.Name)
+			}
+			for i := range n.Child {
+				c := n.Child[i]
+				l.PushBack(c)
+			}
+		}
+		d++
 	}
 }

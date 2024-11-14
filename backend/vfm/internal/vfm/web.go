@@ -141,19 +141,34 @@ type FetchDirTreeReq struct {
 	FileKey string
 }
 
-type DirTreeNode struct {
+type DirBottomUpTreeNode struct {
 	FileKey string
 	Name    string
-	Child   *DirTreeNode
+	Child   *DirBottomUpTreeNode
 }
 
-// Fetch dir trees.
+// Fetch dir trees, bottom up.
 //
-//   - misoapi-http: POST /open/api/file/dir/tree
-//   - misoapi-desc: Fetch directory tree.
+//   - misoapi-http: POST /open/api/file/dir/bottom-up-tree
+//   - misoapi-desc: Fetch directory tree bottom up.
 //   - misoapi-resource: ref(ManageFilesResource)
-func FetchDirTreeEp(inb *miso.Inbound, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirTreeNode, error) {
-	return FetchDirTree(inb.Rail(), db, req, user)
+func FetchDirBottomUpTreeEp(inb *miso.Inbound, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirBottomUpTreeNode, error) {
+	return FetchDirTreeBottomUp(inb.Rail(), db, req, user)
+}
+
+type DirTopDownTreeNode struct {
+	FileKey string
+	Name    string
+	Child   []*DirTopDownTreeNode
+}
+
+// Fetch dir trees, top down.
+//
+//   - misoapi-http: GET /open/api/file/dir/top-down-tree
+//   - misoapi-desc: Fetch directory tree top down.
+//   - misoapi-resource: ref(ManageFilesResource)
+func FetchDirTopDownTreeEp(inb *miso.Inbound, db *gorm.DB, user common.User) (*DirTopDownTreeNode, error) {
+	return FetchDirTreeTopDown(inb.Rail(), db, user)
 }
 
 type BatchDeleteFileReq struct {

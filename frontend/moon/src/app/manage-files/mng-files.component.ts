@@ -53,10 +53,10 @@ export interface FetchDirTreeReq {
   fileKey?: string;
 }
 
-export interface DirTreeNode {
+export interface DirBottomUpTreeNode {
   fileKey?: string;
   name?: string;
-  child?: DirTreeNode;
+  child?: DirBottomUpTreeNode;
 }
 
 @Component({
@@ -229,7 +229,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       // directory
       this.inDirFileKey = params.get("parentDirKey");
       if (this.inDirFileKey) {
-        this.fetchDirTree(this.inDirFileKey);
+        this.fetchBottomUpDirTree(this.inDirFileKey);
       } else {
         this.inDirFileName = "";
       }
@@ -281,45 +281,17 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: fileKey }]);
   }
 
-  // TODO
   // Move selected to dir
-  moveSelectedToDir(into: boolean = true) {
+  moveSelectedToDir() {
     const selected = this.filterSelected();
     if (!selected || selected.length < 1) {
       this.toaster.toast("Please select files first");
       return;
     }
 
-    if (!into) {
-      let msgs = [
-        "You sure you want to move these files out of current directory?",
-        "",
-      ];
-      let c = 0;
-      for (let f of selected) {
-        msgs.push(` ${++c}. ${f.name}`);
-      }
-
-      this.dialog
-        .open(ConfirmDialogComponent, {
-          width: "500px",
-          data: {
-            title: "Move Files",
-            msg: msgs,
-            isNoBtnDisplayed: true,
-          },
-        })
-        .afterClosed()
-        .subscribe((confirm) => {
-          if (!confirm) return;
-          this._moveEachToDir(selected, "", 0);
-        });
-      return;
-    }
-
     this.dialog
       .open(DirectoryMoveFileComponent, {
-        width: "500px",
+        width: "800px",
         data: {
           files: selected.map((f, i) => {
             return { name: `${i + 1}. ${f.name}`, fileKey: f.uuid };
@@ -1153,31 +1125,34 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     });
   }
 
-  fetchDirTree(dirKey) {
+  fetchBottomUpDirTree(dirKey) {
     if (!dirKey) {
       return;
     }
     let req: FetchDirTreeReq | null = { fileKey: dirKey };
-    this.http.post<any>(`/vfm/open/api/file/dir/tree`, req).subscribe({
-      next: (resp) => {
-        if (resp.error) {
-          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-          return;
-        }
-        let dat: DirTreeNode = resp.data;
-        let b = "";
-        while (dat) {
-          b += "/" + dat.name;
-          dat = dat.child;
-        }
-        this.inDirFileName = b;
-      },
-      error: (err) => {
-        console.log(err);
-        this.snackBar.open("Request failed, unknown error", "ok", {
-          duration: 3000,
-        });
-      },
-    });
+    this.http
+      .post<any>(`/vfm/open/api/file/dir/bottom-up-tree`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          let dat: DirBottomUpTreeNode = resp.data;
+          let b = "";
+          while (dat) {
+            b += "/" + dat.name;
+            dat = dat.child;
+          }
+          this.inDirFileName = b;
+        },
+        error: (err) => {
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+      });
   }
+
 }
