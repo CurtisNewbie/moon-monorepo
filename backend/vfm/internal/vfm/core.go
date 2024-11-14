@@ -447,7 +447,6 @@ type MoveIntoDirReq struct {
 	ParentFileUuid string `json:"parentFileUuid"`
 }
 
-// TODO: fix cyclic dependency between directories
 func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.User) error {
 	if req.Uuid == "" || req.Uuid == req.ParentFileUuid {
 		return nil
@@ -469,6 +468,22 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 	}
 	if fi.ParentFile == req.ParentFileUuid {
 		return nil
+	}
+
+	// prevent cycles between dir
+	if fi.FileType == FileTypeDir {
+		tree, err := doFetchDirTreeBottomUp(rail, db, &DirBottomUpTreeNode{
+			FileKey: req.ParentFileUuid,
+		})
+		if err != nil {
+			return err
+		}
+		for tree != nil {
+			if tree.FileKey == req.Uuid {
+				return miso.NewErrf("Found cycle between directories, invalid operation")
+			}
+			tree = tree.Child
+		}
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
