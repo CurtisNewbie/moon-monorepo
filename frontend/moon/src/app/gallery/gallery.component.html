@@ -23,7 +23,8 @@
     <div class="d-md-flex justify-content-end mb-2">
         <button mat-raised-button class="m-2" (click)="showCreateGalleryDiv=!showCreateGalleryDiv">Create
             Gallery</button>
-        <button mat-raised-button class="m-2" id="reloadBtn" (click)="fetchGalleries()">Fetch</button>
+        <button mat-icon-button class="m-1 icon-button-large" (click)="fetchGalleries()"><i
+                class="bi bi-arrow-clockwise"></i></button>
     </div>
 
     <table mat-table [dataSource]="galleries" class="mat-elevation-z8 mb-4" style="width: 100%;" multiTemplateDataRows>
