@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -46,7 +47,6 @@ type GalleryImage struct {
 	CreateBy   string
 	UpdateTime time.Time
 	UpdateBy   string
-	IsDel      bool
 }
 
 func (GalleryImage) TableName() string {
@@ -391,7 +391,6 @@ func isImgCreatedAlready(rail miso.Rail, tx *gorm.DB, galleryNo string, fileKey 
 		SELECT id FROM gallery_image
 		WHERE gallery_no = ?
 		AND file_key = ?
-		AND is_del = 0
 		`, galleryNo, fileKey).Scan(&id)
 
 	if e := tx.Error; e != nil || tx.RowsAffected < 1 {
@@ -403,4 +402,23 @@ func isImgCreatedAlready(rail miso.Rail, tx *gorm.DB, galleryNo string, fileKey 
 
 func NewGalleryFileLock(rail miso.Rail, galleryNo string, fileKey string) *redis.RLock {
 	return redis.NewRLockf(rail, "gallery:image:%v:%v", galleryNo, fileKey)
+}
+
+func RemoveGalleryImage(rail miso.Rail, db *gorm.DB, dirFileKey string, imageFileKey string) error {
+	galleryNo, err := GalleryNoOfDir(dirFileKey, db)
+	if err != nil {
+		return err
+	}
+	rail.Infof("found gallery_no of dir %v: %v", dirFileKey, galleryNo)
+
+	lock := NewGalleryFileLock(rail, galleryNo, imageFileKey)
+	if err := lock.Lock(); err != nil {
+		return fmt.Errorf("failed to obtain gallery image lock, gallery:%v, fileKey: %v", galleryNo, imageFileKey)
+	}
+	defer lock.Unlock()
+
+	_, err = mysql.NewQuery(db).
+		Exec(`DELETE FROM gallery_image WHERE gallery_no = ? AND file_key = ?`,
+			galleryNo, imageFileKey)
+	return err
 }

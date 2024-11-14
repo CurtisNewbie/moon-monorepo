@@ -277,18 +277,24 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 		return nil
 	}
 
-	v, ok := evt.Columns["parent_file"]
+	parentFile, ok := evt.Columns["parent_file"]
 	if !ok {
 		rail.Errorf("Event doesn't contain parent_file column, %+v", evt)
 		return nil
 	}
-	rail.Infof("Filed %v is moved from %v to %v", fileKey, v.Before, v.After)
+	rail.Infof("Filed %v is moved from %v to %v", fileKey, parentFile.Before, parentFile.After)
 
 	db := mysql.GetMySQL()
-	if v.Before != "" {
-		// TODO: remove from gallery
+	if parentFile.Before != "" {
+		// remove from previous directory's gallery
+		err := RemoveGalleryImage(rail, db, parentFile.Before, fileKey)
+		if err != nil {
+			rail.Errorf("RemoveGalleryImage failed, fileKey: %v, dirFileKey: %v", fileKey, parentFile.Before)
+		} else {
+			rail.Infof("Removed image from gallery, fileKey: %v, dirFileKey: %v", fileKey, parentFile.Before)
+		}
 	}
-	if v.After != "" {
+	if parentFile.After != "" {
 		// lock before we do anything about it
 		lock := fileLock(rail, fileKey)
 		if err := lock.Lock(); err != nil {
@@ -305,7 +311,7 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 			return nil
 		}
 
-		pf, err := findFile(rail, db, v.After)
+		pf, err := findFile(rail, db, parentFile.After)
 		if err != nil {
 			return err
 		}
