@@ -80,6 +80,13 @@ func OnFileSaved(rail miso.Rail, evt ep.StreamEvent) error {
 		return nil // file already deleted
 	}
 
+	// reload user's dir tree cache
+	if err := userDirTreeCache.Del(rail, f.UploaderNo); err != nil {
+		rail.Errorf("Failed to reload user %v file directory tree cache, %v", f.UploaderNo, err)
+	} else {
+		rail.Infof("Reloaded user %v file directory tree cache", f.UploaderNo)
+	}
+
 	if f.FileType != FileTypeFile {
 		rail.Infof("file is dir, %v", uuid)
 		return nil // a directory
@@ -281,8 +288,11 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 	rail.Infof("File %v moved", fileKey)
 
 	// update dir parent cache
-	dirParentCache.Del(rail, fileKey)
-	rail.Infof("Updated file %v parent dir cache", fileKey)
+	if err := dirParentCache.Del(rail, fileKey); err != nil {
+		rail.Errorf("Failed to update file %v parent dir cache, %v", fileKey, err)
+	} else {
+		rail.Infof("Updated file %v parent dir cache", fileKey)
+	}
 
 	parentFile, ok := evt.Columns["parent_file"]
 	if !ok {
@@ -298,8 +308,12 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 	}
 
 	// reload user's dir tree cache
-	userDirTreeCache.Del(rail, f.UploaderNo)
-	rail.Infof("Reloaded user %v file directory tree cache", f.UploaderNo)
+	err = userDirTreeCache.Del(rail, f.UploaderNo)
+	if err != nil {
+		rail.Errorf("Failed to reload user %v file directory tree cache, %v", f.UploaderNo, err)
+	} else {
+		rail.Infof("Reloaded user %v file directory tree cache", f.UploaderNo)
+	}
 
 	if parentFile.Before != "" {
 		// remove from previous directory's gallery
@@ -365,8 +379,19 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 		return err
 	}
 
+	// reload user's dir tree cache
+	if err := userDirTreeCache.Del(rail, f.UploaderNo); err != nil {
+		rail.Errorf("Failed to reload user %v file directory tree cache, %v", f.UploaderNo, err)
+	} else {
+		rail.Infof("Reloaded user %v file directory tree cache", f.UploaderNo)
+	}
+
 	// reload dir name cache
-	dirNameCache.Del(rail, f.Uuid)
+	if err := dirNameCache.Del(rail, f.Uuid); err != nil {
+		rail.Errorf("Failed to reloaded directory name cache, %v, %v", f.Uuid, err)
+	} else {
+		rail.Infof("Reloaded directory name cache, %v", f.Uuid)
+	}
 
 	if f.FileType != FileTypeDir {
 		return nil

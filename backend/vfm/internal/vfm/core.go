@@ -447,6 +447,7 @@ type MoveIntoDirReq struct {
 	ParentFileUuid string `json:"parentFileUuid"`
 }
 
+// TODO: fix cyclic dependency between directories
 func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.User) error {
 	if req.Uuid == "" || req.Uuid == req.ParentFileUuid {
 		return nil
@@ -1779,6 +1780,8 @@ func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user comm
 		Eq("parent_file", root.FileKey).
 		Eq("uploader_no", user.UserNo).
 		Eq("file_type", "DIR").
+		Eq("is_del", 0).
+		Eq("is_logic_deleted", 0).
 		Scan(&cl)
 	if err != nil {
 		return err
