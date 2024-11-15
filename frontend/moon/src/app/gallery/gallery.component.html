@@ -86,6 +86,11 @@
                                     Share
                                 </button>
                             </div>
+                            <div class="col-12 m-2" *ngIf="u.dirFileKey">
+                                <button mat-raised-button (click)="openFileDir(u)">
+                                    Open Directory
+                                </button>
+                            </div>
                         </ng-container>
                         <div class="col-12 m-2">
                             <button mat-raised-button (click)="browse(expandedElement.galleryNo)">

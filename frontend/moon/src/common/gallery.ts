@@ -10,10 +10,11 @@ export interface Gallery {
   updateTime: string;
   updateBy: string;
   isOwner: boolean;
+  dirFileKey: string;
 }
 
 export interface ListGalleryImagesResp {
-  images: { thumbnailToken: string, fileTempToken: string }[];
+  images: { thumbnailToken: string; fileTempToken: string }[];
   paging: Paging;
 }
 

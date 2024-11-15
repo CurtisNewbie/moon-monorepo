@@ -75,6 +75,7 @@ type VGallery struct {
 	IsOwner       bool       `json:"isOwner"`
 	CreateTimeStr string     `json:"createTime"`
 	UpdateTimeStr string     `json:"updateTime"`
+	DirFileKey    string
 }
 
 // List owned gallery briefs
@@ -109,6 +110,9 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 		ForEach(func(g VGallery) VGallery {
 			if g.UserNo == user.UserNo {
 				g.IsOwner = true
+			}
+			if !g.IsOwner {
+				g.DirFileKey = ""
 			}
 			g.CreateTimeStr = g.CreateTime.FormatClassic()
 			g.UpdateTimeStr = g.UpdateTime.FormatClassic()

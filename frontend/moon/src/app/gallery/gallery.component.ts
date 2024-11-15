@@ -6,7 +6,6 @@ import {
   getExpanded,
   isIdEqual,
 } from "src/animate/animate-util";
-import { environment } from "src/environments/environment";
 import { Gallery } from "src/common/gallery";
 import { Paging, PagingController } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
@@ -170,5 +169,14 @@ export class GalleryComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirm) => {
       // do nothing
     });
+  }
+
+  openFileDir(g: Gallery) {
+    if (!g.dirFileKey || !g.isOwner) {
+      return;
+    }
+    this.navigation.navigateTo(NavType.MANAGE_FILES, [
+      { parentDirKey: g.dirFileKey },
+    ]);
   }
 }

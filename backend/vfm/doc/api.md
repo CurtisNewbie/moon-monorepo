@@ -1963,6 +1963,7 @@
         - "isOwner": (bool) 
         - "createTime": (string) 
         - "updateTime": (string) 
+        - "dirFileKey": (string) 
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8086/open/api/gallery/list' \
@@ -2013,6 +2014,7 @@
       isOwner?: boolean;
       createTime?: string;
       updateTime?: string;
+      dirFileKey?: string;
     }
     ```
 
