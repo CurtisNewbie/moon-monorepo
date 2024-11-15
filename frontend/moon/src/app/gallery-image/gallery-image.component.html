@@ -1,7 +1,7 @@
 <div style="min-height: 80vh">
     <div class="row row-cols-lg-auto g-3 align-items-center">
         <div *ngFor="let image of images; let i=index">
-            <div class="col-12">
+            <div class="col-12" (contextmenu)="onRightClick($event, image)">
                 <img [src]="image.thumb" (click)="open(i)" class="m-2" style="max-width:256px" />
             </div>
         </div>
@@ -12,3 +12,13 @@
 </div>
 
 <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+
+
+<div style="visibility: hidden; position: fixed;" [style.left]="menuTopLeftPosition.x"
+    [style.top]="menuTopLeftPosition.y" [matMenuTriggerFor]="rightMenu"></div>
+
+<mat-menu #rightMenu="matMenu">
+    <ng-template matMenuContent let-item="item" *transloco="let t">
+        <button mat-menu-item (click)="goToFile()">Locate File</button>
+    </ng-template>
+</mat-menu>

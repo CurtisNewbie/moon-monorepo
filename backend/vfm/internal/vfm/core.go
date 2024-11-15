@@ -243,6 +243,7 @@ type ListFileReq struct {
 	FileType   *string     `json:"fileType"`
 	ParentFile *string     `json:"parentFile"`
 	Sensitive  *bool       `json:"sensitive"`
+	FileKey    *string
 }
 
 func ListFiles(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {

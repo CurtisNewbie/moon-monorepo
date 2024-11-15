@@ -226,6 +226,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       this.inFolderNo = params.get("folderNo");
       this.inFolderName = params.get("folderName");
 
+      // searched name
+      let searchedFileKey = params.get("searchedFileKey");
+      if (searchedFileKey) {
+        this.searchParam.fileKey = searchedFileKey;
+      }
+
       // directory
       this.inDirFileKey = params.get("parentDirKey");
       if (this.inDirFileKey) {
@@ -1154,5 +1160,4 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         },
       });
   }
-
 }

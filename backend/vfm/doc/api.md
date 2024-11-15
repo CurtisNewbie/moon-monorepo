@@ -2281,6 +2281,7 @@
     - "error": (bool) whether the request was successful
     - "data": (*vfm.ListGalleryImagesResp) response data
       - "images": ([]vfm.ImageInfo) 
+        - "fileKey": (string) 
         - "thumbnailToken": (string) 
         - "fileTempToken": (string) 
       - "paging": (Paging) 
@@ -2323,6 +2324,7 @@
     }
 
     export interface ImageInfo {
+      fileKey?: string;
       thumbnailToken?: string;
       fileTempToken?: string;
     }

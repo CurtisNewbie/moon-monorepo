@@ -78,6 +78,7 @@ type ListGalleryImagesResp struct {
 }
 
 type ImageInfo struct {
+	FileKey         string
 	ThumbnailToken  string `json:"thumbnailToken"`
 	FileTempToken   string `json:"fileTempToken"`
 	ImageFileId     string `json:"-"`
@@ -213,7 +214,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 			} else {
 				GenFstoreTknBatch(rail, awaitFutures, thumbnailFileId, fi.Name)
 			}
-			images = append(images, ImageInfo{ImageFileId: fi.FstoreFileId, ThumbnailFileId: thumbnailFileId})
+			images = append(images, ImageInfo{ImageFileId: fi.FstoreFileId, ThumbnailFileId: thumbnailFileId, FileKey: fi.Uuid})
 		}
 
 		genTknFutures := awaitFutures.Await()

@@ -52,10 +52,12 @@ export enum FileType {
   /** File */
   FILE = "FILE",
   /** Directory */
-  DIR = "DIR"
+  DIR = "DIR",
 }
 
-export function getFileTypeOpts(includesAll: boolean = true): Option<FileType>[] {
+export function getFileTypeOpts(
+  includesAll: boolean = true
+): Option<FileType>[] {
   let l = [];
   if (includesAll) l.push({ name: "All", value: null });
 
@@ -63,7 +65,6 @@ export function getFileTypeOpts(includesAll: boolean = true): Option<FileType>[]
   l.push({ name: "Directory", value: FileType.DIR });
   return l;
 }
-
 
 /** Brief info for DIR type file */
 export interface DirBrief {
@@ -82,6 +83,8 @@ export interface SearchFileInfoParam {
   parentFile?: string;
   /** fileType */
   fileType?: FileType;
+
+  fileKey?: string;
 }
 
 /** Parameters for uploading a file */

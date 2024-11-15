@@ -8,6 +8,7 @@ import { Resp } from "src/common/resp";
 import { NavigationService } from "../navigation.service";
 import { IAlbum, Lightbox, LightboxConfig } from "ngx-lightbox";
 import { NavType } from "../routes";
+import { MatMenuTrigger } from "@angular/material/menu";
 
 @Component({
   selector: "app-gallery-image",
@@ -51,10 +52,10 @@ export class GalleryImageComponent implements OnInit {
     if (!this.galleryNo) this.navigation.navigateTo(NavType.GALLERY);
 
     this.http
-      .post<Resp<ListGalleryImagesResp>>(
-        `vfm/open/api/gallery/images`,
-        { galleryNo: this.galleryNo, paging: this.pagingController.paging }
-      )
+      .post<Resp<ListGalleryImagesResp>>(`vfm/open/api/gallery/images`, {
+        galleryNo: this.galleryNo,
+        paging: this.pagingController.paging,
+      })
       .subscribe({
         next: (resp) => {
           this.pagingController.onTotalChanged(resp.data.paging);
@@ -100,5 +101,25 @@ export class GalleryImageComponent implements OnInit {
     this.pagingController.PAGE_LIMIT_OPTIONS = [20, 40, 60, 100, 500];
 
     this.fetchImages();
+  }
+
+  // https://stackoverflow.com/questions/77608499/angular-material-custom-context-menu-right-click
+  @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger: MatMenuTrigger;
+  menuTopLeftPosition = { x: "0", y: "0" };
+  menuBoundImage = null;
+
+  onRightClick(event, image) {
+    event.preventDefault();
+
+    this.menuTopLeftPosition.x = event.clientX + "px";
+    this.menuTopLeftPosition.y = event.clientY + "px";
+    this.menuBoundImage = image;
+    this.matMenuTrigger.openMenu();
+  }
+
+  goToFile() {
+    if (!this.menuBoundImage) {
+      return;
+    }
   }
 }
