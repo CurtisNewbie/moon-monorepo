@@ -323,15 +323,14 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
 
       <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
         <button
-          mat-raised-button
-          class="m-2"
-          id="reloadBtn"
+          mat-icon-button
+          class="m-1 icon-button-large"
           (click)="fetchList()"
         >
-          Fetch
+          <i class="bi bi-arrow-clockwise"></i>
         </button>
-        <button mat-raised-button class="m-2" id="resetBtn" (click)="reset()">
-          Reset
+        <button mat-icon-button class="m-1 icon-button-large" (click)="reset()">
+          <i class="bi bi-slash-circle"></i>
         </button>
       </div>
     </div>

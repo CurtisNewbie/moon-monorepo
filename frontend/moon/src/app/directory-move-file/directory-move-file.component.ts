@@ -2,7 +2,6 @@ import { Component, Inject, OnInit } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { DirBrief } from "src/common/file-info";
 import { filterAlike } from "src/common/select-util";
-import { Toaster } from "../notification.service";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { NestedTreeControl } from "@angular/cdk/tree";
@@ -58,18 +57,7 @@ export class DirectoryMoveFileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // this._fetchDirBriefList();
     this.fetchTopDownDirTree();
-  }
-
-  // fetch dir brief list
-  private _fetchDirBriefList() {
-    this.http.get<any>(`vfm/open/api/file/dir/list`).subscribe({
-      next: (resp) => {
-        this.dirBriefList = resp.data;
-        this.onMoveIntoDirNameChanged();
-      },
-    });
   }
 
   moveToDir() {

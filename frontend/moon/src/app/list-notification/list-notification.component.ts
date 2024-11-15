@@ -64,9 +64,7 @@ export class ListNotificationComponent implements OnInit {
   }
 
   reset() {
-    this.query = {
-      onlyInitMessage: true,
-    };
+    this.query.onlyInitMessage = true;
     if (!this.pagingController.firstPage()) {
       this.fetchList();
     }
@@ -132,12 +130,9 @@ export class ListNotificationComponent implements OnInit {
     dialogRef.afterClosed().subscribe((res) => {
       if (res) {
         this.http
-          .post<any>(
-            `user-vault/open/api/v1/notification/open-all`,
-            {
-              notifiNo: last,
-            }
-          )
+          .post<any>(`user-vault/open/api/v1/notification/open-all`, {
+            notifiNo: last,
+          })
           .subscribe({
             next: () => {
               this.platformNotification.triggerChange();

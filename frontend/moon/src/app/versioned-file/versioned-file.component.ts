@@ -392,15 +392,19 @@ export interface ApiListVerFileRes {
 
     <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
       <button
-        mat-raised-button
-        class="m-2"
+        mat-icon-button
+        class="m-1 icon-button-large"
         [class.status-green]="expandUploadPanel"
         (click)="toggleUploadPanel()"
       >
-        Upload Panal
+        <i class="bi bi-upload"></i>
       </button>
-      <button mat-raised-button class="m-2" (click)="fetch()">Fetch</button>
-      <button mat-raised-button class="m-2" (click)="reset()">Reset</button>
+      <button mat-icon-button class="m-1 icon-button-large" (click)="fetch()">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <button mat-icon-button class="m-1 icon-button-large" (click)="reset()">
+        <i class="bi bi-slash-circle"></i>
+      </button>
     </div>
 
     <div class="mt-3 mb-2" style="overflow: auto;">
