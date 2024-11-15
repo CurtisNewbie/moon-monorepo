@@ -24,10 +24,10 @@ var (
 	roleInfoCache = redis.NewRCache[api.RoleInfoResp]("user-vault:role:info", redis.RCacheConfig{Exp: 10 * time.Minute, NoSync: true})
 
 	// cache for url's resource, url -> CachedUrlRes
-	urlResCache = redis.NewRCache[CachedUrlRes]("user-vault:url:res:v2", redis.RCacheConfig{Exp: 30 * time.Minute})
+	urlResCache = redis.NewRCache[CachedUrlRes]("user-vault:url:res:v2", redis.RCacheConfig{Exp: 6 * time.Hour})
 
 	// cache for role's resource, role + res -> flag ("1")
-	roleResCache = redis.NewRCache[string]("user-vault:role:res", redis.RCacheConfig{Exp: 1 * time.Hour, NoSync: true})
+	roleResCache = redis.NewRCache[string]("user-vault:role:res", redis.RCacheConfig{Exp: 6 * time.Hour, NoSync: true})
 )
 
 const (
