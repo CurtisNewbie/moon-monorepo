@@ -4,7 +4,7 @@ set -ex
 # run ./deploy/deploy_all.sh at root, for my dev env only.
 (
     if [ ! -d backend ]; then
-        return -1
+        exit -1
     fi
 
     for r in $(ls ./backend);
