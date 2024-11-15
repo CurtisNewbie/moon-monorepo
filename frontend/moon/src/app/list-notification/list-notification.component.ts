@@ -11,6 +11,7 @@ export interface Notification {
   id: number;
   notifiNo: string;
   title: string;
+  brief: string;
   message: string;
   status: string;
   createTime: Date;
@@ -26,6 +27,7 @@ export class ListNotificationComponent implements OnInit {
     "id",
     "notifiNo",
     "title",
+    "brief",
     "status",
     "createTime",
   ];
@@ -55,6 +57,17 @@ export class ListNotificationComponent implements OnInit {
           if (resp.data.payload) {
             for (let r of resp.data.payload) {
               if (r.createTime) r.createTime = new Date(r.createTime);
+              if (r.message == null) {
+                r.message = "";
+              }
+
+              let th = 100;
+              if (r.message.length <= th) {
+                r.brief = r.message;
+              } else {
+                r.brief = "... " + r.message.substring(r.message.length - th);
+              }
+
               this.data.push(r);
             }
           }
