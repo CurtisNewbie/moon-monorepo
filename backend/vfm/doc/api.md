@@ -372,6 +372,7 @@
     - "fileType": (*string) 
     - "parentFile": (*string) 
     - "sensitive": (*bool) 
+    - "fileKey": (*string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -397,7 +398,7 @@
     ```sh
     curl -X POST 'http://localhost:8086/open/api/file/list' \
       -H 'Content-Type: application/json' \
-      -d '{"fileType":"","filename":"","folderNo":"","paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
+      -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
     ```
 
   - JSON Request Object In TypeScript:
@@ -409,6 +410,7 @@
       fileType?: string;
       parentFile?: string;
       sensitive?: boolean;
+      fileKey?: string;
     }
 
     export interface Paging {

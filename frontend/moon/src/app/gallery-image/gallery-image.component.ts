@@ -20,7 +20,7 @@ export class GalleryImageComponent implements OnInit {
   pagingController: PagingController;
   galleryNo: string = null;
   title = "fantahsea";
-  images: IAlbum[] = [];
+  images = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -75,6 +75,7 @@ export class GalleryImageComponent implements OnInit {
                 src: src,
                 thumb: thumb,
                 downloadUrl: src,
+                fileKey: imgs[i].fileKey,
               });
             }
           }
@@ -121,5 +122,8 @@ export class GalleryImageComponent implements OnInit {
     if (!this.menuBoundImage) {
       return;
     }
+    this.navigation.navigateTo(NavType.MANAGE_FILES, [
+      { searchedFileKey: this.menuBoundImage.fileKey },
+    ]);
   }
 }

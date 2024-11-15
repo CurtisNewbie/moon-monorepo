@@ -295,7 +295,7 @@ func ListFiles(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (
 
 func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
 	//  If parentFile is empty, and filename are not queried, then we only return the top level file or dir.
-	if (req.ParentFile == nil || *req.ParentFile == "") && (req.Filename == nil || *req.Filename == "") {
+	if (req.ParentFile == nil || *req.ParentFile == "") && (req.Filename == nil || *req.Filename == "") && (req.FileKey == nil || *req.FileKey == "") {
 		req.ParentFile = new(string) // top-level file/dir
 	}
 
@@ -313,6 +313,10 @@ func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user commo
 
 			if req.ParentFile != nil {
 				tx = tx.Where("fi.parent_file = ?", *req.ParentFile)
+			}
+
+			if req.FileKey != nil {
+				tx = tx.Where("fi.uuid = ?", *req.FileKey)
 			}
 
 			if req.Filename != nil && *req.Filename != "" {

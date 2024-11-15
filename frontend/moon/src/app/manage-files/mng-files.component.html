@@ -59,6 +59,15 @@
 
         <!-- search param start -->
         <div *ngIf="!inFolderNo && !makingDir && !expandUploadPanel">
+
+            <div class="row row-cols-lg-auto g-3 align-items-center" *ngIf="searchParam.fileKey">
+                <mat-form-field style="width: 90%;" class="mb-1 mt-3">
+                    <mat-label>File Key</mat-label>
+                    <input matInput type="text" disabled="true" [ngModel]="searchParam.fileKey"
+                        (keyup)="isEnterKeyPressed($event) && fetchFileInfoList()">
+                </mat-form-field>
+            </div>
+
             <div class="row row-cols-lg-auto g-3 align-items-center">
                 <mat-form-field style="width: 90%;" class="mb-1 mt-3">
                     <mat-label>Name</mat-label>

@@ -14,7 +14,7 @@ export interface Gallery {
 }
 
 export interface ListGalleryImagesResp {
-  images: { thumbnailToken: string; fileTempToken: string }[];
+  images: { thumbnailToken: string; fileTempToken: string; fileKey: string }[];
   paging: Paging;
 }
 

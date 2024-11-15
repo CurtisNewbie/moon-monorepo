@@ -20,7 +20,6 @@ import {
 import { PagingController } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { Toaster } from "../notification.service";
-import { UserService } from "../user.service";
 import { animateElementExpanding, isIdEqual } from "../../animate/animate-util";
 import { FileInfoService, TokenType } from "../file-info.service";
 import { NavigationService } from "../navigation.service";
@@ -200,7 +199,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   setSearchFileType = (fileType) => (this.searchParam.fileType = fileType);
 
   constructor(
-    private userService: UserService,
     private toaster: Toaster,
     private dialog: MatDialog,
     private fileService: FileInfoService,
@@ -280,7 +278,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   // Go to dir, i.e., list files under the directory
-  goToDir(name, fileKey) {
+  goToDir(fileKey) {
     this.expandUploadPanel = false;
     this.curr = null;
     this.resetSearchParam(false, false);
@@ -345,6 +343,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         parentFile: this.searchParam.parentFile,
         fileType: this.searchParam.fileType,
         sensitive: this.inSensitiveMode,
+        fileKey: this.searchParam.fileKey,
       })
       .subscribe({
         next: (resp) => {
@@ -444,9 +443,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       .get<any>(`vfm/open/api/file/parent?fileKey=${this.inDirFileKey}`)
       .subscribe({
         next: (resp) => {
-          // console.log("fetchParentFileKey", resp)
           if (resp.data) {
-            this.goToDir(resp.data.fileName, resp.data.fileKey);
+            this.goToDir(resp.data.fileKey);
           } else {
             this.nav.navigateTo(NavType.MANAGE_FILES, []);
           }
@@ -465,10 +463,21 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.searchParam = {};
     if (setFirstPage && !this.pagingController.atFirstPage()) {
       this.pagingController.firstPage(); // this also triggers fetchFileInfoList
-      // console.log("resetSearchParam.firstPage", time())
     } else {
       if (fetchFileInfoList) this.fetchFileInfoList();
     }
+
+    let p: any = {};
+    if (this.inDirFileKey) {
+      p.parentDirKey = this.inDirFileKey;
+    }
+    if (this.inFolderNo) {
+      p.folderNo = this.inFolderNo;
+    }
+    if (this.inFolderName) {
+      p.folderName = this.inFolderName;
+    }
+    this.nav.navigateTo(NavType.MANAGE_FILES, [p]);
   }
 
   truncateDir(f: FileInfo): void {
@@ -1070,7 +1079,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   onRowClicked(row: FileInfo, idx: number) {
     if (row.isDir) {
-      this.goToDir(row.name, row.uuid);
+      this.goToDir(row.uuid);
       return;
     }
     if (row.isDisplayable) {
