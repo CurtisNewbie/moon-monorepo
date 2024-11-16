@@ -25,7 +25,7 @@ func CheckVerFile(rail miso.Rail, db *gorm.DB, fileKey string, userNo string) (*
 	if f.FileType != FileTypeFile {
 		return f, miso.NewErrf("Illegal File Type")
 	}
-	if f.IsLogicDeleted == LDelY {
+	if f.IsLogicDeleted == DelY {
 		return f, miso.NewErrf("File already deleted")
 	}
 	return f, nil

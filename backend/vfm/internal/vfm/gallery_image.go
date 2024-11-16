@@ -321,7 +321,7 @@ func TransferImagesInDir(rail miso.Rail, cmd TransferGalleryImageInDirReq, user 
 		return miso.NewErrf("This is not a directory")
 	}
 
-	if fi.IsLogicDeleted == LDelY || fi.IsPhysicDeleted == PDelY {
+	if fi.IsLogicDeleted == DelY || fi.IsPhysicDeleted == DelY {
 		return miso.NewErrf("Directory is already deleted")
 	}
 	dirFileKey := cmd.FileKey

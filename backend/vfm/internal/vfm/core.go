@@ -21,11 +21,8 @@ const (
 	FileTypeFile = "FILE" // file
 	FileTypeDir  = "DIR"  // directory
 
-	LDelN = 0 // normal file
-	LDelY = 1 // file marked deleted
-
-	PDelN = 0 // file marked deleted, the actual deletion is not yet processed
-	PDelY = 1 // file finally deleted, may be removed from disk or move to somewhere else
+	DelN = 0 // normal file
+	DelY = 1 // for logic delete: file marked deleted; for physic delete: file may be removed from disk or move to somewhere else.
 
 	VfolderOwner   = "OWNER"   // owner of the vfolder
 	VfolderGranted = "GRANTED" // granted access to the vfolder
@@ -124,7 +121,7 @@ type FileDownloadInfo struct {
 }
 
 func (f *FileDownloadInfo) Deleted() bool {
-	return f.IsLogicDeleted == LDelY
+	return f.IsLogicDeleted == DelY
 }
 
 func (f *FileDownloadInfo) IsFile() bool {
@@ -229,11 +226,10 @@ func queryFilenames(tx *gorm.DB, fileKeys []string) (map[string]string, error) {
 	if e != nil {
 		return nil, e
 	}
-	keyName := map[string]string{}
-	for _, r := range rec {
-		keyName[r.Uuid] = r.Name
-	}
-	return keyName, nil
+	return util.StrMap[FileKeyName](rec,
+			func(r FileKeyName) string { return r.Uuid },
+			func(r FileKeyName) string { return r.Name }),
+		nil
 }
 
 type ListFileReq struct {
@@ -244,6 +240,10 @@ type ListFileReq struct {
 	ParentFile *string     `json:"parentFile"`
 	Sensitive  *bool       `json:"sensitive"`
 	FileKey    *string
+}
+
+func (q ListFileReq) IsEmpty() bool {
+	return (q.ParentFile == nil || *q.ParentFile == "") && (q.Filename == nil || *q.Filename == "") && (q.FileKey == nil || *q.FileKey == "")
 }
 
 func ListFiles(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
@@ -278,64 +278,57 @@ func ListFiles(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (
 		}
 	}
 
+	// generate fstore tokens for thumbnail
+	thumbnailTokenReq := make([]FstoreTmpTokenReq, 0, len(res.Payload))
+	for _, p := range res.Payload {
+		if p.Thumbnail != "" {
+			thumbnailTokenReq = append(thumbnailTokenReq, FstoreTmpTokenReq{FileId: p.Thumbnail})
+		}
+	}
+	m := BatchGetFstoreTmpToken(rail, thumbnailTokenReq)
 	for i, f := range res.Payload {
 		if f.Thumbnail != "" {
-			tkn, err := GetFstoreTmpToken(rail, f.Thumbnail, "")
-			if err != nil {
-				rail.Errorf("failed to generate file token for thumbnail: %v, %v", f.Thumbnail, err)
-			} else {
+			if tkn, ok := m[f.Thumbnail]; ok {
 				res.Payload[i].ThumbnailToken = tkn
 			}
 		}
-
 	}
 
 	return res, e
 }
 
 func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
+
 	//  If parentFile is empty, and filename are not queried, then we only return the top level file or dir.
-	if (req.ParentFile == nil || *req.ParentFile == "") && (req.Filename == nil || *req.Filename == "") && (req.FileKey == nil || *req.FileKey == "") {
+	if req.IsEmpty() {
 		req.ParentFile = new(string) // top-level file/dir
 	}
 
-	return mysql.NewPageQuery[ListedFile]().
-		WithPage(req.Page).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
+	return mysql.NewPagedQuery[ListedFile](tx).
+		WithSelectQuery(func(q *mysql.Query) *mysql.Query {
+			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
 			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.sensitive_mode, fi.thumbnail`)
 		}).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Table("file_info fi").
-				Where("fi.uploader_no = ?", user.UserNo).
-				Where("fi.is_logic_deleted = 0 AND fi.is_del = 0").
-				Where("fi.hidden = 0")
-
-			if req.ParentFile != nil {
-				tx = tx.Where("fi.parent_file = ?", *req.ParentFile)
-			}
-
-			if req.FileKey != nil {
-				tx = tx.Where("fi.uuid = ?", *req.FileKey)
-			}
+		WithBaseQuery(func(q *mysql.Query) *mysql.Query {
+			q = q.From("file_info fi").
+				Eq("fi.uploader_no", user.UserNo).
+				Eq("fi.is_logic_deleted", DelN).
+				Eq("fi.is_del", 0).
+				Eq("fi.hidden", 0).
+				EqIf(req.ParentFile != nil, "fi.parent_file", *req.ParentFile).
+				EqIf(req.FileKey != nil, "fi.uuid", *req.FileKey).
+				EqIf(req.FileType != nil && *req.FileType != "", "fi.file_type", *req.FileType).
+				EqIf(req.Sensitive != nil && *req.Sensitive, "fi.sensitive_mode", "N")
 
 			if req.Filename != nil && *req.Filename != "" {
-				// tx = tx.Where("fi.name LIKE ?", "%"+*req.Filename+"%")
-				tx = tx.Where("match(fi.name) against (? IN NATURAL LANGUAGE MODE)", req.Filename)
+				q = q.Where("match(fi.name) against (? IN NATURAL LANGUAGE MODE)", req.Filename)
 			} else {
-				tx = tx.Order("fi.file_type asc, fi.id desc")
+				q = q.Order("fi.file_type asc, fi.id desc")
 			}
 
-			if req.FileType != nil && *req.FileType != "" {
-				tx = tx.Where("fi.file_type = ?", *req.FileType)
-			}
-
-			if req.Sensitive != nil && *req.Sensitive {
-				tx = tx.Where("fi.sensitive_mode = 'N'")
-			}
-
-			return tx
-		}).Exec(rail, tx)
+			return q
+		}).
+		Scan(rail, req.Page)
 }
 
 type PreflightCheckReq struct {
@@ -351,7 +344,7 @@ func FileExists(c miso.Rail, tx *gorm.DB, req PreflightCheckReq, user common.Use
 		Where("name = ?", req.Filename).
 		Where("uploader_no = ?", user.UserNo).
 		Where("file_type = ?", FileTypeFile).
-		Where("is_logic_deleted = ?", LDelN).
+		Where("is_logic_deleted = ?", DelN).
 		Where("is_del = ?", false).
 		Limit(1).
 		Scan(&id)
@@ -518,7 +511,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 				return miso.NewErrf("Target file is not a directory")
 			}
 
-			if pf.IsLogicDeleted != LDelN {
+			if pf.IsLogicDeleted != DelN {
 				return miso.NewErrf("Target file deleted")
 			}
 
@@ -552,8 +545,8 @@ func _saveFile(rail miso.Rail, tx *gorm.DB, f FileInfo, user common.User) error 
 	uname := user.Username
 	now := util.Now()
 
-	f.IsLogicDeleted = LDelN
-	f.IsPhysicDeleted = PDelN
+	f.IsLogicDeleted = DelN
+	f.IsPhysicDeleted = DelN
 	f.UploaderName = uname
 	f.CreateBy = uname
 	f.UploadTime = now
@@ -1180,7 +1173,7 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 		return miso.NewErrf("Not permitted")
 	}
 
-	if f.IsLogicDeleted == LDelY {
+	if f.IsLogicDeleted == DelY {
 		return nil // deleted already
 	}
 
@@ -1358,7 +1351,7 @@ func FetchFileInfoInternal(rail miso.Rail, tx *gorm.DB, req FetchFileInfoReq) (F
 	fir.SizeInBytes = f.SizeInBytes
 	fir.UploaderNo = f.UploaderNo
 	fir.UploaderName = f.UploaderName
-	fir.IsDeleted = f.IsLogicDeleted == LDelY
+	fir.IsDeleted = f.IsLogicDeleted == DelY
 	fir.FileType = f.FileType
 	fir.ParentFile = f.ParentFile
 	fir.LocalPath = "" // files are managed by the mini-fstore, this field will no longer contain any value in it
@@ -1521,7 +1514,7 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 		return miso.NewErrf("File not found")
 	}
 
-	if fi.IsLogicDeleted == LDelY {
+	if fi.IsLogicDeleted == DelY {
 		return miso.NewErrf("File is deleted")
 	}
 
@@ -1603,7 +1596,7 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 		return miso.NewErrf("Not permitted")
 	}
 
-	if dir.IsLogicDeleted == LDelY {
+	if dir.IsLogicDeleted == DelY {
 		return nil // deleted already
 	}
 
