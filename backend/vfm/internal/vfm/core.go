@@ -314,11 +314,20 @@ func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user commo
 				Eq("fi.uploader_no", user.UserNo).
 				Eq("fi.is_logic_deleted", DelN).
 				Eq("fi.is_del", 0).
-				Eq("fi.hidden", 0).
-				EqIf(req.ParentFile != nil, "fi.parent_file", *req.ParentFile).
-				EqIf(req.FileKey != nil, "fi.uuid", *req.FileKey).
-				EqIf(req.FileType != nil && *req.FileType != "", "fi.file_type", *req.FileType).
-				EqIf(req.Sensitive != nil && *req.Sensitive, "fi.sensitive_mode", "N")
+				Eq("fi.hidden", 0)
+
+			if req.FileKey != nil {
+				q = q.Eq("fi.uuid", *req.FileKey)
+			}
+			if req.ParentFile != nil {
+				q = q.Eq("fi.parent_file", *req.ParentFile)
+			}
+			if req.FileType != nil && *req.FileType != "" {
+				q = q.Eq("fi.file_type", *req.FileType)
+			}
+			if req.Sensitive != nil && *req.Sensitive {
+				q = q.Eq("fi.sensitive_mode", "N")
+			}
 
 			if req.Filename != nil && *req.Filename != "" {
 				q = q.Where("match(fi.name) against (? IN NATURAL LANGUAGE MODE)", req.Filename)
