@@ -28,8 +28,10 @@
                             <i *ngIf="dirTreeControl.isExpanded(node)" class="bi bi-folder2-open"></i>
                             <i *ngIf="!dirTreeControl.isExpanded(node)" class="bi bi-folder-fill"></i>
                         </button>
-                        <button *ngIf="!treeHasChild(0, node)" mat-icon-button></button>
-                        <span (click)="selectDir(node)" style="font-weight: 400;font-size:16px">/{{node.name}}</span>
+                        <button *ngIf="!treeHasChild(0, node)" mat-icon-button>
+                            <i class="bi bi-folder2-open"></i>
+                        </button>
+                        <span (click)="selectDir(node)">/{{node.name}}</span>
                     </div>
                     <ul [class.tree-invisible]="!dirTreeControl.isExpanded(node)">
                         <ng-container matTreeNodeOutlet></ng-container>
