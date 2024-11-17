@@ -332,7 +332,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   /** fetch file info list */
-  fetchFileInfoList() {
+  fetchFileInfoList(then = null) {
     this.searchParam.parentFile = this.inDirFileKey;
 
     this.http
@@ -369,6 +369,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           this.pagingController.onTotalChanged(resp.data.paging);
           this.isAllSelected = false;
           this.selectedCount = 0;
+
+          if (then) {
+            then();
+          }
         },
         error: (err) => console.log(err),
       });
@@ -700,25 +704,72 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             dialog.keydownEvents().subscribe({
               next: (v: KeyboardEvent) => {
                 let nextIdx = -1;
+                let fetchNewList = false;
+                let fetchNewListNextPage = false;
+
                 if (v.code == "ArrowRight") {
-                  for (let j = idx + 1; j < this.fileInfoList.length; j++) {
-                    if (isImageByName(this.fileInfoList[j].name)) {
-                      nextIdx = j;
-                      break;
+                  if (idx + 1 >= this.fileInfoList.length) {
+                    if (this.pagingController.nextPage()) {
+                      fetchNewList = true;
+                      fetchNewListNextPage = true;
+                    }
+                  } else {
+                    for (let j = idx + 1; j < this.fileInfoList.length; j++) {
+                      if (isImageByName(this.fileInfoList[j].name)) {
+                        nextIdx = j;
+                        break;
+                      }
+                    }
+                    if (nextIdx == -1 && this.pagingController.nextPage()) {
+                      fetchNewList = true;
+                      fetchNewListNextPage = true;
                     }
                   }
                 } else if (v.code == "ArrowLeft") {
-                  for (let j = idx - 1; j > -1; j--) {
-                    if (isImageByName(this.fileInfoList[j].name)) {
-                      nextIdx = j;
-                      break;
+                  if (idx - 1 < 0) {
+                    if (this.pagingController.prevPage()) {
+                      fetchNewList = true;
+                    }
+                  } else {
+                    for (let j = idx - 1; j > -1; j--) {
+                      if (isImageByName(this.fileInfoList[j].name)) {
+                        nextIdx = j;
+                        break;
+                      }
+                    }
+                    if (nextIdx == -1 && this.pagingController.prevPage()) {
+                      fetchNewList = true;
                     }
                   }
                 }
-                if (nextIdx > -1) {
+                if (nextIdx > -1 || fetchNewList) {
                   dialog.afterClosed().subscribe({
                     next: () => {
-                      this.preview(this.fileInfoList[nextIdx], nextIdx);
+                      if (fetchNewList) {
+                        this.fetchFileInfoList(() => {
+                          let idx = -1;
+                          if (fetchNewListNextPage) {
+                            for (let j = 0; j < this.fileInfoList.length; j++) {
+                              if (isImageByName(this.fileInfoList[j].name)) {
+                                idx = j;
+                                break;
+                              }
+                            }
+                          } else {
+                            for (let j = this.fileInfoList.length - 1; j > -1; j--) {
+                              if (isImageByName(this.fileInfoList[j].name)) {
+                                idx = j;
+                                break;
+                              }
+                            }
+                          }
+                          if (idx > -1) {
+                            this.preview(this.fileInfoList[idx], idx);
+                          }
+                        });
+                      } else {
+                        this.preview(this.fileInfoList[nextIdx], nextIdx);
+                      }
                     },
                   });
                   dialog.close();

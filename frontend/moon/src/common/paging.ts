@@ -24,7 +24,6 @@ export class PagingConst {
  * Controller for pagination, internal properties are non-private, thus can be directly bound with directive
  */
 export class PagingController {
-
   PAGE_LIMIT_OPTIONS: number[] = PagingConst.getPagingLimitOptions();
   paging: Paging = {
     page: 1,
@@ -50,6 +49,18 @@ export class PagingController {
     }
     this.paginator.firstPage();
     return true;
+  }
+
+  public nextPage(): boolean {
+    let b = this.paginator.hasNextPage();
+    this.paginator.nextPage();
+    return b;
+  }
+
+  public prevPage(): boolean {
+    let b = this.paginator.hasPreviousPage();
+    this.paginator.previousPage();
+    return b;
   }
 
   /** is at first page */
