@@ -18,7 +18,7 @@
     [style.top]="menuTopLeftPosition.y" [matMenuTriggerFor]="rightMenu"></div>
 
 <mat-menu #rightMenu="matMenu">
-    <ng-template matMenuContent >
-        <button mat-menu-item (click)="goToFile()">Locate File</button>
+    <ng-template matMenuContent>
+        <button mat-menu-item (click)="goToFile()"><i class="bi bi-search"></i> Find File </button>
     </ng-template>
 </mat-menu>
