@@ -6,6 +6,7 @@
         <button mat-menu-item [matMenuTriggerFor]="admin"
             *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:fetch-storage-info')">Admin</button>
         <button mat-menu-item [matMenuTriggerFor]="user">User</button>
+        <button mat-menu-item [matMenuTriggerFor]="site" *ngIf="hasRes('basic-user')">Site</button>
         <button mat-menu-item [matMenuTriggerFor]="file" *ngIf="hasRes('manage-files')">File & Gallery</button>
         <button mat-menu-item [matMenuTriggerFor]="doc" *ngIf="hasRes('manage-bookmarks')">Documents</button>
         <button mat-menu-item [matMenuTriggerFor]="fin" *ngIf="hasAnyRes('acct:ManageCashflows')">Finance</button>
@@ -18,7 +19,10 @@
             Keys</button>
         <button mat-menu-item routerLink="/access-log" routerLinkActive="active" *ngIf="hasRes('basic-user')">Login
             History</button>
-        <button mat-menu-item routerLink="/site-passwords" routerLinkActive="active" *ngIf="hasRes('basic-user')">Site Passwords</button>
+    </mat-menu>
+
+    <mat-menu #site="matMenu">
+        <button mat-menu-item routerLink="/site-passwords" routerLinkActive="active" *ngIf="hasRes('basic-user')">Website Passwords</button>
     </mat-menu>
 
     <mat-menu #admin="matMenu">

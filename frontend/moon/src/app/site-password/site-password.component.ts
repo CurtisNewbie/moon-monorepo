@@ -215,7 +215,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
   selector: "app-site-password",
   template: `
     <div>
-      <h3 class="mt-2 mb-3">Site Passwords</h3>
+      <h3 class="mt-2 mb-3">Website Passwords</h3>
       <div class="justify-content-md-end d-md-flex">
         <button mat-raised-button (click)="togglePanel()">
           Add Site Passowrd
