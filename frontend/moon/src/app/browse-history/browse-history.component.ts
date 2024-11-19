@@ -21,22 +21,37 @@ export interface ListBrowseRecordRes {
     <div class="container m-4">
       <cdk-virtual-scroll-viewport itemSize="50" style="height: 80vh">
         <div *cdkVirtualFor="let it of dat">
-          <mat-card class="mat-elevation-z2 m-2">
+          <mat-card class="mat-elevation-z2 m-3">
             <div>
               <div class="row">
-                <div class="col" >
+                <div class="col">
                   <img
                     class="m-2 mat-elevation-z8 p-3"
-                    style="max-height:90px"
+                    style="max-height:120px"
                     *ngIf="it.thumbnailToken"
                     [src]="thumbnailUrl(it)"
                   />
                 </div>
                 <div class="col">
-                  <div class="m-2" matLine>'{{ it.name }}'</div>
-                  <div class="m-2" matLine>
-                    {{ it.time | date : "yyyy-MM-dd HH:mm:ss" }}
-                  </div>
+                  <mat-form-field style="width: 100%;" class="m-2">
+                    <mat-label>Name</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      [ngModel]="it.name"
+                      readonly="true"
+                    />
+                  </mat-form-field>
+                  <mat-form-field style="width: 100%;" class="m-2">
+                    <mat-label>Browse Time</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      [ngModel]="it.time | date : 'yyyy-MM-dd HH:mm:ss'"
+                      readonly="true"
+                      (ngModelChange)="it.value = $event"
+                    />
+                  </mat-form-field>
                   <div class="m-2" matLine>
                     <button mat-icon-button (click)="goToFile(it.fileKey)">
                       Find File <i class="bi bi-search"></i>
