@@ -12,7 +12,7 @@ func SubscribeBinlogChanges(rail miso.Rail) error {
 		Pipeline: client.Pipeline{
 			Schema:     miso.GetPropStr(mysql.PropMySQLSchema),
 			Table:      "notification",
-			EventTypes: []client.EventType{client.EventTypeInsert},
+			EventTypes: []client.EventType{client.EventTypeInsert, client.EventTypeUpdate},
 			Stream:     "event.bus.postbox.notification.count.changed",
 		},
 		Concurrency:   2,

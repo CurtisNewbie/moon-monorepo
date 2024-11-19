@@ -141,6 +141,7 @@ func evictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {
 	if !ok {
 		return nil
 	}
+	rail.Infof("User notification changed, eventType: %v, %v", t.Type, userNo)
 	if err := userNotifCountCache.Del(rail, userNo); err != nil {
 		rail.Errorf("Failed to evict user notification count cache, %v, %v", userNo, err)
 	}
