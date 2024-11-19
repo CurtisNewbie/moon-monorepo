@@ -85,6 +85,8 @@ import {
 } from "./site-password/site-password.component";
 import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.component";
 import { MatTreeModule } from "@angular/material/tree";
+import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
+import { ScrollingModule } from "@angular/cdk/scrolling";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -136,6 +138,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     SitePasswordDecryptedDialogComponent,
     EditSitePasswordDialogComponent,
     FstoreStorageComponent,
+    BrowseHistoryComponent,
   ],
   imports: [
     PlotlyModule,
@@ -167,6 +170,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatListModule,
     MatBadgeModule,
     MatTreeModule,
+    ScrollingModule,
   ],
   entryComponents: [ConfirmDialogComponent, GrantAccessDialogComponent],
   providers: [

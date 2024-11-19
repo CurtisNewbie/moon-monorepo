@@ -47,6 +47,7 @@ import { DirectoryMoveFileComponent } from "../directory-move-file/directory-mov
 import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { Subscription } from "rxjs";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { BrowseHistoryRecorder } from "src/common/browse-history";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -205,7 +206,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     private nav: NavigationService,
     private http: HttpClient,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private browseHistoryRecorder: BrowseHistoryRecorder
   ) {}
 
   ngDoCheck(): void {
@@ -655,6 +657,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   /** Display the file */
   preview(u: FileInfo, idx: number): void {
+    this.browseHistoryRecorder.record(u.uuid);
+
     const isStreaming = isStreamableVideo(u.name);
     this.fileService
       .generateFileTempToken(
@@ -756,7 +760,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                               }
                             }
                           } else {
-                            for (let j = this.fileInfoList.length - 1; j > -1; j--) {
+                            for (
+                              let j = this.fileInfoList.length - 1;
+                              j > -1;
+                              j--
+                            ) {
                               if (isImageByName(this.fileInfoList[j].name)) {
                                 idx = j;
                                 break;

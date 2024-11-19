@@ -616,3 +616,21 @@ func ListBlacklistedBookmarksEp(rail miso.Rail, db *gorm.DB, req ListBookmarksRe
 func RemoveBookmarkBlacklistEp(rail miso.Rail, db *gorm.DB, req RemoveBookmarkReq, user common.User) (any, error) {
 	return nil, RemoveBookmarkBlacklist(rail, db, req.Id, user.UserNo)
 }
+
+// List user browse history.
+//
+//   - misoapi-http: GET /history/list-browse-history
+//   - misoapi-desc: List user browse history
+//   - misoapi-resource: ref(ManageFilesResource)
+func ListBrowseHistoryApi(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBrowseRecordRes, error) {
+	return ListBrowseHistory(rail, db, user)
+}
+
+// Record user browse history.
+//
+//   - misoapi-http: POST /history/record-browse-history
+//   - misoapi-desc: Record user browse history
+//   - misoapi-resource: ref(ManageFilesResource)
+func RecordBrowseHistoryApi(rail miso.Rail, user common.User, req RecordBrowseHistoryReq) error {
+	return RecordBrowseHistory(rail, user, req)
+}

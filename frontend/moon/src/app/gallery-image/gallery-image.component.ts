@@ -6,9 +6,17 @@ import { ListGalleryImagesResp } from "src/common/gallery";
 import { environment } from "src/environments/environment";
 import { Resp } from "src/common/resp";
 import { NavigationService } from "../navigation.service";
-import { IAlbum, Lightbox, LightboxConfig } from "ngx-lightbox";
+import {
+  IAlbum,
+  Lightbox,
+  LIGHTBOX_EVENT,
+  LightboxConfig,
+  LightboxEvent,
+} from "ngx-lightbox";
 import { NavType } from "../routes";
 import { MatMenuTrigger } from "@angular/material/menu";
+import { BrowseHistoryRecorder } from "src/common/browse-history";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: "app-gallery-image",
@@ -22,12 +30,16 @@ export class GalleryImageComponent implements OnInit {
   title = "fantahsea";
   images = [];
 
+  private lbxSub: Subscription;
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
     private navigation: NavigationService,
     private _lightbox: Lightbox,
-    private _lbConfig: LightboxConfig
+    private _lbConfig: LightboxConfig,
+    private _lightboxEvent: LightboxEvent,
+    private browseHistoryRecorder: BrowseHistoryRecorder
   ) {
     _lbConfig.containerElementResolver = (doc: Document) =>
       doc.getElementById("lightboxdiv");
@@ -84,6 +96,15 @@ export class GalleryImageComponent implements OnInit {
   }
 
   open(index: number): void {
+    this.browseHistoryRecorder.record(this.images[index].fileKey);
+    this.lbxSub = this._lightboxEvent.lightboxEvent$.subscribe((event: any) => {
+      if (event.id === LIGHTBOX_EVENT.CLOSE) {
+        this.lbxSub.unsubscribe();
+      }
+      if (event.id === LIGHTBOX_EVENT.CHANGE_PAGE) {
+        this.browseHistoryRecorder.record(this.images[event.data].fileKey);
+      }
+    });
     this._lightbox.open(this.images, index, {
       wrapAround: true,
       showImageNumberLabel: true,
