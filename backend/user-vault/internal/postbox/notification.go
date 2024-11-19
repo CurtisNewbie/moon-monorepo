@@ -2,8 +2,11 @@ package postbox
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/curtisnewbie/event-pump/client"
 	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -14,6 +17,10 @@ import (
 const (
 	StatusInit   = "INIT"
 	StatusOpened = "OPENED"
+)
+
+var (
+	userNotifCountCache = redis.NewRCache[int]("postbox:notification:count", redis.RCacheConfig{Exp: time.Minute * 30})
 )
 
 func CreateNotification(rail miso.Rail, db *gorm.DB, req api.CreateNotificationReq, user common.User) error {
@@ -71,7 +78,12 @@ func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, us
 	return mysql.NewPageQuery[ListedNotification]().
 		WithPage(req.Page).
 		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Table("notification")
+			tx = tx.Table("notification")
+			tx = tx.Where("user_no = ?", user.UserNo)
+			if req.Status != "" {
+				tx = tx.Where("status = ?", req.Status)
+			}
+			return tx
 		}).
 		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
 			tx = tx.Select("id, notifi_no, title, message, status, create_time").
@@ -79,13 +91,15 @@ func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, us
 				Limit(req.Page.GetLimit()).
 				Offset(req.Page.GetOffset())
 
-			tx = tx.Where("user_no = ?", user.UserNo)
-			if req.Status != "" {
-				tx = tx.Where("status = ?", req.Status)
-			}
 			return tx
 		}).
 		Exec(rail, db)
+}
+
+func CachedCountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
+	return userNotifCountCache.Get(rail, user.UserNo, func() (int, error) {
+		return CountNotification(rail, db, user)
+	})
 }
 
 func CountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
@@ -120,4 +134,15 @@ func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, u
 
 	return db.Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE user_no = ? AND status = ? AND id <= ?`,
 		StatusOpened, user.Username, user.UserNo, StatusInit, id).Error
+}
+
+func evictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {
+	userNo, ok := t.ColumnAfter("user_no")
+	if !ok {
+		return nil
+	}
+	if err := userNotifCountCache.Del(rail, userNo); err != nil {
+		rail.Errorf("Failed to evict user notification count cache, %v, %v", userNo, err)
+	}
+	return nil
 }

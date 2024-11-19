@@ -56,7 +56,7 @@ func QueryNotificationEp(inb *miso.Inbound, req QueryNotificationReq) (any, erro
 
 func CountNotificationEp(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
-	return CountNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
+	return CachedCountNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
 }
 
 type OpenNotificationReq struct {
