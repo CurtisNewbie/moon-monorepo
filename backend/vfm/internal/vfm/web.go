@@ -626,11 +626,11 @@ func ListBrowseHistoryApi(rail miso.Rail, db *gorm.DB, user common.User) ([]List
 	return ListBrowseHistory(rail, db, user)
 }
 
-// Record user browse history.
+// Record user browse history, only files that are directly owned by the user is recorded.
 //
 //   - misoapi-http: POST /history/record-browse-history
-//   - misoapi-desc: Record user browse history
+//   - misoapi-desc: Record user browse history, only files that are directly owned by the user is recorded
 //   - misoapi-resource: ref(ManageFilesResource)
-func RecordBrowseHistoryApi(rail miso.Rail, user common.User, req RecordBrowseHistoryReq) error {
-	return RecordBrowseHistory(rail, user, req)
+func RecordBrowseHistoryApi(rail miso.Rail, db *gorm.DB, user common.User, req RecordBrowseHistoryReq) error {
+	return RecordBrowseHistory(rail, db, user, req)
 }

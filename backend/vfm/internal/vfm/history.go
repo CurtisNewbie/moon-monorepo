@@ -176,6 +176,20 @@ type RecordBrowseHistoryReq struct {
 	FileKey string `valid:"notEmpty"`
 }
 
-func RecordBrowseHistory(rail miso.Rail, user common.User, req RecordBrowseHistoryReq) error {
+func RecordBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User, req RecordBrowseHistoryReq) error {
+	f, err := findFile(rail, db, req.FileKey)
+	if err != nil {
+		return err
+	}
+	if f == nil {
+		return ErrUnknown.WithInternalMsg("File is not found, %v", req.FileKey)
+	}
+
+	// only record files that are directly owned by user to prevent access control issue
+	if f.UploaderNo != user.UserNo {
+		rail.Debugf("Ignore recording browse history operation, file (%v) not owned by user (%v)", req.FileKey, user.Username)
+		return nil
+	}
+
 	return NewBrowseHistory(rail, user).Push(rail, req.FileKey)
 }

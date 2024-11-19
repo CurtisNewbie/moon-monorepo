@@ -3345,7 +3345,7 @@
     ```
 
 - POST /history/record-browse-history
-  - Description: Record user browse history
+  - Description: Record user browse history, only files that are directly owned by the user is recorded
   - Bound to Resource: `"manage-files"`
   - JSON Request:
     - "fileKey": (string) 
