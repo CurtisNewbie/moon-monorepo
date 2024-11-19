@@ -121,7 +121,7 @@ func (b BrowseHistory) List(rail miso.Rail) ([]BrowseRecord, error) {
 	return br, nil
 }
 
-func UserBrowseHistory(rail miso.Rail, user common.User) BrowseHistory {
+func NewBrowseHistory(rail miso.Rail, user common.User) BrowseHistory {
 	bh := BrowseHistory{
 		user:  user,
 		lock:  red.NewRLockf(rail, "vfm:browse:history:lock:%v", user.UserNo),
@@ -132,7 +132,7 @@ func UserBrowseHistory(rail miso.Rail, user common.User) BrowseHistory {
 }
 
 func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBrowseRecordRes, error) {
-	l, err := UserBrowseHistory(rail, user).List(rail)
+	l, err := NewBrowseHistory(rail, user).List(rail)
 	if err != nil {
 		return nil, err
 	}
@@ -173,9 +173,9 @@ func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBro
 }
 
 type RecordBrowseHistoryReq struct {
-	FileKey string
+	FileKey string `valid:"notEmpty"`
 }
 
 func RecordBrowseHistory(rail miso.Rail, user common.User, req RecordBrowseHistoryReq) error {
-	return UserBrowseHistory(rail, user).Push(rail, req.FileKey)
+	return NewBrowseHistory(rail, user).Push(rail, req.FileKey)
 }
