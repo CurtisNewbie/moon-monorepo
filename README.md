@@ -13,7 +13,7 @@ This is moon monorepo, a privately hosted personal website (the private cloud).
 - logbot (Error Log Watching Service)
 - mini-fstore (Simple File Storage Service)
 - vfm (Virtual File Management Service)
-- acct (Simple Personal Accounting Service)
+- acct (Simple Personal Accounting Service, `acct` only supports WeChat, it's completely optional)
 
 ## Original Repositories
 
