@@ -73,8 +73,10 @@
         </div>
     </div>
     <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
-        <button mat-raised-button class="m-2" (click)="fetchUserInfoList()">Fetch</button>
-        <button mat-raised-button class="m-2" (click)="resetSearchParam()">Reset</button>
+        <button mat-icon-button class="m-1 icon-button-large" (click)="fetchUserInfoList()"><i
+                class="bi bi-arrow-clockwise"></i></button>
+        <button mat-icon-button class="m-1 icon-button-large" (click)="resetSearchParam()"><i
+                class="bi bi-slash-circle"></i></button>
     </div>
 </div>
 
@@ -164,7 +166,8 @@
                             </div>
 
                             <div class="col-12">
-                                <button mat-raised-button class="m-2" (click)="updateUserInfo()">Update</button>
+                                <button mat-icon-button (click)="updateUserInfo()"> <i
+                                        class="bi bi-floppy icon-button-large"></i> </button>
                                 <button mat-raised-button class="m-2" *ngIf="expandedIsDisabled"
                                     (click)="deleteUser()">Delete</button>
                             </div>

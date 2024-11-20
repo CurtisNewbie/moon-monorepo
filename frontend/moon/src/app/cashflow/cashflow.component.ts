@@ -165,8 +165,16 @@ export interface ListCashFlowRes {
       <button mat-raised-button class="m-2" (click)="showWechatImport()">
         Import Wechat Cashflows
       </button>
-      <button mat-raised-button class="m-2" (click)="fetchList()">Fetch</button>
-      <button mat-raised-button class="m-2" (click)="reset()">Reset</button>
+      <button
+        mat-icon-button
+        class="m-1 icon-button-large"
+        (click)="fetchList()"
+      >
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <button mat-icon-button class="m-1 icon-button-large" (click)="reset()">
+        <i class="bi bi-slash-circle"></i>
+      </button>
     </div>
 
     <div class="mt-3 mb-2" style="overflow: auto;">

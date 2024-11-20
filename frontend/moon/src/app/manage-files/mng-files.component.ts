@@ -49,6 +49,7 @@ import { Subscription } from "rxjs";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
+import { copyToClipboard } from "src/common/clipboard";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -1183,18 +1184,20 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     this.fileService.generateFileTempToken(u.uuid).subscribe({
       next: (resp) => {
+        let url = this._concatTempFileDownloadUrl(resp.data);
+
         const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
           this.dialog.open(ConfirmDialogComponent, {
             width: "700px",
             data: {
               title: "Share File",
-              msg: [
-                "Link to download this file:",
-                this._concatTempFileDownloadUrl(resp.data),
-              ],
+              msg: ["Link to download this file:", url],
               isNoBtnDisplayed: false,
             },
           });
+
+        copyToClipboard(url);
+        this.toaster.toast("Link copied to clipboard", 3000, "ok");
 
         dialogRef.afterClosed().subscribe((confirm) => {
           // do nothing

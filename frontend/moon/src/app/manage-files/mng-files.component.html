@@ -223,12 +223,12 @@
                     <td mat-cell *matCellDef="let f">
                         <button *ngIf="!inFolderNo" class="icon-button-large" mat-icon-button
                             (click)="$event.stopPropagation() || selectExpanded(f)">
-                            <i class="bi bi-pencil-square"></i>
+                            <i class="bi bi-pencil"></i>
                         </button>
                         <ng-container *ngIf="f.isFile">
                             <button class="icon-button-large" mat-icon-button
                                 (click)="$event.stopPropagation() || jumpToDownloadUrl(f.uuid)">
-                                <i class="bi bi-download"></i>
+                                <i class="bi bi-cloud-download"></i>
                             </button>
                         </ng-container>
                     </td>
@@ -254,26 +254,22 @@
 
                                         <ng-container *ngIf="curr.isDir">
                                             <div class="col">
-                                                <button mat-raised-button (click)="update(curr)"> Update </button>
+                                                <button mat-icon-button (click)="update(curr)"> <i class="bi bi-floppy icon-button-large"></i> </button>
                                             </div>
                                             <div class="col">
-                                                <button mat-raised-button (click)="truncateDir(curr)"> Truncate
-                                                </button>
+                                                <button mat-icon-button (click)="truncateDir(curr)"> <i class="bi bi-eraser icon-button-large"></i> </button>
                                             </div>
                                         </ng-container>
 
                                         <ng-container *ngIf="curr.isFile">
                                             <div class="col">
-                                                <button mat-raised-button (click)="update(curr)"> Update </button>
+                                                <button mat-icon-button (click)="update(curr)"> <i class="bi bi-floppy icon-button-large"></i> </button>
                                             </div>
                                             <div class="col">
-                                                <button mat-raised-button (click)="generateTempToken(curr)"> Share By
-                                                    Link </button>
+                                                <button mat-icon-button (click)="generateTempToken(curr)"> <i class="bi bi-link-45deg icon-button-large"></i> </button>
                                             </div>
                                             <div class="col">
-                                                <button mat-raised-button (click)="generateTempTokenQrCode(curr)"> Share
-                                                    By
-                                                    QRCode </button>
+                                                <button mat-icon-button (click)="generateTempTokenQrCode(curr)"> <i class="bi bi-qr-code-scan icon-button-large"></i> </button>
                                             </div>
                                             <div class="col" *ngIf="canUnpack(curr)">
                                                 <button mat-raised-button (click)="unpack(curr)">Unpack</button>
