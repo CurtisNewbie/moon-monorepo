@@ -397,7 +397,7 @@ export interface ApiListVerFileRes {
         [class.status-green]="expandUploadPanel"
         (click)="toggleUploadPanel()"
       >
-        <i class="bi bi-upload"></i>
+        <i class="bi bi-cloud-upload"></i>
       </button>
       <button mat-icon-button class="m-1 icon-button-large" (click)="fetch()">
         <i class="bi bi-arrow-clockwise"></i>

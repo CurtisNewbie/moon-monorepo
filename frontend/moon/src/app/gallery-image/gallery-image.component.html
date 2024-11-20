@@ -2,7 +2,7 @@
     <div class="row row-cols-lg-auto g-3 align-items-center">
         <div *ngFor="let image of images; let i=index">
             <div class="col-12" (contextmenu)="onRightClick($event, image)">
-                <img [src]="image.thumb" (click)="open(i)" class="m-2" style="max-width:256px" />
+                <img [src]="image.thumb" matTooltip="Right Click To Open Menu" matTooltipShowDelay="1000"  (click)="open(i)" class="m-2" style="max-width:256px" />
             </div>
         </div>
     </div>
@@ -19,6 +19,6 @@
 
 <mat-menu #rightMenu="matMenu">
     <ng-template matMenuContent>
-        <button mat-menu-item (click)="goToFile()"><i class="bi bi-search"></i> Find File </button>
+        <button mat-menu-item matTooltip="Locate File In Manage Files Page" (click)="goToFile()"><i class="bi bi-search"></i> Find File </button>
     </ng-template>
 </mat-menu>

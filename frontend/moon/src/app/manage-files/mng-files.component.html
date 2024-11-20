@@ -119,29 +119,33 @@
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
 
             <ng-container *ngIf="!inFolderName && anySelected">
-                <button mat-raised-button class="m-2" *ngIf="anySelected" (click)="transferSelectedToGallery()">Add To
+                <button mat-raised-button class="m-2" matTooltip="Add to Fantahsea Gallery" *ngIf="anySelected"
+                    (click)="transferSelectedToGallery()">Add To
                     Gallery</button>
-                <button mat-raised-button class="m-2" (click)="addToVirtualFolder()">Add To Folder</button>
+                <button mat-raised-button class="m-2" matTooltip="Add to Virtual Folder"
+                    (click)="addToVirtualFolder()">Add To Folder</button>
                 <button mat-raised-button class="m-2" (click)="moveSelectedToDir()">Move To Directory</button>
-                <button mat-icon-button class="m-1 icon-button-large" (click)="deleteSelected()"> <i
-                        class="bi bi-trash"></i> </button>
+                <button mat-icon-button class="m-1 icon-button-large" matTooltip="Delete Files"
+                    (click)="deleteSelected()"> <i class="bi bi-trash"></i> </button>
             </ng-container>
 
             <ng-container *ngIf="!inFolderName">
-                <button mat-icon-button class="m-1 icon-button-large" (click)="popDirTree()"> <i
-                        class="bi bi-signpost-split"></i> </button>
+                <button mat-icon-button class="m-1 icon-button-large" matTooltip="Show directory tree"
+                    (click)="popDirTree()"> <i class="bi bi-signpost-split"></i> </button>
             </ng-container>
 
-            <button mat-icon-button class="m-1 icon-button-large" *ngIf="inDirFileKey" (click)="goPrevDir()"><i
-                    class="bi bi-arrow-left-circle"></i></button>
+            <button mat-icon-button class="m-1 icon-button-large" matTooltip="Go up one level of the directory tree"
+                *ngIf="inDirFileKey" (click)="goPrevDir()"><i class="bi bi-arrow-left-circle"></i></button>
             <button mat-icon-button class="m-1 icon-button-large" *ngIf="inFolderNo" (click)="leaveFolder()"><i
                     class="bi bi-arrow-left-circle"></i></button>
 
             <ng-container *ngIf="!inFolderNo && !anySelected">
-                <button mat-icon-button class="m-1 icon-button-large" [class.status-green]="expandUploadPanel"
-                    (click)="toggleUploadPanel()"> <i class="bi bi-upload"></i></button>
-                <button mat-icon-button class="m-1 icon-button-large" (click)="toggleMkdirPanel()"
-                    [class.status-green]="makingDir"><i class="bi bi-folder-plus"></i></button>
+                <button mat-icon-button class="m-1 icon-button-large" matTooltip="Upload"
+                    [class.status-green]="expandUploadPanel" (click)="toggleUploadPanel()"> <i
+                        class="bi bi-cloud-upload"></i></button>
+                <button mat-icon-button class="m-1 icon-button-large" matTooltip="Make New Directory"
+                    (click)="toggleMkdirPanel()" [class.status-green]="makingDir"><i
+                        class="bi bi-folder-plus"></i></button>
             </ng-container>
 
             <button mat-icon-button class="m-1 icon-button-large" (click)="fetchFileInfoList()"><i
@@ -154,7 +158,7 @@
             <table mat-table [dataSource]="fileInfoList" style="width: 100%; height: 70%" multiTemplateDataRows>
                 <ng-container matColumnDef="selected">
                     <th mat-header-cell *matHeaderCellDef> <span (click)="selectAll()"
-                            [matTooltip]="'Select records for more operations'"><b>{{anySelected ?
+                            matTooltip="Select All"><b>{{anySelected ?
                                 'Selected' + " (" + selectedCount + ")": 'Selected'}}</b></span>
                     </th>
                     <td mat-cell *matCellDef="let f" style="flex: none; width: 130px;">
@@ -180,7 +184,8 @@
                 </ng-container>
 
                 <ng-container matColumnDef="parentFileName">
-                    <th mat-header-cell *matHeaderCellDef [matTooltip]="'Name of directory that each file belongs to'">
+                    <th mat-header-cell *matHeaderCellDef [matTooltip]="'Name of directory that each file belongs to'"
+                        matTooltipShowDelay="300">
                         <b>In Directory</b>
                     </th>
                     <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.parentFileName}}
@@ -221,9 +226,9 @@
                 <ng-container matColumnDef="operation">
                     <th mat-header-cell *matHeaderCellDef> <b>Operation</b> </th>
                     <td mat-cell *matCellDef="let f">
-                        <button *ngIf="!inFolderNo" class="icon-button-large" mat-icon-button
+                        <button *ngIf="!inFolderNo" class="icon-button-large" mat-icon-button matTooltipShowDelay="500"
                             (click)="$event.stopPropagation() || selectExpanded(f)">
-                            <i class="bi bi-pencil"></i>
+                            <i class="bi bi-gear"></i>
                         </button>
                         <ng-container *ngIf="f.isFile">
                             <button class="icon-button-large" mat-icon-button
@@ -254,25 +259,35 @@
 
                                         <ng-container *ngIf="curr.isDir">
                                             <div class="col">
-                                                <button mat-icon-button (click)="update(curr)"> <i class="bi bi-floppy icon-button-large"></i> </button>
+                                                <button mat-icon-button matTooltip="Update" (click)="update(curr)"> <i
+                                                        class="bi bi-floppy icon-button-large"></i> </button>
                                             </div>
                                             <div class="col">
-                                                <button mat-icon-button (click)="truncateDir(curr)"> <i class="bi bi-eraser icon-button-large"></i> </button>
+                                                <button mat-icon-button matTooltip="Truncate directory"
+                                                    (click)="truncateDir(curr)"> <i
+                                                        class="bi bi-eraser icon-button-large"></i> </button>
                                             </div>
                                         </ng-container>
 
                                         <ng-container *ngIf="curr.isFile">
                                             <div class="col">
-                                                <button mat-icon-button (click)="update(curr)"> <i class="bi bi-floppy icon-button-large"></i> </button>
+                                                <button mat-icon-button matTooltip="Update" (click)="update(curr)"> <i
+                                                        class="bi bi-floppy icon-button-large"></i> </button>
                                             </div>
                                             <div class="col">
-                                                <button mat-icon-button (click)="generateTempToken(curr)"> <i class="bi bi-link-45deg icon-button-large"></i> </button>
+                                                <button mat-icon-button matTooltip="Share By Link"
+                                                    (click)="generateTempToken(curr)"> <i
+                                                        class="bi bi-link-45deg icon-button-large"></i> </button>
                                             </div>
                                             <div class="col">
-                                                <button mat-icon-button (click)="generateTempTokenQrCode(curr)"> <i class="bi bi-qr-code-scan icon-button-large"></i> </button>
+                                                <button mat-icon-button matTooltip="Share By QRCode"
+                                                    (click)="generateTempTokenQrCode(curr)"> <i
+                                                        class="bi bi-qr-code-scan icon-button-large"></i> </button>
                                             </div>
                                             <div class="col" *ngIf="canUnpack(curr)">
-                                                <button mat-raised-button (click)="unpack(curr)">Unpack</button>
+                                                <button mat-icon-button matTooltip="Unzip To Directory"
+                                                    (click)="unpack(curr)"><i
+                                                        class="bi bi-envelope-open icon-button-large"></i></button>
                                             </div>
                                         </ng-container>
                                     </div>
@@ -285,7 +300,9 @@
                 <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
                 </tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
-                    [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked(row, i)">
+                    [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked(row, i)"
+                    matTooltipShowDelay="600"
+                    [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
                 </tr>
                 <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
             </table>

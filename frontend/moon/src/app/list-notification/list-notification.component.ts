@@ -110,7 +110,7 @@ export class ListNotificationComponent implements OnInit {
 
     const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
       this.dialog.open(ConfirmDialogComponent, {
-        width: "700px",
+        width: "900px",
         data: {
           title: n.title,
           msg: [`Notification Time: ${timeStr}`, ...lines],
