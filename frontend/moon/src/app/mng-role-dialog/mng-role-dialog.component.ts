@@ -5,8 +5,10 @@ import { PagingController } from "src/common/paging";
 import { Toaster } from "../notification.service";
 import { ResBrief } from "../user.service";
 import { HttpClient } from "@angular/common/http";
+import { ConfirmDialog } from "src/common/dialog";
 
 export interface DialogDat {
+  roleName: string;
   roleNo: string;
 }
 
@@ -41,7 +43,8 @@ export class MngRoleDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<MngRoleDialogComponent, DialogDat>,
     @Inject(MAT_DIALOG_DATA) public dat: DialogDat,
     private http: HttpClient,
-    private toaster: Toaster
+    private toaster: Toaster,
+    private confirmDialog: ConfirmDialog
   ) {}
 
   ngOnInit(): void {
@@ -107,16 +110,24 @@ export class MngRoleDialogComponent implements OnInit {
   }
 
   delRes(roleRes: ListedRoleRes) {
-    this.http
-      .post<any>(`user-vault/open/api/role/resource/remove`, {
-        roleNo: this.dat.roleNo,
-        resCode: roleRes.resCode,
-      })
-      .subscribe({
-        next: (res) => {
-          this.listResources();
-          this.fetchResourceCandidates();
-        },
-      });
+    this.confirmDialog.show(
+      "Unbind Resource",
+      [
+        `Confirm to unbind resource '${roleRes.resCode}' from role '${this.dat.roleName}'?`,
+      ],
+      () => {
+        this.http
+          .post<any>(`user-vault/open/api/role/resource/remove`, {
+            roleNo: this.dat.roleNo,
+            resCode: roleRes.resCode,
+          })
+          .subscribe({
+            next: (res) => {
+              this.listResources();
+              this.fetchResourceCandidates();
+            },
+          });
+      }
+    );
   }
 }

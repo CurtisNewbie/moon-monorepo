@@ -86,6 +86,7 @@ export class ManageRoleComponent implements OnInit {
       .open(MngRoleDialogComponent, {
         width: "1000px",
         data: {
+          roleName: role.name,
           roleNo: role.roleNo,
         },
       })
