@@ -213,6 +213,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   ngDoCheck(): void {
     this.anySelected = this.selectedCount > 0;
+    if (this.anySelected) {
+      this.expandUploadPanel = false;
+    }
     this.displayedColumns = this._selectColumns();
   }
 

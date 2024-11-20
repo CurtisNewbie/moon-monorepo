@@ -118,11 +118,6 @@
 
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
 
-            <ng-container *ngIf="!inFolderName">
-                <button mat-icon-button class="m-1 icon-button-large" (click)="popDirTree()"> <i
-                        class="bi bi-signpost-split"></i> </button>
-            </ng-container>
-
             <ng-container *ngIf="!inFolderName && anySelected">
                 <button mat-raised-button class="m-2" *ngIf="anySelected" (click)="transferSelectedToGallery()">Add To
                     Gallery</button>
@@ -130,6 +125,11 @@
                 <button mat-raised-button class="m-2" (click)="moveSelectedToDir()">Move To Directory</button>
                 <button mat-icon-button class="m-1 icon-button-large" (click)="deleteSelected()"> <i
                         class="bi bi-trash"></i> </button>
+            </ng-container>
+
+            <ng-container *ngIf="!inFolderName">
+                <button mat-icon-button class="m-1 icon-button-large" (click)="popDirTree()"> <i
+                        class="bi bi-signpost-split"></i> </button>
             </ng-container>
 
             <button mat-icon-button class="m-1 icon-button-large" *ngIf="inDirFileKey" (click)="goPrevDir()"><i
@@ -158,7 +158,7 @@
                                 'Selected' + " (" + selectedCount + ")": 'Selected'}}</b></span>
                     </th>
                     <td mat-cell *matCellDef="let f" style="flex: none; width: 130px;">
-                        <mat-checkbox [checked]="f._selected" (change)="selectFile($event, f)"
+                        <mat-checkbox [disabled]="isUploading" [checked]="f._selected" (change)="selectFile($event, f)"
                             (click)="$event.stopPropagation();"></mat-checkbox>
                     </td>
                 </ng-container>
