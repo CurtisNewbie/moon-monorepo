@@ -118,6 +118,11 @@
 
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
 
+            <ng-container *ngIf="!inFolderName">
+                <button mat-icon-button class="m-1 icon-button-large" (click)="popDirTree()"> <i
+                        class="bi bi-signpost-split"></i> </button>
+            </ng-container>
+
             <ng-container *ngIf="!inFolderName && anySelected">
                 <button mat-raised-button class="m-2" *ngIf="anySelected" (click)="transferSelectedToGallery()">Add To
                     Gallery</button>

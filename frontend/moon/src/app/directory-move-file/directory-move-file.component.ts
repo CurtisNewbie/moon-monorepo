@@ -1,7 +1,5 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
-import { DirBrief } from "src/common/file-info";
-import { filterAlike } from "src/common/select-util";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { NestedTreeControl } from "@angular/cdk/tree";
@@ -28,10 +26,7 @@ type Data = {
   styleUrls: ["./directory-move-file.component.css"],
 })
 export class DirectoryMoveFileComponent implements OnInit {
-  /** list of brief info of all directories that we can access */
-  dirBriefList: DirBrief[] = [];
-  /** auto complete for dirs that we may move file into */
-  autoCompMoveIntoDirs: string[] = [];
+
   /** name of dir that we may move file into */
   moveIntoDirName: string = null;
   moveIntoDirKey: string = null;
@@ -40,12 +35,6 @@ export class DirectoryMoveFileComponent implements OnInit {
     (node) => node.child
   );
   dirTreeDataSource = new MatTreeNestedDataSource<DirTopDownTreeNode>();
-
-  onMoveIntoDirNameChanged = () =>
-    (this.autoCompMoveIntoDirs = filterAlike(
-      this.dirBriefList.map((v) => v.name),
-      this.moveIntoDirName
-    ));
 
   constructor(
     public dialogRef: MatDialogRef<DirectoryMoveFileComponent, Data>,

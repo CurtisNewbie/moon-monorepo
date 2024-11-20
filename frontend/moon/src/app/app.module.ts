@@ -87,6 +87,7 @@ import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.componen
 import { MatTreeModule } from "@angular/material/tree";
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
 import { ScrollingModule } from "@angular/cdk/scrolling";
+import { DirTreeNavComponent } from './dir-tree-nav/dir-tree-nav.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -139,6 +140,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     EditSitePasswordDialogComponent,
     FstoreStorageComponent,
     BrowseHistoryComponent,
+    DirTreeNavComponent,
   ],
   imports: [
     PlotlyModule,

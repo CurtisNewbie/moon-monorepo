@@ -48,6 +48,7 @@ import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/shar
 import { Subscription } from "rxjs";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
+import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -1227,5 +1228,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           });
         },
       });
+  }
+
+  popDirTree() {
+    this.dialog.open(DirTreeNavComponent, {
+      width: "800px",
+      data: {},
+    });
   }
 }
