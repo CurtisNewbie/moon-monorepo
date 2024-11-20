@@ -411,14 +411,14 @@ export interface ApiListVerFileRes {
       <table mat-table [dataSource]="tabdat" style="width: 100%;">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef><b>Name</b></th>
-          <td mat-cell *matCellDef="let f" (click)="$event.stopPropagation()">
+          <td mat-cell *matCellDef="let f">
             <span class="pl-1 pr-1">{{ f.name }} </span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="verFileId">
           <th mat-header-cell *matHeaderCellDef>Versioned File Id</th>
-          <td mat-cell *matCellDef="let u" (click)="$event.stopPropagation()">
+          <td mat-cell *matCellDef="let u">
             {{ u.verFileId }}
           </td>
         </ng-container>
