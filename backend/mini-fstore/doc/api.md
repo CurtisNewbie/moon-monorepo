@@ -83,10 +83,10 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: string                  // response data
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: string;                 // response data
     }
     ```
 
@@ -148,21 +148,21 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: FstoreFile
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: FstoreFile;
     }
 
     export interface FstoreFile {
-      fileId?: string                // file unique identifier
-      name?: string                  // file name
-      status?: string                // status, 'NORMAL', 'LOG_DEL' (logically deleted), 'PHY_DEL' (physically deleted)
-      size?: number                  // file size in bytes
-      md5?: string                   // MD5 checksum
-      uplTime?: number               // upload time
-      logDelTime?: number            // logically deleted at
-      phyDelTime?: number            // physically deleted at
+      fileId?: string;               // file unique identifier
+      name?: string;                 // file name
+      status?: string;               // status, 'NORMAL', 'LOG_DEL' (logically deleted), 'PHY_DEL' (physically deleted)
+      size?: number;                 // file size in bytes
+      md5?: string;                  // MD5 checksum
+      uplTime?: number;              // upload time
+      logDelTime?: number;           // logically deleted at
+      phyDelTime?: number;           // physically deleted at
     }
     ```
 
@@ -212,10 +212,10 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: string                  // response data
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: string;                 // response data
     }
     ```
 
@@ -294,9 +294,9 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -346,18 +346,18 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface UnzipFileReq {
-      fileId?: string                // file_id of zip file
-      replyToEventBus?: string       // name of the rabbitmq exchange to reply to, routing_key is '#'
-      extra?: string                 // extra information that will be passed around for the caller
+      fileId?: string;               // file_id of zip file
+      replyToEventBus?: string;      // name of the rabbitmq exchange to reply to, routing_key is '#'
+      extra?: string;                // extra information that will be passed around for the caller
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -418,31 +418,31 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListBackupFileReq {
-      limit?: number
-      idOffset?: number
+      limit?: number;
+      idOffset?: number;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ListBackupFileResp
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ListBackupFileResp;
     }
 
     export interface ListBackupFileResp {
-      files?: BackupFileInf[]
+      files?: BackupFileInf[];
     }
 
     export interface BackupFileInf {
-      id?: number
-      fileId?: string
-      name?: string
-      status?: string
-      size?: number
-      md5?: string
+      id?: number;
+      fileId?: string;
+      name?: string;
+      status?: string;
+      size?: number;
+      md5?: string;
     }
     ```
 
@@ -534,9 +534,9 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -579,9 +579,9 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -624,9 +624,9 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -681,26 +681,26 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: StorageInfo
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: StorageInfo;
     }
 
     export interface StorageInfo {
-      volumns?: VolumnInfo[]
+      volumns?: VolumnInfo[];
     }
 
     export interface VolumnInfo {
-      mounted?: string
-      total?: number
-      used?: number
-      available?: number
-      usedPercent?: number
-      totalText?: string
-      usedText?: string
-      availableText?: string
-      usedPercentText?: string
+      mounted?: string;
+      total?: number;
+      used?: number;
+      available?: number;
+      usedPercent?: number;
+      totalText?: string;
+      usedText?: string;
+      availableText?: string;
+      usedPercentText?: string;
     }
     ```
 
@@ -756,29 +756,29 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface GnResp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ResourceInfoRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ResourceInfoRes;
     }
 
     export interface ResourceInfoRes {
-      resources?: Resource[]
-      paths?: Endpoint[]
+      resources?: Resource[];
+      paths?: Endpoint[];
     }
 
     export interface Resource {
-      name?: string                  // resource name
-      code?: string                  // resource code, unique identifier
+      name?: string;                 // resource name
+      code?: string;                 // resource code, unique identifier
     }
 
     export interface Endpoint {
-      type?: string                  // access scope type: PROTECTED/PUBLIC
-      url?: string                   // endpoint url
-      group?: string                 // app name
-      desc?: string                  // description of the endpoint
-      resCode?: string               // resource code
-      method?: string                // http method
+      type?: string;                 // access scope type: PROTECTED/PUBLIC
+      url?: string;                  // endpoint url
+      group?: string;                // app name
+      desc?: string;                 // description of the endpoint
+      resCode?: string;              // resource code
+      method?: string;               // http method
     }
     ```
 

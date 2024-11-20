@@ -26,18 +26,18 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface LoginReq {
-      username?: string
-      password?: string
+      username?: string;
+      password?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: string                  // response data
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: string;                 // response data
     }
     ```
 
@@ -96,17 +96,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface RegisterReq {
-      username?: string
-      password?: string
+      username?: string;
+      password?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -157,18 +157,18 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface AddUserParam {
-      username?: string
-      password?: string
-      roleNo?: string
+      username?: string;
+      password?: string;
+      roleNo?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -240,51 +240,51 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListUserReq {
-      username?: string
-      roleNo?: string
-      isDisabled?: number
-      paging?: Paging
+      username?: string;
+      roleNo?: string;
+      isDisabled?: number;
+      paging?: Paging;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: PageRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: PageRes;
     }
 
     export interface PageRes {
-      paging?: Paging
-      payload?: UserInfo[]
+      paging?: Paging;
+      payload?: UserInfo[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface UserInfo {
-      id?: number
-      username?: string
-      roleName?: string
-      roleNo?: string
-      userNo?: string
-      reviewStatus?: string
-      isDisabled?: number
-      createTime?: number
-      createBy?: string
-      updateTime?: number
-      updateBy?: string
+      id?: number;
+      username?: string;
+      roleName?: string;
+      roleNo?: string;
+      userNo?: string;
+      reviewStatus?: string;
+      isDisabled?: number;
+      createTime?: number;
+      createBy?: string;
+      updateTime?: number;
+      updateBy?: string;
     }
     ```
 
@@ -336,18 +336,18 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface AdminUpdateUserReq {
-      userNo?: string
-      roleNo?: string
-      isDisabled?: number
+      userNo?: string;
+      roleNo?: string;
+      isDisabled?: number;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -397,17 +397,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface AdminReviewUserReq {
-      userId?: number
-      reviewStatus?: string
+      userId?: number;
+      reviewStatus?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -459,19 +459,19 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: UserInfoRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: UserInfoRes;
     }
 
     export interface UserInfoRes {
-      id?: number
-      username?: string
-      roleName?: string
-      roleNo?: string
-      userNo?: string
-      registerDate?: string
+      id?: number;
+      username?: string;
+      roleName?: string;
+      roleNo?: string;
+      userNo?: string;
+      registerDate?: string;
     }
     ```
 
@@ -521,17 +521,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface UpdatePasswordReq {
-      prevPassword?: string
-      newPassword?: string
+      prevPassword?: string;
+      newPassword?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -581,17 +581,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ExchangeTokenReq {
-      token?: string
+      token?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: string                  // response data
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: string;                 // response data
     }
     ```
 
@@ -646,19 +646,19 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: UserInfoBrief
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: UserInfoBrief;
     }
 
     export interface UserInfoBrief {
-      id?: number
-      username?: string
-      roleName?: string
-      roleNo?: string
-      userNo?: string
-      registerDate?: string
+      id?: number;
+      username?: string;
+      roleName?: string;
+      roleNo?: string;
+      userNo?: string;
+      registerDate?: string;
     }
     ```
 
@@ -724,44 +724,44 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListAccessLogReq {
-      paging?: Paging
+      paging?: Paging;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: PageRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: PageRes;
     }
 
     export interface PageRes {
-      paging?: Paging
-      payload?: ListedAccessLog[]
+      paging?: Paging;
+      payload?: ListedAccessLog[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface ListedAccessLog {
-      id?: number
-      userAgent?: string
-      ipAddress?: string
-      username?: string
-      url?: string
-      accessTime?: number
-      success?: boolean
+      id?: number;
+      userAgent?: string;
+      ipAddress?: string;
+      username?: string;
+      url?: string;
+      accessTime?: number;
+      success?: boolean;
     }
     ```
 
@@ -812,17 +812,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface GenUserKeyReq {
-      password?: string
-      keyName?: string
+      password?: string;
+      keyName?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -886,43 +886,43 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListUserKeysReq {
-      paging?: Paging
-      name?: string
+      paging?: Paging;
+      name?: string;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: PageRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: PageRes;
     }
 
     export interface PageRes {
-      paging?: Paging
-      payload?: ListedUserKey[]
+      paging?: Paging;
+      payload?: ListedUserKey[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface ListedUserKey {
-      id?: number
-      secretKey?: string
-      name?: string
-      expirationTime?: number
-      createTime?: number
+      id?: number;
+      secretKey?: string;
+      name?: string;
+      expirationTime?: number;
+      createTime?: number;
     }
     ```
 
@@ -972,16 +972,16 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface DeleteUserKeyReq {
-      userKeyId?: number
+      userKeyId?: number;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -1031,17 +1031,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface CreateResReq {
-      name?: string
-      code?: string
+      name?: string;
+      code?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -1090,16 +1090,16 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface DeleteResourceReq {
-      resCode?: string
+      resCode?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -1149,15 +1149,15 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ResBrief[]
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ResBrief[];
     }
 
     export interface ResBrief {
-      code?: string
-      name?: string
+      code?: string;
+      name?: string;
     }
     ```
 
@@ -1223,44 +1223,44 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListResReq {
-      paging?: Paging
+      paging?: Paging;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ListResResp
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ListResResp;
     }
 
     export interface ListResResp {
-      paging?: Paging
-      payload?: WRes[]
+      paging?: Paging;
+      payload?: WRes[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface WRes {
-      id?: number
-      code?: string
-      name?: string
-      createTime?: number
-      createBy?: string
-      updateTime?: number
-      updateBy?: string
+      id?: number;
+      code?: string;
+      name?: string;
+      createTime?: number;
+      createBy?: string;
+      updateTime?: number;
+      updateBy?: string;
     }
     ```
 
@@ -1309,15 +1309,15 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ResBrief[]
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ResBrief[];
     }
 
     export interface ResBrief {
-      code?: string
-      name?: string
+      code?: string;
+      name?: string;
     }
     ```
 
@@ -1365,15 +1365,15 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ResBrief[]
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ResBrief[];
     }
 
     export interface ResBrief {
-      code?: string
-      name?: string
+      code?: string;
+      name?: string;
     }
     ```
 
@@ -1423,17 +1423,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface AddRoleResReq {
-      roleNo?: string
-      resCode?: string
+      roleNo?: string;
+      resCode?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -1483,17 +1483,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface RemoveRoleResReq {
-      roleNo?: string
-      resCode?: string
+      roleNo?: string;
+      resCode?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -1542,16 +1542,16 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface AddRoleReq {
-      name?: string
+      name?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -1616,44 +1616,44 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListRoleReq {
-      paging?: Paging
+      paging?: Paging;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ListRoleResp
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ListRoleResp;
     }
 
     export interface ListRoleResp {
-      payload?: WRole[]
-      paging?: Paging
+      payload?: WRole[];
+      paging?: Paging;
     }
 
     export interface WRole {
-      id?: number
-      roleNo?: string
-      name?: string
-      createTime?: number
-      createBy?: string
-      updateTime?: number
-      updateBy?: string
+      id?: number;
+      roleNo?: string;
+      name?: string;
+      createTime?: number;
+      createBy?: string;
+      updateTime?: number;
+      updateBy?: string;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
@@ -1702,15 +1702,15 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: RoleBrief[]
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: RoleBrief[];
     }
 
     export interface RoleBrief {
-      roleNo?: string
-      name?: string
+      roleNo?: string;
+      name?: string;
     }
     ```
 
@@ -1774,43 +1774,43 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListRoleResReq {
-      paging?: Paging
-      roleNo?: string
+      paging?: Paging;
+      roleNo?: string;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ListRoleResResp
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ListRoleResResp;
     }
 
     export interface ListRoleResResp {
-      paging?: Paging
-      payload?: ListedRoleRes[]
+      paging?: Paging;
+      payload?: ListedRoleRes[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface ListedRoleRes {
-      id?: number
-      resCode?: string
-      resName?: string
-      createTime?: number
-      createBy?: string
+      id?: number;
+      resCode?: string;
+      resName?: string;
+      createTime?: number;
+      createBy?: string;
     }
     ```
 
@@ -1863,22 +1863,22 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface RoleInfoReq {
-      roleNo?: string
+      roleNo?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: RoleInfoResp
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: RoleInfoResp;
     }
 
     export interface RoleInfoResp {
-      roleNo?: string
-      name?: string
+      roleNo?: string;
+      name?: string;
     }
     ```
 
@@ -1952,52 +1952,52 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListPathReq {
-      resCode?: string
-      pgroup?: string
-      url?: string
-      ptype?: string                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-      paging?: Paging
+      resCode?: string;
+      pgroup?: string;
+      url?: string;
+      ptype?: string;                // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+      paging?: Paging;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ListPathResp
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ListPathResp;
     }
 
     export interface ListPathResp {
-      paging?: Paging
-      payload?: WPath[]
+      paging?: Paging;
+      payload?: WPath[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface WPath {
-      id?: number
-      pgroup?: string
-      pathNo?: string
-      method?: string
-      desc?: string
-      url?: string
-      ptype?: string                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-      createTime?: number
-      createBy?: string
-      updateTime?: number
-      updateBy?: string
+      id?: number;
+      pgroup?: string;
+      pathNo?: string;
+      method?: string;
+      desc?: string;
+      url?: string;
+      ptype?: string;                // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+      createTime?: number;
+      createBy?: string;
+      updateTime?: number;
+      updateBy?: string;
     }
     ```
 
@@ -2048,17 +2048,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface BindPathResReq {
-      pathNo?: string
-      resCode?: string
+      pathNo?: string;
+      resCode?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -2108,17 +2108,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface UnbindPathResReq {
-      pathNo?: string
-      resCode?: string
+      pathNo?: string;
+      resCode?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -2167,16 +2167,16 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface DeletePathReq {
-      pathNo?: string
+      pathNo?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -2227,18 +2227,18 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface UpdatePathReq {
-      type?: string                  // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-      pathNo?: string
-      group?: string
+      type?: string;                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+      pathNo?: string;
+      group?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -2300,33 +2300,33 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface FindUserReq {
-      userId?: number
-      userNo?: string
-      username?: string
+      userId?: number;
+      userNo?: string;
+      username?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: UserInfo
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: UserInfo;
     }
 
     export interface UserInfo {
-      id?: number
-      username?: string
-      roleName?: string
-      roleNo?: string
-      userNo?: string
-      reviewStatus?: string
-      isDisabled?: number
-      createTime?: number
-      createBy?: string
-      updateTime?: number
-      updateBy?: string
+      id?: number;
+      username?: string;
+      roleName?: string;
+      roleNo?: string;
+      userNo?: string;
+      reviewStatus?: string;
+      isDisabled?: number;
+      createTime?: number;
+      createBy?: string;
+      updateTime?: number;
+      updateBy?: string;
     }
     ```
 
@@ -2374,10 +2374,10 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: number                  // response data
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: number;                 // response data
     }
     ```
 
@@ -2428,21 +2428,21 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface FetchNameByUserNoReq {
-      userNos?: string[]
+      userNos?: string[];
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: FetchUsernamesRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: FetchUsernamesRes;
     }
 
     export interface FetchUsernamesRes {
-      userNoToUsername?: map[string]string
+      userNoToUsername?: map[string]string;
     }
     ```
 
@@ -2503,31 +2503,31 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface FetchUsersWithRoleReq {
-      roleNo?: string
+      roleNo?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: UserInfo[]
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: UserInfo[];
     }
 
     export interface UserInfo {
-      id?: number
-      username?: string
-      roleName?: string
-      roleNo?: string
-      userNo?: string
-      reviewStatus?: string
-      isDisabled?: number
-      createTime?: number
-      createBy?: string
-      updateTime?: number
-      updateBy?: string
+      id?: number;
+      username?: string;
+      roleName?: string;
+      roleNo?: string;
+      userNo?: string;
+      reviewStatus?: string;
+      isDisabled?: number;
+      createTime?: number;
+      createBy?: string;
+      updateTime?: number;
+      updateBy?: string;
     }
     ```
 
@@ -2588,31 +2588,31 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface FetchUserWithResourceReq {
-      resourceCode?: string
+      resourceCode?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: UserInfo[]
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: UserInfo[];
     }
 
     export interface UserInfo {
-      id?: number
-      username?: string
-      roleName?: string
-      roleNo?: string
-      userNo?: string
-      reviewStatus?: string
-      isDisabled?: number
-      createTime?: number
-      createBy?: string
-      updateTime?: number
-      updateBy?: string
+      id?: number;
+      username?: string;
+      roleName?: string;
+      roleNo?: string;
+      userNo?: string;
+      reviewStatus?: string;
+      isDisabled?: number;
+      createTime?: number;
+      createBy?: string;
+      updateTime?: number;
+      updateBy?: string;
     }
     ```
 
@@ -2662,17 +2662,17 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface CreateResReq {
-      name?: string
-      code?: string
+      name?: string;
+      code?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -2724,23 +2724,23 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface TestResAccessReq {
-      roleNo?: string
-      url?: string
-      method?: string
+      roleNo?: string;
+      url?: string;
+      method?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: TestResAccessResp
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: TestResAccessResp;
     }
 
     export interface TestResAccessResp {
-      valid?: boolean
+      valid?: boolean;
     }
     ```
 
@@ -2794,21 +2794,21 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface CreatePathReq {
-      type?: string                  // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-      url?: string
-      group?: string
-      method?: string
-      desc?: string
-      resCode?: string
+      type?: string;                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+      url?: string;
+      group?: string;
+      method?: string;
+      desc?: string;
+      resCode?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -2874,45 +2874,45 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListSitePasswordReq {
-      alias?: string
-      site?: string
-      username?: string
-      paging?: Paging
+      alias?: string;
+      site?: string;
+      username?: string;
+      paging?: Paging;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: PageRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: PageRes;
     }
 
     export interface PageRes {
-      paging?: Paging
-      payload?: ListSitePasswordRes[]
+      paging?: Paging;
+      payload?: ListSitePasswordRes[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface ListSitePasswordRes {
-      recordId?: string
-      site?: string
-      alias?: string
-      username?: string
-      createTime?: number
+      recordId?: string;
+      site?: string;
+      alias?: string;
+      username?: string;
+      createTime?: number;
     }
     ```
 
@@ -2966,20 +2966,20 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface AddSitePasswordReq {
-      site?: string
-      alias?: string
-      username?: string
-      sitePassword?: string
-      loginPassword?: string
+      site?: string;
+      alias?: string;
+      username?: string;
+      sitePassword?: string;
+      loginPassword?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -3028,16 +3028,16 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface RemoveSitePasswordRes {
-      recordId?: string
+      recordId?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -3089,22 +3089,22 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface DecryptSitePasswordReq {
-      loginPassword?: string
-      recordId?: string
+      loginPassword?: string;
+      recordId?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: DecryptSitePasswordRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: DecryptSitePasswordRes;
     }
 
     export interface DecryptSitePasswordRes {
-      decrypted?: string
+      decrypted?: string;
     }
     ```
 
@@ -3156,18 +3156,18 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface EditSitePasswordReq {
-      recordId?: string
-      site?: string
-      alias?: string
+      recordId?: string;
+      site?: string;
+      alias?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -3218,18 +3218,18 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface CreateNotificationReq {
-      title?: string
-      message?: string
-      receiverUserNos?: string[]
+      title?: string;
+      message?: string;
+      receiverUserNos?: string[];
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -3282,23 +3282,23 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface QueryNotificationReq {
-      page?: Paging
-      status?: string
+      page?: Paging;
+      status?: string;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -3343,9 +3343,9 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -3393,16 +3393,16 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface OpenNotificationReq {
-      notifiNo?: string
+      notifiNo?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -3451,16 +3451,16 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface OpenNotificationReq {
-      notifiNo?: string
+      notifiNo?: string;
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 

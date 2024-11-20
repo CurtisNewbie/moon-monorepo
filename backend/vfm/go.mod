@@ -11,8 +11,9 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.13
 	github.com/curtisnewbie/mini-fstore v0.1.18
-	github.com/curtisnewbie/miso v0.1.12-beta.2.0.20241114060435-b8e8d2b8f4cc
+	github.com/curtisnewbie/miso v0.1.12
 	github.com/curtisnewbie/user-vault v0.0.23
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	golang.org/x/net v0.25.0
 )
@@ -30,7 +31,6 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
-	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

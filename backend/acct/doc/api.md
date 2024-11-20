@@ -45,55 +45,55 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListCashFlowReq {
-      paging?: Paging
-      direction?: string             // Flow Direction: IN / OUT
-      transTimeStart?: number        // Transaction Time Range Start
-      transTimeEnd?: number          // Transaction Time Range End
-      transId?: string               // Transaction ID
-      category?: string              // Category Code
-      minAmt?: string                // Minimum amount
+      paging?: Paging;
+      direction?: string;            // Flow Direction: IN / OUT
+      transTimeStart?: number;       // Transaction Time Range Start
+      transTimeEnd?: number;         // Transaction Time Range End
+      transId?: string;              // Transaction ID
+      category?: string;             // Category Code
+      minAmt?: string;               // Minimum amount
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: PageRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: PageRes;
     }
 
     export interface PageRes {
-      paging?: Paging
-      payload?: ListCashFlowRes[]
+      paging?: Paging;
+      payload?: ListCashFlowRes[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface ListCashFlowRes {
-      direction?: string             // Flow Direction: IN / OUT
-      transTime?: number             // Transaction Time
-      transId?: string               // Transaction ID
-      counterparty?: string          // Counterparty of the transaction
-      paymentMethod?: string         // Payment Method
-      amount?: string                // Amount
-      currency?: string              // Currency
-      extra?: string                 // Extra Information
-      category?: string              // Category Code
-      categoryName?: string          // Category Name
-      remark?: string                // Remark
-      createdAt?: number             // Create Time
+      direction?: string;            // Flow Direction: IN / OUT
+      transTime?: number;            // Transaction Time
+      transId?: string;              // Transaction ID
+      counterparty?: string;         // Counterparty of the transaction
+      paymentMethod?: string;        // Payment Method
+      amount?: string;               // Amount
+      currency?: string;             // Currency
+      extra?: string;                // Extra Information
+      category?: string;             // Category Code
+      categoryName?: string;         // Category Name
+      remark?: string;               // Remark
+      createdAt?: number;            // Create Time
     }
     ```
 
@@ -138,9 +138,9 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -184,10 +184,10 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: string[]                // response data
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: string[];               // response data
     }
     ```
 
@@ -251,44 +251,44 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ApiListStatisticsReq {
-      paging?: Paging
-      aggType?: string               // Aggregation Type.
-      aggRange?: string              // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
-      currency?: string              // Currency
+      paging?: Paging;
+      aggType?: string;              // Aggregation Type.
+      aggRange?: string;             // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+      currency?: string;             // Currency
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: PageRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: PageRes;
     }
 
     export interface PageRes {
-      paging?: Paging
-      payload?: ApiListStatisticsRes[]
+      paging?: Paging;
+      payload?: ApiListStatisticsRes[];
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
 
     export interface ApiListStatisticsRes {
-      aggType?: string               // Aggregation Type.
-      aggRange?: string              // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
-      aggValue?: string              // Aggregation Value.
-      currency?: string              // Currency
+      aggType?: string;              // Aggregation Type.
+      aggRange?: string;             // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+      aggValue?: string;             // Aggregation Value.
+      currency?: string;             // Currency
     }
     ```
 
@@ -343,25 +343,25 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ApiPlotStatisticsReq {
-      startTime?: number             // Start time
-      endTime?: number               // End time
-      aggType?: string               // Aggregation Type.
-      currency?: string              // Currency
+      startTime?: number;            // Start time
+      endTime?: number;              // End time
+      aggType?: string;              // Aggregation Type.
+      currency?: string;             // Currency
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ApiPlotStatisticsRes[]
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ApiPlotStatisticsRes[];
     }
 
     export interface ApiPlotStatisticsRes {
-      aggRange?: string              // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
-      aggValue?: string              // Aggregation Value.
+      aggRange?: string;             // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+      aggValue?: string;             // Aggregation Value.
     }
     ```
 
@@ -418,29 +418,29 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface GnResp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ResourceInfoRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ResourceInfoRes;
     }
 
     export interface ResourceInfoRes {
-      resources?: Resource[]
-      paths?: Endpoint[]
+      resources?: Resource[];
+      paths?: Endpoint[];
     }
 
     export interface Resource {
-      name?: string                  // resource name
-      code?: string                  // resource code, unique identifier
+      name?: string;                 // resource name
+      code?: string;                 // resource code, unique identifier
     }
 
     export interface Endpoint {
-      type?: string                  // access scope type: PROTECTED/PUBLIC
-      url?: string                   // endpoint url
-      group?: string                 // app name
-      desc?: string                  // description of the endpoint
-      resCode?: string               // resource code
-      method?: string                // http method
+      type?: string;                 // access scope type: PROTECTED/PUBLIC
+      url?: string;                  // endpoint url
+      group?: string;                // app name
+      desc?: string;                 // description of the endpoint
+      resCode?: string;              // resource code
+      method?: string;               // http method
     }
     ```
 

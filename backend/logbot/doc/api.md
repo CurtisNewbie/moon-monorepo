@@ -23,23 +23,23 @@
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListErrorLogReq {
-      app?: string
-      page?: Paging
+      app?: string;
+      page?: Paging;
     }
 
     export interface Paging {
-      limit?: number                 // page limit
-      page?: number                  // page number, 1-based
-      total?: number                 // total count
+      limit?: number;                // page limit
+      page?: number;                 // page number, 1-based
+      total?: number;                // total count
     }
     ```
 
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
     }
     ```
 
@@ -95,29 +95,29 @@
   - JSON Response Object In TypeScript:
     ```ts
     export interface GnResp {
-      errorCode?: string             // error code
-      msg?: string                   // message
-      error?: boolean                // whether the request was successful
-      data?: ResourceInfoRes
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: ResourceInfoRes;
     }
 
     export interface ResourceInfoRes {
-      resources?: Resource[]
-      paths?: Endpoint[]
+      resources?: Resource[];
+      paths?: Endpoint[];
     }
 
     export interface Resource {
-      name?: string                  // resource name
-      code?: string                  // resource code, unique identifier
+      name?: string;                 // resource name
+      code?: string;                 // resource code, unique identifier
     }
 
     export interface Endpoint {
-      type?: string                  // access scope type: PROTECTED/PUBLIC
-      url?: string                   // endpoint url
-      group?: string                 // app name
-      desc?: string                  // description of the endpoint
-      resCode?: string               // resource code
-      method?: string                // http method
+      type?: string;                 // access scope type: PROTECTED/PUBLIC
+      url?: string;                  // endpoint url
+      group?: string;                // app name
+      desc?: string;                 // description of the endpoint
+      resCode?: string;              // resource code
+      method?: string;               // http method
     }
     ```
 
