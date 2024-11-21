@@ -9,6 +9,7 @@ export interface ListBrowseRecordRes {
   fileKey?: string;
   name?: string;
   thumbnailToken?: string;
+  deleted?: boolean;
 }
 
 @Component({
@@ -19,17 +20,18 @@ export interface ListBrowseRecordRes {
     </div>
     <mat-divider></mat-divider>
     <div class="container m-4">
-      <cdk-virtual-scroll-viewport itemSize="50" style="height: 80vh">
+      <cdk-virtual-scroll-viewport itemSize="172" style="height: 80vh">
         <div *cdkVirtualFor="let it of dat">
           <mat-card class="mat-elevation-z2 m-3">
             <div>
               <div class="row">
                 <div class="col">
                   <img
+                    style="height:120px"
                     class="m-2 mat-elevation-z8 p-3"
-                    style="max-height:120px"
-                    *ngIf="it.thumbnailToken"
-                    [src]="thumbnailUrl(it)"
+                    [src]="
+                      it.thumbnailToken ? thumbnailUrl(it) : './assets/text.png'
+                    "
                   />
                 </div>
                 <div class="col">
@@ -52,14 +54,15 @@ export interface ListBrowseRecordRes {
                       (ngModelChange)="it.value = $event"
                     />
                   </mat-form-field>
-                  <div class="m-2" matLine>
+                  <div class="col" *ngIf="it.deleted">
+                    <span class="status-red"><b>Deleted</b></span>
+                  </div>
+                  <div class="m-2" matLine *ngIf="!it.deleted">
                     <button mat-icon-button (click)="goToFile(it.fileKey)">
                       Find File <i class="bi bi-search"></i>
                     </button>
                   </div>
                 </div>
-                <div class="col"></div>
-                <div class="col"></div>
               </div>
             </div>
           </mat-card>

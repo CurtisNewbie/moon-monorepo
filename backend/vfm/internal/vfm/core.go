@@ -1826,15 +1826,16 @@ func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user comm
 }
 
 type FileFstoreInfo struct {
-	Name         string
-	Uuid         string
-	FstoreFileId string
-	Thumbnail    string
+	Name           string
+	Uuid           string
+	FstoreFileId   string
+	Thumbnail      string
+	IsLogicDeleted bool
 }
 
 func queryFileFstoreInfo(tx *gorm.DB, fileKeys []string) (map[string]FileFstoreInfo, error) {
 	var rec []FileFstoreInfo
-	e := tx.Select("uuid, name", "fstore_file_id", "thumbnail").
+	e := tx.Select("uuid, name", "fstore_file_id", "thumbnail", "is_logic_deleted").
 		Table("file_info").
 		Where("uuid IN ?", fileKeys).
 		Scan(&rec).Error

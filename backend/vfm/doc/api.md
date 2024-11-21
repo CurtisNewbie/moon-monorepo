@@ -3296,6 +3296,7 @@
       - "fileKey": (string) 
       - "name": (string) 
       - "thumbnailToken": (string) 
+      - "deleted": (bool) 
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8086/history/list-browse-history'
@@ -3315,6 +3316,7 @@
       fileKey?: string;
       name?: string;
       thumbnailToken?: string;
+      deleted?: boolean;
     }
     ```
 

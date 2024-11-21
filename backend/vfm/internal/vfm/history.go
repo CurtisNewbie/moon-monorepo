@@ -23,6 +23,7 @@ type ListBrowseRecordRes struct {
 	FileKey        string
 	Name           string
 	ThumbnailToken string
+	Deleted        bool
 }
 
 type BrowseRecord struct {
@@ -146,25 +147,23 @@ func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBro
 	}
 
 	res := util.MapTo(l, func(br BrowseRecord) ListBrowseRecordRes {
-		var name string = ""
-		var thumbnailToken string = ""
+		r := ListBrowseRecordRes{
+			Time:    br.Time,
+			FileKey: br.FileKey,
+		}
 		if fi, ok := ffi[br.FileKey]; ok {
-			name = fi.Name
-			if fi.Thumbnail != "" {
+			r.Name = fi.Name
+			if !fi.IsLogicDeleted && fi.Thumbnail != "" {
 				tkn, err := GetFstoreTmpToken(rail, fi.Thumbnail, "")
 				if err != nil {
 					rail.Errorf("Failed to generate browse history thumbnail token, thumbnail_file_id: %v, %v", fi.Thumbnail, err)
 				} else {
-					thumbnailToken = tkn
+					r.ThumbnailToken = tkn
 				}
 			}
+			r.Deleted = fi.IsLogicDeleted
 		}
-		return ListBrowseRecordRes{
-			Time:           br.Time,
-			FileKey:        br.FileKey,
-			Name:           name,
-			ThumbnailToken: thumbnailToken,
-		}
+		return r
 	})
 	sort.Slice(res, func(i, j int) bool {
 		return res[j].Time.UnixMilli() < res[i].Time.UnixMilli()
