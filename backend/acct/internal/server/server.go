@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/curtisnewbie/acct/internal/flow"
-	"github.com/curtisnewbie/acct/internal/schema"
 	"github.com/curtisnewbie/acct/internal/web"
 	"github.com/curtisnewbie/miso/miso"
 )
@@ -17,8 +16,6 @@ func init() {
 }
 
 func BootstrapServer() {
-	// automatic MySQL schema migration using svc
-	schema.EnableSchemaMigrate()
 	miso.PreServerBootstrap(PreServerBootstrap)
 	miso.PostServerBootstrapped(PostServerBootstrap)
 	miso.BootstrapServer(os.Args)

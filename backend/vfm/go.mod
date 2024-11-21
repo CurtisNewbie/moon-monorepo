@@ -23,7 +23,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bsm/redislock v0.0.0-20191219095057-3d76f17a9f1e // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/curtisnewbie/svc v0.0.8 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect

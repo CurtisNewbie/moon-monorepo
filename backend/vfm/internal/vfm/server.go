@@ -7,7 +7,6 @@ import (
 	"github.com/curtisnewbie/miso/middleware/logbot"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/vfm/internal/schema"
 )
 
 var (
@@ -16,7 +15,6 @@ var (
 
 func PrepareServer() {
 	common.LoadBuiltinPropagationKeys()
-	schema.EnableSchemaMigrate()
 	logbot.EnableLogbotErrLogReport()
 	miso.PreServerBootstrap(SubscribeBinlogChanges)
 	miso.PreServerBootstrap(PrintVersion)
