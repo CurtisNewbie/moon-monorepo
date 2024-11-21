@@ -48,7 +48,7 @@ export interface ListCashFlowRes {
         />
       </div>
 
-      <div class="d-grid gap-2 d-md-flex justify-content-md-end m-3">
+      <div class="d-grid gap-2 d-flex justify-content-end m-3">
         <button
           class="ml-2 mr-2"
           mat-raised-button
@@ -161,7 +161,7 @@ export interface ListCashFlowRes {
       <mat-date-range-picker #picker></mat-date-range-picker>
     </mat-form-field>
 
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
+    <div class="d-grid gap-2 d-flex justify-content-end mb-3">
       <button mat-raised-button class="m-2" (click)="showWechatImport()">
         Import Wechat Cashflows
       </button>

@@ -8,7 +8,7 @@
         <input type="file" class="form-control" #uploadFileInput (change)="onFileSelected($event.target.files)" />
     </div>
 
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end m-3">
+    <div class="d-grid gap-2 d-flex justify-content-end m-3">
         <button class="ml-2 mr-2" mat-raised-button [disabled]="!file" (click)="upload()">Upload</button>
     </div>
 </div>
@@ -23,7 +23,7 @@
     </mat-form-field>
 </div>
 
-<div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
+<div class="d-grid gap-2 d-flex justify-content-end mb-3">
     <button mat-icon-button class="m-1 icon-button-large" (click)="showUploadPanel = !showUploadPanel"><i
             class="bi bi-cloud-upload"></i></button>
     <button mat-icon-button class="m-1 icon-button-large" (click)="fetchList()"><i

@@ -85,7 +85,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     "size",
     "operation",
   ];
-  readonly mobileColumns = ["fileType", "thumbnail", "name", "operation"];
+  readonly mobileColumns = ["thumbnail", "name", "operation"];
 
   allFileTypeOpts: Option<FileType>[] = [];
   guessFileThumbnail = guessFileThumbnail;

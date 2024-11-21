@@ -106,7 +106,7 @@ export interface ApiListStatisticsRes {
       </div>
     </div>
 
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
+    <div class="d-grid gap-2 d-flex justify-content-end mb-3">
       <button
         mat-icon-button
         class="m-1 icon-button-large"

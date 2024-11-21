@@ -6,7 +6,7 @@
             <mat-label>Username</mat-label>
             <input matInput type="text" [(ngModel)]="grantedTo" (keyup)="isEnterPressed($event) && grantAccess()">
         </mat-form-field>
-        <div class="d-flex justify-content-md-end">
+        <div class="d-flex justify-content-end">
             <button mat-button (click)="grantAccess()">Submit</button>
         </div>
     </div>

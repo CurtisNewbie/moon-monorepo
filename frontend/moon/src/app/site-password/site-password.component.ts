@@ -1,10 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import {
-  ApplicationInitStatus,
-  Component,
-  Inject,
-  OnInit,
-} from "@angular/core";
+import { Component, Inject, OnInit } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -13,6 +8,7 @@ import {
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { isEnterKey } from "src/common/condition";
 import { ConfirmDialog } from "src/common/dialog";
+import { Env } from "src/common/env-util";
 import { Paging, PagingController } from "src/common/paging";
 
 export interface EditSitePasswordReq {
@@ -70,7 +66,7 @@ export interface RemoveSitePasswordRes {
           <mat-label>Site</mat-label>
           <input matInput [(ngModel)]="data.site" />
         </mat-form-field>
-        <div class="justify-content-md-end d-md-flex">
+        <div class="justify-content-end d-flex">
           <button
             mat-raised-button
             class="mt-2"
@@ -150,7 +146,7 @@ export class EditSitePasswordDialogComponent {
             "
           />
         </mat-form-field>
-        <div class="justify-content-md-end d-md-flex">
+        <div class="justify-content-end d-flex">
           <button
             mat-raised-button
             class="mt-2"
@@ -216,7 +212,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
   template: `
     <div>
       <h3 class="mt-2 mb-3">Website Passwords</h3>
-      <div class="justify-content-md-end d-md-flex">
+      <div class="justify-content-end d-flex">
         <button mat-raised-button (click)="togglePanel()">
           Add Site Passowrd
         </button>
@@ -262,7 +258,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
         />
       </mat-form-field>
 
-      <div class="justify-content-md-end d-md-flex">
+      <div class="justify-content-end d-flex">
         <button mat-raised-button class="mt-2" (click)="addSitePassword()">
           Submit
         </button>
@@ -321,7 +317,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
         ></button>
       </mat-form-field>
 
-      <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
+      <div class="d-grid gap-2 d-flex justify-content-end mb-3">
         <button
           mat-icon-button
           class="m-1 icon-button-large"
@@ -371,14 +367,6 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
             <button
               class="small-btn m-2"
               mat-raised-button
-              (click)="$event.stopPropagation() || preview(u)"
-            >
-              Preview
-            </button>
-
-            <button
-              class="small-btn m-2"
-              mat-raised-button
               (click)="$event.stopPropagation() || removeSitePassword(u)"
             >
               Remove
@@ -394,30 +382,11 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
           </td>
         </ng-container>
 
-        <tr
-          mat-header-row
-          *matHeaderRowDef="[
-            'recordId',
-            'alias',
-            'site',
-            'username',
-            'createTime',
-            'operation'
-          ]"
-        ></tr>
+        <tr mat-header-row *matHeaderRowDef="col"></tr>
         <tr
           mat-row
-          *matRowDef="
-            let row;
-            columns: [
-              'recordId',
-              'alias',
-              'site',
-              'username',
-              'createTime',
-              'operation'
-            ]
-          "
+          *matRowDef="let row; columns: col"
+          (click)="$event.stopPropagation() || preview(row)"
         ></tr>
       </table>
 
@@ -429,7 +398,12 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
   styles: [],
 })
 export class SitePasswordComponent implements OnInit {
+  readonly col = this.env.isMobile()
+    ? ["alias", "site", "username"]
+    : ["recordId", "alias", "site", "username", "createTime", "operation"];
+
   constructor(
+    public env: Env,
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private dialog: MatDialog,
