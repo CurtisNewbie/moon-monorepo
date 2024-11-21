@@ -12,7 +12,7 @@ import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.compone
 import { NavigationService } from "../navigation.service";
 import { Toaster } from "../notification.service";
 import { NavType } from "../routes";
-import { isMobile } from "src/common/env-util";
+import { Env } from "src/common/env-util";
 import { GalleryAccessComponent } from "../gallery-access/gallery-access.component";
 import { HttpClient } from "@angular/common/http";
 
@@ -36,14 +36,13 @@ export class GalleryComponent implements OnInit {
     "updateTime",
     "createBy",
   ];
-  readonly MOBILE_COLUMNS = ["galleryNo", "name", "userNo"];
+  readonly MOBILE_COLUMNS = ["name", "userNo"];
 
   @ViewChild("paginator", { static: true })
   paginator: MatPaginator;
 
   pagingController: PagingController;
   galleries: Gallery[] = [];
-  isMobile: boolean = isMobile();
   expandedElement: Gallery = null;
   newGalleryName: string = "";
   showCreateGalleryDiv: boolean = false;
@@ -52,6 +51,7 @@ export class GalleryComponent implements OnInit {
   getExpandedEle = (row) => getExpanded(row, this.expandedElement);
 
   constructor(
+    public env: Env,
     private http: HttpClient,
     private toaster: Toaster,
     private navigation: NavigationService,

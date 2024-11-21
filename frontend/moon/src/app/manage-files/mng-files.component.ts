@@ -23,7 +23,6 @@ import { Toaster } from "../notification.service";
 import { animateElementExpanding, isIdEqual } from "../../animate/animate-util";
 import { FileInfoService, TokenType } from "../file-info.service";
 import { NavigationService } from "../navigation.service";
-import { isMobile } from "src/common/env-util";
 import { environment } from "src/environments/environment";
 import { ActivatedRoute } from "@angular/router";
 import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
@@ -50,6 +49,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { copyToClipboard } from "src/common/clipboard";
+import { Env } from "src/common/env-util";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -103,8 +103,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   pagingController: PagingController;
   /** progress string */
   progress: string = null;
-  /** whether current user is using mobile device */
-  isMobile: boolean = false;
   /** check if all files are selected */
   isAllSelected: boolean = false;
   /** selected file count */
@@ -117,10 +115,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   // isImage = (f: FileInfo): boolean => this._isImage(f);
   idEquals = isIdEqual;
 
-  // getExpandedEle = (row): FileInfo => getExpanded(row, this.curr, this.isMobile);
-  selectExpanded = (row): FileInfo => {
-    if (this.isMobile) return null;
-    // null means row is the expanded one, so we return null to make it collapsed
+  selectExpanded = (row: FileInfo)=> {
+    // if (this.env.isMobile()) return;
     this.curr = this.currId > -1 && row.id == this.currId ? null : { ...row };
     this.currId = this.curr ? this.curr.id : -1;
   };
@@ -209,7 +205,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     private http: HttpClient,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
-    private browseHistoryRecorder: BrowseHistoryRecorder
+    private browseHistoryRecorder: BrowseHistoryRecorder,
+    public env: Env
   ) {}
 
   ngDoCheck(): void {
@@ -224,7 +221,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   ngOnInit() {
     this.refreshLabel();
-    this.isMobile = isMobile();
 
     this.route.paramMap.subscribe((params) => {
       // vfolder
@@ -705,7 +701,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
               data: {
                 name: u.name,
                 url: getDownloadUrl(),
-                isMobile: this.isMobile,
                 rotate: false,
               },
             });
@@ -1123,7 +1118,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private _selectColumns() {
-    if (isMobile()) return this.mobileColumns;
+    if (this.env.isMobile()) return this.mobileColumns;
     return this.inFolderNo ? this.desktopFolderColumns : this.desktopColumns;
   }
 

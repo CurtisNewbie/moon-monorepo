@@ -6,7 +6,6 @@ import { Subscription } from "rxjs";
 export interface ImgViewerDialogData {
   name: string;
   url: string;
-  isMobile: boolean;
   rotate: boolean;
 }
 

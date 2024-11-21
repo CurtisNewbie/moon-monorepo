@@ -1,6 +1,5 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { Paging, PagingController } from "src/common/paging";
-import { environment } from "src/environments/environment";
 import {
   canPreview,
   guessFileThumbnail,
@@ -23,8 +22,8 @@ import {
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
-import { isMobile } from "src/common/env-util";
 import { isEnterKey } from "src/common/condition";
+import { Env } from "src/common/env-util";
 
 export interface VerFileHistoryDialogData {
   verFileId?: string;
@@ -215,9 +214,16 @@ export class VerFileHistoryComponent implements OnInit {
   isEnterPressed = isEnterKey;
   guessFileThumbnail = guessFileThumbnail;
   preview = (u) => {
-    preview(u, this.dialog, this.nav, this.fileService, isMobile(), () => {
-      this.dialogRef.close();
-    });
+    preview(
+      u,
+      this.dialog,
+      this.nav,
+      this.fileService,
+      this.env.isMobile(),
+      () => {
+        this.dialogRef.close();
+      }
+    );
   };
 
   constructor(
@@ -230,7 +236,8 @@ export class VerFileHistoryComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: VerFileHistoryDialogData,
     private fileService: FileInfoService,
     private dialog: MatDialog,
-    private nav: NavigationService
+    private nav: NavigationService,
+    public env: Env
   ) {}
 
   ngOnInit(): void {
@@ -495,7 +502,6 @@ export class VersionedFileComponent implements OnInit {
   updateVerFileId = "";
   updateVerFileName = "";
 
-  isMobile = false;
   progress: string = null;
   isUploading: boolean = false;
   uploadFileName: string = null;
@@ -504,7 +510,7 @@ export class VersionedFileComponent implements OnInit {
 
   guessFileThumbnail = guessFileThumbnail;
   preview = (u) => {
-    preview(u, this.dialog, this.nav, this.fileService, this.isMobile);
+    preview(u, this.dialog, this.nav, this.fileService, this.env.isMobile());
   };
 
   constructor(
@@ -512,12 +518,11 @@ export class VersionedFileComponent implements OnInit {
     private fileService: FileInfoService,
     private toaster: Toaster,
     private dialog: MatDialog,
-    private nav: NavigationService
+    private nav: NavigationService,
+    public env: Env
   ) {}
 
-  ngOnInit(): void {
-    this.isMobile = isMobile();
-  }
+  ngOnInit(): void {}
 
   fetch() {
     let req: ApiListVerFileReq = {
