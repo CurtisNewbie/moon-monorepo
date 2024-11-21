@@ -23,14 +23,14 @@
     </div>
     <div>
         <mat-tree [dataSource]="dirTreeDataSource" [treeControl]="dirTreeControl" class="tree">
-            <mat-nested-tree-node *matTreeNodeDef="let node; when: treeHasChild">
+            <mat-nested-tree-node *matTreeNodeDef="let node; when: dirTree.treeHasChild">
                 <li>
                     <div class="mat-tree-node">
-                        <button *ngIf="treeHasChild(0, node)" mat-icon-button matTreeNodeToggle>
+                        <button *ngIf="dirTree.treeHasChild(0, node)" mat-icon-button matTreeNodeToggle>
                             <i *ngIf="dirTreeControl.isExpanded(node)" class="bi bi-folder2-open"></i>
                             <i *ngIf="!dirTreeControl.isExpanded(node)" class="bi bi-folder-fill"></i>
                         </button>
-                        <button *ngIf="!treeHasChild(0, node)" mat-icon-button>
+                        <button *ngIf="!dirTree.treeHasChild(0, node)" mat-icon-button>
                             <i class="bi bi-folder2-open"></i>
                         </button>
                         <span (click)="selectDir(node)">/{{node.name}}</span>

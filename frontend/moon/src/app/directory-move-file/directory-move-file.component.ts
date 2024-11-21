@@ -4,12 +4,7 @@ import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
-
-export interface DirTopDownTreeNode {
-  fileKey?: string;
-  name?: string;
-  child?: DirTopDownTreeNode[];
-}
+import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
 
 type DfFile = {
   fileKey: string;
@@ -26,7 +21,6 @@ type Data = {
   styleUrls: ["./directory-move-file.component.css"],
 })
 export class DirectoryMoveFileComponent implements OnInit {
-
   /** name of dir that we may move file into */
   moveIntoDirName: string = null;
   moveIntoDirKey: string = null;
@@ -40,7 +34,8 @@ export class DirectoryMoveFileComponent implements OnInit {
     public dialogRef: MatDialogRef<DirectoryMoveFileComponent, Data>,
     @Inject(MAT_DIALOG_DATA) public dat: Data,
     private http: HttpClient,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public dirTree: DirTree
   ) {
     this.dirTreeDataSource.data = [];
   }
@@ -69,26 +64,9 @@ export class DirectoryMoveFileComponent implements OnInit {
   }
 
   fetchTopDownDirTree() {
-    this.http.get<any>(`/vfm/open/api/file/dir/top-down-tree`).subscribe({
-      next: (resp) => {
-        if (resp.error) {
-          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-          return;
-        }
-        let dat: DirTopDownTreeNode = resp.data;
-        this.dirTreeDataSource.data = [dat];
-      },
-      error: (err) => {
-        console.log(err);
-        this.snackBar.open("Request failed, unknown error", "ok", {
-          duration: 3000,
-        });
-      },
+    this.dirTree.fetchTopDownDirTree((dat) => {
+      this.dirTreeDataSource.data = [dat];
     });
-  }
-
-  treeHasChild(_: number, node: DirTopDownTreeNode) {
-    return !!node.child && node.child.length > 0;
   }
 
   selectDir(n) {
