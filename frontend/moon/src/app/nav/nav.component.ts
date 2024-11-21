@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { UserInfo } from "src/common/user-info";
 import { UserService } from "../user.service";
 import { copyToClipboard } from "src/common/clipboard";
-import { environment } from "src/environments/environment";
 import { PlatformNotificationService } from "../platform-notification.service";
 import { Toaster } from "../notification.service";
 import { HttpClient } from "@angular/common/http";

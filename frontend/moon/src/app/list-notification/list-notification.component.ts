@@ -1,11 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 
-import { environment } from "src/environments/environment";
 import { PagingController } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { PlatformNotificationService } from "../platform-notification.service";
 import { HttpClient } from "@angular/common/http";
+import { Env } from "src/common/env-util";
 
 export interface Notification {
   id: number;
@@ -23,14 +23,9 @@ export interface Notification {
   styleUrls: ["./list-notification.component.css"],
 })
 export class ListNotificationComponent implements OnInit {
-  readonly columns: string[] = [
-    "id",
-    "notifiNo",
-    "title",
-    "brief",
-    "status",
-    "createTime",
-  ];
+  readonly columns: string[] = this.env.isMobile()
+    ? ["title", "status", "createTime"]
+    : ["id", "notifiNo", "title", "brief", "status", "createTime"];
   query = {
     onlyInitMessage: true,
   };
@@ -40,7 +35,8 @@ export class ListNotificationComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
-    private platformNotification: PlatformNotificationService
+    private platformNotification: PlatformNotificationService,
+    public env: Env
   ) {}
 
   ngOnInit(): void {}

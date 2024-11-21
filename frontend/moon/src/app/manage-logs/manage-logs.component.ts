@@ -3,6 +3,7 @@ import { Paging, PagingController } from "src/common/paging";
 import { environment } from "src/environments/environment";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
+import { Env } from "src/common/env-util";
 
 export interface ListedErrorLog {
   id?: number;
@@ -31,14 +32,16 @@ export interface ListErrorLogResp {
   styleUrls: ["./manage-logs.component.css"],
 })
 export class ManageLogsComponent implements OnInit {
-  readonly tabcol = ["rtime", "app", "caller", "errMsg"];
+  readonly tabcol = this.env.isMobile()
+    ? ["rtime", "errMsg"]
+    : ["rtime", "app", "caller", "errMsg"];
 
   qryApp = "";
   pagingController: PagingController;
   tabdat = [];
   isEnter = isEnterKey;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, public env: Env) {}
 
   ngOnInit(): void {}
 

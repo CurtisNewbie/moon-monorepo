@@ -72,7 +72,7 @@
             </mat-form-field>
         </div>
     </div>
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
+    <div class="d-flex justify-content-end mb-3">
         <button mat-icon-button class="m-1 icon-button-large" (click)="fetchUserInfoList()"><i
                 class="bi bi-arrow-clockwise"></i></button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="resetSearchParam()"><i
@@ -138,11 +138,11 @@
 
 
         <ng-container matColumnDef="expandedElement">
-            <td mat-cell *matCellDef="let u" [attr.colspan]="COLUMNS_TO_BE_DISPLAYED.length">
+            <td mat-cell *matCellDef="let u" [attr.colspan]="COLUMNS.length">
                 <div class="element-detail" [@detailExpand]="idEquals(u, expandedElement) ? 'expanded' : 'collapsed'">
                     <ng-container *ngIf="expandedElement != null">
-                        <div class="row row-cols-lg-auto g-3 align-items-center">
-                            <div class="col-12">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Role</mat-label>
                                     <mat-select [(value)]="expandedElement.roleNo">
@@ -154,7 +154,7 @@
                                 </mat-form-field>
                             </div>
 
-                            <div class="col-12">
+                            <div>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Status</mat-label>
                                     <mat-select [(value)]="expandedElement.isDisabled">
@@ -165,14 +165,14 @@
                                 </mat-form-field>
                             </div>
 
-                            <div class="col-12">
+                            <div>
                                 <button mat-icon-button (click)="updateUserInfo()"> <i
                                         class="bi bi-floppy icon-button-large"></i> </button>
                                 <button mat-raised-button class="m-2" *ngIf="expandedIsDisabled"
                                     (click)="deleteUser()">Delete</button>
                             </div>
 
-                            <div *ngIf="expandedElement.reviewStatus == 'PENDING'" class="col-12">
+                            <div *ngIf="expandedElement.reviewStatus == 'PENDING'">
                                 <button mat-raised-button class="m-2"
                                     (click)="approveRegistration(expandedElement.id)">Approve
                                     Registration</button>
@@ -187,8 +187,8 @@
         </ng-container>
 
 
-        <tr mat-header-row *matHeaderRowDef="COLUMNS_TO_BE_DISPLAYED"></tr>
-        <tr mat-row *matRowDef="let row; columns: COLUMNS_TO_BE_DISPLAYED;" class="element-row"
+        <tr mat-header-row *matHeaderRowDef="COLUMNS"></tr>
+        <tr mat-row *matRowDef="let row; columns: COLUMNS;" class="element-row"
             [class.expanded-row]="idEquals(row, expandedElement)" (click)="expandedElement = getExpandedEle(row)"
             matTooltip="Click to expand"></tr>
 

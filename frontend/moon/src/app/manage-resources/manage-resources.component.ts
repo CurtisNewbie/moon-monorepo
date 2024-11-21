@@ -7,6 +7,7 @@ import { isEnterKey } from "src/common/condition";
 import { MngResDialogComponent } from "../mng-res-dialog/mng-res-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
+import { Env } from "src/common/env-util";
 
 export interface WRes {
   id?: number;
@@ -31,15 +32,17 @@ export class ManageResourcesComponent implements OnInit {
   expandedElement: WRes = null;
   pagingController: PagingController;
 
-  readonly tabcol = [
-    "id",
-    "name",
-    "code",
-    "createBy",
-    "createTime",
-    "updateBy",
-    "updateTime",
-  ];
+  readonly tabcol = this.env.isMobile()
+    ? ["name", "code", "updateTime"]
+    : [
+        "id",
+        "name",
+        "code",
+        "createBy",
+        "createTime",
+        "updateBy",
+        "updateTime",
+      ];
   resources: WRes[] = [];
 
   idEquals = isIdEqual;
@@ -49,7 +52,8 @@ export class ManageResourcesComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private toaster: Toaster,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public env: Env
   ) {}
 
   reset() {

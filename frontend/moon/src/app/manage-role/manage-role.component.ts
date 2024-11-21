@@ -7,6 +7,7 @@ import { MngRoleDialogComponent } from "../mng-role-dialog/mng-role-dialog.compo
 import { Toaster } from "../notification.service";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
+import { Env } from "src/common/env-util";
 
 export interface ERole {
   id?: number;
@@ -29,15 +30,21 @@ export class ManageRoleComponent implements OnInit {
   newRoleName = "";
   pagingController: PagingController;
 
-  readonly tabcol = [
-    "id",
-    "name",
-    "roleNo",
-    "createBy",
-    "createTime",
-    "updateBy",
-    "updateTime",
-  ];
+  readonly tabcol = this.env.isMobile()
+    ? [
+        "name",
+        "roleNo",
+        "updateTime",
+      ]
+    : [
+        "id",
+        "name",
+        "roleNo",
+        "createBy",
+        "createTime",
+        "updateBy",
+        "updateTime",
+      ];
   roles: ERole[] = [];
 
   isEnter = isEnterKey;
@@ -45,7 +52,8 @@ export class ManageRoleComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
-    private toaster: Toaster
+    private toaster: Toaster,
+    public env: Env
   ) {}
 
   reset() {

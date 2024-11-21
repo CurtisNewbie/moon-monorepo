@@ -18,6 +18,7 @@ import { Toaster } from "../notification.service";
 import { RoleBrief, UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
+import { Env } from "src/common/env-util";
 
 @Component({
   selector: "app-manager-user",
@@ -28,17 +29,20 @@ import { HttpClient } from "@angular/common/http";
 export class ManagerUserComponent implements OnInit {
   readonly USER_IS_NORMAL = UserIsDisabledEnum.NORMAL;
   readonly USER_IS_DISABLED = UserIsDisabledEnum.IS_DISABLED;
-  readonly COLUMNS_TO_BE_DISPLAYED = [
-    "id",
-    "name",
-    "role",
-    "status",
-    "reviewStatus",
-    "createBy",
-    "createTime",
-    "updateBy",
-    "updateTime",
-  ];
+  readonly COLUMNS = this.env.isMobile()
+    ? ["name", "role", "status", "reviewStatus"]
+    : [
+        "id",
+        "name",
+        "role",
+        "status",
+        "reviewStatus",
+        "createBy",
+        "createTime",
+        "updateBy",
+        "updateTime",
+      ];
+
   readonly USER_IS_DISABLED_OPTS = USER_IS_DISABLED_OPTIONS;
 
   usernameToBeAdded: string = null;
@@ -60,7 +64,8 @@ export class ManagerUserComponent implements OnInit {
     private toaster: Toaster,
     private dialog: MatDialog,
     private http: HttpClient,
-    private userService: UserService
+    private userService: UserService,
+    public env: Env
   ) {}
 
   ngOnInit() {
@@ -107,10 +112,7 @@ export class ManagerUserComponent implements OnInit {
   fetchUserInfoList(): void {
     this.searchParam.paging = this.pagingController.paging;
     this.http
-      .post<any>(
-        `user-vault/open/api/user/list`,
-        this.searchParam
-      )
+      .post<any>(`user-vault/open/api/user/list`, this.searchParam)
       .subscribe({
         next: (resp) => {
           this.userInfoList = [];
@@ -184,13 +186,10 @@ export class ManagerUserComponent implements OnInit {
 
   reviewRegistration(userId: number, reviewStatus: string) {
     this.http
-      .post<void>(
-        `user-vault/open/api/user/registration/review`,
-        {
-          userId: userId,
-          reviewStatus: reviewStatus,
-        }
-      )
+      .post<void>(`user-vault/open/api/user/registration/review`, {
+        userId: userId,
+        reviewStatus: reviewStatus,
+      })
       .subscribe({
         complete: () => {
           this.fetchUserInfoList();

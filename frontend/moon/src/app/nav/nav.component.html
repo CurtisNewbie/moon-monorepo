@@ -1,69 +1,82 @@
-<button mat-button routerLink="/user-details">Moon <img src="../../favicon.ico" width="30px" /></button>
 <ng-container *ngIf="userInfo">
-    <button class="smlbtn" mat-button [matMenuTriggerFor]="menu">menu</button>
+    <div class="d-flex align-self-stretch justify-content-between">
+        <div>
+            <button mat-button [matMenuTriggerFor]="menu"><i class="bi bi-list icon-button-large"></i></button>
+            <button mat-button routerLink="/user-details">Moon <img src="../../favicon.ico" width="30px" /></button>
+        </div>
+        <div>
+            <button mat-button routerLink="/notifications" routerLinkActive="active"
+                [matBadge]="unreadCount > 0 ? unreadCount : ''" matBadgeColor="warn" matBadgeOverlap="true"
+                matBadgeSize="small"><i class="bi bi-lightbulb icon-button-large"></i></button>
+            <button mat-button [matMenuTriggerFor]="userMenu"><i class="bi bi-person-circle icon-button-large"></i></button>
+        </div>
 
-    <mat-menu #menu="matMenu">
-        <button mat-menu-item [matMenuTriggerFor]="admin"
-            *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:fetch-storage-info')">Admin</button>
-        <button mat-menu-item [matMenuTriggerFor]="user">User</button>
-        <button mat-menu-item [matMenuTriggerFor]="site" *ngIf="hasRes('basic-user')">Site</button>
-        <button mat-menu-item [matMenuTriggerFor]="file" *ngIf="hasRes('manage-files')">File & Gallery</button>
-        <button mat-menu-item [matMenuTriggerFor]="doc" *ngIf="hasRes('manage-bookmarks')">Documents</button>
-        <button mat-menu-item [matMenuTriggerFor]="fin" *ngIf="hasAnyRes('acct:ManageCashflows')">Finance</button>
-    </mat-menu>
+        <mat-menu #menu="matMenu">
+            <button mat-menu-item [matMenuTriggerFor]="admin"
+                *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:fetch-storage-info')">Admin</button>
+            <button mat-menu-item [matMenuTriggerFor]="user">User</button>
+            <button mat-menu-item [matMenuTriggerFor]="site" *ngIf="hasRes('basic-user')">Site</button>
+            <button mat-menu-item [matMenuTriggerFor]="file" *ngIf="hasRes('manage-files')">File & Gallery</button>
+            <button mat-menu-item [matMenuTriggerFor]="doc" *ngIf="hasRes('manage-bookmarks')">Documents</button>
+            <button mat-menu-item [matMenuTriggerFor]="fin" *ngIf="hasAnyRes('acct:ManageCashflows')">Finance</button>
+        </mat-menu>
 
-    <mat-menu #user="matMenu">
-        <button mat-menu-item routerLink="/user-details" routerLinkActive="active" *ngIf="hasRes('basic-user')">User
-            Details</button>
-        <button mat-menu-item routerLink="/manage-keys" routerLinkActive="active" *ngIf="hasRes('basic-user')">Manage
-            Keys</button>
-        <button mat-menu-item routerLink="/access-log" routerLinkActive="active" *ngIf="hasRes('basic-user')">Login
-            History</button>
-    </mat-menu>
+        <mat-menu #user="matMenu">
+            <button mat-menu-item routerLink="/user-details" routerLinkActive="active" *ngIf="hasRes('basic-user')">User
+                Details</button>
+            <button mat-menu-item routerLink="/manage-keys" routerLinkActive="active"
+                *ngIf="hasRes('basic-user')">Manage
+                Keys</button>
+            <button mat-menu-item routerLink="/access-log" routerLinkActive="active" *ngIf="hasRes('basic-user')">Login
+                History</button>
+        </mat-menu>
 
-    <mat-menu #site="matMenu">
-        <button mat-menu-item routerLink="/site-passwords" routerLinkActive="active" *ngIf="hasRes('basic-user')">Website Passwords</button>
-    </mat-menu>
+        <mat-menu #site="matMenu">
+            <button mat-menu-item routerLink="/site-passwords" routerLinkActive="active"
+                *ngIf="hasRes('basic-user')">Website Passwords</button>
+        </mat-menu>
 
-    <mat-menu #admin="matMenu">
-        <button mat-menu-item routerLink="/manage-user" routerLinkActive="active" *ngIf="hasRes('manage-users')">Manage
-            Users</button>
-        <button mat-menu-item routerLink="/manage-roles" routerLinkActive="active"
-            *ngIf="hasRes('manage-resources')">Manage Roles</button>
-        <button mat-menu-item routerLink="/manage-paths" routerLinkActive="active"
-            *ngIf="hasRes('manage-resources')">Manage Paths</button>
-        <button mat-menu-item routerLink="/manage-resources" routerLinkActive="active"
-            *ngIf="hasRes('manage-resources')">Manage Resources</button>
-        <button mat-menu-item routerLink="/manage-logs" routerLinkActive="active" *ngIf="hasRes('manage-logbot')">System
-            Error Logs</button>
-        <button mat-menu-item routerLink="/fstore-storage" routerLinkActive="active" *ngIf="hasRes('fstore:fetch-storage-info')">Mini-Fstore Storage</button>
-    </mat-menu>
+        <mat-menu #admin="matMenu">
+            <button mat-menu-item routerLink="/manage-user" routerLinkActive="active"
+                *ngIf="hasRes('manage-users')">Manage
+                Users</button>
+            <button mat-menu-item routerLink="/manage-roles" routerLinkActive="active"
+                *ngIf="hasRes('manage-resources')">Manage Roles</button>
+            <button mat-menu-item routerLink="/manage-paths" routerLinkActive="active"
+                *ngIf="hasRes('manage-resources')">Manage Paths</button>
+            <button mat-menu-item routerLink="/manage-resources" routerLinkActive="active"
+                *ngIf="hasRes('manage-resources')">Manage Resources</button>
+            <button mat-menu-item routerLink="/manage-logs" routerLinkActive="active"
+                *ngIf="hasRes('manage-logbot')">System
+                Error Logs</button>
+            <button mat-menu-item routerLink="/fstore-storage" routerLinkActive="active"
+                *ngIf="hasRes('fstore:fetch-storage-info')">Mini-Fstore Storage</button>
+        </mat-menu>
 
-    <mat-menu #file="matMenu">
-        <button mat-menu-item routerLink="/manage-files" routerLinkActive="active">Manage Files</button>
-        <button mat-menu-item routerLink="/gallery" routerLinkActive="active">Fantahsea Gallery</button>
-        <button mat-menu-item routerLink="/folders" routerLinkActive="active">Virtual Folders</button>
-        <button mat-menu-item routerLink="/versioned-files" routerLinkActive="active">Versioned Files</button>
-        <button mat-menu-item routerLink="/browse-history" routerLinkActive="active">Browse History</button>
-    </mat-menu>
+        <mat-menu #file="matMenu">
+            <button mat-menu-item routerLink="/manage-files" routerLinkActive="active">Manage Files</button>
+            <button mat-menu-item routerLink="/gallery" routerLinkActive="active">Fantahsea Gallery</button>
+            <button mat-menu-item routerLink="/folders" routerLinkActive="active">Virtual Folders</button>
+            <button mat-menu-item routerLink="/versioned-files" routerLinkActive="active">Versioned Files</button>
+            <button mat-menu-item routerLink="/browse-history" routerLinkActive="active">Browse History</button>
+        </mat-menu>
 
-    <mat-menu #doc="matMenu">
-        <button mat-menu-item routerLink="/manage-bookmarks" routerLinkActive="active">Bookmarks</button>
-        <button mat-menu-item routerLink="/manage-bookmark-blacklist" routerLinkActive="active">Bookmark Blacklist</button>
-    </mat-menu>
+        <mat-menu #doc="matMenu">
+            <button mat-menu-item routerLink="/manage-bookmarks" routerLinkActive="active">Bookmarks</button>
+            <button mat-menu-item routerLink="/manage-bookmark-blacklist" routerLinkActive="active">Bookmark
+                Blacklist</button>
+        </mat-menu>
 
-    <mat-menu #fin="matMenu">
-        <button mat-menu-item routerLink="/cashflows" routerLinkActive="active">Cashflows</button>
-        <button mat-menu-item routerLink="/cashflows-statistics" routerLinkActive="active">Cashflow Statistics</button>
-    </mat-menu>
+        <mat-menu #fin="matMenu">
+            <button mat-menu-item routerLink="/cashflows" routerLinkActive="active">Cashflows</button>
+            <button mat-menu-item routerLink="/cashflows-statistics" routerLinkActive="active">Cashflow
+                Statistics</button>
+        </mat-menu>
 
-    <button class="smlbtn" mat-button [matMenuTriggerFor]="userMenu">{{userInfo.username}}</button>
-    <mat-menu #userMenu="matMenu" class="m-2">
-        <button mat-menu-item>Role: {{userInfo.roleName}}</button>
-        <button mat-menu-item (click)="copyToClipboard(userInfo.userNo)">User No: {{userInfo.userNo}}</button>
-    </mat-menu>
-
-    <button class="smlbtn" mat-button (click)="logout()">logout</button>
-    <button class="smlbtn" mat-button routerLink="/notifications" routerLinkActive="active" [matBadge]="unreadCount > 0 ? unreadCount : ''"
-        matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small">notifications</button>
+        <mat-menu #userMenu="matMenu" class="m-2">
+            <button mat-menu-item routerLink="/user-details">{{userInfo.username}}</button>
+            <button mat-menu-item>{{userInfo.roleName}}</button>
+            <button mat-menu-item (click)="logout()">Logout <i class="ms-2 bi bi-box-arrow-right"></i> </button>
+        </mat-menu>
+    </div>
 </ng-container>

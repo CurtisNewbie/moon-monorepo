@@ -4,7 +4,7 @@ import { Injectable } from "@angular/core";
   providedIn: "root",
 })
 export class Env {
-  _isMobile: boolean = null;
+  private _isMobile: boolean = null;
 
   isMobile(): boolean {
     if (this._isMobile != null) {

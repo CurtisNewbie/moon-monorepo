@@ -1,6 +1,7 @@
 <h1 mat-dialog-title>Manage Path Detail</h1>
 <div mat-dialog-content>
-    <p>Path: {{dat.path.pathNo}}</p>
+    <!-- <p>Path: {{dat.path.pathNo}}</p> -->
+    <p>Method: {{dat.path.method}}</p>
     <p>URL: {{dat.path.url}}</p>
     <p>Description: {{dat.path.desc}}</p>
     <p *ngIf="dat.path.ptype == 'PUBLIC'">Path Type: <span class="status-green">Public</span></p>
