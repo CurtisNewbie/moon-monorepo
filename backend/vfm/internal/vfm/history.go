@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	MaxBrowseHistoryLen = 100
+	MaxBrowseHistoryLen int64         = 200
+	BrowseHistoryTTL    time.Duration = time.Hour * 24 * 7
 )
 
 type ListBrowseRecordRes struct {
@@ -35,7 +36,8 @@ type BrowseHistory struct {
 	lock  *red.RLock
 	user  common.User
 	c     *redis.Client
-	limit int
+	limit int64
+	ttl   time.Duration
 }
 
 func (b BrowseHistory) Push(rail miso.Rail, fileKey string) error {
@@ -86,12 +88,12 @@ func (b BrowseHistory) Push(rail miso.Rail, fileKey string) error {
 		if err != nil {
 			return err
 		}
-		if cnt > MaxBrowseHistoryLen {
+		if cnt > b.limit {
 			return b.c.LPop(b.key()).Err()
 		}
 	}
 
-	b.c.Expire(b.key(), time.Hour*48)
+	b.c.Expire(b.key(), b.ttl)
 	return nil
 }
 
@@ -128,6 +130,7 @@ func NewBrowseHistory(rail miso.Rail, user common.User) BrowseHistory {
 		lock:  red.NewRLockf(rail, "vfm:browse:history:lock:%v", user.UserNo),
 		c:     red.GetRedis(),
 		limit: MaxBrowseHistoryLen,
+		ttl:   BrowseHistoryTTL,
 	}
 	return bh
 }
