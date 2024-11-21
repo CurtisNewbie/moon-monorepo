@@ -1,6 +1,6 @@
 # moon-monorepo
 
-This is moon monorepo, a privately hosted personal website (the private cloud).
+moon monorepo - a privately hosted website developed for myself for fun :D
 
 **Frontend Projects:**
 
@@ -176,5 +176,25 @@ rabbitmq:
 - [Environment Variables And Secrets](./deploy/backend.env)
 - [Nginx Conf](./deploy/nginx.conf)
 - [Prometheus Conf](./deploy/prometheus.yml)
+
+## Compatibility
+
+Before moon-monorepo, backend projects are maintained in separate repos. Both v0.0.1 and v0.0.2 are compatible with following releases (in terms of database schema):
+
+- [acct >= v0.0.0](https://github.com/CurtisNewbie/acct)
+- [vfm >= v0.1.21](https://github.com/CurtisNewbie/vfm/tree/v0.1.21)
+- [user-vault >= v0.0.26](https://github.com/CurtisNewbie/user-vault/tree/v0.0.26)
+- [event-pump >= v0.0.14](https://github.com/CurtisNewbie/event-pump/tree/v0.0.14)
+- [gatekeeper >= v0.0.23](https://github.com/CurtisNewbie/gatekeeper/tree/v0.0.23)
+- [logbot >= v0.0.9](https://github.com/CurtisNewbie/logbot/tree/v0.0.9)
+- [mini-fstore >= v0.1.21](https://github.com/CurtisNewbie/mini-fstore/tree/v0.1.21)
+
+Meaning that you can directly upgrade the code to the latest versions (in moon-monorepo) without worrying about the data migration.
+
+
+> [!IMPORTANT]
+>
+> Previously, some of the backend projects rely on `svc` to automatically upgrade schema. This functionality is now removed, all the DDL changes are maintained in a single SQL file for better maintainability.
+> This also means that, you will have to execute the DDL scripts yourself.
 
 TODO ...
