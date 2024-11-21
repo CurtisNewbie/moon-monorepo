@@ -1,0 +1,13 @@
+diff --git a/node_modules/highlight.js/types/index.d.ts b/node_modules/highlight.js/types/index.d.ts
+index 1941e61..8b4d959 100644
+--- a/node_modules/highlight.js/types/index.d.ts
++++ b/node_modules/highlight.js/types/index.d.ts
+@@ -53,7 +53,7 @@ declare module 'highlight.js' {
+         regex: {
+             concat: (...args: (RegExp | string)[]) => string,
+             lookahead: (re: RegExp | string) => string,
+-            either: (...args: (RegExp | string)[] | [...(RegExp | string)[], RegexEitherOptions]) => string,
++            either: (...args: any) => string, // <<<<<<<< Change this
+             optional: (re: RegExp | string) => string,
+             anyNumberOfTimes: (re: RegExp | string) => string
+         }

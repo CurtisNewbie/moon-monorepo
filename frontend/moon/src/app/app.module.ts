@@ -87,7 +87,8 @@ import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.componen
 import { MatTreeModule } from "@angular/material/tree";
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
 import { ScrollingModule } from "@angular/cdk/scrolling";
-import { DirTreeNavComponent } from './dir-tree-nav/dir-tree-nav.component';
+import { DirTreeNavComponent } from "./dir-tree-nav/dir-tree-nav.component";
+import { HIGHLIGHT_OPTIONS, HighlightModule } from "ngx-highlightjs";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -173,6 +174,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatBadgeModule,
     MatTreeModule,
     ScrollingModule,
+    HighlightModule
   ],
   entryComponents: [ConfirmDialogComponent, GrantAccessDialogComponent],
   providers: [
@@ -181,6 +183,12 @@ PlotlyModule.plotlyjs = PlotlyJS;
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: RespInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
+    {
+      provide: HIGHLIGHT_OPTIONS,
+      useValue: {
+        fullLibraryLoader: () => import("highlight.js"),
+      },
+    },
   ],
   bootstrap: [AppComponent],
 })
