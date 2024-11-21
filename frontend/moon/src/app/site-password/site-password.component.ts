@@ -138,6 +138,7 @@ export class EditSitePasswordDialogComponent {
           <mat-label>Login Password</mat-label>
           <input
             matInput
+            autocomplete="one-time-code"
             type="password"
             [(ngModel)]="loginPasssword"
             (keyup)="
@@ -244,6 +245,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
         <mat-label>Site Password</mat-label>
         <input
           matInput
+          autocomplete="one-time-code"
           type="password"
           [(ngModel)]="addSitePasswordReq.sitePassword"
         />
@@ -252,6 +254,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
       <mat-form-field g style="width: 100%;">
         <mat-label>Login Password</mat-label>
         <input
+          autocomplete="one-time-code"
           matInput
           type="password"
           [(ngModel)]="addSitePasswordReq.loginPassword"
@@ -305,6 +308,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
         <input
           matInput
           type="text"
+          autocomplete="one-time-code"
           [(ngModel)]="listSitePasswordReq.username"
           (keyup)="isEnter($event) && fetchList()"
         />
