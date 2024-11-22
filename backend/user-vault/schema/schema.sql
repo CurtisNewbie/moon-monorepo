@@ -1,17 +1,17 @@
 create database if not exists user_vault;
 
-CREATE TABLE IF NOT EXISTS user_vault.user (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `user` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `username` varchar(50) NOT NULL COMMENT 'username',
   `password` varchar(255) NOT NULL COMMENT 'password in hash',
   `salt` varchar(10) NOT NULL COMMENT 'salt',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
-  `is_disabled` int NOT NULL DEFAULT '0' COMMENT 'whether the user is disabled, 0-normal, 1-disabled',
+  `is_disabled` int(11) NOT NULL DEFAULT '0' COMMENT 'whether the user is disabled, 0-normal, 1-disabled',
   `review_status` varchar(25) NOT NULL COMMENT 'Review Status',
   `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
   `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
   `user_no` varchar(32) NOT NULL COMMENT 'user no',
   `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
   PRIMARY KEY (`id`),
@@ -19,9 +19,9 @@ CREATE TABLE IF NOT EXISTS user_vault.user (
   UNIQUE KEY `user_no` (`user_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User';
 
-CREATE TABLE IF NOT EXISTS user_vault.user_key (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
-  `user_id` int unsigned NOT NULL COMMENT 'user.id',
+CREATE TABLE `user_key` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `user_id` int(10) unsigned NOT NULL COMMENT 'user.id',
   `name` varchar(255) NOT NULL DEFAULT '' COMMENT 'name of the key',
   `secret_key` varchar(255) NOT NULL COMMENT 'secret key',
   `expiration_time` datetime NOT NULL COMMENT 'when the key is expired',
@@ -29,97 +29,96 @@ CREATE TABLE IF NOT EXISTS user_vault.user_key (
   `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
   PRIMARY KEY (`id`),
   UNIQUE KEY `secret_key` (`secret_key`),
   KEY `user_no_idx` (`user_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='user''s key'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='user''s key';
 
-
-CREATE TABLE IF NOT EXISTS user_vault.access_log (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `access_log` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `access_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the user signed in',
   `ip_address` varchar(255) NOT NULL COMMENT 'ip address',
   `username` varchar(255) NOT NULL COMMENT 'username',
-  `user_id` int unsigned NOT NULL COMMENT 'primary key of user',
+  `user_id` int(10) unsigned NOT NULL COMMENT 'primary key of user',
   `url` varchar(255) DEFAULT '' COMMENT 'request url',
   `user_agent` varchar(512) NOT NULL DEFAULT '' COMMENT 'User Agent',
   `success` tinyint(1) DEFAULT '1' COMMENT 'login was successful',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='access log';
 
-CREATE TABLE IF NOT EXISTS user_vault.path (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `path` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `pgroup` varchar(20) NOT NULL DEFAULT '' COMMENT 'path group',
   `path_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'path no',
   `desc` varchar(255) NOT NULL DEFAULT '' COMMENT 'description',
-  `method` varchar(10) NOT NULL DEFAULT ''  COMMENT 'http method',
+  `method` varchar(10) NOT NULL DEFAULT '' COMMENT 'http method',
   `url` varchar(128) NOT NULL DEFAULT '' COMMENT 'path url',
   `ptype` varchar(10) NOT NULL DEFAULT '' COMMENT 'path type: PROTECTED, PUBLIC',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
   `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
   PRIMARY KEY (`id`),
   KEY `path_no` (`path_no`)
-) ENGINE=InnoDB COMMENT='Paths';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Paths';
 
-CREATE TABLE IF NOT EXISTS user_vault.path_resource (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `path_resource` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `path_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'path no',
   `res_code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
   `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
   PRIMARY KEY (`id`),
-  KEY (`path_no`, `res_code`)
-) ENGINE=InnoDB COMMENT='Path Resource';
+  KEY `path_no` (`path_no`,`res_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Path Resource';
 
-CREATE TABLE IF NOT EXISTS user_vault.resource (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `resource` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource name',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
   `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
   PRIMARY KEY (`id`),
   KEY `code` (`code`)
-) ENGINE=InnoDB COMMENT='Resources';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Resources';
 
-CREATE TABLE IF NOT EXISTS user_vault.role_resource (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
-  `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
-  `res_code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
-  `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
-  `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
-  PRIMARY KEY (`id`),
-  KEY `role_no` (`role_no`)
-) ENGINE=InnoDB COMMENT='Role resources';
-
-CREATE TABLE IF NOT EXISTS user_vault.role (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `role` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT 'name of role',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
   `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
   PRIMARY KEY (`id`),
   KEY `role_no` (`role_no`)
-) ENGINE=InnoDB COMMENT='Roles';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Roles';
 
-CREATE TABLE IF NOT EXISTS user_vault.notification (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `role_resource` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
+  `res_code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
+  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
+  `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
+  `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  PRIMARY KEY (`id`),
+  KEY `role_no` (`role_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Role resources';
+
+CREATE TABLE `notification` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `notifi_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'notification no',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
   `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'title',
@@ -130,12 +129,12 @@ CREATE TABLE IF NOT EXISTS user_vault.notification (
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
   PRIMARY KEY (`id`),
-  KEY `user_no_status_idx` (`user_no`, `status`),
-  UNIQUE KEY `notifi_no_uk` (`notifi_no`)
-) ENGINE=InnoDB COMMENT='Platform Notification';
+  UNIQUE KEY `notifi_no_uk` (`notifi_no`),
+  KEY `user_no_status_idx` (`user_no`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Platform Notification';
 
-CREATE TABLE IF NOT EXISTS user_vault.site_password (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+CREATE TABLE `site_password` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `record_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'record unique id',
   `site` varchar(64) NOT NULL DEFAULT '' COMMENT 'site',
   `alias` varchar(64) NOT NULL DEFAULT '' COMMENT 'alias',
@@ -146,13 +145,13 @@ CREATE TABLE IF NOT EXISTS user_vault.site_password (
   `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
   PRIMARY KEY (`id`),
   UNIQUE KEY `record_id_uk` (`record_id`),
-  KEY `user_alias_idx` (`user_no`, `alias`),
-  KEY `user_site_idx` (`user_no`, `site`),
-  KEY `user_username_idx` (`user_no`, `username`)
-) ENGINE=InnoDB COMMENT='Personal passwords for different sites';
+  KEY `user_alias_idx` (`user_no`,`alias`),
+  KEY `user_site_idx` (`user_no`,`site`),
+  KEY `user_username_idx` (`user_no`,`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Personal passwords for different sites';
 
 -- default one for administrator, with this role, all paths can be accessed
 INSERT INTO user_vault.role(role_no, name) VALUES ('role_554107924873216177918', 'Super Administrator');

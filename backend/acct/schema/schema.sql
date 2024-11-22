@@ -14,7 +14,7 @@ CREATE TABLE `cashflow` (
   `amount` decimal(22,8) DEFAULT '0.00000000' COMMENT 'amount',
   `currency` varchar(6) DEFAULT '' COMMENT 'currency',
   `extra` json DEFAULT NULL COMMENT 'extra info about the transaction',
-  `category` varchar(32) NOT NULL DEFAULT '' COMMENT 'category',
+  `category` varchar(128) NOT NULL DEFAULT '' COMMENT 'category name',
   `remark` varchar(255) NOT NULL DEFAULT '' COMMENT 'remark',
   `payment_method` varchar(32) NOT NULL DEFAULT '' COMMENT 'payment method',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
@@ -23,10 +23,10 @@ CREATE TABLE `cashflow` (
   `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
   `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'record deleted',
   PRIMARY KEY (`id`),
+  KEY `user_trans_id_idx` (`user_no`,`trans_id`,`deleted`),
   KEY `user_cate_trans_time_idx` (`user_no`,`category`,`deleted`,`trans_time`),
-  KEY `user_trans_time_idx` (`user_no`,`deleted`,`trans_time`),
-  KEY `user_cate_trans_id_idx` (`user_no`,`category`,`trans_id`,`deleted`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Cashflow';
+  KEY `user_trans_time_idx` (`user_no`,`deleted`,`trans_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Cash flow';
 
 CREATE TABLE `cashflow_statistics` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
@@ -39,9 +39,9 @@ CREATE TABLE `cashflow_statistics` (
   `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated at',
   `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
-  `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'record deleted',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'record deleted',
   PRIMARY KEY (`id`),
-  KEY `user_agg_type_currency_range_idx` (`user_no`, `agg_type`, `currency`, `agg_range`)
+  KEY `user_agg_type_currency_range_idx` (`user_no`,`agg_type`,`currency`,`agg_range`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Cashflow Statistics';
 
 CREATE TABLE `cashflow_currency` (
