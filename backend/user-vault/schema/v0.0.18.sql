@@ -1,1 +1,0 @@
-alter table user_vault.access_log add column success tinyint(1) default 1 comment 'login was successful';
