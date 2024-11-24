@@ -61,7 +61,7 @@ export interface ListCashFlowRes {
     </div>
 
     <div class="row row-cols-lg-auto g-3 align-items-center">
-      <mat-form-field style="width: 90%;" class="mb-1 mt-3">
+      <mat-form-field style="width: 90%;">
         <mat-label>Transaction ID</mat-label>
         <input
           matInput
@@ -79,8 +79,8 @@ export interface ListCashFlowRes {
       </mat-form-field>
     </div>
 
-    <div class="row row-cols-lg-auto g-3 align-items-center">
-      <div class="col">
+    <div class="d-flex justify-content-between">
+      <div class="d-flex flex-wrap gap-3 align-items-center">
         <mat-form-field>
           <mat-label>Category</mat-label>
           <mat-select
@@ -95,11 +95,7 @@ export interface ListCashFlowRes {
             </mat-option>
           </mat-select>
         </mat-form-field>
-      </div>
-      <!-- </div> -->
 
-      <!-- <div class="row row-cols-lg-auto g-3 align-items-center"> -->
-      <div class="col">
         <mat-form-field>
           <mat-label>Direction</mat-label>
           <mat-select
@@ -119,10 +115,31 @@ export interface ListCashFlowRes {
             </mat-option>
           </mat-select>
         </mat-form-field>
-      </div>
 
-      <div class="col">
-        <mat-form-field style="width: 150px" class="mb-1 mt-1">
+        <mat-form-field>
+          <mat-label>Transaction Time</mat-label>
+          <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
+            <input
+              matStartDate
+              (dateChange)="fetchList()"
+              formControlName="start"
+              placeholder="Start date"
+            />
+            <input
+              matEndDate
+              (dateChange)="fetchList()"
+              formControlName="end"
+              placeholder="End date"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
+        <mat-form-field style="width: 150px">
           <mat-label>Minimum Amount</mat-label>
           <input
             matInput
@@ -139,45 +156,25 @@ export interface ListCashFlowRes {
           ></button>
         </mat-form-field>
       </div>
+
+      <div class="d-flex justify-content-end mb-2 flex-wrap">
+        <button mat-raised-button class="m-2" (click)="showWechatImport()">
+          Import Wechat Cashflows
+        </button>
+        <button
+          mat-icon-button
+          class="m-1 icon-button-large"
+          (click)="fetchList()"
+        >
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button mat-icon-button class="m-1 icon-button-large" (click)="reset()">
+          <i class="bi bi-slash-circle"></i>
+        </button>
+      </div>
     </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Transaction Time</mat-label>
-      <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
-        <input
-          matStartDate
-          (dateChange)="fetchList()"
-          formControlName="start"
-          placeholder="Start date"
-        />
-        <input
-          matEndDate
-          (dateChange)="fetchList()"
-          formControlName="end"
-          placeholder="End date"
-        />
-      </mat-date-range-input>
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-date-range-picker #picker></mat-date-range-picker>
-    </mat-form-field>
-
-    <div class="d-grid gap-2 d-flex justify-content-end mb-3">
-      <button mat-raised-button class="m-2" (click)="showWechatImport()">
-        Import Wechat Cashflows
-      </button>
-      <button
-        mat-icon-button
-        class="m-1 icon-button-large"
-        (click)="fetchList()"
-      >
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
-      <button mat-icon-button class="m-1 icon-button-large" (click)="reset()">
-        <i class="bi bi-slash-circle"></i>
-      </button>
-    </div>
-
-    <div class="mt-3 mb-2" style="overflow: auto;">
+    <div class="mt-2 mb-2" style="overflow: auto;">
       <table mat-table [dataSource]="tabdat" style="width: 100%;">
         <ng-container matColumnDef="transId">
           <th mat-header-cell *matHeaderCellDef>Transaction ID</th>
