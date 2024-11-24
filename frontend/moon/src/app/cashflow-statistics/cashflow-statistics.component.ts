@@ -38,26 +38,6 @@ export interface ApiListStatisticsRes {
       <h3 class="mt-2 mb-3">Cashflow Statistics</h3>
     </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Plot Date Range</mat-label>
-      <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
-        <input
-          matStartDate
-          (dateChange)="fetchPlots()"
-          formControlName="start"
-          placeholder="Start date"
-        />
-        <input
-          matEndDate
-          (dateChange)="fetchPlots()"
-          formControlName="end"
-          placeholder="End date"
-        />
-      </mat-date-range-input>
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-date-range-picker #picker></mat-date-range-picker>
-    </mat-form-field>
-
     <plotly-plot
       class="plot-container"
       [data]="graph.data"
@@ -66,8 +46,30 @@ export interface ApiListStatisticsRes {
       [style]="{ position: 'relative', width: '100%', height: '100%' }"
     ></plotly-plot>
 
-    <div class="row row-cols-lg-auto g-3 align-items-center mt-2">
-      <div class="col">
+    <div class="mt-4 d-flex flex-wrap justify-content-between">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <mat-form-field >
+          <mat-label>Plot Date Range</mat-label>
+          <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
+            <input
+              matStartDate
+              (dateChange)="fetchPlots()"
+              formControlName="start"
+              placeholder="Start date"
+            />
+            <input
+              matEndDate
+              (dateChange)="fetchPlots()"
+              formControlName="end"
+              placeholder="End date"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
         <mat-form-field>
           <mat-label>Type</mat-label>
           <mat-select
@@ -88,11 +90,6 @@ export interface ApiListStatisticsRes {
             </mat-option>
           </mat-select>
         </mat-form-field>
-      </div>
-    </div>
-
-    <div class="row row-cols-lg-auto g-3 align-items-center">
-      <div class="col">
         <mat-form-field>
           <mat-label>Currency</mat-label>
           <mat-select
@@ -105,19 +102,19 @@ export interface ApiListStatisticsRes {
           </mat-select>
         </mat-form-field>
       </div>
-    </div>
 
-    <div class="d-grid gap-2 d-flex justify-content-end mb-3">
-      <button
-        mat-icon-button
-        class="m-1 icon-button-large"
-        (click)="fetchList()"
-      >
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
-      <button mat-icon-button class="m-1 icon-button-large" (click)="reset()">
-        <i class="bi bi-slash-circle"></i>
-      </button>
+      <div>
+        <button
+          mat-icon-button
+          class="m-1 icon-button-large"
+          (click)="fetchList()"
+        >
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button mat-icon-button class="m-1 icon-button-large" (click)="reset()">
+          <i class="bi bi-slash-circle"></i>
+        </button>
+      </div>
     </div>
 
     <div class="mt-3 mb-2" style="overflow: auto;">
