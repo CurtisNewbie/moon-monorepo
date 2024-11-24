@@ -3,11 +3,11 @@ tr.detail-row {
 }
 
 tr.element-row:not(.expanded-row):hover {
-  background: whitesmoke;
+  background: #343a40;
 }
 
 tr.element-row:not(.expanded-row):active {
-  background: #efefef;
+  background: #343a40;
 }
 
 .element-row td {

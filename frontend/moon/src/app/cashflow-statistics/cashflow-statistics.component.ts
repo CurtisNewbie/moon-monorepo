@@ -59,13 +59,14 @@ export interface ApiListStatisticsRes {
     </mat-form-field>
 
     <plotly-plot
+      class="plot-container"
       [data]="graph.data"
       [layout]="graph.layout"
       [useResizeHandler]="true"
       [style]="{ position: 'relative', width: '100%', height: '100%' }"
     ></plotly-plot>
 
-    <div class="row row-cols-lg-auto g-3 align-items-center">
+    <div class="row row-cols-lg-auto g-3 align-items-center mt-2">
       <div class="col">
         <mat-form-field>
           <mat-label>Type</mat-label>
@@ -156,7 +157,13 @@ export interface ApiListStatisticsRes {
       (controllerReady)="onPagingControllerReady($event)"
     ></app-controlled-paginator>
   `,
-  styles: [],
+  styles: [
+    `
+      .plot-container {
+        filter: invert(75%) hue-rotate(180deg);
+      }
+    `,
+  ],
 })
 export class CashflowStatisticsComponent implements OnInit {
   tabcol = ["aggType", "aggRange", "aggValue", "currency"];
@@ -205,6 +212,7 @@ export class CashflowStatisticsComponent implements OnInit {
   ngOnInit(): void {}
 
   fetchList() {
+    this.listReq.paging = this.pagingController.paging;
     this.http
       .post<any>(`/acct/open/api/v1/cashflow/list-statistics`, this.listReq)
       .subscribe({
@@ -242,6 +250,8 @@ export class CashflowStatisticsComponent implements OnInit {
 
   onPagingControllerReady(pc) {
     this.pagingController = pc;
+    this.pagingController.PAGE_LIMIT_OPTIONS = [5, 10, 30, 50];
+    this.pagingController.paging.limit = 5;
     this.pagingController.onPageChanged = () => this.fetchList();
     this.fetchList();
   }

@@ -61,7 +61,7 @@ import { HostOnGalleryComponent } from "../host-on-gallery/host-on-gallery.compo
           </mat-list>
         </div>
       </ng-container>
-      <div *ngIf="!dat || dat.length < 1" class="alert alert-success">
+      <div *ngIf="!dat || dat.length < 1" class="alert alert-dark">
         <p class="mt-2 mb-3">You haven't bookmarked any file yet</p>
       </div>
     </div>
