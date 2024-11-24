@@ -1,4 +1,4 @@
-import { FileInfo } from "./file-info";
+import { FileInfo, FileType } from "./file-info";
 
 const KB_UNIT: number = 1024;
 const MB_UNIT: number = 1024 * 1024;
@@ -33,7 +33,7 @@ const textSuffix = new Set([
   "service",
   "xml",
   "sql",
-  "go"
+  "go",
 ]);
 const webpageSuffix = new Set(["html"]);
 
@@ -88,8 +88,8 @@ export function suffix(name: string): string {
   return suffix.toLowerCase();
 }
 
-export function guessFileThumbnail(f: FileInfo): string {
-  if (f.isDir) {
+export function guessFileThumbnail(f: any): string {
+  if (f.fileType == FileType.DIR) {
     return "./assets/box.png";
   }
   if (f.thumbnailUrl) {

@@ -50,6 +50,8 @@ import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { copyToClipboard } from "src/common/clipboard";
 import { Env } from "src/common/env-util";
+import { FileBookmark } from "src/common/file-bookmark";
+import { FileBookmarkDialogComponent } from "../file-bookmark-dialog/file-bookmark-dialog.component";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -69,7 +71,6 @@ export interface DirBottomUpTreeNode {
 })
 export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   readonly desktopColumns = [
-    "selected",
     "thumbnail",
     "name",
     "parentFileName",
@@ -103,19 +104,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   pagingController: PagingController;
   /** progress string */
   progress: string = null;
-  /** check if all files are selected */
-  isAllSelected: boolean = false;
-  /** selected file count */
-  selectedCount: number = 0;
-  /** is any file selected */
-  anySelected: boolean = false;
   /** currently displayed columns */
   displayedColumns: string[] = this._selectColumns();
 
   // isImage = (f: FileInfo): boolean => this._isImage(f);
   idEquals = isIdEqual;
 
-  selectExpanded = (row: FileInfo)=> {
+  selectExpanded = (row: FileInfo) => {
     // if (this.env.isMobile()) return;
     this.curr = this.currId > -1 && row.id == this.currId ? null : { ...row };
     this.currId = this.curr ? this.curr.id : -1;
@@ -206,16 +201,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private browseHistoryRecorder: BrowseHistoryRecorder,
+    public fileBookmark: FileBookmark,
     public env: Env
   ) {}
 
-  ngDoCheck(): void {
-    this.anySelected = this.selectedCount > 0;
-    if (this.anySelected) {
-      this.expandUploadPanel = false;
-    }
-    this.displayedColumns = this._selectColumns();
-  }
+  ngDoCheck(): void {}
 
   ngOnDestroy(): void {}
 
@@ -288,52 +278,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: fileKey }]);
   }
 
-  // Move selected to dir
-  moveSelectedToDir() {
-    const selected = this.filterSelected();
-    if (!selected || selected.length < 1) {
-      this.toaster.toast("Please select files first");
-      return;
-    }
-
-    this.dialog
-      .open(DirectoryMoveFileComponent, {
-        width: "800px",
-        data: {
-          files: selected.map((f, i) => {
-            return { name: `${i + 1}. ${f.name}`, fileKey: f.uuid };
-          }),
-        },
-      })
-      .afterClosed()
-      .subscribe(() => {
-        setTimeout(() => this.fetchFileInfoList(), 500);
-      });
-  }
-
-  private _moveEachToDir(
-    selected: FileInfo[],
-    dirFileKey: string,
-    offset: number
-  ) {
-    if (offset >= selected.length) {
-      this.fetchFileInfoList();
-      return;
-    }
-
-    let curr = selected[offset];
-    this.http
-      .post(`vfm/open/api/file/move-to-dir`, {
-        uuid: curr.uuid,
-        parentFileUuid: dirFileKey,
-      })
-      .subscribe({
-        next: (resp) => {
-          this._moveEachToDir(selected, dirFileKey, offset + 1);
-        },
-      });
-  }
-
   /** fetch file info list */
   fetchFileInfoList(then = null) {
     this.searchParam.parentFile = this.inDirFileKey;
@@ -370,8 +314,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           }
 
           this.pagingController.onTotalChanged(resp.data.paging);
-          this.isAllSelected = false;
-          this.selectedCount = 0;
 
           if (then) {
             then();
@@ -520,80 +462,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             this.fetchFileInfoList();
           });
       });
-  }
-
-  deleteSelected(): void {
-    let selected = this.fileInfoList
-      .filter((f) => f._selected)
-      .map((f, i) => {
-        return { name: `${i + 1}. ${f.name}`, fileKey: f.uuid };
-      });
-
-    if (!selected || selected.length < 1) {
-      this.toaster.toast("Select files first");
-      return;
-    }
-
-    let msgs = [`You sure you want to delete the following files?`, ""];
-    for (let s of selected) {
-      msgs.push(s.name);
-    }
-
-    this.dialog
-      .open(ConfirmDialogComponent, {
-        width: "500px",
-        data: {
-          title: "Delete Files",
-          msg: msgs,
-          isNoBtnDisplayed: true,
-        },
-      })
-      .afterClosed()
-      .subscribe((confirm) => {
-        console.log(confirm);
-        if (!confirm) {
-          return;
-        }
-        let fks = [];
-        for (let f of selected) {
-          fks.push(f.fileKey);
-        }
-
-        this.http
-          .post<any>(`vfm/open/api/file/delete/batch`, {
-            fileKeys: fks,
-          })
-          .subscribe((resp) => {
-            this.fetchFileInfoList();
-            console.log("deleted", fks);
-          });
-      });
-  }
-
-  /**
-   * Delete file
-   */
-  deleteFile(uuid: string, name: string): void {
-    const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
-      this.dialog.open(ConfirmDialogComponent, {
-        width: "500px",
-        data: {
-          title: "Delete File",
-          msg: [`You sure you want to delete '${name}'`],
-          isNoBtnDisplayed: true,
-        },
-      });
-
-    dialogRef.afterClosed().subscribe((confirm) => {
-      // console.log(confirm);
-      if (confirm) {
-        this.http
-          .post<any>(`vfm/open/api/file/delete`, { uuid: uuid })
-          .subscribe((resp) => {
-            this.fetchFileInfoList();
-          });
-      }
-    });
   }
 
   subSetToStr(set: Set<string>, maxCount: number): string {
@@ -826,75 +694,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     return this.isUploading || this._isMultipleUpload();
   }
 
-  addToVirtualFolder() {
-    if (!this.fileInfoList) {
-      this.toaster.toast("Please select files first");
-      return;
-    }
-
-    let selected = this.fileInfoList
-      .filter((f) => f._selected)
-      .map((f, i) => {
-        return { name: `${i + 1}. ${f.name}`, fileKey: f.uuid };
-      });
-
-    if (!selected || selected.length < 1) {
-      this.toaster.toast("Please select files first");
-      return;
-    }
-
-    this.dialog
-      .open(VfolderAddFileComponent, {
-        width: "500px",
-        data: { files: selected },
-      })
-      .afterClosed()
-      .subscribe();
-  }
-
   onPagingControllerReady(pagingController: PagingController) {
     this.pagingController = pagingController;
     this.pagingController.onPageChanged = () => this.fetchFileInfoList();
     this.fetchFileInfoList();
-  }
-
-  transferSelectedToGallery() {
-    let selected = this.filterSelected(
-      (f: FileInfo): boolean => isImage(f) || f.isDir
-    ).map((f, i) => {
-      return { name: `${i + 1}. ${f.name}`, fileKey: f.uuid };
-    });
-
-    if (!selected || selected.length < 1) {
-      this.toaster.toast("Please select images or directory first");
-      return;
-    }
-
-    this.dialog
-      .open(HostOnGalleryComponent, {
-        width: "500px",
-        data: { files: selected },
-      })
-      .afterClosed()
-      .subscribe();
-  }
-
-  selectFile(event: any, f: FileInfo) {
-    const isChecked = event.checked;
-    f._selected = isChecked;
-    let delta = isChecked ? 1 : -1;
-    this.selectedCount += delta;
-  }
-
-  selectAll() {
-    this.isAllSelected = !this.isAllSelected;
-    let total = 0;
-
-    this.fileInfoList.forEach((v) => {
-      v._selected = this.isAllSelected;
-      total += 1;
-    });
-    this.selectedCount = this.isAllSelected ? total : 0;
   }
 
   toggleMkdirPanel() {
@@ -942,7 +745,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   private _resetFileUploadParam(): void {
     if (this.isUploading) return;
 
-    this.isAllSelected = false;
     this.uploadParam = emptyUploadFileParam();
 
     if (this.uploadFileInput) {
@@ -1122,19 +924,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     return this.inFolderNo ? this.desktopFolderColumns : this.desktopColumns;
   }
 
-  /** Filter selected files */
-  private filterSelected(...predicates): FileInfo[] {
-    return this.fileInfoList
-      .map((v) => {
-        if (!v._selected) return null;
-        for (let p of predicates) {
-          if (!p(v)) return null;
-        }
-
-        return v;
-      })
-      .filter((v) => v != null);
-  }
 
   onRowClicked(row: FileInfo, idx: number) {
     if (row.isDir) {
@@ -1236,5 +1025,35 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       width: "800px",
       data: {},
     });
+  }
+
+  bookmarkFile(f: FileInfo) {
+    if (!f) {
+      return;
+    }
+
+    if (!this.fileBookmark.has(f.uuid)) {
+      this.fileBookmark.add({
+        fileType: f.fileType,
+        thumbnailUrl: f.thumbnailUrl,
+        fileKey: f.uuid,
+        name: f.name,
+      });
+    } else {
+      this.fileBookmark.del(f.uuid);
+    }
+    this.currId = -1;
+  }
+
+  showFileBookmark() {
+    this.dialog
+      .open(FileBookmarkDialogComponent, {
+        width: "1000px",
+        data: {},
+      })
+      .afterClosed()
+      .subscribe(() => {
+        setTimeout(() => this.fetchFileInfoList(), 300);
+      });
   }
 }
