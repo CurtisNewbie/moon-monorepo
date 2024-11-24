@@ -43,7 +43,7 @@ export interface ListCashFlowRes {
       <div class="input-group input-group-lg mt-1 mb-1">
         <input
           type="file"
-          class="form-control"
+          class="form-control darkmode"
           (change)="onFileSelected($event.target.files)"
         />
       </div>

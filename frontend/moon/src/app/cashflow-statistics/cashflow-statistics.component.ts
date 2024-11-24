@@ -39,7 +39,7 @@ export interface ApiListStatisticsRes {
     </div>
 
     <plotly-plot
-      class="plot-container"
+      class="darkmode"
       [data]="graph.data"
       [layout]="graph.layout"
       [useResizeHandler]="true"
@@ -48,7 +48,7 @@ export interface ApiListStatisticsRes {
 
     <div class="mt-4 d-flex flex-wrap justify-content-between">
       <div class="d-flex flex-wrap align-items-center gap-3">
-        <mat-form-field >
+        <mat-form-field>
           <mat-label>Plot Date Range</mat-label>
           <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
             <input
@@ -154,13 +154,7 @@ export interface ApiListStatisticsRes {
       (controllerReady)="onPagingControllerReady($event)"
     ></app-controlled-paginator>
   `,
-  styles: [
-    `
-      .plot-container {
-        filter: invert(75%) hue-rotate(180deg);
-      }
-    `,
-  ],
+  styles: [],
 })
 export class CashflowStatisticsComponent implements OnInit {
   tabcol = ["aggType", "aggRange", "aggValue", "currency"];

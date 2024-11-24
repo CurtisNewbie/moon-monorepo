@@ -5,7 +5,7 @@
 <div class="m-4 shadow rounded p-3 border" *ngIf="showUploadPanel">
     <h5>Upload Bookmark Files:</h5>
     <div class="input-group input-group-lg mt-1 mb-1">
-        <input type="file" class="form-control" #uploadFileInput (change)="onFileSelected($event.target.files)" />
+        <input type="file" class="form-control darkmode" #uploadFileInput (change)="onFileSelected($event.target.files)" />
     </div>
 
     <div class="d-grid gap-2 d-flex justify-content-end m-3">
