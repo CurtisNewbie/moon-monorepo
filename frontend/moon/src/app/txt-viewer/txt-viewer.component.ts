@@ -1,19 +1,18 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { HttpClient } from "@angular/common/http";
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, ParamMap } from "@angular/router";
 
 @Component({
-  selector: 'app-txt-viewer',
-  templateUrl: './txt-viewer.component.html',
-  styleUrls: ['./txt-viewer.component.css']
+  selector: "app-txt-viewer",
+  templateUrl: "./txt-viewer.component.html",
+  styleUrls: ["./txt-viewer.component.css"],
 })
 export class TxtViewerComponent implements OnInit {
-
   uuid: string;
   name: string;
   content: string;
 
-  constructor(private route: ActivatedRoute, private httpClient: HttpClient) { }
+  constructor(private route: ActivatedRoute, private httpClient: HttpClient) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe((params: ParamMap) => {
@@ -23,10 +22,9 @@ export class TxtViewerComponent implements OnInit {
         .get(params.get("url"), { observe: "body", responseType: "text" })
         .subscribe({
           next: (txt) => {
-            this.content = txt; 
-          }
+            this.content = txt;
+          },
         });
     });
   }
-
 }

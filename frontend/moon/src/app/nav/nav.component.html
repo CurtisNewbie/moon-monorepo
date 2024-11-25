@@ -2,13 +2,15 @@
     <div class="d-flex align-self-stretch justify-content-between">
         <div>
             <button mat-button [matMenuTriggerFor]="menu"><i class="bi bi-list icon-button-large"></i></button>
-            <button mat-button routerLink="/user-details">Moon <img src="../../favicon.ico" width="30px" /></button>
+            <button mat-button routerLink="/user-details">Moon <img src="../../favicon.ico" width="30px"
+                    class="invertcolor" /></button>
         </div>
         <div>
             <button mat-button routerLink="/notifications" routerLinkActive="active"
                 [matBadge]="unreadCount > 0 ? unreadCount : ''" matBadgeColor="warn" matBadgeOverlap="true"
                 matBadgeSize="small"><i class="bi bi-chat-left-dots icon-button-large"></i></button>
-            <button mat-button [matMenuTriggerFor]="userMenu"><i class="bi bi-person-circle icon-button-large"></i></button>
+            <button mat-button [matMenuTriggerFor]="userMenu"><i
+                    class="bi bi-person-circle icon-button-large"></i></button>
         </div>
 
         <mat-menu #menu="matMenu">

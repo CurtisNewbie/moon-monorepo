@@ -170,7 +170,7 @@
                 <td mat-cell *matCellDef="let f">
                     <img style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="f.thumbnailUrl"
                         [src]="f.thumbnailUrl" />
-                    <img style="max-height:40px; padding: 5px 0px 5px 0px;" *ngIf="!f.thumbnailUrl"
+                    <img style="max-height:40px; padding: 5px 0px 5px 0px;" class="invertcolor" *ngIf="!f.thumbnailUrl"
                         [src]="guessFileThumbnail(f)" />
                 </td>
             </ng-container>

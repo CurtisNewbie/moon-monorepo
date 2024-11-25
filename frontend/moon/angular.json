@@ -46,7 +46,11 @@
               "src/styles.css",
               "./node_modules/ngx-lightbox/lightbox.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "highlight.js",
+              "ngx-lightbox"
+            ]
           },
           "configurations": {
             "production": {

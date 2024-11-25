@@ -4,9 +4,10 @@
         <div *ngIf="!name" class="ml-5 mr-5 alert alert-secondary">
             No file selected. Consider picking one to read?
         </div>
-        <div class="container mt-4" style="height: 80vh;">
-            <div style="touch-action: manipulation; overflow: auto; height: 100%;">
-                <pre style="height: 100%"><code [highlight]="content" [lineNumbers]="true" style="height: 100%; text-wrap:pretty" class="border rounded"> </code></pre>
+        <div class="container-fluid mt-4" style="height: 80vh;">
+            <div style="touch-action: manipulation; overflow: auto; height: 100%; ">
+                <pre
+                    style="height: 100%; "><code [highlight]="content" [lineNumbers]="false" style="height: 100%; text-wrap: pretty;" class="rounded"> </code></pre>
             </div>
         </div>
     </div>
