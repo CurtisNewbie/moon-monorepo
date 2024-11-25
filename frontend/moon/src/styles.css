@@ -126,3 +126,11 @@ th {
 .invertcolor {
   filter: invert(100%);
 }
+
+.lb-outerContainer{
+  background-color: transparent !important;
+}
+
+.lb-container{
+  background-color: transparent;
+}
