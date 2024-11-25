@@ -38,14 +38,13 @@ const textSuffix = new Set([
 const webpageSuffix = new Set(["html"]);
 
 const suffixIcon: [Set<string>, string][] = [
-  [new Set(["pdf"]), "./assets/pdf.png"],
-  [new Set(["zip", "7z"]), "./assets/zip.png"],
+  [new Set(["pdf"]), "bi-filetype-pdf"],
+  [new Set(["zip", "7z", "jar"]), "bi-file-zip"],
+  [new Set(["yml", "yaml"]), "bi-filetype-yml"],
   [
     new Set([
       "txt",
       "conf",
-      "yml",
-      "yaml",
       "properties",
       "json",
       "list",
@@ -55,15 +54,22 @@ const suffixIcon: [Set<string>, string][] = [
       "md",
       "conf",
     ]),
-    "./assets/text.png",
+    "bi-file-text",
   ],
-  [
-    new Set(["go", "java", "js", "ts", "html", "css", "sh"]),
-    "./assets/code.png",
-  ],
-  [new Set(["csv", "xls", "xlsx"]), "./assets/spreadsheet.png"],
-  [new Set(["iso"]), "./assets/binary.png"],
-  [new Set(["dmg", "exe", "jar"]), "./assets/install.png"],
+  [new Set(["java"]), "bi-filetype-java"],
+  [new Set(["js", "ts"]), "bi-filetype-js"],
+  [new Set(["html"]), "bi-filetype-html"],
+  [new Set(["css"]), "bi-filetype-css"],
+  [new Set(["sh"]), "bi-filetype-sh"],
+  [new Set(["csv"]), "bi-filetype-csv"],
+  [new Set(["xls"]), "bi-filetype-xls"],
+  [new Set(["xlsx"]), "bi-filetype-xlss"],
+  [new Set(["doc"]), "bi-filetype-doc"],
+  [new Set(["xml"]), "bi-filetype-xml"],
+  [new Set(["py"]), "bi-filetype-py"],
+  [new Set(["json"]), "bi-filetype-json"],
+  [new Set(["exe"]), "bi-filetype-exe"],
+  [new Set(["dmg", "iso"]), "bi-hdd"],
 ];
 
 export function resolveSize(sizeInBytes: number): string {
@@ -88,23 +94,20 @@ export function suffix(name: string): string {
   return suffix.toLowerCase();
 }
 
-export function guessFileThumbnail(f: any): string {
+export function guessFileIconClz(f: any): string {
   if (f.fileType == FileType.DIR) {
-    return "./assets/box.png";
-  }
-  if (f.thumbnailUrl) {
-    return f.thumbnailUrl;
+    return "bi-folder-fill";
   }
   let suf = suffix(f.name);
   if (!suf) {
-    return "./assets/file.png";
+    return "bi-file-binary";
   }
   for (let u of suffixIcon) {
     if (u[0].has(suf)) {
       return u[1];
     }
   }
-  return "./assets/file.png";
+  return "bi-file-text";
 }
 
 export function isWebpage(fname: string): boolean {

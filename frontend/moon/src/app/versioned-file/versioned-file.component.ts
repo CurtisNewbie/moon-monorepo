@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from "@angular/core";
 import { Paging, PagingController } from "src/common/paging";
 import {
   canPreview,
-  guessFileThumbnail,
+  guessFileIconClz,
   isPdf,
   isStreamableVideo,
   isTxt,
@@ -143,11 +143,11 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
               *ngIf="f.thumbnail"
               [src]="f.thumbnail"
             />
-            <img
-              style="max-height:40px; padding: 5px 0px 5px 0px;"
+            <i
+              style="max-height:50px; padding: 5px 0px 5px 0px;"
               *ngIf="!f.thumbnail"
-              [src]="guessFileThumbnail(f)"
-            />
+              [ngClass]="['bi', 'icon-button-large', guessFileIcon(f)]"
+            ></i>
           </td>
         </ng-container>
 
@@ -171,7 +171,7 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
               mat-raised-button
               (click)="$event.stopPropagation() || jumpToDownloadUrl(f.fileKey)"
             >
-              <img style="max-height:20px;" src="../assets/download.png" />
+              <i class="bi icon-button-large bi-cloud-download"> </i>
             </button>
           </td>
         </ng-container>
@@ -212,7 +212,7 @@ export class VerFileHistoryComponent implements OnInit {
   totalSizeLabel = "unknown";
 
   isEnterPressed = isEnterKey;
-  guessFileThumbnail = guessFileThumbnail;
+  guessFileIcon = guessFileIconClz;
   preview = (u) => {
     preview(
       u,
@@ -438,11 +438,11 @@ export interface ApiListVerFileRes {
               *ngIf="f.thumbnail"
               [src]="f.thumbnail"
             />
-            <img
-              style="max-height:40px; padding: 5px 0px 5px 0px;"
+            <i
+              style="max-height:50px; padding: 5px 0px 5px 0px;"
               *ngIf="!f.thumbnail"
-              [src]="guessFileThumbnail(f)"
-            />
+              [ngClass]="['bi', 'icon-button-large', guessFileIcon(f)]"
+            ></i>
           </td>
         </ng-container>
 
@@ -508,7 +508,7 @@ export class VersionedFileComponent implements OnInit {
   uploadFile: File = null;
   uploadSub: Subscription = null;
 
-  guessFileThumbnail = guessFileThumbnail;
+  guessFileIcon = guessFileIconClz;
   preview = (u) => {
     preview(u, this.dialog, this.nav, this.fileService, this.env.isMobile());
   };

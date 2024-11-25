@@ -103,6 +103,11 @@ th {
   line-height: 20px;
 }
 
+.icon-button-large-preview {
+  font-size: 130px;
+  line-height: 130px;
+}
+
 .tree-invisible {
   display: none;
 }

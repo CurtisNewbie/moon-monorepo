@@ -27,22 +27,18 @@ import { environment } from "src/environments/environment";
 import { ActivatedRoute } from "@angular/router";
 import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
 import {
-  isImage,
   isImageByName,
   isPdf,
   isStreamableVideo,
-  guessFileThumbnail,
   isTxt,
   resolveSize,
   isWebpage,
+  guessFileIconClz,
 } from "src/common/file";
 import { MediaStreamerComponent } from "../media-streamer/media-streamer.component";
 import { Option } from "src/common/select-util";
 import { isEnterKey } from "src/common/condition";
 import { NavType } from "../routes";
-import { VfolderAddFileComponent } from "../vfolder-add-file/vfolder-add-file.component";
-import { HostOnGalleryComponent } from "../host-on-gallery/host-on-gallery.component";
-import { DirectoryMoveFileComponent } from "../directory-move-file/directory-move-file.component";
 import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { Subscription } from "rxjs";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -89,7 +85,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   readonly mobileColumns = ["thumbnail", "name", "operation"];
 
   allFileTypeOpts: Option<FileType>[] = [];
-  guessFileThumbnail = guessFileThumbnail;
+  guessFileIcon = guessFileIconClz;
 
   /** expanded fileInfo */
   curr: FileInfo;
@@ -923,7 +919,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     if (this.env.isMobile()) return this.mobileColumns;
     return this.inFolderNo ? this.desktopFolderColumns : this.desktopColumns;
   }
-
 
   onRowClicked(row: FileInfo, idx: number) {
     if (row.isDir) {

@@ -6,7 +6,7 @@ import { DirectoryMoveFileComponent } from "../directory-move-file/directory-mov
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { HttpClient } from "@angular/common/http";
 import { VfolderAddFileComponent } from "../vfolder-add-file/vfolder-add-file.component";
-import { guessFileThumbnail, isImageByName } from "src/common/file";
+import { guessFileIconClz, isImageByName } from "src/common/file";
 import { FileType } from "src/common/file-info";
 import { HostOnGalleryComponent } from "../host-on-gallery/host-on-gallery.component";
 
@@ -47,11 +47,11 @@ import { HostOnGalleryComponent } from "../host-on-gallery/host-on-gallery.compo
                   *ngIf="f.thumbnailUrl"
                   [src]="f.thumbnailUrl"
                 />
-                <img
-                  style="max-height:40px; padding: 5px 0px 5px 0px;"
+                <i
+                  style="max-height:50px; padding: 5px 0px 5px 0px;"
                   *ngIf="!f.thumbnailUrl"
-                  [src]="guessFileThumbnail(f)"
-                />
+                  [ngClass]="['bi', 'icon-button-large', guessFileIcon(f)]"
+                ></i>
               </div>
               <span>{{ i + 1 }}. {{ f.name }}</span>
               <button mat-icon-button (click)="removeBookmark(f.fileKey)">
@@ -70,7 +70,7 @@ import { HostOnGalleryComponent } from "../host-on-gallery/host-on-gallery.compo
 })
 export class FileBookmarkDialogComponent implements OnInit {
   dat: TempFile[] = [];
-  guessFileThumbnail = guessFileThumbnail;
+  guessFileIcon = guessFileIconClz;
 
   constructor(
     private fileBookmark: FileBookmark,

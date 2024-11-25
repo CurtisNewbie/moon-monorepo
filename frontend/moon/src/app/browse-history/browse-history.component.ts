@@ -3,6 +3,7 @@ import { Component, OnInit } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
+import { guessFileIconClz } from "src/common/file";
 
 export interface ListBrowseRecordRes {
   time?: number;
@@ -20,19 +21,26 @@ export interface ListBrowseRecordRes {
     </div>
     <mat-divider></mat-divider>
     <div class="container m-4">
-      <cdk-virtual-scroll-viewport itemSize="172" style="height: 80vh">
+      <cdk-virtual-scroll-viewport itemSize="174" style="height: 80vh">
         <div *cdkVirtualFor="let it of dat">
           <mat-card class="mat-elevation-z2 m-3">
             <div>
               <div class="row">
                 <div class="col">
                   <img
+                    *ngIf="it.thumbnailToken"
                     style="height:120px"
                     class="m-2 mat-elevation-z8 p-3"
-                    [src]="
-                      it.thumbnailToken ? thumbnailUrl(it) : './assets/text.png'
-                    "
+                    [src]="thumbnailUrl(it)"
                   />
+                  <bi
+                    *ngIf="!it.thumbnailToken"
+                    [ngClass]="[
+                      'mat-elevation-z8',
+                      'icon-button-large-preview',
+                      guessFileIcon(it)
+                    ]"
+                  ></bi>
                 </div>
                 <div class="col">
                   <mat-form-field style="width: 100%;" class="m-2">
@@ -74,6 +82,8 @@ export interface ListBrowseRecordRes {
   styles: [],
 })
 export class BrowseHistoryComponent implements OnInit {
+  guessFileIcon = guessFileIconClz;
+
   dat: ListBrowseRecordRes[] = [];
 
   constructor(
@@ -81,6 +91,7 @@ export class BrowseHistoryComponent implements OnInit {
     private http: HttpClient,
     private navigation: NavigationService
   ) {}
+
   ngOnInit(): void {
     this.fetchHistory();
   }
