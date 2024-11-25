@@ -189,8 +189,7 @@ Before moon-monorepo, backend projects are maintained in separate repos. Both v0
 - [logbot >= v0.0.9](https://github.com/CurtisNewbie/logbot/tree/v0.0.9)
 - [mini-fstore >= v0.1.21](https://github.com/CurtisNewbie/mini-fstore/tree/v0.1.21)
 
-Meaning that you can directly upgrade the code to the latest versions (in moon-monorepo) without worrying about the data migration.
-
+Meaning that you can directly upgrade to using the code in moon-monorepo without worrying about the data migration if your deployment is already up-to-date. However, if you are not using the latests releases in these repos, you may need to consider upgrading to the latest versions before migrating to this monorepo version.
 
 > [!IMPORTANT]
 >
