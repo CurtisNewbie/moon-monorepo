@@ -9,14 +9,14 @@
 <div class="container bootstrap p-3 mt-3 mb-5 shadow" *ngIf="panelDisplayed">
     <h4 class="mt-2 mb-2">Generate New User Key</h4>
 
-    <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-form-field style="width: 100%;">
         <mat-label>Key Name</mat-label>
         <input matInput type="text" [(ngModel)]="newUserKeyName">
         <button *ngIf="newUserKeyName" matSuffix aria-label="Clear" (click)="newUserKeyName=''" class="btn-close">
         </button>
     </mat-form-field>
 
-    <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-form-field style="width: 100%;">
         <mat-label>Confirm Password</mat-label>
         <input matInput type="password" id="passwordInput" [(ngModel)]="password">
         <button *ngIf="password" matSuffix aria-label="Clear" (click)="password=''" class="btn-close">
@@ -29,7 +29,7 @@
 
 <!-- search param  -->
 <div>
-    <mat-form-field appearance="fill" style="width: 100%;" class="mb-1 mt-3">
+    <mat-form-field style="width: 100%;" class="mb-1 mt-3">
         <mat-label>Token Name:</mat-label>
         <input matInput type="text" [(ngModel)]="query.name" (keyup)="isEnter($event) && fetchList()">
         <button *ngIf="query.name" matSuffix aria-label="Clear" (click)="query.name=''" class="btn-close">

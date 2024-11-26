@@ -20,7 +20,7 @@ export interface ConfirmDialogData {
         {{ line }}
       </p>
     </div>
-    <div mat-dialog-actions>
+    <div mat-dialog-actions class="d-flex justify-content-end">
       <button mat-button [mat-dialog-close]="true">Yes</button>
       <button
         mat-button

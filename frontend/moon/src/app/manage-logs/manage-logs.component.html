@@ -5,7 +5,7 @@
 
 <!-- search param  -->
 <div>
-    <mat-form-field appearance="fill" style="width: 100%;" class="mb-1 mt-3">
+    <mat-form-field style="width: 100%;" class="mb-1 mt-3">
         <mat-label>App:</mat-label>
         <input matInput type="text" [(ngModel)]="qryApp" (keyup)="isEnter($event) && fetchList()">
         <button *ngIf="qryApp" matSuffix aria-label="Clear" (click)="qryApp=''" class="btn-close">
