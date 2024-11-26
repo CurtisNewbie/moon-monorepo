@@ -164,8 +164,6 @@ func GenFstoreTknAsync(rail miso.Rail, fileId string, name string) util.Future[F
 
 // List gallery images
 func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, user common.User) (*ListGalleryImagesResp, error) {
-	rail.Infof("ListGalleryImages, cmd: %+v", cmd)
-
 	if hasAccess, err := HasAccessToGallery(rail, tx, user.UserNo, cmd.GalleryNo); err != nil || !hasAccess {
 		if err != nil {
 			return nil, fmt.Errorf("check HasAccessToGallery failed, %v", err)
