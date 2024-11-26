@@ -589,3 +589,16 @@ type EditSitePasswordReq struct {
 func ApiEditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User, db *gorm.DB) (any, error) {
 	return nil, EditSitePassword(rail, req, user, db)
 }
+
+type ClearUserFailedLoginAttemptsReq struct {
+	UserNo string
+}
+
+// Clear user's failed login attempts
+//
+//   - misoapi-http: POST /open/api/user/clear-failed-login-attempts
+//   - misoapi-desc: Admin clear user's failed login attempts
+//   - misoapi-resource: ref(ResourceManagerUser)
+func ApiClearUserFailedLoginAttempts(rail miso.Rail, req ClearUserFailedLoginAttemptsReq) error {
+	return ClearFailedLoginAttempts(rail, req.UserNo)
+}

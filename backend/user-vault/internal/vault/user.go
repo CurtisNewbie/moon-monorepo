@@ -25,6 +25,11 @@ var (
 	userInfoCache = redis.NewRCache[UserDetail]("user-vault:user:info", redis.RCacheConfig{Exp: time.Hour * 1})
 )
 
+const (
+	maxFailedLoginAttempts     = 15
+	failedLoginAttemptRedisKey = "user-vault:user:login-failed-count:"
+)
+
 type PasswordLoginParam struct {
 	Username string
 	Password string
@@ -163,6 +168,16 @@ func userLogin(rail miso.Rail, tx *gorm.DB, username string, password string) (U
 		return User{}, miso.NewErrf("User is disabled")
 	}
 
+	{
+		ok, er := CheckFailedLoginAttempts(rail, user.UserNo)
+		if er != nil {
+			rail.Errorf("Failed to check user's failed login attempts, userNo: %v, %v", user.UserNo, er)
+		} else if !ok {
+			rail.Infof("User's failed login attempts exceeded limit, userNo: %v, reject login request", user.UserNo)
+			return User{}, miso.NewErrf("Exceeded maximum login attempts, please try again later.")
+		}
+	}
+
 	if checkPassword(user.Password, user.Salt, password) {
 		return user, nil
 	}
@@ -174,6 +189,10 @@ func userLogin(rail miso.Rail, tx *gorm.DB, username string, password string) (U
 	}
 	if ok {
 		return user, nil
+	}
+
+	if er := IncrFailedLoginAttempts(rail, user.UserNo); er != nil {
+		rail.Warnf("Failed to update user's failed login attempt, userNo: %v, %v", user.UserNo, er)
 	}
 
 	return User{}, miso.NewErrf("Password incorrect").WithInternalMsg("User %v login failed, password incorrect", username)
@@ -673,4 +692,40 @@ func FindUserWithRes(rail miso.Rail, db *gorm.DB, req api.FetchUserWithResourceR
 		Scan(&users).
 		Error
 	return users, err
+}
+
+func ClearFailedLoginAttempts(rail miso.Rail, userNo string) error {
+	r := redis.GetRedis()
+	k := failedLoginAttemptRedisKey + userNo
+	if err := r.Del(k).Err(); err != nil {
+		return err
+	}
+	rail.Infof("Reset user %v failed login attempts", userNo)
+	return nil
+}
+
+func IncrFailedLoginAttempts(rail miso.Rail, userNo string) error {
+	r := redis.GetRedis()
+	k := failedLoginAttemptRedisKey + userNo
+	c := r.Incr(k)
+	if c.Err() != nil {
+		return c.Err()
+	}
+	rail.Infof("User %v login failed, curr failed attempts: %v", userNo, c.Val())
+	return r.Expire(k, time.Minute*15).Err()
+}
+
+func CheckFailedLoginAttempts(rail miso.Rail, userNo string) (bool, error) {
+	c := redis.GetRedis().Get(failedLoginAttemptRedisKey + userNo)
+	if c.Err() != nil {
+		if redis.IsNil(c.Err()) {
+			return true, nil
+		}
+		return false, c.Err()
+	}
+	n, err := c.Int()
+	if err != nil {
+		return false, err
+	}
+	return n < maxFailedLoginAttempts, nil
 }

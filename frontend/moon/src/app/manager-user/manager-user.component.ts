@@ -19,6 +19,10 @@ import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 
+export interface ClearUserFailedLoginAttemptsReq {
+  userNo?: string;
+}
+
 @Component({
   selector: "app-manager-user",
   templateUrl: "./manager-user.component.html",
@@ -209,5 +213,24 @@ export class ManagerUserComponent implements OnInit {
     this.pagingController = pc;
     this.pagingController.onPageChanged = () => this.fetchUserInfoList();
     this.fetchUserInfoList();
+  }
+
+  clearFailedLoginAttempts(userNo) {
+    this.expandedElement = null;
+    let req: ClearUserFailedLoginAttemptsReq = { userNo: userNo };
+    this.http
+      .post<any>(`/user-vault/open/api/user/clear-failed-login-attempts`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.toaster.toast(resp.msg);
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err);
+          this.toaster.toast("Request failed, unknown error");
+        },
+      });
   }
 }
