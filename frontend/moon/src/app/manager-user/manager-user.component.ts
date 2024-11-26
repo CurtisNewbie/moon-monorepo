@@ -5,7 +5,6 @@ import {
   getExpanded,
   isIdEqual,
 } from "src/animate/animate-util";
-import { environment } from "src/environments/environment";
 import { PagingController } from "src/common/paging";
 import {
   FetchUserInfoParam,
@@ -32,7 +31,7 @@ export class ManagerUserComponent implements OnInit {
   readonly COLUMNS = this.env.isMobile()
     ? ["name", "role", "status", "reviewStatus"]
     : [
-        "id",
+        "userno",
         "name",
         "role",
         "status",

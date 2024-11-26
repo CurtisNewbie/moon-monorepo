@@ -32,14 +32,13 @@ export class ManageRoleComponent implements OnInit {
 
   readonly tabcol = this.env.isMobile()
     ? [
-        "name",
         "roleNo",
+        "name",
         "updateTime",
       ]
     : [
-        "id",
-        "name",
         "roleNo",
+        "name",
         "createBy",
         "createTime",
         "updateBy",

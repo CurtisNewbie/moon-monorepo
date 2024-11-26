@@ -127,10 +127,15 @@ th {
   filter: invert(100%);
 }
 
-.lb-outerContainer{
+.lb-outerContainer {
   background-color: transparent !important;
 }
 
-.lb-container{
+.lb-container {
   background-color: transparent;
+}
+
+.snackbarpanel {
+  color: white;
+  background-color: #303030;
 }

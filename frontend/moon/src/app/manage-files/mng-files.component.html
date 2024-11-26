@@ -225,7 +225,7 @@
                 <th mat-header-cell *matHeaderCellDef> <b>Operation</b> </th>
                 <td mat-cell *matCellDef="let f">
                     <ng-container>
-                        <button mat-icon-button class="m-2" [matBadge]="this.fileBookmark.has(f.uuid) ? '1' : ''"
+                        <button mat-icon-button class="m-2" [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''"
                             matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
                             (click)=" $event.stopPropagation() || bookmarkFile(f)"><i class="bi icon-button-large"
                                 [class]="this.fileBookmark.has(f.uuid) ? 'bi-bookmark-dash': 'bi-bookmark-plus'"></i></button>

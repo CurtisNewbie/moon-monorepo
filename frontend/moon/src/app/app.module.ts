@@ -21,7 +21,10 @@ import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatNativeDateModule } from "@angular/material/core";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
+import {
+  MAT_SNACK_BAR_DEFAULT_OPTIONS,
+  MatSnackBarModule,
+} from "@angular/material/snack-bar";
 import { MatTableModule } from "@angular/material/table";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatPaginatorModule } from "@angular/material/paginator";
@@ -191,6 +194,10 @@ PlotlyModule.plotlyjs = PlotlyJS;
         fullLibraryLoader: () => import("highlight.js"),
         // lineNumbersLoader: () => import("highlightjs-line-numbers.js"),
       },
+    },
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: { panelClass: ["snackbarpanel"], duration: 4000 },
     },
   ],
   bootstrap: [AppComponent],
