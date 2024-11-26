@@ -21,26 +21,28 @@ export interface ListBrowseRecordRes {
     </div>
     <mat-divider></mat-divider>
     <div class="container m-4">
-      <cdk-virtual-scroll-viewport itemSize="174" style="height: 80vh">
+      <cdk-virtual-scroll-viewport itemSize="206" style="height: 85vh">
         <div *cdkVirtualFor="let it of dat">
           <mat-card class="mat-elevation-z2 m-3">
             <div>
               <div class="row">
-                <div class="col">
-                  <img
-                    *ngIf="it.thumbnailToken"
-                    style="height:120px"
-                    class="m-2 mat-elevation-z8 p-3"
-                    [src]="thumbnailUrl(it)"
-                  />
-                  <bi
-                    *ngIf="!it.thumbnailToken"
-                    [ngClass]="[
-                      'mat-elevation-z8',
-                      'icon-button-large-preview',
-                      guessFileIcon(it)
-                    ]"
-                  ></bi>
+                <div class="col-md-3">
+                  <div class="m-1">
+                    <img
+                      *ngIf="it.thumbnailToken"
+                      style="height:120px"
+                      class="m-2 mat-elevation-z8 p-3"
+                      [src]="thumbnailUrl(it)"
+                    />
+                    <bi
+                      *ngIf="!it.thumbnailToken"
+                      [ngClass]="[
+                        'mat-elevation-z8',
+                        'icon-button-large-preview',
+                        guessFileIcon(it)
+                      ]"
+                    ></bi>
+                  </div>
                 </div>
                 <div class="col">
                   <mat-form-field style="width: 100%;" class="m-2">
@@ -62,7 +64,7 @@ export interface ListBrowseRecordRes {
                       (ngModelChange)="it.value = $event"
                     />
                   </mat-form-field>
-                  <div class="col" *ngIf="it.deleted">
+                  <div *ngIf="it.deleted">
                     <span class="status-red"><b>Deleted</b></span>
                   </div>
                   <div class="m-2" matLine *ngIf="!it.deleted">

@@ -115,8 +115,8 @@
                         </mat-option>
                     </mat-select>
                 </mat-form-field>
-                <mat-checkbox [matTooltip]="'Whether sensitive content should be shown'" [(ngModel)]="inSensitiveMode"
-                    (ngModelChange)="fetchFileInfoList()">Sensitive
+                <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
+                    [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
                     Mode</mat-checkbox>
             </div>
         </div>
@@ -129,10 +129,14 @@
                 <ng-container *ngIf="!inFolderName">
                     <button mat-icon-button class="m-1 icon-button-large"
                         [matBadge]="this.fileBookmark.bucket.size > 0? this.fileBookmark.bucket.size : ''"
-                        matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small" (click)="showFileBookmark()">
+                        matTooltip="Bookmark files to undertake batch operation" matTooltipPosition="above"
+                        matTooltipShowDelay="200" matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
+                        (click)="showFileBookmark()">
                         <i class="bi bi-bookmarks icon-button-large"></i> </button>
-                    <button mat-icon-button class="m-1 icon-button-large" matTooltip="Show directory tree"
-                        (click)="popDirTree()"> <i class="bi bi-signpost-split"></i> </button>
+
+                    <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
+                        matTooltip="Show directory tree" (click)="popDirTree()"> <i class="bi bi-signpost-split"></i>
+                    </button>
                 </ng-container>
 
                 <button mat-icon-button class="m-1 icon-button-large" matTooltip="Go up one level of the directory tree"
@@ -141,11 +145,11 @@
                         class="bi bi-arrow-left-circle"></i></button>
 
                 <ng-container *ngIf="!inFolderNo">
-                    <button mat-icon-button class="m-1 icon-button-large" matTooltip="Upload"
+                    <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above" matTooltip="Upload"
                         [class.status-green]="expandUploadPanel" [disabled]="isUploading" (click)="toggleUploadPanel()">
                         <i class="bi bi-cloud-upload"></i></button>
-                    <button mat-icon-button class="m-1 icon-button-large" matTooltip="Make New Directory"
-                        (click)="toggleMkdirPanel()" [class.status-green]="makingDir"><i
+                    <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
+                        matTooltip="Make New Directory" (click)="toggleMkdirPanel()" [class.status-green]="makingDir"><i
                             class="bi bi-folder-plus"></i></button>
                 </ng-container>
 
@@ -301,7 +305,7 @@
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
                 [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked(row, i)"
-                matTooltipShowDelay="600"
+                matTooltipShowDelay="800"
                 [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
             </tr>
             <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
