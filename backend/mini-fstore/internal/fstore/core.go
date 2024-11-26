@@ -563,18 +563,21 @@ func TransferFile(rail miso.Rail, w io.Writer, ff DFile, br ByteRange) error {
 	// open the file
 	f, eo := os.Open(p)
 	if eo != nil {
-		return fmt.Errorf("failed to open file, %v", eo)
+		return fmt.Errorf("failed to open file, %v, %w", eo, ErrFileNotFound)
 	}
 	defer f.Close()
 
 	var et error
 	if br.IsZero() {
 		// transfer the whole file
-		io.Copy(w, f)
+		_, et = io.Copy(w, f)
 	} else {
 		// jump to start, only transfer a byte range
 		if br.Start > 0 {
-			f.Seek(br.Start, io.SeekStart)
+			_, et = f.Seek(br.Start, io.SeekStart)
+			if et != nil {
+				return et
+			}
 		}
 		_, et = io.CopyN(w, f, br.Size())
 	}

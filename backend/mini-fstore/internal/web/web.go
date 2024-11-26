@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -366,6 +367,11 @@ func BackupDownFileEp(inb *miso.Inbound) {
 
 	if e := fstore.DownloadFile(rail, w, fileId); e != nil {
 		rail.Errorf("Download file failed, %v", e)
+		if errors.Is(e, fstore.ErrFileNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
