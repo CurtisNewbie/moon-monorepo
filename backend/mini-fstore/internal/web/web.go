@@ -12,16 +12,13 @@ import (
 	"github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/mini-fstore/internal/config"
 	"github.com/curtisnewbie/mini-fstore/internal/fstore"
+	"github.com/curtisnewbie/mini-fstore/internal/metrics"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	"github.com/gin-gonic/gin"
-)
-
-var (
-	genFileKeyHisto = miso.NewPromHisto("mini_fstore_generate_file_key_duration")
 )
 
 const (
@@ -210,7 +207,7 @@ type DownloadFileReq struct {
 //     to be called internally by another backend service that validates the ownership of the file properly.
 func GenFileKeyEp(inb *miso.Inbound, req DownloadFileReq) (string, error) {
 	rail := inb.Rail()
-	timer := miso.NewHistTimer(genFileKeyHisto)
+	timer := metrics.GenFileKeyTimer()
 	defer timer.ObserveDuration()
 
 	fileId := strings.TrimSpace(req.FileId)
