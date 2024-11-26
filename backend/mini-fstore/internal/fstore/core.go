@@ -14,7 +14,7 @@ import (
 
 	"github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/mini-fstore/internal/config"
-	"github.com/curtisnewbie/miso/encoding"
+	"github.com/curtisnewbie/miso/encoding/json"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
@@ -401,7 +401,7 @@ func RandFileKey(rail miso.Rail, name string, fileId string) (string, error) {
 		return "", err
 	}
 
-	sby, em := encoding.WriteJson(CachedFile{Name: name, FileId: fileId})
+	sby, em := json.WriteJson(CachedFile{Name: name, FileId: fileId})
 	if em != nil {
 		return "", fmt.Errorf("failed to marshal to CachedFile, %v", em)
 	}
@@ -432,7 +432,7 @@ func ResolveFileKey(rail miso.Rail, fileKey string) (bool, CachedFile) {
 		return false, cf
 	}
 
-	eu := encoding.ParseJson([]byte(c.Val()), &cf)
+	eu := json.ParseJson([]byte(c.Val()), &cf)
 	if eu != nil {
 		rail.Errorf("Failed to unmarshal fileKey, %s, %v", fileKey, c.Err())
 		return false, cf
@@ -543,12 +543,6 @@ func DownloadFile(rail miso.Rail, w http.ResponseWriter, fileId string) error {
 
 	return TransferFile(rail, w, ff, ZeroByteRange())
 }
-
-// func logTransferFilePerf(rail miso.Rail, fileId string, l int64, start time.Time) {
-// 	timeTook := time.Since(start)
-// 	speed := float64(l) / 1e3 / float64(timeTook.Milliseconds())
-// 	rail.Infof("Transferred file '%v', size: '%v', took: '%s', speed: '%.3fmb/s'", fileId, l, timeTook, speed)
-// }
 
 func TransferWholeFile(rail miso.Rail, w io.Writer, fileId string) error {
 	ff, err := findDFile(fileId)
