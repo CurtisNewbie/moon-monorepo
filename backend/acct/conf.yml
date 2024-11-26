@@ -5,7 +5,7 @@ app.name: "acct"
 
 server: # http server
   enabled: "true"
-  host: "0.0.0.0"
+  host: "localhost"
   port: "8093"
   generate-endpoint-doc:
     file: "./doc/api.md"
