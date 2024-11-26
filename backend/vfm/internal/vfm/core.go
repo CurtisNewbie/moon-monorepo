@@ -7,7 +7,7 @@ import (
 	"time"
 
 	fstore "github.com/curtisnewbie/mini-fstore/api"
-	"github.com/curtisnewbie/miso/encoding"
+	"github.com/curtisnewbie/miso/encoding/json"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
@@ -1539,7 +1539,7 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 		return fmt.Errorf("failed to make directory before unpacking zip, %w", err)
 	}
 
-	extra, err := encoding.WriteJson(UnpackZipExtra{
+	extra, err := json.WriteJson(UnpackZipExtra{
 		FileKey:       req.FileKey,
 		ParentFileKey: dir,
 		UserNo:        user.UserNo,
@@ -1562,7 +1562,7 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 
 func HandleZipUnpackResult(rail miso.Rail, db *gorm.DB, evt fstore.UnzipFileReplyEvent) error {
 	var extra UnpackZipExtra
-	if err := encoding.ParseJson([]byte(evt.Extra), &extra); err != nil {
+	if err := json.ParseJson([]byte(evt.Extra), &extra); err != nil {
 		return fmt.Errorf("failed to unmarshal from extra, %v", err)
 	}
 
