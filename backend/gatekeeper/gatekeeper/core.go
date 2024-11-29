@@ -132,9 +132,6 @@ func parseServicePath(url string) (ServicePath, error) {
 }
 
 func HealthcheckFilter(pc *miso.ProxyContext, next func()) {
-	pc.Rail.Debug("1. HealthInterceptor into")
-	defer pc.Rail.Debug("1. HealthInterceptor out")
-
 	healthcheckPath := miso.GetPropStr(miso.PropConsulHealthcheckUrl)
 
 	// check if it's a healthcheck endpoint (for consul), we don't really return anything, so it's fine to expose it
@@ -152,8 +149,6 @@ func HealthcheckFilter(pc *miso.ProxyContext, next func()) {
 }
 
 func MetricsFilter(pc *miso.ProxyContext, next func()) {
-	pc.Rail.Debug("2. MetricsInterceptor into")
-	defer pc.Rail.Debug("2. MetricsPreFilter out")
 
 	metricsEndpoint := miso.GetPropStr(miso.PropMetricsRoute)
 
@@ -179,8 +174,6 @@ func MetricsFilter(pc *miso.ProxyContext, next func()) {
 }
 
 func PProfFilter(pc *miso.ProxyContext, next func()) {
-	pc.Rail.Debug("3. PprofInterceptor into")
-	defer pc.Rail.Debug("3. PprofInterceptor out")
 
 	w, r := pc.Inb.Unwrap()
 	if r.URL.Path == "/debug/pprof/cmdline" {
@@ -243,8 +236,6 @@ func ResolveServiceTarget(rail miso.Rail, proxyPath string) (string, error) {
 }
 
 func AuthFilter(pc *miso.ProxyContext, next func()) {
-	pc.Rail.Debug("4. AuthInterceptor into")
-	defer pc.Rail.Debug("4. AuthInterceptor out")
 
 	rail := pc.Rail
 	_, r := pc.Inb.Unwrap()
@@ -289,8 +280,6 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 }
 
 func AccessFilter(pc *miso.ProxyContext, next func()) {
-	pc.Rail.Debug("5. AccessFilter into")
-	defer pc.Rail.Debug("5. AccessFilter out")
 
 	w, r := pc.Inb.Unwrap()
 	rail := pc.Rail
@@ -347,8 +336,6 @@ func AccessFilter(pc *miso.ProxyContext, next func()) {
 }
 
 func TraceFilter(pc *miso.ProxyContext, next func()) {
-	pc.Rail.Debug("6. TraceFilter into")
-	defer pc.Rail.Debug("6. TraceFilter out")
 
 	v, ok := pc.GetAttr(AttrAuthInfo)
 	if ok && v != nil {
