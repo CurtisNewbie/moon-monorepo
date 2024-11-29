@@ -29,6 +29,7 @@ const (
 const (
 	ResCodeFstoreUpload           = "fstore-upload"
 	ResCodeFstoreFetchStorageInfo = "fstore:fetch-storage-info"
+	ResCodeFstoreMaintenance      = "fstore:maintenance"
 )
 
 func PrepareWebServer(rail miso.Rail) error {
@@ -59,6 +60,7 @@ func PrepareWebServer(rail miso.Rail) error {
 	auth.ExposeResourceInfo([]auth.Resource{
 		{Name: "Fstore File Upload", Code: ResCodeFstoreUpload},
 		{Name: "Fstore Fetch Storage Info", Code: ResCodeFstoreFetchStorageInfo},
+		{Name: "Fstore Server Maintenance", Code: ResCodeFstoreMaintenance},
 	})
 
 	return nil
@@ -381,6 +383,7 @@ func BackupDownFileEp(inb *miso.Inbound) {
 //
 //   - misoapi-http: POST /maintenance/remove-deleted
 //   - misoapi-desc: Remove files that are logically deleted and not linked (symbolically)
+//   - misoapi-resource: ref(ResCodeFstoreMaintenance)
 func RemoveDeletedFilesEp(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
 	return nil, fstore.RemoveDeletedFiles(rail, mysql.GetMySQL())
@@ -390,6 +393,7 @@ func RemoveDeletedFilesEp(inb *miso.Inbound) (any, error) {
 //
 //   - misoapi-http: POST /maintenance/sanitize-storage
 //   - misoapi-desc: Sanitize storage, remove files in storage directory that don't exist in database
+//   - misoapi-resource: ref(ResCodeFstoreMaintenance)
 func SanitizeStorageEp(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
 	return nil, fstore.SanitizeStorage(rail)

@@ -522,6 +522,7 @@
 
 - POST /maintenance/remove-deleted
   - Description: Remove files that are logically deleted and not linked (symbolically)
+  - Bound to Resource: `"fstore:maintenance"`
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -567,6 +568,7 @@
 
 - POST /maintenance/sanitize-storage
   - Description: Sanitize storage, remove files in storage directory that don't exist in database
+  - Bound to Resource: `"fstore:maintenance"`
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message

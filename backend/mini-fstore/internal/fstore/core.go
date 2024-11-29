@@ -878,6 +878,13 @@ func FileLockKey(fileId string) string {
 }
 
 func SanitizeStorage(rail miso.Rail) error {
+	l := redis.NewCustomRLock(rail, "mini-fstore:sanitize-storage", redis.RLockConfig{BackoffDuration: time.Second})
+	if err := l.Lock(); err != nil {
+		return miso.NewErrf("Already sanitizing storage, please try again later").
+			WithInternalMsg("failed to obtain lock, %v", err)
+	}
+	defer l.Unlock()
+
 	dirPath := miso.GetPropStr(config.PropStorageDir)
 	files, e := os.ReadDir(dirPath)
 	if e != nil {
