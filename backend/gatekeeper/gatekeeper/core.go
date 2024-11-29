@@ -33,8 +33,7 @@ var (
 )
 
 const (
-	AttrMetricsTimer = "gk.metrics.timer"
-	AuthInfo         = "gk.auth.info"
+	AttrAuthInfo = "gk.auth.info"
 
 	PropTimerExclPath         = "gatekeeper.timer.path.excl"
 	PropWhitelistPathPatterns = "gatekeeper.whitelist.path.patterns"
@@ -282,7 +281,7 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 	if v, ok := claims["roleno"]; ok {
 		user.RoleNo = cast.ToString(v)
 	}
-	pc.SetAttr(AuthInfo, user)
+	pc.SetAttr(AttrAuthInfo, user)
 	rail.Debugf("user: %#v", user)
 	rail.Debugf("set user to proxyContext: %v", pc)
 
@@ -299,7 +298,7 @@ func AccessFilter(pc *miso.ProxyContext, next func()) {
 	var roleNo string
 	var u common.User = common.NilUser()
 
-	if v, ok := pc.GetAttr(AuthInfo); ok && v != nil {
+	if v, ok := pc.GetAttr(AttrAuthInfo); ok && v != nil {
 		u = v.(common.User)
 		roleNo = u.RoleNo
 	}
@@ -351,7 +350,7 @@ func TraceFilter(pc *miso.ProxyContext, next func()) {
 	pc.Rail.Debug("6. TraceFilter into")
 	defer pc.Rail.Debug("6. TraceFilter out")
 
-	v, ok := pc.GetAttr(AuthInfo)
+	v, ok := pc.GetAttr(AttrAuthInfo)
 	if ok && v != nil {
 		u := v.(common.User)
 		*pc.Rail = common.StoreUser(*pc.Rail, u)
