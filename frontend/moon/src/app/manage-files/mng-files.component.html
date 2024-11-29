@@ -92,7 +92,7 @@
                 <div class="" *ngIf="searchParam.fileKey">
                     <mat-form-field style="width: 300px; max-width: 80vw;">
                         <mat-label>File Key</mat-label>
-                        <input matInput type="text" disabled="true" [ngModel]="searchParam.fileKey"
+                        <input matInput type="text" disabled="true" [(ngModel)]="searchParam.fileKey"
                             (keyup)="isEnterKeyPressed($event) && fetchFileInfoList()">
                     </mat-form-field>
                 </div>
@@ -109,7 +109,7 @@
                 </div>
                 <mat-form-field>
                     <mat-label>File Type</mat-label>
-                    <mat-select (valueChange)="setSearchFileType($event)" [value]="searchParam.fileType">
+                    <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
                         <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
                             {{option.name}}
                         </mat-option>

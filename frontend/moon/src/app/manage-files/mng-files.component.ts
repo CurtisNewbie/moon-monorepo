@@ -84,7 +84,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ];
   readonly mobileColumns = ["thumbnail", "name", "operation"];
 
-  allFileTypeOpts: Option<FileType>[] = [];
+  allFileTypeOpts: Option<FileType>[] = getFileTypeOpts(true);
   guessFileIcon = guessFileIconClz;
 
   /** expanded fileInfo */
@@ -179,9 +179,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   ----------------------------------
   */
-  refreshLabel = () => {
-    this.allFileTypeOpts = getFileTypeOpts(true);
-  };
 
   @ViewChild("uploadFileInput")
   uploadFileInput: ElementRef;
@@ -206,8 +203,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnDestroy(): void {}
 
   ngOnInit() {
-    this.refreshLabel();
-
     this.route.paramMap.subscribe((params) => {
       // vfolder
       this.inFolderNo = params.get("folderNo");
