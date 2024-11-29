@@ -13,9 +13,8 @@ CREATE TABLE `file` (
   `link` varchar(32) NOT NULL DEFAULT '' COMMENT 'symbolic link to another file id',
   `sha1` varchar(40) NOT NULL DEFAULT '' COMMENT 'sha1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `file_id` (`file_id`),
-  KEY `md5` (`md5`),
+  KEY `file_id` (`file_id`,`status`),
   KEY `link_idx` (`link`),
   KEY `md5_size_name_idx` (`md5`,`size`,`name`),
   KEY `sha1_size_idx` (`sha1`,`size`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='File';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='File';

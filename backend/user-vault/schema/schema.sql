@@ -1,7 +1,7 @@
 create database if not exists user_vault;
 
 CREATE TABLE `user` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `username` varchar(50) NOT NULL COMMENT 'username',
   `password` varchar(255) NOT NULL COMMENT 'password in hash',
   `salt` varchar(10) NOT NULL COMMENT 'salt',
@@ -20,7 +20,7 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User';
 
 CREATE TABLE `user_key` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_id` int(10) unsigned NOT NULL COMMENT 'user.id',
   `name` varchar(255) NOT NULL DEFAULT '' COMMENT 'name of the key',
   `secret_key` varchar(255) NOT NULL COMMENT 'secret key',
@@ -34,10 +34,10 @@ CREATE TABLE `user_key` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `secret_key` (`secret_key`),
   KEY `user_no_idx` (`user_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='user''s key';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='user key';
 
 CREATE TABLE `access_log` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `access_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the user signed in',
   `ip_address` varchar(255) NOT NULL COMMENT 'ip address',
   `username` varchar(255) NOT NULL COMMENT 'username',
@@ -49,7 +49,7 @@ CREATE TABLE `access_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='access log';
 
 CREATE TABLE `path` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `pgroup` varchar(20) NOT NULL DEFAULT '' COMMENT 'path group',
   `path_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'path no',
   `desc` varchar(255) NOT NULL DEFAULT '' COMMENT 'description',
@@ -66,7 +66,7 @@ CREATE TABLE `path` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Paths';
 
 CREATE TABLE `path_resource` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `path_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'path no',
   `res_code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
@@ -79,7 +79,7 @@ CREATE TABLE `path_resource` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Path Resource';
 
 CREATE TABLE `resource` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource name',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
@@ -92,7 +92,7 @@ CREATE TABLE `resource` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Resources';
 
 CREATE TABLE `role` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT 'name of role',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
@@ -105,7 +105,7 @@ CREATE TABLE `role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Roles';
 
 CREATE TABLE `role_resource` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
   `res_code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
@@ -118,7 +118,7 @@ CREATE TABLE `role_resource` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Role resources';
 
 CREATE TABLE `notification` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `notifi_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'notification no',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
   `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'title',
@@ -134,7 +134,7 @@ CREATE TABLE `notification` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Platform Notification';
 
 CREATE TABLE `site_password` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `record_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'record unique id',
   `site` varchar(64) NOT NULL DEFAULT '' COMMENT 'site',
   `alias` varchar(64) NOT NULL DEFAULT '' COMMENT 'alias',

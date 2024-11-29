@@ -144,7 +144,7 @@ CREATE TABLE `versioned_file` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Versioned File';
 
 CREATE TABLE `versioned_file_log` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `ver_file_id` varchar(32) NOT NULL COMMENT 'versioned file id',
   `file_key` varchar(64) NOT NULL COMMENT 'file_info key',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
@@ -156,7 +156,7 @@ CREATE TABLE `versioned_file_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Versioned File Log';
 
 CREATE TABLE `bookmark` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_no` varchar(32) NOT NULL COMMENT 'user no',
   `icon` text COMMENT 'icon encoded blob',
   `name` varchar(512) NOT NULL DEFAULT '' COMMENT 'bookmark name',
@@ -168,7 +168,7 @@ CREATE TABLE `bookmark` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bookmark';
 
 CREATE TABLE `bookmark_blacklist` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_no` varchar(32) NOT NULL COMMENT 'user no',
   `icon` text COMMENT 'icon encoded blob',
   `name` varchar(512) NOT NULL DEFAULT '' COMMENT 'bookmark name',
