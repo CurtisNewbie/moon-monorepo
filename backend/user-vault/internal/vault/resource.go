@@ -32,7 +32,8 @@ var (
 
 const (
 	// default roleno for admin
-	DefaultAdminRoleNo = "role_554107924873216177918"
+	DefaultAdminRoleNo  = "role_554107924873216177918" // deprecated
+	DefaultAdminRoleNo2 = "role_super_admin"
 
 	PathTypeProtected string = "PROTECTED"
 	PathTypePublic    string = "PUBLIC"
@@ -333,7 +334,7 @@ func ListResourceCandidatesForRole(ec miso.Rail, roleNo string) ([]ResBrief, err
 func ListAllResBriefsOfRole(ec miso.Rail, roleNo string) ([]ResBrief, error) {
 	var res []ResBrief
 
-	if roleNo == DefaultAdminRoleNo {
+	if isDefAdmin(roleNo) {
 		return ListAllResBriefs(ec)
 	}
 
@@ -851,7 +852,7 @@ func TestResourceAccess(ec miso.Rail, req TestResAccessReq) (TestResAccessResp, 
 }
 
 func checkRoleRes(rail miso.Rail, roleNo string, resCode string) (bool, error) {
-	if roleNo == DefaultAdminRoleNo {
+	if isDefAdmin(roleNo) {
 		return true, nil
 	}
 
@@ -1039,4 +1040,8 @@ func lockPathExec(ec miso.Rail, pathNo string, runnable redis.Runnable) error {
 // lock for role-resource cache
 func lockRoleResCache(ec miso.Rail, runnable redis.LRunnable[any]) (any, error) {
 	return redis.RLockRun(ec, "user-vault:role:res:cache", runnable)
+}
+
+func isDefAdmin(roleNo string) bool {
+	return roleNo == DefaultAdminRoleNo || roleNo == DefaultAdminRoleNo2
 }

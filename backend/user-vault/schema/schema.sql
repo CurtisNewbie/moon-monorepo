@@ -154,4 +154,4 @@ CREATE TABLE `site_password` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Personal passwords for different sites';
 
 -- default one for administrator, with this role, all paths can be accessed
-INSERT INTO user_vault.role(role_no, name) VALUES ('role_554107924873216177918', 'Super Administrator');
+INSERT INTO user_vault.role(role_no, name) VALUES ('role_super_admin', 'Super Administrator');
