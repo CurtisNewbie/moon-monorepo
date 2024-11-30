@@ -190,11 +190,10 @@ Before moon-monorepo, backend projects are maintained in separate repos. Both v0
 - [logbot >= v0.0.9](https://github.com/CurtisNewbie/logbot/tree/v0.0.9)
 - [mini-fstore >= v0.1.21](https://github.com/CurtisNewbie/mini-fstore/tree/v0.1.21)
 
-Meaning that you can directly upgrade to using the code in moon-monorepo without worrying about the data migration if your deployment is already up-to-date. However, if you are not using the latests releases in these repos, you may need to consider upgrading to the latest versions before migrating to this monorepo version.
+Meaning that you can directly upgrade to the code in moon-monorepo without worrying about the data migration if your deployment is already up-to-date. However, if you are not using the latests releases in these repos, you may need to consider upgrading to the latest versions before migrating to this monorepo version.
 
 > [!IMPORTANT]
 >
-> Previously, some of the backend projects rely on `svc` to automatically upgrade schema. This functionality is now removed, all the DDL changes are maintained in a single SQL file for better maintainability.
-> This also means that, you will have to execute the DDL scripts yourself.
+> Previously, some of the backend projects rely on `svc` to automatically upgrade schema, this functionality is now removed. DDL changes for each release is maintained in separate SQL files, you will have to execute the DDL scripts yourself based on the version you are using.
 
 TODO ...
