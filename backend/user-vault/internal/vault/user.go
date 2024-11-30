@@ -688,7 +688,7 @@ func FindUserWithRes(rail miso.Rail, db *gorm.DB, req api.FetchUserWithResourceR
 		select u.*, r.name role_name from user u
 		left join role r on u.role_no = r.role_no
 		left join role_resource rr on r.role_no = rr.role_no
-		where rr.res_code = ? or r.role_no in ?`, []string{DefaultAdminRoleNo, DefaultAdminRoleNo2}).
+		where rr.res_code = ? or r.role_no in ?`, req.ResourceCode, []string{DefaultAdminRoleNo, DefaultAdminRoleNo2}).
 		Scan(&users).
 		Error
 	return users, err
