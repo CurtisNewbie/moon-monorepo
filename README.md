@@ -176,6 +176,7 @@ rabbitmq:
 - [Environment Variables And Secrets](./deploy/backend.env)
 - [Nginx Conf](./deploy/nginx.conf)
 - [Prometheus Conf](./deploy/prometheus.yml)
+- [Grafana Dashboard](./deploy/grafana_dashboard.json)
 
 ## Compatibility
 
