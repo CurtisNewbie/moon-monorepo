@@ -51,7 +51,7 @@ The first admin role:
 ```sql
 -- default one for administrator
 -- with this role, all protected (bound with resources) / public paths can be accessed
-INSERT INTO user_vault.role(role_no, name) VALUES ('role_554107924873216177918', 'Super Administrator');
+INSERT INTO user_vault.role(role_no, name) VALUES ('role_super_admin', 'Super Administrator');
 ```
 
 The first user:
@@ -59,7 +59,7 @@ The first user:
 ```sql
 -- username: admin
 -- password: 123456, generated with sha256(password + salt)
-insert into user_vault.user (username, password, salt, review_status, user_no, role_no) values ('admin', '958d51602bbfbd18b2a084ba848a827c29952bfef170c936419b0922994c0589', '123456', 'APPROVED', 'UE1049787455160320075953', 'role_554107924873216177918');
+insert into user_vault.user (username, password, salt, review_status, user_no, role_no) values ('admin', '958d51602bbfbd18b2a084ba848a827c29952bfef170c936419b0922994c0589', '123456', 'APPROVED', 'UE1049787455160320075953', 'role_super_admin');
 ```
 
 ## Updates
