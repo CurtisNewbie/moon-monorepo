@@ -148,9 +148,9 @@ services:
     env_file:
       - ./backend.env
     volumes:
-      - /home/alphaboi/services/acct/logs:/usr/src/logs
-      - /home/alphaboi/services/acct/config:/usr/src/config
-      - /home/alphaboi/services/acct/tmp:/usr/src/tmp
+      - /services/acct/logs:/usr/src/logs
+      - /services/acct/config:/usr/src/config
+      - /services/acct/tmp:/usr/src/tmp
     networks:
       - backend
     restart: always
