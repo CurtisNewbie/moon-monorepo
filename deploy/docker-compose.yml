@@ -142,6 +142,29 @@ services:
           cpus: '2'
           memory: '300m'
 
+  # 8093
+  acct:
+    build: ./acct/build
+    env_file:
+      - ./backend.env
+    volumes:
+      - /home/alphaboi/services/acct/logs:/usr/src/logs
+      - /home/alphaboi/services/acct/config:/usr/src/config
+      - /home/alphaboi/services/acct/tmp:/usr/src/tmp
+    networks:
+      - backend
+    restart: always
+    stop_signal: SIGTERM
+    depends_on:
+      - "consul"
+      - "redis"
+      - "rabbitmq"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '100m'
+
   nginx:
     image: nginx:alpine
     volumes:
