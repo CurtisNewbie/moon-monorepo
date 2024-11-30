@@ -10,7 +10,7 @@ import (
 
 func init() {
 	miso.PreServerBootstrap(func(rail miso.Rail) error {
-		rail.Infof("acct version: %v", Version)
+		rail.Infof("acct (monorepo) version: %v", Version)
 		return nil
 	})
 }

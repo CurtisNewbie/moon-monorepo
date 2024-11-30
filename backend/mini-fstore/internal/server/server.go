@@ -13,7 +13,7 @@ import (
 
 func init() {
 	miso.PreServerBootstrap(func(rail miso.Rail) error {
-		rail.Infof("mini-fstore version: %v", Version)
+		rail.Infof("mini-fstore (monorepo) version: %v", Version)
 		return nil
 	})
 }

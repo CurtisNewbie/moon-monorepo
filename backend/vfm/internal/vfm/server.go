@@ -29,6 +29,6 @@ func BootstrapServer(args []string) {
 }
 
 func PrintVersion(rail miso.Rail) error {
-	rail.Infof("vfm version: %v", Version)
+	rail.Infof("vfm (monorepo) version: %v", Version)
 	return nil
 }

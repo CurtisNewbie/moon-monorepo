@@ -1,5 +1,5 @@
 package vfm
 
 const (
-	Version = "v0.1.26"
+	Version = "v0.0.2"
 )

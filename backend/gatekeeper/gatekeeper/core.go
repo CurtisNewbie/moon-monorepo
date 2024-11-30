@@ -52,7 +52,7 @@ func Bootstrap(args []string) {
 
 func prepareServer(rail miso.Rail) error {
 
-	miso.Infof("gatekeeper version: %v", Version)
+	miso.Infof("gatekeeper (monorepo) version: %v", Version)
 
 	// disable trace propagation, we are the entry point
 	common.LoadBuiltinPropagationKeys()

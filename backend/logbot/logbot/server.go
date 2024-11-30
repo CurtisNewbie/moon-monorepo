@@ -17,6 +17,8 @@ const (
 
 func BeforeServerBootstrap(rail miso.Rail) error {
 
+	rail.Infof("logbot (monorepo) version: %v", Version)
+
 	logbot.EnableLogbotErrLogReport()
 	common.LoadBuiltinPropagationKeys()
 
