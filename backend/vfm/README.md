@@ -57,5 +57,3 @@ Everytime the schema is changed, a new SQL script for that specific version is m
 
 ## Updates
 
-- Since v0.1.19, vfm will migrate schema automatically using [github.com/curtisnewbie/svc](https://github.com/curtisnewbie/svc).
-- Since v0.1.20, vfm has merged [github.com/curtisnewbie/doc-indexer](https://github.com/curtisnewbie/doc-indexer) codebase.

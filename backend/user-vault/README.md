@@ -63,6 +63,3 @@ insert into user_vault.user (username, password, salt, review_status, user_no, r
 ```
 
 ## Updates
-
-- Since v0.0.16, [github.com/curtisnewbie/goauth](https://github.com/curtisnewbie/goauth) codebase has been merged into this repository.
-- Since v0.0.22, [github.com/curtisnewbie/postbox](https://github.com/curtisnewbie/postbox) codebase has been merged into this repository.

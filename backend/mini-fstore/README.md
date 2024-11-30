@@ -82,5 +82,3 @@ curl -X POST 'http://localhost:8084/maintenance/compute-checksum'
 
 ## Update
 
-- Since v0.1.17, [github.com/curtisnewbie/hammer](https://github.com/curtisnewbie/hammer) codebase has been merged into this repo.
-- Since v0.1.20, mini-fstore computes sha1 checksum to uniquely identify files (to avoid duplicate upload).
