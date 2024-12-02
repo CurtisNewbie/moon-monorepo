@@ -196,4 +196,6 @@ Meaning that you can directly upgrade to the code in moon-monorepo without worry
 >
 > Previously, some of the backend projects rely on `svc` to automatically upgrade schema, this functionality is now removed. DDL changes for each release is maintained in separate SQL files, you will have to execute the DDL scripts yourself based on the version you are using.
 
-TODO ...
+## Updates
+
+- [Change Log](./changes/changes.md)
