@@ -2,8 +2,8 @@
     <div class="d-flex align-self-stretch justify-content-between">
         <div>
             <button mat-button [matMenuTriggerFor]="menu"><i class="bi bi-list icon-button-large"></i></button>
-            <button mat-button routerLink="/user-details">Moon <img src="../../favicon.ico" width="30px"
-                    class="invertcolor" /></button>
+            <button mat-button [matMenuTriggerFor]="moonMenu" routerLink="/user-details">Moon <img
+                    src="../../favicon.ico" width="30px" class="invertcolor" /></button>
         </div>
         <div>
             <button mat-button routerLink="/notifications" routerLinkActive="active"
@@ -79,6 +79,12 @@
             <button mat-menu-item routerLink="/user-details">{{userInfo.username}}</button>
             <button mat-menu-item>{{userInfo.roleName}}</button>
             <button mat-menu-item (click)="logout()">Logout <i class="ms-2 bi bi-box-arrow-right"></i> </button>
+        </mat-menu>
+
+        <mat-menu #moonMenu="matMenu" class="m-2">
+            <button mat-menu-item>Version: {{version}}</button>
+            <button mat-menu-item (click)="openGithub()">Github <i
+                    class="ms-2 me-2 bi bi-github icon-button-large"></i></button>
         </mat-menu>
     </div>
 </ng-container>

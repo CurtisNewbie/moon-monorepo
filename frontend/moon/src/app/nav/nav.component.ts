@@ -5,6 +5,7 @@ import { copyToClipboard } from "src/common/clipboard";
 import { PlatformNotificationService } from "../platform-notification.service";
 import { Toaster } from "../notification.service";
 import { HttpClient } from "@angular/common/http";
+import { Version } from "../version";
 
 @Component({
   selector: "app-nav",
@@ -12,6 +13,7 @@ import { HttpClient } from "@angular/common/http";
   styleUrls: ["./nav.component.css"],
 })
 export class NavComponent implements OnInit, OnDestroy {
+  version = Version;
   userInfo: UserInfo = null;
   copyToClipboard = (s) => {
     this.toaster.toast("Copied to clipboard");
@@ -70,5 +72,9 @@ export class NavComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => (this.unreadCount = res.data),
       });
+  }
+
+  openGithub() {
+    window.open("https://github.com/curtisnewbie/moon-monorepo", "_blank");
   }
 }
