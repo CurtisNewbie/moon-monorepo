@@ -1,9 +1,16 @@
-<div *ngIf="inDirFileName" class="m-2">
-    <mat-card>
-        <h5><i style="max-width:30px; max-height:30px; padding: 0px 5px 5px 5px;"
-                class="bi bi-folder icon-button-large"> </i>
-            {{inDirFileName}}</h5>
+<div *ngIf="inDirFileName" class="ms-4 me-4">
+    <mat-card style="padding: 10px">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5><i style="max-width:30px; max-height:30px; padding: 5px 5px 0px 5px;"
+                        class="bi bi-folder icon-button-large"> </i>
+                    {{inDirFileName}}</h5>
+            </div>
+            <button mat-icon-button class="m-1 icon-button-large" matTooltip="Go up one level of the directory tree"
+                *ngIf="inDirFileKey" (click)="goPrevDir()"><i class="bi bi-arrow-left-circle"></i></button>
+        </div>
     </mat-card>
+
 </div>
 
 <!-- TODO: change to dialog?  -->
@@ -78,7 +85,7 @@
 
 </ng-container>
 
-<div class="mt-5 mb-2">
+<div class="mt-3">
     <div *ngIf="inFolderName" class="m-2">
         <mat-card>Virtual Folder: '{{inFolderName}}'</mat-card>
     </div>
@@ -139,8 +146,7 @@
                     </button>
                 </ng-container>
 
-                <button mat-icon-button class="m-1 icon-button-large" matTooltip="Go up one level of the directory tree"
-                    *ngIf="inDirFileKey" (click)="goPrevDir()"><i class="bi bi-arrow-left-circle"></i></button>
+
                 <button mat-icon-button class="m-1 icon-button-large" *ngIf="inFolderNo" (click)="leaveFolder()"><i
                         class="bi bi-arrow-left-circle"></i></button>
 
