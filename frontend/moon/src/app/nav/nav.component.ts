@@ -19,7 +19,8 @@ export class NavComponent implements OnInit, OnDestroy {
     this.toaster.toast("Copied to clipboard");
     copyToClipboard(s);
   };
-  unreadCount: 0;
+  unreadCount = 0;
+  fetching = false;
 
   constructor(
     private userService: UserService,
@@ -67,10 +68,24 @@ export class NavComponent implements OnInit, OnDestroy {
   }
 
   fetchUnreadNotificationCount() {
+    if (this.fetching) {
+      return;
+    }
+
+    this.fetching = true;
+    console.log("fetch unread notification count");
     return this.http
-      .get<any>(`user-vault/open/api/v1/notification/count`)
+      .get<any>(
+        `user-vault/open/api/v2/notification/count?curr=${this.unreadCount}`
+      )
       .subscribe({
         next: (res) => (this.unreadCount = res.data),
+        complete: () => {
+          this.fetching = false;
+        },
+        error: () => {
+          this.fetching = false;
+        },
       });
   }
 

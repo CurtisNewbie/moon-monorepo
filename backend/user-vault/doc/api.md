@@ -3548,6 +3548,38 @@
       });
     ```
 
+- GET /open/api/v2/notification/count
+  - Description: Count received platform notification using long polling
+  - Bound to Resource: `"postbox:notification:query"`
+  - Query Parameter:
+    - "curr": Current count (used to implement long polling)
+  - cURL:
+    ```sh
+    curl -X GET 'http://localhost:8089/open/api/v2/notification/count?curr='
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    let curr: any | null = null;
+    this.http.get<any>(`/user-vault/open/api/v2/notification/count?curr=${curr}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
 - GET /metrics
   - Description: Collect prometheus metrics information
   - Header Parameter:

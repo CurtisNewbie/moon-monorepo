@@ -14,6 +14,7 @@ func BootstrapServer(args []string) {
 	logbot.EnableLogbotErrLogReport()
 
 	miso.PreServerBootstrap(vault.SubscribeBinlogEvent)
+	miso.PreServerBootstrap(postbox.PrepareLongPollHandler)
 	miso.PreServerBootstrap(func(rail miso.Rail) error {
 		vault.RegisterInternalPathResourcesOnBootstrapped([]auth.Resource{
 			{Code: vault.ResourceManageResources, Name: "Manage Resources Access"},

@@ -145,5 +145,9 @@ func evictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {
 	if err := userNotifCountCache.Del(rail, userNo); err != nil {
 		rail.Errorf("Failed to evict user notification count cache, %v, %v", userNo, err)
 	}
+
+	if c := redis.GetRedis().Publish(userNotifCountChangedChannel, userNo); c.Err() != nil {
+		rail.Errorf("Failed to publish user notification count change to %v, %v, %v", userNotifCountChangedChannel, userNo, c.Err())
+	}
 	return nil
 }
