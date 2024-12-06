@@ -1,10 +1,11 @@
 module github.com/curtisnewbie/user-vault
 
-go 1.21
+go 1.22
 
 require (
 	github.com/curtisnewbie/event-pump v0.0.13
-	github.com/curtisnewbie/miso v0.1.12
+	github.com/curtisnewbie/miso v0.1.13-beta.3
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.6.0
 	gorm.io/gorm v1.23.8
@@ -23,7 +24,6 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
-	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect

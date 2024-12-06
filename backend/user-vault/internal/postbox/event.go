@@ -21,7 +21,7 @@ func InitPipeline(rail miso.Rail) error {
 
 	api.CreateNotifiPipeline.Listen(3, func(rail miso.Rail, evt api.CreateNotifiEvent) error {
 		if err := miso.Validate(evt); err != nil {
-			rail.Errorf("Invalid event, %#v, %v", evt, err)
+			rail.NoRelayErrorf("Invalid event, %#v, %v", evt, err)
 			return nil
 		}
 		return CreateNotification(rail, mysql.GetMySQL(), api.CreateNotificationReq(evt), common.NilUser())
@@ -29,14 +29,14 @@ func InitPipeline(rail miso.Rail) error {
 
 	api.CreateNotifiByAccessPipeline.Listen(2, func(rail miso.Rail, evt api.CreateNotifiByAccessEvent) error {
 		if err := miso.Validate(evt); err != nil {
-			rail.Errorf("Invalid event, %#v, %v", evt, err)
+			rail.NoRelayErrorf("Invalid event, %#v, %v", evt, err)
 			return nil
 		}
 
 		users, err := UserWithResCache.Get(rail, evt.ResCode, func() ([]api.UserInfo, error) {
 			users, err := vault.FindUserWithRes(rail, mysql.GetMySQL(), api.FetchUserWithResourceReq{ResourceCode: evt.ResCode})
 			if err != nil {
-				rail.Errorf("failed to FindUserWithRes, %v", err)
+				rail.NoRelayErrorf("failed to FindUserWithRes, %v", err)
 				return nil, err
 			}
 			return users, err
