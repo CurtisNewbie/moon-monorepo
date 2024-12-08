@@ -31,7 +31,7 @@ func init() {
 	if max > 1 {
 		c = max / 2
 	}
-	importPool = util.NewAsyncPool(c, 50)
+	importPool = util.NewIOAsyncPool()
 	miso.Infof("Created import pool with %d workers", c)
 }
 
