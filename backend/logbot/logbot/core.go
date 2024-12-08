@@ -165,7 +165,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 		line, err := rd.ReadString('\n')
 		if err == nil {
 
-			mergedLogger.Printf("[%15s] - %v", wc.App, line)
+			mergedLogger.Printf("[%11s] - %v", wc.App, line)
 
 			if wc.ReportError {
 
