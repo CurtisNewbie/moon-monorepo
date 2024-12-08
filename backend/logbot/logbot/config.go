@@ -11,9 +11,10 @@ func init() {
 }
 
 type WatchConfig struct {
-	App  string
-	File string
-	Type string
+	App         string
+	File        string
+	Type        string
+	ReportError bool
 }
 
 type LogBotConfig struct {

@@ -28,8 +28,6 @@ const (
 
 var (
 	logPatternCache = miso.NewLocalCache[*regexp.Regexp]()
-	lineCache       = miso.NewTTLCache[string](time.Second*5, 1000)
-	noopElseGet     = func() (string, bool) { return "", false }
 )
 
 func init() {
@@ -104,11 +102,10 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 	// create reader for the file
 	var rd *bufio.Reader
 	if f != nil {
-		rd = bufio.NewReader(f)
+		rd = bufio.NewReaderSize(f, 1024*16)
 	}
 
 	lastRead := time.Now()
-	accum := 0 // lines read so far (will be reset when it reaches 1000)
 	var prevBytesRead int64
 	var prevLine string
 	var prevLogLine *LogLine // a single log can contain multiple lines
@@ -168,6 +165,8 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 		line, err := rd.ReadString('\n')
 		if err == nil {
 
+			mergedLogger.Printf("[%v] - %v", wc.App, line)
+
 			logLine, e := parseLogLine(rail, line, wc.Type)
 			if e == nil {
 
@@ -203,19 +202,11 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 			}
 
 			lastRead = time.Now()
-			accum += 1
-
-			if accum == 250 {
-				time.Sleep(250 * time.Millisecond)
-				accum = 0
-			}
-
+			time.Sleep(50 * time.Millisecond)
 			continue
-		}
 
-		if err == io.EOF {
-			accum = 0
-			time.Sleep(2 * time.Second)
+		} else if err == io.EOF {
+			time.Sleep(1 * time.Second)
 			continue
 		}
 
@@ -279,17 +270,8 @@ func parseLogLine(rail miso.Rail, line string, typ string) (LogLine, error) {
 }
 
 func reportLine(rail miso.Rail, line LogLine, node string, wc WatchConfig) error {
-	if line.Level != "ERROR" {
+	if !wc.ReportError || line.Level != "ERROR" {
 		return nil
-	}
-
-	// prevent reporting same error message way too frequently
-	if len(line.Message) < 2048 {
-		_, ok := lineCache.Get(line.Message, noopElseGet)
-		if ok {
-			return nil
-		}
-		lineCache.Put(line.Message, "1") // race condition is fine
 	}
 
 	return rabbit.PubEventBus(rail,

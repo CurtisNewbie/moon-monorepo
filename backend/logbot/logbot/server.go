@@ -51,6 +51,8 @@ func BeforeServerBootstrap(rail miso.Rail) error {
 
 	InitPipeline(rail)
 
+	InitMergedLogger()
+
 	return nil
 }
 

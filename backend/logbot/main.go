@@ -9,6 +9,6 @@ import (
 
 func main() {
 	miso.PreServerBootstrap(logbot.BeforeServerBootstrap)
-	miso.PostServerBootstrapped(logbot.AfterServerBootstrapped)
+	miso.PostServerBootstrap(logbot.AfterServerBootstrapped)
 	miso.BootstrapServer(os.Args)
 }
