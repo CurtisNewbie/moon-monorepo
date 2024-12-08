@@ -165,45 +165,48 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 		line, err := rd.ReadString('\n')
 		if err == nil {
 
-			mergedLogger.Printf("[%v] - %v", wc.App, line)
+			mergedLogger.Printf("[%15s] - %v", wc.App, line)
 
-			logLine, e := parseLogLine(rail, line, wc.Type)
-			if e == nil {
+			if wc.ReportError {
 
-				// prevLogLine == nil, won't happen unless it is the first log being parsed, or is really in incorrect format
-				if prevLogLine != nil {
+				logLine, e := parseLogLine(rail, line, wc.Type)
+				if e == nil {
 
-					// always report the previous log
-					if e := reportLine(rail, *prevLogLine, nodeName, wc); e != nil {
-						rail.Errorf("Failed to reportLine, logLine: %+v, %v", *prevLogLine, e)
+					// prevLogLine == nil, won't happen unless it is the first log being parsed, or is really in incorrect format
+					if prevLogLine != nil {
+
+						// always report the previous log
+						if e := reportLine(rail, *prevLogLine, nodeName, wc); e != nil {
+							rail.Errorf("Failed to reportLine, logLine: %+v, %v", *prevLogLine, e)
+						}
+
+						// move the position only when we report the previous log
+						pos += prevBytesRead
+						recPos(rail, wc.App, nodeName, pos)
+						rail.Debugf("app: %v, pos: %v", wc.App, pos)
 					}
 
-					// move the position only when we report the previous log
-					pos += prevBytesRead
-					recPos(rail, wc.App, nodeName, pos)
-					rail.Debugf("app: %v, pos: %v", wc.App, pos)
+					prevBytesRead = int64(len([]byte(line)))
+					prevLine = line
+					prevLogLine = &logLine
+				} else {
+					// if current line is not parseable, it's part of previous line
+					// we put them together and we parse again
+					//
+					// yes, we may will just parse it before we do reportLine, but for
+					// 90% of the time, the log is single line
+					// so it's better leave it here
+					prevBytesRead += int64(len([]byte(line)))
+					prevLine = prevLine + line
+					if parsed, ep := parseLogLine(rail, prevLine, wc.Type); ep == nil {
+						prevLogLine = &parsed
+					}
 				}
 
-				prevBytesRead = int64(len([]byte(line)))
-				prevLine = line
-				prevLogLine = &logLine
-			} else {
-				// if current line is not parseable, it's part of previous line
-				// we put them together and we parse again
-				//
-				// yes, we may will just parse it before we do reportLine, but for
-				// 90% of the time, the log is single line
-				// so it's better leave it here
-				prevBytesRead += int64(len([]byte(line)))
-				prevLine = prevLine + line
-				if parsed, ep := parseLogLine(rail, prevLine, wc.Type); ep == nil {
-					prevLogLine = &parsed
-				}
+				lastRead = time.Now()
+				time.Sleep(50 * time.Millisecond)
+				continue
 			}
-
-			lastRead = time.Now()
-			time.Sleep(50 * time.Millisecond)
-			continue
 
 		} else if err == io.EOF {
 			time.Sleep(1 * time.Second)

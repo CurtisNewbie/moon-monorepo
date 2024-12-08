@@ -49,16 +49,11 @@ logbot:
       report-error: true
     - app: user-vault
       file: ../user-vault/logs/user-vault.log
-      type: go
     - app: vfm
       file: ../vfm/logs/vfm.log
-      type: go
     - app: mini-fstore
       file: ../mini-fstore/logs/mini-fstore.log
-      type: go
     - app: gatekeeper
       file: ../gatekeeper/logs/gatekeeper.log
-      type: go
     - app: acct
       file: ../acct/logs/acct.log
-      type: go
