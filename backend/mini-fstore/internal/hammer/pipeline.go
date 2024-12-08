@@ -114,11 +114,11 @@ func GenVideoThumbnail(rail miso.Rail, evt api.VidThumbnailTriggerEvent) (string
 	}
 
 	// temp path for ffmpeg to extract first frame of the video
-	tmpPath := "/tmp/" + util.RandNum(20) + ".png"
+	tmpPath := "/tmp/" + util.RandNum(20) + ".gif"
 	defer os.Remove(tmpPath)
 
 	stoPath := origin.StoragePath()
-	if err := ExtractFirstFrame(rail, stoPath, tmpPath); err != nil {
+	if err := BuildVideoPreviewGif(rail, stoPath, tmpPath); err != nil {
 		rail.Errorf("Failed to generate video thumbnail, giving up, fileId: %v, path: %v, %v", evt.FileId, stoPath, err)
 		return "", nil
 	}
