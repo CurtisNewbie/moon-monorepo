@@ -18,11 +18,9 @@ import (
 )
 
 const (
-	ResManageFiles                 = "manage-files"
-	ResManageBookmark              = "manage-bookmarks"
-	ResCompensateMissingThumbnails = "vfm:maintenance:compensate-missing-thumbnails"
-	ResRegenerateVideoThumbnails   = "vfm:maintenance:regenerate-video-thumbnails"
-	ResUpdateDirSizeEstimate       = "vfm:maintenance:update-directory-size-estimate"
+	ResManageFiles    = "manage-files"
+	ResManageBookmark = "manage-bookmarks"
+	ResVfmMaintenance = "vfm:server:maintenance"
 )
 
 var (
@@ -35,9 +33,7 @@ func RegisterHttpRoutes(rail miso.Rail) error {
 	auth.ExposeResourceInfo([]auth.Resource{
 		{Code: ResManageFiles, Name: "Manage files"},
 		{Code: ResManageBookmark, Name: "Manage Bookmarks"},
-		{Code: ResCompensateMissingThumbnails, Name: "Compensate missing file thumbnails"},
-		{Code: ResRegenerateVideoThumbnails, Name: "Regenerate video thumbnails"},
-		{Code: ResUpdateDirSizeEstimate, Name: "Recalculate directory size"},
+		{Code: ResVfmMaintenance, Name: "VFM Server Maintenance"},
 	})
 
 	return nil
@@ -538,7 +534,7 @@ func ApiDelVersionedFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user
 //
 //   - misoapi-http: POST /compensate/thumbnail
 //   - misoapi-desc: Compensate thumbnail generation
-//   - misoapi-resource: ref(ResCompensateMissingThumbnails)
+//   - misoapi-resource: ref(ResVfmMaintenance)
 func CompensateThumbnailEp(rail miso.Rail, db *gorm.DB) (any, error) {
 	return nil, CompensateThumbnail(rail, db)
 }
@@ -547,7 +543,7 @@ func CompensateThumbnailEp(rail miso.Rail, db *gorm.DB) (any, error) {
 //
 //   - misoapi-http: POST /compensate/dir/calculate-size
 //   - misoapi-desc: Calculate size of all directories recursively
-//   - misoapi-resource: ref(ResUpdateDirSizeEstimate)
+//   - misoapi-resource: ref(ResVfmMaintenance)
 func ImMemBatchCalcDirSizeEp(rail miso.Rail, db *gorm.DB) (any, error) {
 	return nil, ImMemBatchCalcDirSize(rail, db)
 }
@@ -556,7 +552,7 @@ func ImMemBatchCalcDirSizeEp(rail miso.Rail, db *gorm.DB) (any, error) {
 //
 //   - misoapi-http: POST /compensate/regenerate-video-thumbnails
 //   - misoapi-desc: Regenerate video thumbnails
-//   - misoapi-resource: ref(ResRegenerateVideoThumbnails)
+//   - misoapi-resource: ref(ResVfmMaintenance)
 func RegenerateVideoThumbnailApi(rail miso.Rail, db *gorm.DB) error {
 	return RegenerateVideoThumbnails(rail, db)
 }

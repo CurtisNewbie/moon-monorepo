@@ -416,3 +416,12 @@ func ComputeChecksumEp(inb *miso.Inbound) (any, error) {
 func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
 	return fstore.LoadStorageInfo(), nil
 }
+
+// Fetch storage usage info.
+//
+//   - misoapi-http: Get /storage/usage-info
+//   - misoapi-desc: Fetch storage usage info
+//   - misoapi-resource: ref(ResCodeFstoreFetchStorageInfo)
+func FetchStorageUsageInfoEp(inb *miso.Inbound) ([]fstore.StorageUsageInfo, error) {
+	return fstore.LoadStorageUsageInfo(inb.Rail())
+}

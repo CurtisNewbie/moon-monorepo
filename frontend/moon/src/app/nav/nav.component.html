@@ -15,7 +15,7 @@
 
         <mat-menu #menu="matMenu">
             <button mat-menu-item [matMenuTriggerFor]="admin"
-                *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:fetch-storage-info')">Admin</button>
+                *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:fetch-storage-info', 'fstore:maintenance','vfm:server:maintenance')">Admin</button>
             <button mat-menu-item [matMenuTriggerFor]="user">User</button>
             <button mat-menu-item [matMenuTriggerFor]="site" *ngIf="hasRes('basic-user')">Site</button>
             <button mat-menu-item [matMenuTriggerFor]="file" *ngIf="hasRes('manage-files')">File & Gallery</button>
@@ -52,7 +52,9 @@
                 *ngIf="hasRes('manage-logbot')">System
                 Error Logs</button>
             <button mat-menu-item routerLink="/fstore-storage" routerLinkActive="active"
-                *ngIf="hasRes('fstore:fetch-storage-info')">Mini-Fstore Storage</button>
+                *ngIf="hasAnyRes('fstore:fetch-storage-info', 'fstore:maintenance','vfm:server:maintenance')">
+                File Storage
+                Storage</button>
         </mat-menu>
 
         <mat-menu #file="matMenu">

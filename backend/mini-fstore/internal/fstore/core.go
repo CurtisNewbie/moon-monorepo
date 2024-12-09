@@ -1247,3 +1247,39 @@ func readableBytes(d uint64) string {
 	}
 	return cast.ToString(d) + " bytes"
 }
+
+type StorageUsageInfo struct {
+	Path     string
+	Used     uint64
+	UsedText string
+}
+
+func LoadStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
+	sui := make([]StorageUsageInfo, 0, 2)
+	props := []string{config.PropTrashDir, config.PropStorageDir, config.PropTempDir}
+	for _, p := range props {
+		td := miso.GetPropStr(p)
+		if td != "" {
+			si, err := readDirSize(rail, td)
+			if err != nil {
+				return nil, err
+			}
+			sui = append(sui, si)
+		}
+	}
+	return sui, nil
+}
+
+func readDirSize(rail miso.Rail, n string) (StorageUsageInfo, error) {
+	st, err := os.Stat(n)
+	if err != nil {
+		rail.Errorf("read dir stat failed, %v", err)
+		return StorageUsageInfo{}, err
+	}
+	u := uint64(st.Size())
+	return StorageUsageInfo{
+		Path:     n,
+		Used:     u,
+		UsedText: readableBytes(u),
+	}, nil
+}

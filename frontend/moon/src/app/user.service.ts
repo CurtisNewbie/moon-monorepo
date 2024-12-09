@@ -26,6 +26,7 @@ export interface ResBrief {
 })
 export class UserService implements OnDestroy {
   private userInfoSubject = new BehaviorSubject<UserInfo>(null);
+  private resourceSubject = new BehaviorSubject<any>(null);
   private resources: Set<string> = null;
 
   // refreshed every 5min
@@ -45,6 +46,8 @@ export class UserService implements OnDestroy {
   userInfoObservable: Observable<UserInfo> =
     this.userInfoSubject.asObservable();
 
+  resourceObservable: Observable<any> = this.resourceSubject.asObservable();
+
   constructor(
     private http: HttpClient,
     private nav: NavigationService,
@@ -54,18 +57,17 @@ export class UserService implements OnDestroy {
   }
 
   public fetchUserResources() {
-    this.http
-      .get<any>(`user-vault/open/api/resource/brief/user`)
-      .subscribe({
-        next: (res) => {
-          this.resources = new Set();
-          if (res.data) {
-            for (let r of res.data) {
-              this.resources.add(r.code);
-            }
+    this.http.get<any>(`user-vault/open/api/resource/brief/user`).subscribe({
+      next: (res) => {
+        this.resources = new Set();
+        if (res.data) {
+          for (let r of res.data) {
+            this.resources.add(r.code);
           }
-        },
-      });
+          this.resourceSubject.next(this.resources);
+        }
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -83,13 +85,10 @@ export class UserService implements OnDestroy {
    * @param password
    */
   public login(username: string, password: string): Observable<Resp<any>> {
-    return this.http.post<Resp<any>>(
-      `user-vault/open/api/user/login`,
-      {
-        username: username,
-        password: password,
-      }
-    );
+    return this.http.post<Resp<any>>(`user-vault/open/api/user/login`, {
+      username: username,
+      password: password,
+    });
   }
 
   /**
@@ -113,14 +112,11 @@ export class UserService implements OnDestroy {
     password: string,
     userRole: string
   ): Observable<Resp<any>> {
-    return this.http.post<any>(
-      `user-vault/open/api/user/register`,
-      {
-        username,
-        password,
-        userRole,
-      }
-    );
+    return this.http.post<any>(`user-vault/open/api/user/register`, {
+      username,
+      password,
+      userRole,
+    });
   }
 
   /**
@@ -130,33 +126,31 @@ export class UserService implements OnDestroy {
    * @returns
    */
   public register(username: string, password: string): Observable<Resp<any>> {
-    return this.http.post<any>(
-      `user-vault/open/api/user/register/request`,
-      { username, password }
-    );
+    return this.http.post<any>(`user-vault/open/api/user/register/request`, {
+      username,
+      password,
+    });
   }
 
   /**
    * Fetch user info
    */
   public fetchUserInfo(callback = null): void {
-    this.http
-      .get<any>(`user-vault/open/api/user/info`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.data) {
-            this._notifyUserInfo(resp.data);
-            if (callback) {
-              callback();
-            }
-          } else {
-            this.notifi.toast("Please login first");
-            setToken(null);
-            this._notifyUserInfo(null);
-            this.nav.navigateTo(NavType.LOGIN_PAGE);
+    this.http.get<any>(`user-vault/open/api/user/info`).subscribe({
+      next: (resp) => {
+        if (resp.data) {
+          this._notifyUserInfo(resp.data);
+          if (callback) {
+            callback();
           }
-        },
-      });
+        } else {
+          this.notifi.toast("Please login first");
+          setToken(null);
+          this._notifyUserInfo(null);
+          this.nav.navigateTo(NavType.LOGIN_PAGE);
+        }
+      },
+    });
   }
 
   private _notifyUserInfo(userInfo: UserInfo): void {
@@ -181,12 +175,9 @@ export class UserService implements OnDestroy {
    * Exchange Token
    */
   private exchangeToken(token: string): Observable<Resp<string>> {
-    return this.http.post<any>(
-      `user-vault/open/api/token/exchange`,
-      {
-        token: token,
-      }
-    );
+    return this.http.post<any>(`user-vault/open/api/token/exchange`, {
+      token: token,
+    });
   }
 
   /**
@@ -204,8 +195,6 @@ export class UserService implements OnDestroy {
   }
 
   public fetchAllResBrief(): Observable<Resp<any>> {
-    return this.http.get<any>(
-      `user-vault/open/api/resource/brief/all`
-    );
+    return this.http.get<any>(`user-vault/open/api/resource/brief/all`);
   }
 }

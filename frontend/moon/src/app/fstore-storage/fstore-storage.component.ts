@@ -3,6 +3,12 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { HttpClient } from "@angular/common/http";
 import { UserService } from "../user.service";
 
+export interface StorageUsageInfo {
+  path?: string;
+  used?: number;
+  usedText?: string;
+}
+
 export interface StorageInfo {
   volumns?: VolumnInfo[];
 }
@@ -23,10 +29,27 @@ export interface VolumnInfo {
   selector: "app-fstore-storage",
   template: `
     <div>
-      <h3 class="mt-2 mb-3">Mini-Fstore Storage Info</h3>
+      <h3 class="mt-2 mb-3">File Storage</h3>
     </div>
 
-    <div *ngIf="hasRes('fstore:maintenance')" class="d-flex flex-wrap justify-content-end">
+    <div class="d-flex flex-wrap justify-content-end">
+      <ng-container *ngIf="hasRes('vfm:server:maintenance')">
+        <button
+          mat-button
+          (click)="compensateMissingThumbnails()"
+          matTooltip="Generate missing thumbnails"
+        >
+          Compensate Missing Thumbnails
+        </button>
+        <button
+          mat-button
+          (click)="regenerateVideoThumbnails()"
+          matTooltip="Regenerate video thumbnails"
+        >
+          Compensate Missing Thumbnails
+        </button>
+      </ng-container>
+
       <button
         mat-button
         (click)="sanitizeStorage()"
@@ -43,43 +66,72 @@ export interface VolumnInfo {
       </button>
     </div>
 
-    <div class="mt-3 mb-2" style="overflow: auto;">
-      <table mat-table [dataSource]="tabdat" style="width: 100%;">
-        <ng-container matColumnDef="mounted">
-          <th mat-header-cell *matHeaderCellDef>Mounted</th>
-          <td mat-cell *matCellDef="let u">{{ u.mounted }}</td>
-        </ng-container>
+    <div *ngIf="hasRes('fstore:fetch-storage-info')">
+      <div class="d-flex justify-content-between">
+        <h4 class="mt-3 mb-1">Storage Info</h4>
+        <button mat-icon-button class="m-1 icon-button-large" (click)="fetch()">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
 
-        <ng-container matColumnDef="total">
-          <th mat-header-cell *matHeaderCellDef>Total</th>
-          <td mat-cell *matCellDef="let u">{{ u.totalText }}</td>
-        </ng-container>
+      <div class="mt-3 mb-2" style="overflow: auto;">
+        <table mat-table [dataSource]="storageTabDat" style="width: 100%;">
+          <ng-container matColumnDef="mounted">
+            <th mat-header-cell *matHeaderCellDef>Mounted</th>
+            <td mat-cell *matCellDef="let u">{{ u.mounted }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="used">
-          <th mat-header-cell *matHeaderCellDef>Used</th>
-          <td mat-cell *matCellDef="let u">{{ u.usedText }}</td>
-        </ng-container>
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let u">{{ u.totalText }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="available">
-          <th mat-header-cell *matHeaderCellDef>Available</th>
-          <td mat-cell *matCellDef="let u">{{ u.availableText }}</td>
-        </ng-container>
+          <ng-container matColumnDef="used">
+            <th mat-header-cell *matHeaderCellDef>Used</th>
+            <td mat-cell *matCellDef="let u">{{ u.usedText }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="percent">
-          <th mat-header-cell *matHeaderCellDef>Used Percentage</th>
-          <td mat-cell *matCellDef="let u">{{ u.usedPercentText }}</td>
-        </ng-container>
+          <ng-container matColumnDef="available">
+            <th mat-header-cell *matHeaderCellDef>Available</th>
+            <td mat-cell *matCellDef="let u">{{ u.availableText }}</td>
+          </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="tabcol"></tr>
-        <tr mat-row *matRowDef="let row; columns: tabcol"></tr>
-      </table>
+          <ng-container matColumnDef="percent">
+            <th mat-header-cell *matHeaderCellDef>Used Percentage</th>
+            <td mat-cell *matCellDef="let u">{{ u.usedPercentText }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="storageTabCol"></tr>
+          <tr mat-row *matRowDef="let row; columns: storageTabCol"></tr>
+        </table>
+      </div>
+
+      <h4 class="mt-5 mb-1">Usage Info</h4>
+      <div class="mt-3 mb-2" style="overflow: auto;">
+        <table mat-table [dataSource]="usageTabDat" style="width: 100%;">
+          <ng-container matColumnDef="path">
+            <th mat-header-cell *matHeaderCellDef>Path</th>
+            <td mat-cell *matCellDef="let u">{{ u.path }}</td>
+          </ng-container>
+          <ng-container matColumnDef="used">
+            <th mat-header-cell *matHeaderCellDef>Used</th>
+            <td mat-cell *matCellDef="let u">{{ u.usedText }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="usageTabCol"></tr>
+          <tr mat-row *matRowDef="let row; columns: usageTabCol"></tr>
+        </table>
+      </div>
     </div>
   `,
   styles: [],
 })
 export class FstoreStorageComponent implements OnInit {
-  tabcol = ["mounted", "total", "used", "available", "percent"];
-  tabdat: VolumnInfo[] = [];
+  storageTabCol = ["mounted", "total", "used", "available", "percent"];
+  usageTabCol = ["path", "used"];
+
+  storageTabDat: VolumnInfo[] = [];
+  usageTabDat: StorageUsageInfo[] = [];
+
   constructor(
     private snackBar: MatSnackBar,
     private http: HttpClient,
@@ -87,7 +139,11 @@ export class FstoreStorageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.fetchStorageInfo();
+    this.userService.resourceObservable.subscribe(() => {
+      if (this.hasRes("fstore:fetch-storage-info")) {
+        this.fetch();
+      }
+    });
   }
 
   hasRes(code) {
@@ -102,9 +158,31 @@ export class FstoreStorageComponent implements OnInit {
           return;
         }
         let dat: StorageInfo = resp.data;
-        this.tabdat = dat.volumns;
-        if (this.tabdat == null) {
-          this.tabdat = [];
+        this.storageTabDat = dat.volumns;
+        if (this.storageTabDat == null) {
+          this.storageTabDat = [];
+        }
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  fetchStorageUsageInfo() {
+    this.http.get<any>(`/fstore/storage/usage-info`).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: StorageUsageInfo[] = resp.data;
+        this.usageTabDat = dat;
+        if (this.usageTabDat == null) {
+          this.usageTabDat = [];
         }
       },
       error: (err) => {
@@ -136,6 +214,47 @@ export class FstoreStorageComponent implements OnInit {
   sanitizeStorage() {
     this.http
       .post<any>(`/fstore/maintenance/sanitize-storage`, null)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  fetch() {
+    this.fetchStorageInfo();
+    this.fetchStorageUsageInfo();
+  }
+
+  compensateMissingThumbnails() {
+    this.http.post<any>(`/vfm/compensate/thumbnail`, null).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  regenerateVideoThumbnails() {
+    this.http
+      .post<any>(`/vfm/compensate/regenerate-video-thumbnails`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

@@ -732,6 +732,64 @@
       });
     ```
 
+- GET /storage/usage-info
+  - Description: Fetch storage usage info
+  - Bound to Resource: `"fstore:fetch-storage-info"`
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": ([]fstore.StorageUsageInfo) response data
+      - "path": (string) 
+      - "used": (uint64) 
+      - "usedText": (string) 
+  - cURL:
+    ```sh
+    curl -X GET 'http://localhost:8084/storage/usage-info'
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: StorageUsageInfo[];
+    }
+
+    export interface StorageUsageInfo {
+      path?: string;
+      used?: number;
+      usedText?: string;
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    this.http.get<any>(`/fstore/storage/usage-info`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: StorageUsageInfo[] = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
 - GET /auth/resource
   - Description: Expose resource and endpoint information to other backend service for authorization.
   - Expected Access Scope: PROTECTED

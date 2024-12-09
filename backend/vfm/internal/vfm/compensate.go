@@ -126,9 +126,6 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 					return fmt.Errorf("failed to send %#v, uuid: %v, %v", evt, f.Uuid, e)
 				}
 				rail.Infof("GenVidThumbnailPipeline sent, %#v", evt)
-				continue
-			} else {
-				rail.Infof("not video, %v", f.Name)
 			}
 		}
 
