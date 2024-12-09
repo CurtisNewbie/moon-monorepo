@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -1271,15 +1272,28 @@ func LoadStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
 }
 
 func readDirSize(rail miso.Rail, n string) (StorageUsageInfo, error) {
-	st, err := os.Stat(n)
+	u, err := doReadDirSize(n)
 	if err != nil {
-		rail.Errorf("read dir stat failed, %v", err)
+		rail.Errorf("Read dir size failed, %v", err)
 		return StorageUsageInfo{}, err
 	}
-	u := uint64(st.Size())
 	return StorageUsageInfo{
 		Path:     n,
 		Used:     u,
 		UsedText: readableBytes(u),
 	}, nil
+}
+
+func doReadDirSize(path string) (uint64, error) {
+	var size uint64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += uint64(info.Size())
+		}
+		return err
+	})
+	return size, err
 }
