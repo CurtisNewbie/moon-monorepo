@@ -2896,6 +2896,7 @@
 
 - POST /compensate/thumbnail
   - Description: Compensate thumbnail generation
+  - Bound to Resource: `"maintenance:compensate-missing-thumbnails"`
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2941,6 +2942,7 @@
 
 - POST /compensate/dir/calculate-size
   - Description: Calculate size of all directories recursively
+  - Bound to Resource: `"maintenance:update-directory-size-estimate"`
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2970,6 +2972,52 @@
     ) {}
 
     this.http.post<any>(`/vfm/compensate/dir/calculate-size`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
+- POST /compensate/regenerate-video-thumbnails
+  - Description: Regenerate video thumbnails
+  - Bound to Resource: `"maintenance:regenerate-video-thumbnails"`
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+  - cURL:
+    ```sh
+    curl -X POST 'http://localhost:8086/compensate/regenerate-video-thumbnails'
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    this.http.post<any>(`/vfm/compensate/regenerate-video-thumbnails`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

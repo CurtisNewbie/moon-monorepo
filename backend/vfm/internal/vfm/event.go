@@ -149,8 +149,12 @@ func OnThumbnailGenerated(rail miso.Rail, tx *gorm.DB, identifier string, fileId
 		return nil
 	}
 
-	return tx.Exec("UPDATE file_info SET thumbnail = ? WHERE uuid = ?", fileId, fileKey).
+	err := tx.Exec("UPDATE file_info SET thumbnail = ? WHERE uuid = ?", fileId, fileKey).
 		Error
+	if err == nil {
+		rail.Infof("Updated file's thumbnail to %v, fileKey: %v", fileId, fileKey)
+	}
+	return err
 }
 
 // event-pump send binlog event when a file_info's thumbnail is updated.
