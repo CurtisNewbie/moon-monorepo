@@ -149,6 +149,17 @@ func OnThumbnailGenerated(rail miso.Rail, tx *gorm.DB, identifier string, fileId
 		return nil
 	}
 
+	if f.Thumbnail == fileId {
+		rail.Infof("Thumbnail for %v remain the same, %v", fileKey, fileId)
+		return nil
+	} else if f.Thumbnail != "" {
+		if err := fstore.DeleteFile(rail, f.Thumbnail); err != nil {
+			rail.ErrorIf("Delete previous thumbnail failed, %v", err, f.Thumbnail)
+			return err
+		}
+		rail.Infof("Deleted previous thumbnail for %v, %v", fileKey, fileId)
+	}
+
 	err := tx.Exec("UPDATE file_info SET thumbnail = ? WHERE uuid = ?", fileId, fileKey).
 		Error
 	if err == nil {

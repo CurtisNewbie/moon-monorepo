@@ -32,33 +32,33 @@ export interface VolumnInfo {
       <h3 class="mt-2 mb-3">File Storage</h3>
     </div>
 
-    <div class="d-flex flex-wrap justify-content-end">
+    <div class="d-flex flex-wrap justify-content-end gap-2">
       <ng-container *ngIf="hasRes('vfm:server:maintenance')">
         <button
-          mat-button
+          mat-raised-button
           (click)="compensateMissingThumbnails()"
           matTooltip="Generate missing thumbnails"
         >
           Compensate Missing Thumbnails
         </button>
         <button
-          mat-button
+          mat-raised-button
           (click)="regenerateVideoThumbnails()"
           matTooltip="Regenerate video thumbnails"
         >
-          Compensate Missing Thumbnails
+          Regenerate Video Thumbnails
         </button>
       </ng-container>
 
       <button
-        mat-button
+        mat-raised-button
         (click)="sanitizeStorage()"
         matTooltip="Delete dangling files that are not uploaded to server"
       >
         Sanitize Storage
       </button>
       <button
-        mat-button
+        mat-raised-button
         (click)="removeDeletedFiles()"
         matTooltip="Prune files that are marked deleted. During server maintenance, file uploading is rejected"
       >

@@ -13,7 +13,7 @@ func ExtractFirstFrame(rail miso.Rail, url string, output string) error {
 	if err != nil {
 		return fmt.Errorf("failed to call ffmpeg for url: %v, target output: %v, %w, cmd: %v", url, output, err, cmd)
 	}
-	rail.Infof("ffmpeg finished, %v", string(stdout))
+	rail.Infof("ffmpeg finished, output: %v", string(stdout))
 	return nil
 }
 
@@ -23,6 +23,6 @@ func BuildVideoPreviewGif(rail miso.Rail, url string, output string) error {
 	if err != nil {
 		return fmt.Errorf("failed to call ffmpeg for url: %v, target output: %v, %w, cmd: %v", url, output, err, cmd)
 	}
-	rail.Infof("ffmpeg finished, %v", string(stdout))
+	rail.Infof("ffmpeg finished, output: %v", string(stdout))
 	return nil
 }
