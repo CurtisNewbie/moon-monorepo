@@ -11,12 +11,15 @@ if [ -z "$changes" ];then
     echo "No schema changes found since $last"
 else
     echo "Schema changes found since $last"
+    echo ""
+
     c=0
     while IFS= read -r l; do
         if [[ "$l" =~ $regex ]]; then
             ((c++))
-            echo "$c. ${BASH_REMATCH[1]}"
+            echo "$c. [${BASH_REMATCH[1]}](../${BASH_REMATCH[1]})"
         fi
         # echo "line-> $l"
     done <<< "$changes"
+    echo ""
 fi
