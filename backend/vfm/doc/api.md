@@ -2896,7 +2896,7 @@
 
 - POST /compensate/thumbnail
   - Description: Compensate thumbnail generation
-  - Bound to Resource: `"maintenance:compensate-missing-thumbnails"`
+  - Bound to Resource: `"vfm:maintenance:compensate-missing-thumbnails"`
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2942,7 +2942,7 @@
 
 - POST /compensate/dir/calculate-size
   - Description: Calculate size of all directories recursively
-  - Bound to Resource: `"maintenance:update-directory-size-estimate"`
+  - Bound to Resource: `"vfm:maintenance:update-directory-size-estimate"`
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2988,7 +2988,7 @@
 
 - POST /compensate/regenerate-video-thumbnails
   - Description: Regenerate video thumbnails
-  - Bound to Resource: `"maintenance:regenerate-video-thumbnails"`
+  - Bound to Resource: `"vfm:maintenance:regenerate-video-thumbnails"`
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
