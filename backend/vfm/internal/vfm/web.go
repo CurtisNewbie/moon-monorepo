@@ -20,9 +20,9 @@ import (
 const (
 	ResManageFiles                 = "manage-files"
 	ResManageBookmark              = "manage-bookmarks"
-	ResCompensateMissingThumbnails = "maintenance:compensate-missing-thumbnails"
-	ResRegenerateVideoThumbnails   = "maintenance:regenerate-video-thumbnails"
-	ResUpdateDirSizeEstimate       = "maintenance:update-directory-size-estimate"
+	ResCompensateMissingThumbnails = "vfm:maintenance:compensate-missing-thumbnails"
+	ResRegenerateVideoThumbnails   = "vfm:maintenance:regenerate-video-thumbnails"
+	ResUpdateDirSizeEstimate       = "vfm:maintenance:update-directory-size-estimate"
 )
 
 var (
