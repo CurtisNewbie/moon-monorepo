@@ -11,6 +11,7 @@ import { catchError } from "rxjs/operators";
 import { UserService } from "../user.service";
 import { Toaster } from "../notification.service";
 import { Resp } from "src/common/resp";
+import { Router } from "@angular/router";
 
 /**
  * Intercept http error response
@@ -19,8 +20,9 @@ import { Resp } from "src/common/resp";
 export class ErrorInterceptor implements HttpInterceptor {
   constructor(
     private userService: UserService,
-    private toaster: Toaster
-  ) { }
+    private toaster: Toaster,
+    private router: Router
+  ) {}
 
   intercept(
     httpRequest: HttpRequest<any>,
@@ -33,7 +35,9 @@ export class ErrorInterceptor implements HttpInterceptor {
 
           if (e.status === 401) {
             this.toaster.toast("Please login first");
-            this.userService.logout();
+            if (this.router.url != "/register") {
+              this.userService.logout();
+            }
           } else if (e.status === 403) {
             let r: Resp<any> = e.error as Resp<any>;
             if (r) {
@@ -49,5 +53,4 @@ export class ErrorInterceptor implements HttpInterceptor {
       })
     );
   }
-
 }

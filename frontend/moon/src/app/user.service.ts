@@ -9,6 +9,7 @@ import { Toaster } from "./notification.service";
 import { NavType } from "./routes";
 import { getToken, setToken, onEmptyToken } from "src/common/api-util";
 import { HttpClient } from "@angular/common/http";
+import { Router } from "@angular/router";
 
 export interface RoleBrief {
   roleNo?: string;
@@ -51,9 +52,14 @@ export class UserService implements OnDestroy {
   constructor(
     private http: HttpClient,
     private nav: NavigationService,
-    private notifi: Toaster
+    private notifi: Toaster,
+    private router: Router
   ) {
-    onEmptyToken(() => this.logout());
+    onEmptyToken(() => {
+      if (this.router.url != "/register") {
+        this.logout();
+      }
+    });
   }
 
   public fetchUserResources() {

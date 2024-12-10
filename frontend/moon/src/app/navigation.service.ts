@@ -6,7 +6,7 @@ import { NavType } from "./routes";
   providedIn: "root",
 })
 export class NavigationService {
-  constructor(private router: Router) { }
+  constructor(private router: Router) {}
 
   /** Navigate to using Router*/
   public navigateTo(nt: NavType, extra?: any[]): void {
@@ -20,4 +20,3 @@ export class NavigationService {
     this.router.navigate(arr);
   }
 }
-

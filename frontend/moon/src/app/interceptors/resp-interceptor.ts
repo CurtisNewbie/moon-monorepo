@@ -14,6 +14,7 @@ import { Resp } from "src/common/resp";
 import { Router } from "@angular/router";
 import { Toaster } from "../notification.service";
 
+// TODO: Deprecate this
 /**
  * Intercept http response with 'Resp' as body
  */
