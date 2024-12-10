@@ -15,6 +15,7 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/user-vault/api"
+	"github.com/curtisnewbie/user-vault/internal/config"
 	"gorm.io/gorm"
 )
 
@@ -414,17 +415,30 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 				return miso.NewErrf("User's registration has already been reviewed")
 			}
 
+			var roleNo string
 			isDisabled := api.UserDisabled
 			if req.ReviewStatus == api.ReviewApproved {
 				isDisabled = api.UserNormal
+				rail.Infof("User role: %v", user.RoleNo)
+
+				if user.RoleNo == "" {
+					dr := config.DefaultUserRole()
+					rail.Infof("Default role: %v", dr)
+					if dr != "" {
+						roleNo = dr
+					}
+				}
 			}
 
-			err := tx.Exec(`UPDATE user SET review_status = ?, is_disabled = ? WHERE id = ?`, req.ReviewStatus, isDisabled, req.UserId).
-				Error
+			_, err := mysql.NewQuery(tx).
+				From("user").
+				Set("review_status", req.ReviewStatus).
+				Set("is_disabled", isDisabled).
+				SetIf(roleNo != "", "role_no", roleNo).
+				Eq("id", req.UserId).
+				Update()
 
-			if err != nil {
-				rail.Errorf("failed to update user for registration review, userId: %v, %v", req.UserId, err)
-			}
+			rail.ErrorIf("Failed to update user for registration review, userId: %v", err, req.UserId)
 			return err
 		},
 	)
