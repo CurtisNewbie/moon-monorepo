@@ -50,20 +50,22 @@ export interface VolumnInfo {
         </button>
       </ng-container>
 
-      <button
-        mat-raised-button
-        (click)="sanitizeStorage()"
-        matTooltip="Delete dangling files that are not uploaded to server"
-      >
-        Sanitize Storage
-      </button>
-      <button
-        mat-raised-button
-        (click)="removeDeletedFiles()"
-        matTooltip="Prune files that are marked deleted. During server maintenance, file uploading is rejected"
-      >
-        Prune Deleted
-      </button>
+      <ng-container *ngIf="hasRes('fstore:server:maintenance')">
+        <button
+          mat-raised-button
+          (click)="sanitizeStorage()"
+          matTooltip="Delete dangling files that are not uploaded to server"
+        >
+          Sanitize Storage
+        </button>
+        <button
+          mat-raised-button
+          (click)="removeDeletedFiles()"
+          matTooltip="Prune files that are marked deleted. During server maintenance, file uploading is rejected"
+        >
+          Prune Deleted
+        </button>
+      </ng-container>
     </div>
 
     <div *ngIf="hasRes('fstore:fetch-storage-info')">
@@ -140,7 +142,7 @@ export class FstoreStorageComponent implements OnInit {
 
   ngOnInit(): void {
     this.userService.resourceObservable.subscribe(() => {
-      if (this.hasRes("fstore:fetch-storage-info")) {
+      if (this.hasRes("fstore:server:maintenance")) {
         this.fetch();
       }
     });
