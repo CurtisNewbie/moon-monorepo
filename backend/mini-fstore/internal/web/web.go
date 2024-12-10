@@ -27,9 +27,8 @@ const (
 )
 
 const (
-	ResCodeFstoreUpload           = "fstore-upload"
-	ResCodeFstoreFetchStorageInfo = "fstore:fetch-storage-info"
-	ResCodeFstoreMaintenance      = "fstore:maintenance"
+	ResCodeFstoreUpload      = "fstore-upload"
+	ResCodeFstoreMaintenance = "fstore:server:maintenance"
 )
 
 func PrepareWebServer(rail miso.Rail) error {
@@ -59,7 +58,6 @@ func PrepareWebServer(rail miso.Rail) error {
 
 	auth.ExposeResourceInfo([]auth.Resource{
 		{Name: "Fstore File Upload", Code: ResCodeFstoreUpload},
-		{Name: "Fstore Fetch Storage Info", Code: ResCodeFstoreFetchStorageInfo},
 		{Name: "Fstore Server Maintenance", Code: ResCodeFstoreMaintenance},
 	})
 
@@ -412,7 +410,7 @@ func ComputeChecksumEp(inb *miso.Inbound) (any, error) {
 //
 //   - misoapi-http: Get /storage/info
 //   - misoapi-desc: Fetch storage info
-//   - misoapi-resource: ref(ResCodeFstoreFetchStorageInfo)
+//   - misoapi-resource: ref(ResCodeFstoreMaintenance)
 func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
 	return fstore.LoadStorageInfo(), nil
 }
@@ -421,7 +419,7 @@ func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
 //
 //   - misoapi-http: Get /storage/usage-info
 //   - misoapi-desc: Fetch storage usage info
-//   - misoapi-resource: ref(ResCodeFstoreFetchStorageInfo)
+//   - misoapi-resource: ref(ResCodeFstoreMaintenance)
 func FetchStorageUsageInfoEp(inb *miso.Inbound) ([]fstore.StorageUsageInfo, error) {
 	return fstore.LoadStorageUsageInfo(inb.Rail())
 }
