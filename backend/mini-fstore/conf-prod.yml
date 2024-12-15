@@ -30,7 +30,10 @@ server:
   host: "0.0.0.0"
   port: 8084
   gracefulShutdownTimeSec: 5
-  perf.enabled: false
+  perf:
+    enabled: false
+  pprof:
+    enabled: false
 
 consul:
   enabled: true

@@ -123,7 +123,7 @@ func GenVideoThumbnail(rail miso.Rail, evt api.VidThumbnailTriggerEvent) (string
 		return "", nil
 	}
 
-	rail.Infof("Video %v first frame is extracted to %v", evt.Identifier, tmpPath)
+	rail.Infof("Video %v preview is extracted to %v", evt.Identifier, tmpPath)
 
 	// upload the extracted frame to mini-fstore
 	tmpName := origin.Name + "_thumbnail"
