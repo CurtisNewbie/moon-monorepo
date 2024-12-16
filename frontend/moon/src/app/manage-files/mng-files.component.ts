@@ -915,7 +915,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     return this.inFolderNo ? this.desktopFolderColumns : this.desktopColumns;
   }
 
-  onRowClicked(row: FileInfo, idx: number) {
+  onRowClicked(evt: any, row: FileInfo, idx: number) {
+    if (evt.metaKey) {
+      this.bookmarkFile(row)
+      return;
+    }
+
     if (row.isDir) {
       this.goToDir(row.uuid);
       return;

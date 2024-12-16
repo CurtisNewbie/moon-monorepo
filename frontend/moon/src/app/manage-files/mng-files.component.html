@@ -233,6 +233,7 @@
                     <ng-container>
                         <button mat-icon-button class="m-2" [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''"
                             matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
+                            matTooltip="Bookmark file for batch operation. Click row with meta key for convenience." matTooltipShowDelay="1000"
                             (click)=" $event.stopPropagation() || bookmarkFile(f)"><i class="bi icon-button-large"
                                 [class]="this.fileBookmark.has(f.uuid) ? 'bi-bookmark-dash': 'bi-bookmark-plus'"></i></button>
                     </ng-container>
@@ -310,8 +311,9 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
-                [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked(row, i)"
-                matTooltipShowDelay="800"
+                [class.expanded-row]="currId > -1 && row.id == currId"
+                (click)="onRowClicked($event, row, i)"
+                matTooltipShowDelay="1000"
                 [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
             </tr>
             <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
