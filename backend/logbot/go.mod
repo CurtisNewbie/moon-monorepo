@@ -3,9 +3,10 @@ module github.com/curtisnewbie/log-bot
 go 1.22
 
 require (
-	github.com/curtisnewbie/miso v0.1.13-beta.3
+	github.com/curtisnewbie/miso v0.1.13-beta.4
 	github.com/curtisnewbie/user-vault v0.0.25
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/sirupsen/logrus v1.9.0
 	gorm.io/gorm v1.23.8
 )
 
@@ -54,7 +55,6 @@ require (
 	github.com/prometheus/procfs v0.0.8 // indirect
 	github.com/rabbitmq/amqp091-go v1.5.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

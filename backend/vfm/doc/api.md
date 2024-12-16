@@ -2925,7 +2925,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/vfm/compensate/thumbnail`)
+    this.http.post<any>(`/vfm/compensate/thumbnail`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -2971,7 +2971,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/vfm/compensate/dir/calculate-size`)
+    this.http.post<any>(`/vfm/compensate/dir/calculate-size`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -3017,7 +3017,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/vfm/compensate/regenerate-video-thumbnails`)
+    this.http.post<any>(`/vfm/compensate/regenerate-video-thumbnails`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -3063,7 +3063,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.put<any>(`/vfm/bookmark/file/upload`)
+    this.http.put<any>(`/vfm/bookmark/file/upload`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

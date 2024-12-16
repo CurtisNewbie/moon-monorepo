@@ -101,7 +101,7 @@
     ) {}
 
     let filename: any | null = null;
-    this.http.put<any>(`/fstore/file`,
+    this.http.put<any>(`/fstore/file`, null,
       {
         headers: {
           "filename": filename
@@ -551,7 +551,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/fstore/maintenance/remove-deleted`)
+    this.http.post<any>(`/fstore/maintenance/remove-deleted`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -597,7 +597,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/fstore/maintenance/sanitize-storage`)
+    this.http.post<any>(`/fstore/maintenance/sanitize-storage`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -642,7 +642,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/fstore/maintenance/compute-checksum`)
+    this.http.post<any>(`/fstore/maintenance/compute-checksum`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

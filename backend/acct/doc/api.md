@@ -154,7 +154,7 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/acct/open/api/v1/cashflow/import/wechat`)
+    this.http.post<any>(`/acct/open/api/v1/cashflow/import/wechat`, null)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
