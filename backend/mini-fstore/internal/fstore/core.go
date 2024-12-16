@@ -58,6 +58,8 @@ var (
 		},
 	)
 
+	storageUsageCache = miso.NewTTLCache[[]StorageUsageInfo](time.Second*10, 1)
+
 	serverMaintainanceTicker *miso.TickRunner = nil
 )
 
@@ -1255,7 +1257,23 @@ type StorageUsageInfo struct {
 	UsedText string
 }
 
+func LoadStorageUsageInfoCached(rail miso.Rail) ([]StorageUsageInfo, error) {
+	v, ok := storageUsageCache.Get("LOCAL", func() ([]StorageUsageInfo, bool) {
+		sui, err := LoadStorageUsageInfo(rail)
+		if err != nil {
+			rail.Errorf("Failed to load storage usage, %v", err)
+			return nil, false
+		}
+		return sui, true
+	})
+	if !ok {
+		return nil, miso.NewErrf("Load storage usage failed")
+	}
+	return v, nil
+}
+
 func LoadStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
+	rail.Info("Walking through storage directory for usage info")
 	sui := make([]StorageUsageInfo, 0, 2)
 	props := []string{config.PropTrashDir, config.PropStorageDir, config.PropTempDir}
 	for _, p := range props {

@@ -421,5 +421,5 @@ func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
 //   - misoapi-desc: Fetch storage usage info
 //   - misoapi-resource: ref(ResCodeFstoreMaintenance)
 func FetchStorageUsageInfoEp(inb *miso.Inbound) ([]fstore.StorageUsageInfo, error) {
-	return fstore.LoadStorageUsageInfo(inb.Rail())
+	return fstore.LoadStorageUsageInfoCached(inb.Rail())
 }
