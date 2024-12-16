@@ -231,11 +231,14 @@
                 <th mat-header-cell *matHeaderCellDef> <b>Operation</b> </th>
                 <td mat-cell *matCellDef="let f">
                     <ng-container>
-                        <button mat-icon-button class="m-2" [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''"
-                            matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
-                            matTooltip="Bookmark file for batch operation. Click row with meta key for convenience." matTooltipShowDelay="1000"
-                            (click)=" $event.stopPropagation() || bookmarkFile(f)"><i class="bi icon-button-large"
+                        <button mat-icon-button class="m-2" [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
+                            [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''" matBadgeColor="warn"
+                            matBadgeOverlap="true" matBadgeSize="small"
+                            matTooltip="Bookmark file for batch operation. Click row with meta key for convenience."
+                            matTooltipShowDelay="1000" (click)=" $event.stopPropagation() || bookmarkFile(f)"><i
+                                class="bi icon-button-large"
                                 [class]="this.fileBookmark.has(f.uuid) ? 'bi-bookmark-dash': 'bi-bookmark-plus'"></i></button>
+
                     </ng-container>
                     <button *ngIf="!inFolderNo" class="icon-button-large" mat-icon-button matTooltipShowDelay="500"
                         (click)="$event.stopPropagation() || selectExpanded(f)">
@@ -311,8 +314,7 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
-                [class.expanded-row]="currId > -1 && row.id == currId"
-                (click)="onRowClicked($event, row, i)"
+                [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked($event, row, i)"
                 matTooltipShowDelay="1000"
                 [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
             </tr>
