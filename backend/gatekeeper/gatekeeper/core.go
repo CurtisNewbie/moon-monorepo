@@ -348,8 +348,13 @@ func TraceFilter(pc *miso.ProxyContext, next func()) {
 }
 
 func ReqTimeLogFilter(pc *miso.ProxyContext, next func()) {
-	start := time.Now()
 	_, r := pc.Inb.Unwrap()
+	if r.RequestURI == "/health" {
+		next()
+		return
+	}
+
+	start := time.Now()
 	next()
 	pc.Rail.Infof("%-6v %-60v [%s]", r.Method, r.RequestURI, time.Since(start))
 }
