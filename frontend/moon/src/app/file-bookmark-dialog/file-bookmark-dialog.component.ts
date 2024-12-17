@@ -93,6 +93,9 @@ export class FileBookmarkDialogComponent implements OnInit {
   removeBookmark(fileKey: string) {
     this.fileBookmark.del(fileKey);
     this.reload();
+    if (!this.dat || this.dat.length < 1) {
+      this.dialog.closeAll();
+    }
   }
 
   moveToDir() {
