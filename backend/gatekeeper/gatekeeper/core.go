@@ -14,6 +14,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	uvault "github.com/curtisnewbie/user-vault/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 )
@@ -300,12 +301,12 @@ func AccessFilter(pc *miso.ProxyContext, next func()) {
 		}
 	}
 
-	var cr CheckResAccessResp
+	var cr uvault.CheckResAccessResp
 	if inWhitelist {
-		cr = CheckResAccessResp{true}
+		cr = uvault.CheckResAccessResp{Valid: true}
 	} else {
 		var err error
-		cr, err = ValidateResourceAccess(*rail, CheckResAccessReq{
+		cr, err = ValidateResourceAccess(*rail, uvault.CheckResAccessReq{
 			Url:    r.URL.Path,
 			Method: r.Method,
 			RoleNo: roleNo,

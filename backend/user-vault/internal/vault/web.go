@@ -498,7 +498,7 @@ func ItnReportResourceEp(inb *miso.Inbound, req CreateResReq) (any, error) {
 
 // misoapi-http: POST /remote/path/resource/access-test
 // misoapi-desc: Validate resource access
-func ItnCheckResourceAccessEp(inb *miso.Inbound, req TestResAccessReq) (TestResAccessResp, error) {
+func ItnCheckResourceAccessEp(inb *miso.Inbound, req api.CheckResAccessReq) (api.CheckResAccessResp, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(resourceAccessCheckHisto)
 	defer timer.ObserveDuration()

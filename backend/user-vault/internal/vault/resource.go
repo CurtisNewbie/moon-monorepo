@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	permitted = TestResAccessResp{Valid: true}
-	forbidden = TestResAccessResp{Valid: false}
+	permitted = api.CheckResAccessResp{Valid: true}
+	forbidden = api.CheckResAccessResp{Valid: false}
 
 	roleInfoCache = redis.NewRCache[api.RoleInfoResp]("user-vault:role:info", redis.RCacheConfig{Exp: 10 * time.Minute, NoSync: true})
 
@@ -135,16 +135,6 @@ type ResBrief struct {
 
 type AddRoleReq struct {
 	Name string `json:"name" validation:"notEmpty,maxLen:32"` // role name
-}
-
-type TestResAccessReq struct {
-	RoleNo string `json:"roleNo"`
-	Url    string `json:"url"`
-	Method string `json:"method"`
-}
-
-type TestResAccessResp struct {
-	Valid bool `json:"valid"`
 }
 
 type ListRoleReq struct {
@@ -803,7 +793,7 @@ func ListRoles(ec miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 }
 
 // Test access to resource
-func TestResourceAccess(ec miso.Rail, req TestResAccessReq) (TestResAccessResp, error) {
+func TestResourceAccess(ec miso.Rail, req api.CheckResAccessReq) (api.CheckResAccessResp, error) {
 	url := req.Url
 	roleNo := req.RoleNo
 

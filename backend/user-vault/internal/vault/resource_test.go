@@ -259,7 +259,7 @@ func TestTestResourceAccess(t *testing.T) {
 	LoadPathResCache(ec)
 	LoadRoleResCache(ec)
 
-	req := TestResAccessReq{
+	req := api.CheckResAccessReq{
 		RoleNo: "role_555329954676736208429",
 		Url:    "/goauth/open/api/role/resource/add",
 	}

@@ -10,6 +10,26 @@
     curl -X GET 'http://localhost:8084/file/stream?key='
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, key string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/file/stream", "fstore").
+    		AddQueryParams("key", key).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -40,6 +60,26 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/file/raw?key='
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, key string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/file/raw", "fstore").
+    		AddQueryParams("key", key).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -78,6 +118,26 @@
     ```sh
     curl -X PUT 'http://localhost:8084/file' \
       -H 'filename: '
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, filename string) (string, error) {
+    	var res miso.GnResp[string]
+    	err := miso.NewDynTClient(rail, "/file", "fstore").
+    		AddHeader("filename", filename).
+    		Put(nil).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return "", err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -145,6 +205,28 @@
     curl -X GET 'http://localhost:8084/file/info?fileId=&uploadFileId='
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, fileId string, uploadFileId string) (FstoreFile, error) {
+    	var res miso.GnResp[FstoreFile]
+    	err := miso.NewDynTClient(rail, "/file/info", "fstore").
+    		AddQueryParams("fileId", fileId).
+    		AddQueryParams("uploadFileId", uploadFileId).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat FstoreFile
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
+    ```
+
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
@@ -209,6 +291,27 @@
     curl -X GET 'http://localhost:8084/file/key?fileId=&filename='
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, fileId string, filename string) (string, error) {
+    	var res miso.GnResp[string]
+    	err := miso.NewDynTClient(rail, "/file/key", "fstore").
+    		AddQueryParams("fileId", fileId).
+    		AddQueryParams("filename", filename).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return "", err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
+    ```
+
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
@@ -256,6 +359,26 @@
     curl -X GET 'http://localhost:8084/file/direct?fileId='
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, fileId string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/file/direct", "fstore").
+    		AddQueryParams("fileId", fileId).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -289,6 +412,26 @@
   - cURL:
     ```sh
     curl -X DELETE 'http://localhost:8084/file?fileId='
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, fileId string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/file", "fstore").
+    		AddQueryParams("fileId", fileId).
+    		Delete().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -341,6 +484,25 @@
     curl -X POST 'http://localhost:8084/file/unzip' \
       -H 'Content-Type: application/json' \
       -d '{"extra":"","fileId":"","replyToEventBus":""}'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendUnzipFileReq(rail miso.Rail, req UnzipFileReq) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/file/unzip", "fstore").
+    		PostJson(req).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - JSON Request Object In TypeScript:
@@ -413,6 +575,27 @@
       -H 'Authorization: ' \
       -H 'Content-Type: application/json' \
       -d '{"idOffset":0,"limit":0}'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendListBackupFileReq(rail miso.Rail, req ListBackupFileReq, authorization string) (ListBackupFileResp, error) {
+    	var res miso.GnResp[ListBackupFileResp]
+    	err := miso.NewDynTClient(rail, "/backup/file/list", "fstore").
+    		AddHeader("authorization", authorization).
+    		PostJson(req).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat ListBackupFileResp
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
     ```
 
   - JSON Request Object In TypeScript:
@@ -492,6 +675,27 @@
       -H 'Authorization: '
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, fileId string, authorization string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/backup/file/raw", "fstore").
+    		AddQueryParams("fileId", fileId).
+    		AddHeader("authorization", authorization).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -530,6 +734,25 @@
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8084/maintenance/remove-deleted'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/maintenance/remove-deleted", "fstore").
+    		Post(nil).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -578,6 +801,25 @@
     curl -X POST 'http://localhost:8084/maintenance/sanitize-storage'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/maintenance/sanitize-storage", "fstore").
+    		Post(nil).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
@@ -621,6 +863,25 @@
   - cURL:
     ```sh
     curl -X POST 'http://localhost:8084/maintenance/compute-checksum'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/maintenance/compute-checksum", "fstore").
+    		Post(nil).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -678,6 +939,26 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/storage/info'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) (StorageInfo, error) {
+    	var res miso.GnResp[StorageInfo]
+    	err := miso.NewDynTClient(rail, "/storage/info", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat StorageInfo
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -749,6 +1030,26 @@
     curl -X GET 'http://localhost:8084/storage/usage-info'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) ([]StorageUsageInfo, error) {
+    	var res miso.GnResp[[]StorageUsageInfo]
+    	err := miso.NewDynTClient(rail, "/storage/usage-info", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat []StorageUsageInfo
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
+    ```
+
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
@@ -804,6 +1105,26 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/maintenance/status'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) (MaintenanceStatus, error) {
+    	var res miso.GnResp[MaintenanceStatus]
+    	err := miso.NewDynTClient(rail, "/maintenance/status", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat MaintenanceStatus
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -867,6 +1188,26 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/auth/resource'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) (GnResp, error) {
+    	var res miso.GnResp[GnResp]
+    	err := miso.NewDynTClient(rail, "/auth/resource", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat GnResp
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -934,6 +1275,26 @@
       -H 'Authorization: '
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, authorization string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/metrics", "fstore").
+    		AddHeader("authorization", authorization).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -967,6 +1328,25 @@
     curl -X GET 'http://localhost:8084/debug/pprof'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -992,6 +1372,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/debug/pprof/:name'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/:name", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -1021,6 +1420,25 @@
     curl -X GET 'http://localhost:8084/debug/pprof/cmdline'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/cmdline", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -1046,6 +1464,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/debug/pprof/profile'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/profile", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -1075,6 +1512,25 @@
     curl -X GET 'http://localhost:8084/debug/pprof/symbol'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/symbol", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -1100,6 +1556,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/debug/pprof/trace'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/trace", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -1129,6 +1604,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8084/doc/api'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/doc/api", "fstore").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:

@@ -42,6 +42,26 @@
       -d '{"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":0,"transTimeStart":0}'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendListCashFlowReq(rail miso.Rail, req ListCashFlowReq) (PageRes, error) {
+    	var res miso.GnResp[PageRes]
+    	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list", "acct").
+    		PostJson(req).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat PageRes
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
+    ```
+
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListCashFlowReq {
@@ -135,6 +155,25 @@
     curl -X POST 'http://localhost:8093/open/api/v1/cashflow/import/wechat'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/import/wechat", "acct").
+    		Post(nil).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - JSON Response Object In TypeScript:
     ```ts
     export interface Resp {
@@ -179,6 +218,26 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8093/open/api/v1/cashflow/list-currency'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) ([]string, error) {
+    	var res miso.GnResp[[]string]
+    	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-currency", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat []string
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
     ```
 
   - JSON Response Object In TypeScript:
@@ -246,6 +305,26 @@
     curl -X POST 'http://localhost:8093/open/api/v1/cashflow/list-statistics' \
       -H 'Content-Type: application/json' \
       -d '{"aggRange":"","aggType":"","currency":"","paging":{"limit":0,"page":0,"total":0}}'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendApiListStatisticsReq(rail miso.Rail, req ApiListStatisticsReq) (PageRes, error) {
+    	var res miso.GnResp[PageRes]
+    	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-statistics", "acct").
+    		PostJson(req).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat PageRes
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
     ```
 
   - JSON Request Object In TypeScript:
@@ -340,6 +419,26 @@
       -d '{"aggType":"","currency":"","endTime":0,"startTime":0}'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendApiPlotStatisticsReq(rail miso.Rail, req ApiPlotStatisticsReq) ([]ApiPlotStatisticsRes, error) {
+    	var res miso.GnResp[[]ApiPlotStatisticsRes]
+    	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/plot-statistics", "acct").
+    		PostJson(req).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat []ApiPlotStatisticsRes
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
+    ```
+
   - JSON Request Object In TypeScript:
     ```ts
     export interface ApiPlotStatisticsReq {
@@ -415,6 +514,26 @@
     curl -X GET 'http://localhost:8093/auth/resource'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) (GnResp, error) {
+    	var res miso.GnResp[GnResp]
+    	err := miso.NewDynTClient(rail, "/auth/resource", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat GnResp
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
+    ```
+
   - JSON Response Object In TypeScript:
     ```ts
     export interface GnResp {
@@ -480,6 +599,26 @@
       -H 'Authorization: '
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, authorization string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/metrics", "acct").
+    		AddHeader("authorization", authorization).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -513,6 +652,25 @@
     curl -X GET 'http://localhost:8093/debug/pprof'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -538,6 +696,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8093/debug/pprof/:name'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/:name", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -567,6 +744,25 @@
     curl -X GET 'http://localhost:8093/debug/pprof/cmdline'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/cmdline", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -592,6 +788,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8093/debug/pprof/profile'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/profile", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -621,6 +836,25 @@
     curl -X GET 'http://localhost:8093/debug/pprof/symbol'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/symbol", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -646,6 +880,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8093/debug/pprof/trace'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/trace", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -675,6 +928,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8093/doc/api'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/doc/api", "acct").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:

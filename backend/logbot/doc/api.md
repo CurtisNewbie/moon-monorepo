@@ -20,6 +20,25 @@
       -d '{"app":"","page":{"limit":0,"page":0,"total":0}}'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendListErrorLogReq(rail miso.Rail, req ListErrorLogReq) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/log/error/list", "logbot").
+    		PostJson(req).
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - JSON Request Object In TypeScript:
     ```ts
     export interface ListErrorLogReq {
@@ -92,6 +111,26 @@
     curl -X GET 'http://localhost:8087/auth/resource'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) (GnResp, error) {
+    	var res miso.GnResp[GnResp]
+    	err := miso.NewDynTClient(rail, "/auth/resource", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		var dat GnResp
+    		return dat, err
+    	}
+    	dat, err := res.Res()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return dat, err
+    }
+    ```
+
   - JSON Response Object In TypeScript:
     ```ts
     export interface GnResp {
@@ -157,6 +196,26 @@
       -H 'Authorization: '
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail, authorization string) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/metrics", "logbot").
+    		AddHeader("authorization", authorization).
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -190,6 +249,25 @@
     curl -X GET 'http://localhost:8087/debug/pprof'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -215,6 +293,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8087/debug/pprof/:name'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/:name", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -244,6 +341,25 @@
     curl -X GET 'http://localhost:8087/debug/pprof/cmdline'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/cmdline", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -269,6 +385,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8087/debug/pprof/profile'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/profile", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -298,6 +433,25 @@
     curl -X GET 'http://localhost:8087/debug/pprof/symbol'
     ```
 
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/symbol", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
+    ```
+
   - Angular HttpClient Demo:
     ```ts
     import { MatSnackBar } from "@angular/material/snack-bar";
@@ -323,6 +477,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8087/debug/pprof/trace'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/debug/pprof/trace", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:
@@ -352,6 +525,25 @@
   - cURL:
     ```sh
     curl -X GET 'http://localhost:8087/doc/api'
+    ```
+
+  - Miso HTTP Client:
+    ```go
+    func SendRequest(rail miso.Rail) error {
+    	var res miso.GnResp[any]
+    	err := miso.NewDynTClient(rail, "/doc/api", "logbot").
+    		Get().
+    		Json(&res)
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    		return err
+    	}
+    	err = res.Err()
+    	if err != nil {
+    		rail.Errorf("Request failed, %v", err)
+    	}
+    	return err
+    }
     ```
 
   - Angular HttpClient Demo:

@@ -52,3 +52,13 @@ type CreateNotificationReq struct {
 	Message         string `valid:"maxLen:1000"`
 	ReceiverUserNos []string
 }
+
+type CheckResAccessReq struct {
+	RoleNo string `json:"roleNo"`
+	Url    string `json:"url"`
+	Method string `json:"method"`
+}
+
+type CheckResAccessResp struct {
+	Valid bool `json:"valid"`
+}

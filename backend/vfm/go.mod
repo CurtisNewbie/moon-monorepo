@@ -2,6 +2,10 @@ module github.com/curtisnewbie/vfm
 
 go 1.22
 
+replace github.com/curtisnewbie/event-pump => ../event-pump
+replace github.com/curtisnewbie/mini-fstore => ../mini-fstore
+replace github.com/curtisnewbie/user-vault => ../user-vault
+
 require (
 	github.com/gin-gonic/gin v1.8.1 // indirect
 	github.com/sirupsen/logrus v1.9.0
@@ -11,7 +15,7 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.13
 	github.com/curtisnewbie/mini-fstore v0.1.18
-	github.com/curtisnewbie/miso v0.1.13-beta.4.0.20241216063251-531f34d0f22c
+	github.com/curtisnewbie/miso v0.1.13-beta.4.0.20241217082452-5457b88e7014
 	github.com/curtisnewbie/user-vault v0.0.23
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e

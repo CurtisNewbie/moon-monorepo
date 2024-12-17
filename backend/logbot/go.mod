@@ -2,8 +2,10 @@ module github.com/curtisnewbie/log-bot
 
 go 1.22
 
+replace github.com/curtisnewbie/user-vault => ../user-vault
+
 require (
-	github.com/curtisnewbie/miso v0.1.13-beta.4.0.20241216063251-531f34d0f22c
+	github.com/curtisnewbie/miso v0.1.13-beta.4.0.20241217082452-5457b88e7014
 	github.com/curtisnewbie/user-vault v0.0.25
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/sirupsen/logrus v1.9.0

@@ -89,3 +89,20 @@ func CreateNotification(rail miso.Rail, req CreateNotificationReq) error {
 	}
 	return resp.Err()
 }
+
+func SendCheckResAccessReq(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
+	var res miso.GnResp[CheckResAccessResp]
+	err := miso.NewDynTClient(rail, "/remote/path/resource/access-test", "user-vault").
+		PostJson(req).
+		Json(&res)
+	if err != nil {
+		rail.Errorf("Request failed, %v", err)
+		var dat CheckResAccessResp
+		return dat, err
+	}
+	dat, err := res.Res()
+	if err != nil {
+		rail.Errorf("Request failed, %v", err)
+	}
+	return dat, err
+}
