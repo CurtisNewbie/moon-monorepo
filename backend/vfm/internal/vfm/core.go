@@ -1428,6 +1428,15 @@ func RemoveVFolder(rail miso.Rail, tx *gorm.DB, user common.User, req RemoveVFol
 }
 
 func ImMemBatchCalcDirSize(rail miso.Rail, db *gorm.DB) error {
+	ok, err := EnterMaintenance(rail)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return miso.NewErrf("Server is already in maintenance")
+	}
+	defer LeaveMaintenance(rail)
+
 	defer miso.TimeOp(rail, time.Now(), "BatchCalcDirSize")
 
 	type TempFile struct {
@@ -1436,7 +1445,7 @@ func ImMemBatchCalcDirSize(rail miso.Rail, db *gorm.DB) error {
 	}
 
 	var files []TempFile
-	err := db.Raw(`
+	err = db.Raw(`
 		SELECT uuid, parent_file FROM file_info
 		WHERE parent_file != '' AND file_type = 'DIR' AND is_logic_deleted = 0
 	`).Scan(&files).Error

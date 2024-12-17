@@ -423,3 +423,12 @@ func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
 func FetchStorageUsageInfoEp(inb *miso.Inbound) ([]fstore.StorageUsageInfo, error) {
 	return fstore.LoadStorageUsageInfoCached(inb.Rail())
 }
+
+// Check server maintenance status.
+//
+//   - misoapi-http: GET /maintenance/status
+//   - misoapi-desc: Check server maintenance status
+//   - misoapi-resource: ref(ResCodeFstoreMaintenance)
+func ApiFetchMaintenanceStatus() (fstore.MaintenanceStatus, error) {
+	return fstore.CheckMaintenanceStatus()
+}

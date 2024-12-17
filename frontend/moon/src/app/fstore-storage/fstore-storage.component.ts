@@ -1,9 +1,15 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { HttpClient } from "@angular/common/http";
 import { UserService } from "../user.service";
+import { timer } from "rxjs";
+
+export interface MaintenanceStatus {
+  underMaintenance?: boolean;
+}
 
 export interface StorageUsageInfo {
+  type?: string;
   path?: string;
   used?: number;
   usedText?: string;
@@ -36,6 +42,7 @@ export interface VolumnInfo {
       <ng-container *ngIf="hasRes('vfm:server:maintenance')">
         <button
           mat-raised-button
+          [disabled]="vfmMaintenance"
           (click)="compensateMissingThumbnails()"
           matTooltip="Generate missing thumbnails"
         >
@@ -43,6 +50,7 @@ export interface VolumnInfo {
         </button>
         <button
           mat-raised-button
+          [disabled]="vfmMaintenance"
           (click)="regenerateVideoThumbnails()"
           matTooltip="Regenerate video thumbnails"
         >
@@ -53,6 +61,7 @@ export interface VolumnInfo {
       <ng-container *ngIf="hasRes('fstore:server:maintenance')">
         <button
           mat-raised-button
+          [disabled]="fstoreMaintenance"
           (click)="sanitizeStorage()"
           matTooltip="Delete dangling files that are not uploaded to server"
         >
@@ -60,6 +69,7 @@ export interface VolumnInfo {
         </button>
         <button
           mat-raised-button
+          [disabled]="fstoreMaintenance"
           (click)="removeDeletedFiles()"
           matTooltip="Prune files that are marked deleted. During server maintenance, file uploading is rejected"
         >
@@ -111,6 +121,10 @@ export interface VolumnInfo {
       <h4 class="mt-5 mb-1">Usage Info</h4>
       <div class="mt-3 mb-2" style="overflow: auto;">
         <table mat-table [dataSource]="usageTabDat" style="width: 100%;">
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let u">{{ u.type }}</td>
+          </ng-container>
           <ng-container matColumnDef="path">
             <th mat-header-cell *matHeaderCellDef>Path</th>
             <td mat-cell *matCellDef="let u">{{ u.path }}</td>
@@ -127,12 +141,19 @@ export interface VolumnInfo {
   `,
   styles: [],
 })
-export class FstoreStorageComponent implements OnInit {
+export class FstoreStorageComponent implements OnInit, OnDestroy {
   storageTabCol = ["mounted", "total", "used", "available", "percent"];
-  usageTabCol = ["path", "used"];
+  usageTabCol = ["type", "path", "used"];
 
   storageTabDat: VolumnInfo[] = [];
   usageTabDat: StorageUsageInfo[] = [];
+  fstoreMaintenance: boolean = false;
+  vfmMaintenance: boolean = false;
+
+  checkMaintenanceTimerSub = timer(0, 3000).subscribe(() => {
+    this.checkFstoreMaintenanceStatus();
+    this.checkVfmMaintenanceStatus();
+  });
 
   constructor(
     private snackBar: MatSnackBar,
@@ -140,12 +161,18 @@ export class FstoreStorageComponent implements OnInit {
     private userService: UserService
   ) {}
 
+  ngOnDestroy(): void {
+    this.checkMaintenanceTimerSub.unsubscribe();
+  }
+
   ngOnInit(): void {
     this.userService.resourceObservable.subscribe(() => {
       if (this.hasRes("fstore:server:maintenance")) {
         this.fetch();
       }
     });
+    this.checkFstoreMaintenanceStatus();
+    this.checkVfmMaintenanceStatus();
   }
 
   hasRes(code) {
@@ -203,6 +230,10 @@ export class FstoreStorageComponent implements OnInit {
           this.snackBar.open(resp.msg, "ok", { duration: 6000 });
           return;
         }
+        this.fstoreMaintenance = true;
+        this.snackBar.open("Request success, make take a while", "ok", {
+          duration: 1500,
+        });
       },
       error: (err) => {
         console.log(err);
@@ -222,6 +253,10 @@ export class FstoreStorageComponent implements OnInit {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
+          this.fstoreMaintenance = true;
+          this.snackBar.open("Request success, make take a while", "ok", {
+            duration: 1500,
+          });
         },
         error: (err) => {
           console.log(err);
@@ -235,6 +270,8 @@ export class FstoreStorageComponent implements OnInit {
   fetch() {
     this.fetchStorageInfo();
     this.fetchStorageUsageInfo();
+    this.checkFstoreMaintenanceStatus();
+    this.checkVfmMaintenanceStatus();
   }
 
   compensateMissingThumbnails() {
@@ -244,6 +281,7 @@ export class FstoreStorageComponent implements OnInit {
           this.snackBar.open(resp.msg, "ok", { duration: 6000 });
           return;
         }
+        this.vfmMaintenance = true;
       },
       error: (err) => {
         console.log(err);
@@ -263,6 +301,7 @@ export class FstoreStorageComponent implements OnInit {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
+          this.vfmMaintenance = true;
         },
         error: (err) => {
           console.log(err);
@@ -271,5 +310,43 @@ export class FstoreStorageComponent implements OnInit {
           });
         },
       });
+  }
+
+  checkFstoreMaintenanceStatus() {
+    this.http.get<any>(`/fstore/maintenance/status`).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: MaintenanceStatus = resp.data;
+        this.fstoreMaintenance = dat.underMaintenance;
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  checkVfmMaintenanceStatus() {
+    this.http.get<any>(`/vfm/maintenance/status`).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: MaintenanceStatus = resp.data;
+        this.vfmMaintenance = dat.underMaintenance;
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
   }
 }

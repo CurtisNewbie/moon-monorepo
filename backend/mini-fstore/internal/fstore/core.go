@@ -881,12 +881,14 @@ func FileLockKey(fileId string) string {
 }
 
 func SanitizeStorage(rail miso.Rail) error {
-	l := redis.NewCustomRLock(rail, "mini-fstore:sanitize-storage", redis.RLockConfig{BackoffDuration: time.Second})
-	if err := l.Lock(); err != nil {
-		return miso.NewErrf("Already sanitizing storage, please try again later").
-			WithInternalMsg("failed to obtain lock, %v", err)
+	ok, err := EnterMaintenance(rail)
+	if err != nil {
+		return err
 	}
-	defer l.Unlock()
+	if !ok {
+		return miso.NewErrf("Server is already in maintenance")
+	}
+	defer LeaveMaintenance(rail)
 
 	dirPath := miso.GetPropStr(config.PropStorageDir)
 	files, e := os.ReadDir(dirPath)
@@ -1130,12 +1132,14 @@ func SaveZipFile(rail miso.Rail, db *gorm.DB, entry UnpackedZipEntry) (SavedZipE
 }
 
 func ComputeFilesChecksum(rail miso.Rail, db *gorm.DB) error {
-	lock := redis.NewCustomRLock(rail, "mini-fstore:maintenance:compute-checksum",
-		redis.RLockConfig{BackoffDuration: 1 * time.Second})
-	if err := lock.Lock(); err != nil {
-		return fmt.Errorf("ComputeFilesChecksum() is running, please try later")
+	ok, err := EnterMaintenance(rail)
+	if err != nil {
+		return err
 	}
-	defer lock.Unlock()
+	if !ok {
+		return miso.NewErrf("Server is already in maintenance")
+	}
+	defer LeaveMaintenance(rail)
 
 	rail.Info("Running ComputeFilesChecksum maintainance operation")
 
@@ -1240,18 +1244,19 @@ func LoadStorageInfo() StorageInfo {
 
 func readableBytes(d uint64) string {
 	if d > GbUnit {
-		return cast.ToString(d/GbUnit) + " gb"
+		return util.FmtFloat(float64(d)/float64(GbUnit), 0, 2) + " gb"
 	}
 	if d > MbUnit {
-		return cast.ToString(d/MbUnit) + " mb"
+		return util.FmtFloat(float64(d)/float64(MbUnit), 0, 2) + " mb"
 	}
 	if d > KbUnit {
-		return cast.ToString(d/KbUnit) + " kb"
+		return util.FmtFloat(float64(d)/float64(KbUnit), 0, 2) + " kb"
 	}
 	return cast.ToString(d) + " bytes"
 }
 
 type StorageUsageInfo struct {
+	Type     string
 	Path     string
 	Used     uint64
 	UsedText string
@@ -1275,14 +1280,20 @@ func LoadStorageUsageInfoCached(rail miso.Rail) ([]StorageUsageInfo, error) {
 func LoadStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
 	rail.Info("Walking through storage directory for usage info")
 	sui := make([]StorageUsageInfo, 0, 2)
-	props := []string{config.PropTrashDir, config.PropStorageDir, config.PropTempDir}
+	props := []util.StrPair{
+		{Left: "Trash Directory", Right: config.PropTrashDir},
+		{Left: "Storage Directory", Right: config.PropStorageDir},
+		{Left: "Temporary Directory", Right: config.PropTempDir},
+	}
 	for _, p := range props {
-		td := miso.GetPropStr(p)
+		prop := p.Right.(string)
+		td := miso.GetPropStr(prop)
 		if td != "" {
 			si, err := readDirSize(rail, td)
 			if err != nil {
 				return nil, err
 			}
+			si.Type = p.Left
 			sui = append(sui, si)
 		}
 	}
@@ -1314,4 +1325,18 @@ func doReadDirSize(path string) (uint64, error) {
 		return err
 	})
 	return size, err
+}
+
+type MaintenanceStatus struct {
+	UnderMaintenance bool
+}
+
+func CheckMaintenanceStatus() (MaintenanceStatus, error) {
+	cmd := redis.GetRedis().Exists(serverMaintainanceKey)
+	if cmd.Err() != nil {
+		return MaintenanceStatus{}, cmd.Err()
+	}
+	return MaintenanceStatus{
+		UnderMaintenance: cmd.Val() > 0,
+	}, nil
 }

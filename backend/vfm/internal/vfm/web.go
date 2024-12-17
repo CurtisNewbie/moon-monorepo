@@ -651,3 +651,12 @@ func ListBrowseHistoryApi(rail miso.Rail, db *gorm.DB, user common.User) ([]List
 func RecordBrowseHistoryApi(rail miso.Rail, db *gorm.DB, user common.User, req RecordBrowseHistoryReq) error {
 	return RecordBrowseHistory(rail, db, user, req)
 }
+
+// Check server maintenance status.
+//
+//   - misoapi-http: GET /maintenance/status
+//   - misoapi-desc: Check server maintenance status
+//   - misoapi-resource: ref(ResVfmMaintenance)
+func ApiFetchMaintenanceStatus() (MaintenanceStatus, error) {
+	return CheckMaintenanceStatus()
+}

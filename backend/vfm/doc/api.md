@@ -3452,6 +3452,60 @@
       });
     ```
 
+- GET /maintenance/status
+  - Description: Check server maintenance status
+  - Bound to Resource: `"vfm:server:maintenance"`
+  - JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (MaintenanceStatus) response data
+      - "underMaintenance": (bool) 
+  - cURL:
+    ```sh
+    curl -X GET 'http://localhost:8086/maintenance/status'
+    ```
+
+  - JSON Response Object In TypeScript:
+    ```ts
+    export interface Resp {
+      errorCode?: string;            // error code
+      msg?: string;                  // message
+      error?: boolean;               // whether the request was successful
+      data?: MaintenanceStatus;
+    }
+
+    export interface MaintenanceStatus {
+      underMaintenance?: boolean;
+    }
+    ```
+
+  - Angular HttpClient Demo:
+    ```ts
+    import { MatSnackBar } from "@angular/material/snack-bar";
+    import { HttpClient } from "@angular/common/http";
+
+    constructor(
+      private snackBar: MatSnackBar,
+      private http: HttpClient
+    ) {}
+
+    this.http.get<any>(`/vfm/maintenance/status`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: MaintenanceStatus = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+    ```
+
 - GET /auth/resource
   - Description: Expose resource and endpoint information to other backend service for authorization.
   - Expected Access Scope: PROTECTED

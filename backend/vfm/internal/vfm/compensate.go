@@ -1,13 +1,21 @@
 package vfm
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	fstore "github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"gorm.io/gorm"
+)
+
+var (
+	serverMaintainanceKey = "vfm:maintenance"
+
+	serverMaintainanceTicker *miso.TickRunner = nil
 )
 
 type FileProcInf struct {
@@ -18,6 +26,15 @@ type FileProcInf struct {
 }
 
 func CompensateThumbnail(rail miso.Rail, tx *gorm.DB) error {
+	ok, err := EnterMaintenance(rail)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return miso.NewErrf("Server is already in maintenance")
+	}
+	defer LeaveMaintenance(rail)
+
 	rail.Info("CompensateThumbnail start")
 	defer miso.TimeOp(rail, time.Now(), "CompensateThumbnail")
 
@@ -76,6 +93,15 @@ func CompensateThumbnail(rail miso.Rail, tx *gorm.DB) error {
 }
 
 func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
+	ok, err := EnterMaintenance(rail)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return miso.NewErrf("Server is already in maintenance")
+	}
+	defer LeaveMaintenance(rail)
+
 	defer miso.TimeOp(rail, time.Now(), "RegenerateVideoThumbnails")
 
 	limit := 500
@@ -136,4 +162,55 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 			return nil // the end
 		}
 	}
+}
+
+func LeaveMaintenance(rail miso.Rail) error {
+	serverMaintainanceTicker.Stop()
+	c := redis.GetRedis().Del(serverMaintainanceKey)
+	if c.Err() != nil {
+		if redis.IsNil(c.Err()) {
+			return nil
+		}
+		rail.Errorf("Failed to delete redis server maintainance flag, %v", c.Err())
+		return c.Err()
+	}
+	return nil
+}
+
+func EnterMaintenance(rail miso.Rail) (bool, error) {
+	c := redis.GetRedis().SetNX(serverMaintainanceKey, 1, time.Second*30)
+	if c.Err() != nil {
+		return false, c.Err()
+	}
+	if !c.Val() {
+		return false, nil
+	}
+
+	serverMaintainanceTicker = miso.NewTickRuner(time.Second*5, func() {
+		rail := rail.NextSpan()
+		c := redis.GetRedis().SetXX(serverMaintainanceKey, 1, time.Second*30)
+		if c.Err() != nil {
+			if !errors.Is(c.Err(), redis.Nil) {
+				rail.Errorf("failed to maintain redis server maintenance flag, %v", c.Err())
+			}
+			return
+		}
+		rail.Info("Refreshed redis server maintenance flag")
+	})
+	serverMaintainanceTicker.Start()
+	return true, nil
+}
+
+type MaintenanceStatus struct {
+	UnderMaintenance bool
+}
+
+func CheckMaintenanceStatus() (MaintenanceStatus, error) {
+	cmd := redis.GetRedis().Exists(serverMaintainanceKey)
+	if cmd.Err() != nil {
+		return MaintenanceStatus{}, cmd.Err()
+	}
+	return MaintenanceStatus{
+		UnderMaintenance: cmd.Val() > 0,
+	}, nil
 }
