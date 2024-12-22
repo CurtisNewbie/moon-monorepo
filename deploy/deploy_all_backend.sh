@@ -1,5 +1,6 @@
 #!/bin/bash
-# set -ex
+
+#set -ex
 set -e
 
 if ! ping "curtisnewbie.com" -q -t 1; then
