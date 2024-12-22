@@ -6,7 +6,7 @@ replace github.com/curtisnewbie/event-pump => ../event-pump
 
 require (
 	github.com/curtisnewbie/event-pump v0.0.13
-	github.com/curtisnewbie/miso v0.1.13-beta.4.0.20241217082452-5457b88e7014
+	github.com/curtisnewbie/miso v0.1.13
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.6.0
