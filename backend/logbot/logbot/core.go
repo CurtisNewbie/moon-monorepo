@@ -168,7 +168,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 
 		if err == nil {
 			didWaitForEOF = false
-			logLine, e := parseLogLine(rail, line, wc.Type)
+			logLine, e := parseLogLine(rail, wc.App, line, wc.Type)
 			if e == nil {
 
 				// we always report the previous log, coz a single log can contain multiple lines
@@ -184,7 +184,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 					}
 
 					// append previous to merged logs
-					AppendMergedLog(*prevLogLine, wc.App, line)
+					AppendMergedLog(*prevLogLine)
 
 					// move the position only when we report the previous log
 					pos += prevBytesRead
@@ -204,7 +204,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 				// so it's better leave it here
 				prevBytesRead += int64(len(util.UnsafeStr2Byt(line)))
 				prevLine = prevLine + line
-				if parsed, ep := parseLogLine(rail, prevLine, wc.Type); ep == nil {
+				if parsed, ep := parseLogLine(rail, wc.App, prevLine, wc.Type); ep == nil {
 					prevLogLine = &parsed
 				}
 			}
@@ -256,7 +256,6 @@ type LogLineEvent struct {
 }
 
 type LogLine struct {
-	ParseTime  util.ETime
 	App        string
 	Time       util.ETime
 	TimeStr    string
@@ -268,7 +267,7 @@ type LogLine struct {
 	OriginLine string
 }
 
-func parseLogLine(rail miso.Rail, line string, typ string) (LogLine, error) {
+func parseLogLine(rail miso.Rail, app string, line string, typ string) (LogLine, error) {
 	patType := miso.GetPropStr("log.pattern." + typ)
 	pat, _ := logPatternCache.Get(patType, func(s string) (*regexp.Regexp, error) {
 		return regexp.MustCompile(s), nil
@@ -292,8 +291,8 @@ func parseLogLine(rail miso.Rail, line string, typ string) (LogLine, error) {
 	}
 
 	ll := LogLine{
+		App:        app,
 		OriginLine: line,
-		ParseTime:  util.Now(),
 		Time:       util.ToETime(time),
 		TimeStr:    matches[1],
 		Level:      matches[2],

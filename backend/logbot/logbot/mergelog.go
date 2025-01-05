@@ -49,8 +49,7 @@ func (p PlainStrFormatter) Format(e *logrus.Entry) ([]byte, error) {
 	return []byte(e.Message), nil
 }
 
-func AppendMergedLog(ll LogLine, app string, line string) {
-	ll.App = app
+func AppendMergedLog(ll LogLine) {
 	mergedLogMu.Lock()
 	defer mergedLogMu.Unlock()
 	mergedLogs.Push(ll)
