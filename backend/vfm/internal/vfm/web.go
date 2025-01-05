@@ -539,15 +539,6 @@ func CompensateThumbnailEp(rail miso.Rail, db *gorm.DB) (any, error) {
 	return nil, CompensateThumbnail(rail, db)
 }
 
-// Calculate size of all directories recursively
-//
-//   - misoapi-http: POST /compensate/dir/calculate-size
-//   - misoapi-desc: Calculate size of all directories recursively
-//   - misoapi-resource: ref(ResVfmMaintenance)
-func ImMemBatchCalcDirSizeEp(rail miso.Rail, db *gorm.DB) (any, error) {
-	return nil, ImMemBatchCalcDirSize(rail, db)
-}
-
 // Regenerate video thumbnails
 //
 //   - misoapi-http: POST /compensate/regenerate-video-thumbnails

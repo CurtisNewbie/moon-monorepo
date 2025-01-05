@@ -2,7 +2,6 @@ package vfm
 
 import (
 	"fmt"
-	"time"
 
 	ep "github.com/curtisnewbie/event-pump/client"
 	fstore "github.com/curtisnewbie/mini-fstore/api"
@@ -26,7 +25,8 @@ var (
 	CompressImgNotifyPipeline       = rabbit.NewEventPipeline[fstore.ImageCompressReplyEvent](CompressImgNotifyEventBus)
 
 	AddFileToVFolderPipeline = rabbit.NewEventPipeline[AddFileToVfolderEvent](AddFileToVFolderEventBus)
-	CalcDirSizePipeline      = rabbit.NewEventPipeline[CalcDirSizeEvt](CalcDirSizeEventBus)
+	CalcDirSizePipeline      = rabbit.NewEventPipeline[CalcDirSizeEvt](CalcDirSizeEventBus) // TODO: deprecated, remove this in v0.0.3
+
 )
 
 func PrepareEventBus(rail miso.Rail) error {
@@ -34,7 +34,10 @@ func PrepareEventBus(rail miso.Rail) error {
 	GenVideoThumbnailNotifyPipeline.Listen(2, OnVidoeThumbnailGenerated)
 	CompressImgNotifyPipeline.Listen(2, OnImageCompressed)
 	AddFileToVFolderPipeline.Listen(2, OnAddFileToVfolderEvent)
-	CalcDirSizePipeline.Listen(1, OnCalcDirSizeEvt)
+
+	CalcDirSizePipeline.Listen(1, func(rail miso.Rail, t CalcDirSizeEvt) error {
+		return nil // TODO: deprecated, remove this in v0.0.3
+	})
 
 	rabbit.NewEventPipeline[CreateGalleryImgEvent]("event.bus.fantahsea.dir.gallery.image.add").
 		Listen(2, OnCreateGalleryImgEvent) // deprecated
@@ -279,11 +282,6 @@ func OnAddFileToVfolderEvent(rail miso.Rail, evt AddFileToVfolderEvent) error {
 
 type CalcDirSizeEvt struct {
 	FileKey string
-}
-
-func OnCalcDirSizeEvt(rail miso.Rail, evt CalcDirSizeEvt) error {
-	defer miso.TimeOp(rail, time.Now(), fmt.Sprintf("Process CalcDirSizeEvt: %+v", evt))
-	return CalcDirSize(rail, evt.FileKey, mysql.GetMySQL())
 }
 
 func OnUnzipFileReplyEvent(rail miso.Rail, evt fstore.UnzipFileReplyEvent) error {

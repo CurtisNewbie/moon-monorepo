@@ -315,15 +315,6 @@ func TestIsImage(t *testing.T) {
 	}
 }
 
-func TestBatchClacDirSize(t *testing.T) {
-	corePreTest(t)
-	c := miso.EmptyRail()
-	err := ImMemBatchCalcDirSize(c, mysql.GetMySQL())
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestUnpackZip(t *testing.T) {
 	corePreTest(t)
 	rail := miso.EmptyRail()

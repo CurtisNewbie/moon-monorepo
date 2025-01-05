@@ -534,14 +534,6 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 
 		}
 
-		if !util.IsBlankStr(fi.ParentFile) {
-
-			// calculate the dir size asynchronously
-			if err := CalcDirSizePipeline.Send(rail, CalcDirSizeEvt{FileKey: fi.ParentFile}); err != nil {
-				rail.Errorf("failed to send CalcDirSizeEvt, fileKey: %v, %v", fi.ParentFile, err)
-			}
-		}
-
 		return tx.Exec("UPDATE file_info SET parent_file = ?, update_by = ?, update_time = ? WHERE uuid = ?",
 			req.ParentFileUuid, user.Username, time.Now(), req.Uuid).
 			Error
@@ -1217,19 +1209,12 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 		}
 	}
 
-	err := tx.Exec("UPDATE file_info SET is_logic_deleted = 1, logic_delete_time = NOW() WHERE id = ? AND is_logic_deleted = 0", f.Id).
-		Error
+	err := tx.Exec(`
+		UPDATE file_info
+		SET is_logic_deleted = 1, logic_delete_time = NOW()
+		WHERE id = ? AND is_logic_deleted = 0`, f.Id).Error
 	if err == nil {
 		rail.Infof("Deleted file %v", f.Uuid)
-
-		// calculate the dir size asynchronously
-		if f.ParentFile != "" {
-			if err := CalcDirSizePipeline.Send(rail, CalcDirSizeEvt{
-				FileKey: f.ParentFile,
-			}); err != nil {
-				rail.Errorf("failed to send CalcDirSizeEvt, fileKey: %v, %v", f.ParentFile, err)
-			}
-		}
 	}
 	return err
 }
@@ -1424,84 +1409,6 @@ func RemoveVFolder(rail miso.Rail, tx *gorm.DB, user common.User, req RemoveVFol
 	}
 
 	rail.Infof("VFolder %v deleted by %v", req.FolderNo, user.Username)
-	return nil
-}
-
-func ImMemBatchCalcDirSize(rail miso.Rail, db *gorm.DB) error {
-	ok, err := EnterMaintenance(rail)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return miso.NewErrf("Server is already in maintenance")
-	}
-	defer LeaveMaintenance(rail)
-
-	defer miso.TimeOp(rail, time.Now(), "BatchCalcDirSize")
-
-	type TempFile struct {
-		Uuid       string
-		ParentFile string
-	}
-
-	var files []TempFile
-	err = db.Raw(`
-		SELECT uuid, parent_file FROM file_info
-		WHERE parent_file != '' AND file_type = 'DIR' AND is_logic_deleted = 0
-	`).Scan(&files).Error
-	if err != nil {
-		return fmt.Errorf("failed to list dir files, %v", err)
-	}
-
-	parDirSet := util.NewSet[string]()
-	for _, f := range files {
-		parDirSet.Add(f.ParentFile)
-	}
-
-	for _, f := range files {
-		if parDirSet.Has(f.Uuid) { // the dir itself is a parent dir
-			continue
-		}
-		if err := CalcDirSizePipeline.Send(rail, CalcDirSizeEvt{FileKey: f.Uuid}); err != nil {
-			return err
-		}
-		rail.Infof("Triggered CalcDirSizeEvt for %v", f.Uuid)
-	}
-	return nil
-}
-
-func CalcDirSize(rail miso.Rail, fk string, db *gorm.DB) error {
-	lock := fileLock(rail, fk)
-	if err := lock.Lock(); err != nil {
-		return fmt.Errorf("failed to lock, fileKey: %v, %w", fk, err)
-	}
-	defer lock.Unlock()
-
-	var size int64
-	err := db.Raw("SELECT IFNULL(SUM(size_in_bytes),0) FROM file_info WHERE parent_file = ? AND is_del = 0 AND is_logic_deleted = 0", fk).
-		Scan(&size).
-		Error
-	if err != nil {
-		return fmt.Errorf("failed to calculate dir size, fileKey: %v, %v", fk, err)
-	}
-
-	if err := db.Exec(`UPDATE file_info SET size_in_bytes = ? WHERE uuid = ?`, size, fk).Error; err != nil {
-		return fmt.Errorf("failed to update dir's size, fileKey: %v, %v", fk, err)
-	}
-
-	// if current dir also has a parent dir, calculate the parent dir's size as well
-	var parDir string
-	if err := db.Raw(`SELECT parent_file FROM file_info WHERE uuid = ?`, fk).Scan(&parDir).Error; err != nil {
-		rail.Errorf("failed to find parent dir of file: %v, %v", fk, err)
-		return nil
-	}
-
-	if parDir != "" {
-		if err := CalcDirSizePipeline.Send(rail, CalcDirSizeEvt{FileKey: parDir}); err != nil {
-			rail.Errorf("failed to publish CalcDirSizeEvt for %v, %v", parDir, err)
-			return nil
-		}
-	}
 	return nil
 }
 
