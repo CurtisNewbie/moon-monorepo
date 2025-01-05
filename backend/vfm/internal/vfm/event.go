@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	CalcDirSizeEventBus             = "event.bus.vfm.dir.size.calc"
 	AddFileToVFolderEventBus        = "event.bus.vfm.file.vfolder.add"
 	CompressImgNotifyEventBus       = "vfm.image.compressed.event"
 	GenVideoThumbnailNotifyEventBus = "vfm.video.thumbnail.generate"
@@ -23,10 +22,12 @@ var (
 	UnzipResultNotifyPipeline       = rabbit.NewEventPipeline[fstore.UnzipFileReplyEvent](UnzipResultNotifyEventBus)
 	GenVideoThumbnailNotifyPipeline = rabbit.NewEventPipeline[fstore.GenVideoThumbnailReplyEvent](GenVideoThumbnailNotifyEventBus)
 	CompressImgNotifyPipeline       = rabbit.NewEventPipeline[fstore.ImageCompressReplyEvent](CompressImgNotifyEventBus)
+	AddFileToVFolderPipeline        = rabbit.NewEventPipeline[AddFileToVfolderEvent](AddFileToVFolderEventBus)
 
-	AddFileToVFolderPipeline = rabbit.NewEventPipeline[AddFileToVfolderEvent](AddFileToVFolderEventBus)
-	CalcDirSizePipeline      = rabbit.NewEventPipeline[CalcDirSizeEvt](CalcDirSizeEventBus) // TODO: deprecated, remove this in v0.0.3
-
+	// TODO: deprecated, remove this in v0.0.3
+	CalcDirSizePipeline = rabbit.NewEventPipeline[CalcDirSizeEvt]("event.bus.vfm.dir.size.calc").Listen(1, func(rail miso.Rail, t CalcDirSizeEvt) error {
+		return nil
+	})
 )
 
 func PrepareEventBus(rail miso.Rail) error {
@@ -34,16 +35,6 @@ func PrepareEventBus(rail miso.Rail) error {
 	GenVideoThumbnailNotifyPipeline.Listen(2, OnVidoeThumbnailGenerated)
 	CompressImgNotifyPipeline.Listen(2, OnImageCompressed)
 	AddFileToVFolderPipeline.Listen(2, OnAddFileToVfolderEvent)
-
-	CalcDirSizePipeline.Listen(1, func(rail miso.Rail, t CalcDirSizeEvt) error {
-		return nil // TODO: deprecated, remove this in v0.0.3
-	})
-
-	rabbit.NewEventPipeline[CreateGalleryImgEvent]("event.bus.fantahsea.dir.gallery.image.add").
-		Listen(2, OnCreateGalleryImgEvent) // deprecated
-	rabbit.NewEventPipeline[NotifyFileDeletedEvent]("event.bus.fantahsea.notify.file.deleted").
-		Listen(2, OnNotifyFileDeletedEvent) // deprecated
-
 	return nil
 }
 
