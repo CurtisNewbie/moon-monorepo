@@ -54,6 +54,7 @@ func lastPos(rail miso.Rail, app string, nodeName string) (int64, error) {
 }
 
 func recPos(rail miso.Rail, app string, nodeName string, pos int64) error {
+	rail.Debugf("app: %v, node: %v, pos: %v", app, nodeName, pos)
 	posStr := strconv.FormatInt(pos, 10)
 	cmd := redis.GetRedis().Set(fmt.Sprintf("log-bot:pos:%v:%v", nodeName, app), posStr, 0)
 	return cmd.Err()
@@ -162,55 +163,79 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 			}
 		}
 
+		didWaitForEOF := false
 		line, err := rd.ReadString('\n')
+
 		if err == nil {
+			didWaitForEOF = false
+			logLine, e := parseLogLine(rail, line, wc.Type)
+			if e == nil {
 
-			mergedLogger.Printf("[%11s] - %v", wc.App, line)
+				// we always report the previous log, coz a single log can contain multiple lines
+				//
+				// in the same log, the first line is of course valid, but the following lines are not
+				// we parse each line, the invalid lines are appended to the previous log
+				// once we find a valid line then we know the previous log is now complete, and we report it
+				if prevLogLine != nil {
 
-			if wc.ReportError {
-
-				logLine, e := parseLogLine(rail, line, wc.Type)
-				if e == nil {
-
-					// prevLogLine == nil, won't happen unless it is the first log being parsed, or is really in incorrect format
-					if prevLogLine != nil {
-
-						// always report the previous log
-						if e := reportLine(rail, *prevLogLine, nodeName, wc); e != nil {
-							rail.Errorf("Failed to reportLine, logLine: %+v, %v", *prevLogLine, e)
-						}
-
-						// move the position only when we report the previous log
-						pos += prevBytesRead
-						recPos(rail, wc.App, nodeName, pos)
-						rail.Debugf("app: %v, pos: %v", wc.App, pos)
+					// report the previous log
+					if e := reportLine(rail, *prevLogLine, nodeName, wc); e != nil {
+						rail.Errorf("Failed to reportLine, logLine: %+v, %v", *prevLogLine, e)
 					}
 
-					prevBytesRead = int64(len([]byte(line)))
-					prevLine = line
-					prevLogLine = &logLine
-				} else {
-					// if current line is not parseable, it's part of previous line
-					// we put them together and we parse again
-					//
-					// yes, we may will just parse it before we do reportLine, but for
-					// 90% of the time, the log is single line
-					// so it's better leave it here
-					prevBytesRead += int64(len([]byte(line)))
-					prevLine = prevLine + line
-					if parsed, ep := parseLogLine(rail, prevLine, wc.Type); ep == nil {
-						prevLogLine = &parsed
-					}
+					// append previous to merged logs
+					AppendMergedLog(*prevLogLine, wc.App, line)
+
+					// move the position only when we report the previous log
+					pos += prevBytesRead
+					recPos(rail, wc.App, nodeName, pos)
 				}
 
-				lastRead = time.Now()
-				time.Sleep(50 * time.Millisecond)
-				continue
+				prevBytesRead = int64(len(util.UnsafeStr2Byt(line)))
+				prevLine = line
+				prevLogLine = &logLine
+
+			} else {
+
+				// if current line is not parseable, it's part of previous line
+				// we put them together and we parse again
+				//
+				// 90% of the time, the log is single line
+				// so it's better leave it here
+				prevBytesRead += int64(len(util.UnsafeStr2Byt(line)))
+				prevLine = prevLine + line
+				if parsed, ep := parseLogLine(rail, prevLine, wc.Type); ep == nil {
+					prevLogLine = &parsed
+				}
 			}
 
-		} else if err == io.EOF {
-			time.Sleep(1 * time.Second)
+			lastRead = time.Now()
 			continue
+
+		} else if err == io.EOF {
+
+			// report the last log line if we have already waited for EOF
+			if prevLogLine != nil && didWaitForEOF {
+				if e := reportLine(rail, *prevLogLine, nodeName, wc); e != nil {
+					rail.Errorf("Failed to reportLine, logLine: %+v, %v", *prevLogLine, e)
+				}
+				prevLogLine = nil
+				pos += prevBytesRead
+				recPos(rail, wc.App, nodeName, pos)
+			}
+
+			// Sleep for a shorter period if we have a previous log line to avoid latency
+			if prevLogLine != nil {
+				time.Sleep(100 * time.Millisecond)
+			} else {
+				time.Sleep(500 * time.Millisecond)
+			}
+
+			didWaitForEOF = true
+			continue
+
+		} else {
+			rail.Errorf("Failed to read file, %v, %v", wc.File, err)
 		}
 
 		if miso.IsShuttingDown() {
@@ -231,12 +256,16 @@ type LogLineEvent struct {
 }
 
 type LogLine struct {
-	Time    util.ETime
-	Level   string
-	TraceId string
-	SpanId  string
-	Caller  string
-	Message string
+	ParseTime  util.ETime
+	App        string
+	Time       util.ETime
+	TimeStr    string
+	Level      string
+	TraceId    string
+	SpanId     string
+	Caller     string
+	Message    string
+	OriginLine string
 }
 
 func parseLogLine(rail miso.Rail, line string, typ string) (LogLine, error) {
@@ -246,7 +275,7 @@ func parseLogLine(rail miso.Rail, line string, typ string) (LogLine, error) {
 	})
 
 	matches := pat.FindStringSubmatch(line)
-	if matches == nil {
+	if len(matches) < 7 {
 		return LogLine{}, fmt.Errorf("doesn't match pattern")
 	}
 
@@ -262,14 +291,18 @@ func parseLogLine(rail miso.Rail, line string, typ string) (LogLine, error) {
 		msg = string(msgRu[:1001])
 	}
 
-	return LogLine{
-		Time:    util.ToETime(time),
-		Level:   matches[2],
-		TraceId: strings.TrimSpace(matches[3]),
-		SpanId:  strings.TrimSpace(matches[4]),
-		Caller:  matches[5],
-		Message: msg,
-	}, nil
+	ll := LogLine{
+		OriginLine: line,
+		ParseTime:  util.Now(),
+		Time:       util.ToETime(time),
+		TimeStr:    matches[1],
+		Level:      matches[2],
+		TraceId:    strings.TrimSpace(matches[3]),
+		SpanId:     strings.TrimSpace(matches[4]),
+		Caller:     matches[5],
+		Message:    msg,
+	}
+	return ll, nil
 }
 
 func reportLine(rail miso.Rail, line LogLine, node string, wc WatchConfig) error {

@@ -7,6 +7,8 @@ import (
 )
 
 func TestParseLine(t *testing.T) {
+	miso.SetProp("log.pattern.go", `^([0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9:\.]+) +(\w+) +\[([\w ]+),([\w ]+)\] +([\w\.]+) +: *((?s).*)`)
+	miso.SetProp("log.pattern.java", `^([0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9:\.]+) +(\w+) +\[[\w \-]+,([\w ]*),([\w ]*),[\w ]*\] [\w\.]+ \-\-\- \[[\w\- ]+\] ([\w\-\.]+) +: *((?s).*)`)
 	line := `2023-06-13 12:58:35.509 INFO  [                ,                ] miso.DeregisterService      : Deregistering current instance on Consul, service_id: 'goauth-8081'`
 	logLine, err := parseLogLine(miso.EmptyRail(), line, "go")
 	if err != nil {

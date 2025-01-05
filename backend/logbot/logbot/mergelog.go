@@ -1,7 +1,11 @@
 package logbot
 
 import (
+	"sync"
+	"time"
+
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -10,7 +14,12 @@ const (
 )
 
 var (
-	mergedLogger = logrus.New()
+	mergedLogger                     = logrus.New()
+	mergedLogMu                      = sync.Mutex{}
+	mergedLogs   *util.Heap[LogLine] = util.NewHeap(1024, func(iv, jv LogLine) bool {
+		return iv.Time.Before(jv.Time)
+	})
+	mergedLogFlushTicker = miso.NewTickRuner(1*time.Second, flushMergedLogs)
 )
 
 func InitMergedLogger() {
@@ -26,6 +35,11 @@ func InitMergedLogger() {
 	})
 	mergedLogger.SetFormatter(PlainStrFormatter{})
 	mergedLogger.SetOutput(out)
+	mergedLogFlushTicker.Start()
+	miso.AddShutdownHook(func() {
+		mergedLogFlushTicker.Stop()
+		flushMergedLogs()
+	})
 }
 
 type PlainStrFormatter struct {
@@ -33,4 +47,27 @@ type PlainStrFormatter struct {
 
 func (p PlainStrFormatter) Format(e *logrus.Entry) ([]byte, error) {
 	return []byte(e.Message), nil
+}
+
+func AppendMergedLog(ll LogLine, app string, line string) {
+	ll.App = app
+	mergedLogMu.Lock()
+	defer mergedLogMu.Unlock()
+	mergedLogs.Push(ll)
+}
+
+func flushMergedLogs() {
+	mergedLogMu.Lock()
+	defer mergedLogMu.Unlock()
+
+	now := util.Now()
+	offset := now.Add(-3 * time.Second)
+
+	for mergedLogs.Len() > 0 {
+		if mergedLogs.Peek().Time.After(offset) {
+			return
+		}
+		ll := mergedLogs.Pop()
+		mergedLogger.Printf("[%11s] - %v", ll.App, ll.OriginLine)
+	}
 }

@@ -54,11 +54,16 @@ logbot:
       report-error: true
     - app: user-vault
       file: /usr/src/logs/watch/user-vault.log
+      type: go
     - app: vfm
       file: /usr/src/logs/watch/vfm.log
+      type: go
     - app: mini-fstore
       file: /usr/src/logs/watch/mini-fstore.log
+      type: go
     - app: gatekeeper
       file: /usr/src/logs/watch/gatekeeper.log
+      type: go
     - app: acct
       file: /usr/src/logs/watch/acct.log
+      type: go
