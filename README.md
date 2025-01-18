@@ -18,13 +18,20 @@ moon monorepo - a privately hosted website developed for myself for fun :D
 ## Original Repositories
 
 - [https://github.com/CurtisNewbie/moon](https://github.com/CurtisNewbie/moon)
-- [https://github.com/CurtisNewbie/event-pump](https://github.com/CurtisNewbie/event-pump)
 - [https://github.com/CurtisNewbie/gatekeeper](https://github.com/CurtisNewbie/gatekeeper)
 - [https://github.com/CurtisNewbie/logbot](https://github.com/CurtisNewbie/logbot)
 - [https://github.com/CurtisNewbie/mini-fstore](https://github.com/CurtisNewbie/mini-fstore)
 - [https://github.com/CurtisNewbie/user-vault](https://github.com/CurtisNewbie/user-vault)
 - [https://github.com/CurtisNewbie/vfm](https://github.com/CurtisNewbie/vfm)
 - [https://github.com/CurtisNewbie/acct](https://github.com/CurtisNewbie/acct)
+
+## External Dependencies
+
+- MySQL
+- RabbitMQ
+- Consul
+- Redis
+- [github.com/CurtisNewbie/event-pump](https://github.com/CurtisNewbie/event-pump) (for listening MySQL Binlog Events).
 
 ## Development Environment Preparation
 
@@ -137,6 +144,10 @@ go run cmd/main.go
 For example, to bootstrap all backend and frontend services:
 
 ```bash
+# run event-pump
+# ...
+
+# run backend projects in moon-monorepo
 for r in $(ls "./moon-monorepo/backend");
 do
     (
@@ -149,6 +160,7 @@ do
     );
 done;
 
+# run frontend project
 ( cd "./moon-monorepo/frontend/moon"; ng serve > /dev/null 2>&1 & )
 ```
 
@@ -185,7 +197,6 @@ Before moon-monorepo, backend projects are maintained in separate repos. Both v0
 - [acct >= v0.0.0](https://github.com/CurtisNewbie/acct)
 - [vfm >= v0.1.21](https://github.com/CurtisNewbie/vfm/tree/v0.1.21)
 - [user-vault >= v0.0.26](https://github.com/CurtisNewbie/user-vault/tree/v0.0.26)
-- [event-pump >= v0.0.14](https://github.com/CurtisNewbie/event-pump/tree/v0.0.14)
 - [gatekeeper >= v0.0.23](https://github.com/CurtisNewbie/gatekeeper/tree/v0.0.23)
 - [logbot >= v0.0.9](https://github.com/CurtisNewbie/logbot/tree/v0.0.9)
 - [mini-fstore >= v0.1.21](https://github.com/CurtisNewbie/mini-fstore/tree/v0.1.21)
