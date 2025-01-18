@@ -507,7 +507,8 @@ func ItnCheckResourceAccessEp(inb *miso.Inbound, req api.CheckResAccessReq) (api
 
 // misoapi-http: POST /remote/path/add
 // misoapi-desc: Report endpoint info
-func ItnReportPathEp(inb *miso.Inbound, req CreatePathReq) (any, error) {
+// misoapi-resource: ref(ResourceManageResources)
+func ReportPathEp(inb *miso.Inbound, req CreatePathReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, CreatePath(rail, req, user)

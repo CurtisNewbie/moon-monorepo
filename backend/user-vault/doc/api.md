@@ -3538,6 +3538,7 @@
 
 - POST /remote/path/add
   - Description: Report endpoint info
+  - Bound to Resource: `"manage-resources"`
   - JSON Request:
     - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
     - "url": (string) 

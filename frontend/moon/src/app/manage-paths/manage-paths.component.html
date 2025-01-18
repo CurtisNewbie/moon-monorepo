@@ -2,6 +2,48 @@
     <h3 class="mt-2 mb-3">Manage Paths</h3>
 </div>
 
+<ng-container *ngIf="showNewPath">
+    <div class="container bootstrap p-3 mt-3 mb-5 shadow">
+        <mat-form-field style="width: 100%;">
+            <mat-label>Method</mat-label>
+            <mat-select [(value)]="newPathReq.method">
+                <mat-option value="*">ALL</mat-option>
+                <mat-option [value]="option.val" *ngFor="let option of METHOD_OPTIONS">
+                    {{option.name}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Path Pattern</mat-label>
+            <input matInput type="text" [(ngModel)]="newPathReq.url">
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Group</mat-label>
+            <input matInput type="text" [(ngModel)]="newPathReq.group">
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Type:</mat-label>
+            <mat-select [(value)]="newPathReq.type">
+                <mat-option value="">ALL</mat-option>
+                <mat-option [value]="option.val" *ngFor="let option of PATH_TYPES">
+                    {{option.name}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Resource</mat-label>
+            <input matInput type="text" [(ngModel)]="newPathReq.resCode">
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Description</mat-label>
+            <input matInput type="text" [(ngModel)]="newPathReq.desc">
+        </mat-form-field>
+        <div class="justify-content-end d-flex">
+            <button mat-raised-button class="mt-2" (click)="createPath()">Create</button>
+        </div>
+    </div>
+</ng-container>
+
 <!-- search param  -->
 <div>
     <mat-form-field style="width: 600px">
@@ -32,6 +74,8 @@
         </div>
 
         <div class="d-grid gap-2 d-flex justify-content-end mb-3">
+            <button mat-raised-button class="m-2" (click)="showNewPath= !showNewPath">New
+                Path</button>
             <button mat-icon-button class="m-1 icon-button-large" (click)="fetchList()"><i
                     class="bi bi-arrow-clockwise"></i></button>
             <button mat-icon-button class="m-1 icon-button-large" (click)="reset()"><i

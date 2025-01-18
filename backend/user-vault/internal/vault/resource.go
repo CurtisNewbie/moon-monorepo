@@ -234,18 +234,18 @@ type GenResScriptReq struct {
 }
 
 type UpdatePathReq struct {
-	Type   string `json:"type" validation:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	PathNo string `json:"pathNo" validation:"notEmpty"`
-	Group  string `json:"group" validation:"notEmpty,maxLen:20"`
+	Type   string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
+	PathNo string `valid:"notEmpty"`
+	Group  string `valid:"notEmpty,maxLen:20"`
 }
 
 type CreatePathReq struct {
-	Type    string `json:"type" validation:"notEmpty" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	Url     string `json:"url" validation:"notEmpty,maxLen:128"`
-	Group   string `json:"group" validation:"notEmpty,maxLen:20"`
-	Method  string `json:"method" validation:"notEmpty,maxLen:10"`
-	Desc    string `json:"desc" validation:"maxLen:255"`
-	ResCode string `json:"resCode"`
+	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
+	Url     string `valid:"notEmpty,maxLen:128"`
+	Group   string `valid:"notEmpty,maxLen:20"`
+	Method  string `valid:"notEmpty,maxLen:10"`
+	Desc    string `valid:"maxLen:255"`
+	ResCode string
 }
 
 type DeletePathReq struct {
@@ -735,7 +735,7 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 	url = preprocessUrl(url)
 	method := strings.ToUpper(strings.TrimSpace(req.Method))
 	match := func(p PathAccessInfo) bool {
-		if p.Method != method {
+		if p.Method != "*" && p.Method != method {
 			return false
 		}
 		ok, err := doublestar.Match(p.Url, url)
@@ -765,6 +765,7 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 		return forbidden, nil
 	}
 	if isDefAdmin(roleNo) {
+		rail.Infof("User is default admins, roleNo: %v", roleNo)
 		return permitted, nil
 	}
 
