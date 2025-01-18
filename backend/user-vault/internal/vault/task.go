@@ -6,13 +6,12 @@ import (
 )
 
 func ScheduleTasks(rail miso.Rail) error {
-	// distributed tasks
-	var err error = task.ScheduleDistributedTask(miso.Job{
+	err := task.ScheduleDistributedTask(miso.Job{
 		Cron:                   "*/15 * * * *",
 		CronWithSeconds:        false,
-		Name:                   "LoadRoleResCacheTask",
+		Name:                   "LoadRoleAccessCacheTask",
 		TriggeredOnBoostrapped: true,
-		Run:                    LoadRoleResCache,
+		Run:                    BatchLoadRoleAccessCache,
 	})
 	if err != nil {
 		return err
@@ -20,9 +19,9 @@ func ScheduleTasks(rail miso.Rail) error {
 	err = task.ScheduleDistributedTask(miso.Job{
 		Cron:                   "*/15 * * * *",
 		CronWithSeconds:        false,
-		Name:                   "LoadPathResCacheTask",
+		Name:                   "LoadPublicAccessCacheTask",
 		TriggeredOnBoostrapped: true,
-		Run:                    LoadPathResCache,
+		Run:                    LoadPublicAccessCache,
 	})
 	if err != nil {
 		return err

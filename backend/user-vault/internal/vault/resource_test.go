@@ -251,24 +251,3 @@ func TestListRoles(t *testing.T) {
 
 	t.Logf("%+v", resp)
 }
-
-func TestTestResourceAccess(t *testing.T) {
-	before(t)
-
-	ec := miso.EmptyRail()
-	LoadPathResCache(ec)
-	LoadRoleResCache(ec)
-
-	req := api.CheckResAccessReq{
-		RoleNo: "role_555329954676736208429",
-		Url:    "/goauth/open/api/role/resource/add",
-	}
-
-	r, e := TestResourceAccess(ec, req)
-	if e != nil {
-		t.Fatal(e)
-	}
-	if !r.Valid {
-		t.Fatal("should be valid")
-	}
-}

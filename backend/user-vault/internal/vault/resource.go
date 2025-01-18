@@ -4,10 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
+	doublestar "github.com/bmatcuk/doublestar/v4"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
@@ -21,13 +21,16 @@ var (
 	permitted = api.CheckResAccessResp{Valid: true}
 	forbidden = api.CheckResAccessResp{Valid: false}
 
-	roleInfoCache = redis.NewRCache[api.RoleInfoResp]("user-vault:role:info", redis.RCacheConfig{Exp: 10 * time.Minute, NoSync: true})
+	roleInfoCache = redis.NewRCache[api.RoleInfoResp]("user-vault:role:info",
+		redis.RCacheConfig{Exp: 10 * time.Minute, NoSync: true})
 
-	// cache for url's resource, url -> CachedUrlRes
-	urlResCache = redis.NewRCache[CachedUrlRes]("user-vault:url:res:v2", redis.RCacheConfig{Exp: 6 * time.Hour})
+	// cache for role's accessible resources and api url patterns
+	roleAccessCache = redis.NewRCache[RoleAccess]("user-vault:role:access",
+		redis.RCacheConfig{Exp: 6 * time.Hour, NoSync: true})
 
-	// cache for role's resource, role + res -> flag ("1")
-	roleResCache = redis.NewRCache[string]("user-vault:role:res", redis.RCacheConfig{Exp: 6 * time.Hour, NoSync: true})
+	// cache for publicly accessible resources and api url patterns
+	publicAccessCache = redis.NewRCache[[]PathAccessInfo]("user-vault:public:access",
+		redis.RCacheConfig{Exp: 6 * time.Hour, NoSync: true})
 )
 
 const (
@@ -280,24 +283,6 @@ func DeleteResource(rail miso.Rail, req DeleteResourceReq) error {
 			return tx.Exec(`delete from path_resource where res_code = ?`, req.ResCode).Error
 		})
 	})
-
-	if err == nil {
-		// asynchronously reload the cache of paths and resources
-		commonPool.Go(func() {
-			rail := rail.NextSpan()
-			if err := LoadPathResCache(rail); err != nil {
-				rail.Errorf("Failed to load path resource cache, %v", err)
-			}
-		})
-		// asynchronously reload the cache of role and resources
-		commonPool.Go(func() {
-			rail := rail.NextSpan()
-			if err := LoadRoleResCache(rail); err != nil {
-				rail.Errorf("Failed to load role resource cache, %v", err)
-			}
-		})
-	}
-
 	return err
 }
 
@@ -376,35 +361,13 @@ func ListResources(ec miso.Rail, req ListResReq) (ListResResp, error) {
 	return ListResResp{Paging: miso.RespPage(req.Paging, count), Payload: resources}, nil
 }
 
-func UpdatePath(ec miso.Rail, req UpdatePathReq) error {
-	_, e := lockPath(ec, req.PathNo, func() (any, error) {
+func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
+	_, e := lockPath(rail, req.PathNo, func() (any, error) {
 		tx := mysql.GetMySQL().Exec(`update path set pgroup = ?, ptype = ? where path_no = ?`,
 			req.Group, req.Type, req.PathNo)
 		return nil, tx.Error
 	})
-
-	if e == nil {
-		loadOnePathResCacheAsync(ec, req.PathNo)
-	}
 	return e
-}
-
-func loadOnePathResCacheAsync(rail miso.Rail, pathNo string) {
-	commonPool.Go(func() {
-		rail := rail.NextSpan()
-		// ec.Infof("Refreshing path cache, pathNo: %s", pathNo)
-		ep, e := findPathRes(pathNo)
-		if e != nil {
-			rail.Errorf("Failed to reload path cache, pathNo: %s, %v", pathNo, e)
-			return
-		}
-
-		ep.Url = preprocessUrl(ep.Url)
-		if e := urlResCache.Put(rail, ep.Method+":"+ep.Url, toCachedUrlRes(ep)); e != nil {
-			rail.Errorf("Failed to save cached url resource, pathNo: %s, %v", pathNo, e)
-			return
-		}
-	})
 }
 
 func GetRoleInfo(ec miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) {
@@ -466,7 +429,7 @@ func CreatePath(rail miso.Rail, req CreatePathReq, user common.User) error {
 	req.Method = strings.ToUpper(strings.TrimSpace(req.Method))
 	pathNo := genPathNo(req.Group, req.Url, req.Method)
 
-	changed, err := lockPath(rail, pathNo, func() (bool, error) {
+	_, err := lockPath(rail, pathNo, func() (bool, error) {
 		var prev EPath
 		tx := mysql.GetMySQL().Raw(`select * from path where path_no = ? limit 1`, pathNo).Scan(&prev)
 		if tx.Error != nil {
@@ -509,10 +472,6 @@ func CreatePath(rail miso.Rail, req CreatePathReq, user common.User) error {
 		return err
 	}
 
-	if changed { // reload cache for the path
-		loadOnePathResCacheAsync(rail, pathNo)
-	}
-
 	if req.ResCode != "" { // rebind path and resource
 		return BindPathRes(rail, BindPathResReq{PathNo: pathNo, ResCode: req.ResCode})
 	}
@@ -537,21 +496,12 @@ func DeletePath(ec miso.Rail, req DeletePathReq) error {
 	return e
 }
 
-func UnbindPathRes(ec miso.Rail, req UnbindPathResReq) error {
+func UnbindPathRes(rail miso.Rail, req UnbindPathResReq) error {
 	req.PathNo = strings.TrimSpace(req.PathNo)
-	_, e := lockPath(ec, req.PathNo, func() (any, error) {
+	_, e := lockPath(rail, req.PathNo, func() (any, error) {
 		tx := mysql.GetMySQL().Exec(`delete from path_resource where path_no = ?`, req.PathNo)
 		return nil, tx.Error
 	})
-
-	if e != nil {
-		// asynchronously reload the cache of paths and resources
-		commonPool.Go(func() {
-			if e := LoadPathResCache(ec); e != nil {
-				ec.Errorf("Failed to load path resource cache, %v", e)
-			}
-		})
-	}
 	return e
 }
 
@@ -595,10 +545,6 @@ func BindPathRes(rail miso.Rail, req BindPathResReq) error {
 		})
 	})
 
-	if e == nil {
-		// asynchronously reload the cache of paths and resources
-		loadOnePathResCacheAsync(rail, req.PathNo)
-	}
 	return e
 }
 
@@ -666,22 +612,18 @@ func AddRole(ec miso.Rail, req AddRoleReq, user common.User) error {
 	return e
 }
 
-func RemoveResFromRole(ec miso.Rail, req RemoveRoleResReq) error {
-	_, e := redis.RLockRun(ec, "user-vault:role:"+req.RoleNo, func() (any, error) {
+func RemoveResFromRole(rail miso.Rail, req RemoveRoleResReq) error {
+	_, e := redis.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) {
 		tx := mysql.GetMySQL().Exec(`delete from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode)
 		return nil, tx.Error
 	})
-
-	if e != nil {
-		e = roleResCache.Put(ec, fmt.Sprintf("role:%s:res:%s", req.RoleNo, req.ResCode), "")
-	}
 
 	return e
 }
 
 func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User) error {
 
-	res, e := redis.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) { // lock for role
+	_, e := redis.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) { // lock for role
 		return lockResourceGlobal(rail, func() (any, error) {
 			// check if resource exist
 			var resId int
@@ -717,15 +659,6 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 				Create(&rr).Error
 		})
 	})
-
-	if e != nil {
-		return e
-	}
-
-	if isAdded := res.(bool); isAdded {
-		e = _loadResOfRole(rail, req.RoleNo)
-	}
-
 	return e
 }
 
@@ -756,10 +689,11 @@ func ListRoleRes(ec miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
 		return ListRoleResResp{}, tx.Error
 	}
 
-	return ListRoleResResp{Payload: res, Paging: miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count}}, nil
+	return ListRoleResResp{Payload: res,
+		Paging: miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count}}, nil
 }
 
-func ListAllRoleBriefs(ec miso.Rail) ([]RoleBrief, error) {
+func ListAllRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
 	var roles []RoleBrief
 	tx := mysql.GetMySQL().Raw("select role_no, name from role").Scan(&roles)
 	if tx.Error != nil {
@@ -771,7 +705,7 @@ func ListAllRoleBriefs(ec miso.Rail) ([]RoleBrief, error) {
 	return roles, nil
 }
 
-func ListRoles(ec miso.Rail, req ListRoleReq) (ListRoleResp, error) {
+func ListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 	var roles []WRole
 	tx := mysql.GetMySQL().
 		Raw("select * from role order by id desc limit ?, ?", req.Paging.GetOffset(), req.Paging.GetLimit()).
@@ -793,100 +727,73 @@ func ListRoles(ec miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 }
 
 // Test access to resource
-func TestResourceAccess(ec miso.Rail, req api.CheckResAccessReq) (api.CheckResAccessResp, error) {
+func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckResAccessResp, error) {
 	url := req.Url
 	roleNo := req.RoleNo
 
 	// some sanitization & standardization for the url
 	url = preprocessUrl(url)
 	method := strings.ToUpper(strings.TrimSpace(req.Method))
+	match := func(p PathAccessInfo) bool {
+		if p.Method != method {
+			return false
+		}
+		ok, err := doublestar.Match(p.Url, url)
+		if err != nil {
+			rail.Errorf("Path Pattern is invalid, %v, %v", p.Url, err)
+			return false
+		}
+		if ok {
+			rail.Infof("Request path matched, '%v %v', resource: %v (%v), roleNo: %v", p.Method, p.Url,
+				p.ResCode, p.Ptype, roleNo)
+		}
+		return ok
+	}
 
-	// find resource required for the url
-	cur, e := lookupUrlRes(ec, url, method)
-	if e != nil {
-		ec.Infof("Rejected '%s' (%s), path not found", url, method)
+	if roleNo == "" {
+		public, err := publicAccessCache.Get(rail, "", nil)
+		if err != nil {
+			rail.Warnf("Failed to load PublicAccessCache, %v", err)
+			return forbidden, nil
+		}
+		for _, p := range public {
+			if !match(p) {
+				continue
+			}
+			return permitted, nil
+		}
+		return forbidden, nil
+	}
+	if isDefAdmin(roleNo) {
+		return permitted, nil
+	}
+
+	rr, err := roleAccessCache.Get(rail, roleNo, nil)
+	if err != nil {
+		rail.Warnf("Failed to find RoleAccess for %v from cache, %v", roleNo, err)
 		return forbidden, nil
 	}
 
-	// public path type, doesn't require access to resource
-	if cur.Ptype == PathTypePublic {
+	for _, p := range rr.Paths {
+		if !match(p) {
+			continue
+		}
 		return permitted, nil
 	}
 
 	// doesn't even have role
 	roleNo = strings.TrimSpace(roleNo)
 	if roleNo == "" {
-		ec.Infof("Rejected '%s', user doesn't have roleNo", url)
+		rail.Infof("Rejected '%s', user doesn't have roleNo", url)
 		return forbidden, nil
-	}
-
-	// the requiredRes resources no
-	requiredRes := cur.ResCode
-	if requiredRes == "" {
-		ec.Infof("Rejected '%s', path doesn't have any resource bound yet", url)
-		return forbidden, nil
-	}
-
-	ok, e := checkRoleRes(ec, roleNo, requiredRes)
-	if e != nil {
-		return forbidden, e
 	}
 
 	// the role doesn't have access to the required resource
-	if !ok {
-		ec.Infof("Rejected '%s', roleNo: '%s', role doesn't have access to required resource '%s'", url, roleNo, requiredRes)
-		return forbidden, nil
-	}
-
-	return permitted, nil
+	rail.Infof("Rejected '%v %s', roleNo: '%s', role doesn't have access to required resource", method, url, roleNo)
+	return forbidden, nil
 }
 
-func checkRoleRes(rail miso.Rail, roleNo string, resCode string) (bool, error) {
-	if isDefAdmin(roleNo) {
-		return true, nil
-	}
-
-	ok, e := roleResCache.Exists(rail, fmt.Sprintf("role:%s:res:%s", roleNo, resCode))
-	if e != nil {
-		return false, e
-	}
-	return ok, nil
-}
-
-// Load cache for role -> resources
-func LoadRoleResCache(ec miso.Rail) error {
-
-	_, e := lockRoleResCache(ec, func() (any, error) {
-
-		lr, e := listRoleNos(ec)
-		if e != nil {
-			return nil, e
-		}
-
-		for _, roleNo := range lr {
-			e = _loadResOfRole(ec, roleNo)
-			if e != nil {
-				return nil, e
-			}
-		}
-		return nil, nil
-	})
-	return e
-}
-
-func _loadResOfRole(ec miso.Rail, roleNo string) error {
-	roleResList, e := listRoleRes(ec, roleNo)
-	if e != nil {
-		return e
-	}
-
-	for _, rr := range roleResList {
-		roleResCache.Put(ec, fmt.Sprintf("role:%s:res:%s", rr.RoleNo, rr.ResCode), "1")
-	}
-	return nil
-}
-
-func listRoleNos(ec miso.Rail) ([]string, error) {
+func listRoleNos(rail miso.Rail) ([]string, error) {
 	var ern []string
 	t := mysql.GetMySQL().Raw("select role_no from role").Scan(&ern)
 	if t.Error != nil {
@@ -899,7 +806,7 @@ func listRoleNos(ec miso.Rail) ([]string, error) {
 	return ern, nil
 }
 
-func listRoleRes(ec miso.Rail, roleNo string) ([]ERoleRes, error) {
+func listRoleRes(rail miso.Rail, roleNo string) ([]ERoleRes, error) {
 	var rr []ERoleRes
 	t := mysql.GetMySQL().Raw("select * from role_resource where role_no = ?", roleNo).Scan(&rr)
 	if t.Error != nil {
@@ -910,54 +817,6 @@ func listRoleRes(ec miso.Rail, roleNo string) ([]ERoleRes, error) {
 	}
 
 	return rr, nil
-}
-
-func lookupUrlRes(ec miso.Rail, url string, method string) (CachedUrlRes, error) {
-	cur, e := urlResCache.Get(ec, method+":"+url, nil)
-	if e != nil {
-		return CachedUrlRes{}, e
-	}
-	return cur, nil
-}
-
-// Load cache for path -> resource
-func LoadPathResCache(rail miso.Rail) error {
-
-	_, e := redis.RLockRun(rail, "user-vault:path:res:cache", func() (any, error) {
-		var paths []ExtendedPathRes
-		tx := mysql.GetMySQL().
-			Raw("select p.*, pr.res_code from path p left join path_resource pr on p.path_no = pr.path_no").
-			Scan(&paths)
-		if tx.Error != nil {
-			return nil, tx.Error
-		}
-		if paths == nil {
-			return nil, nil
-		}
-
-		for _, ep := range paths {
-			ep.Url = preprocessUrl(ep.Url)
-			if e := urlResCache.Put(rail, ep.Method+":"+ep.Url, toCachedUrlRes(ep)); e != nil {
-				return nil, fmt.Errorf("failed to store urlResCache, %w", e)
-			}
-		}
-		return nil, nil
-	})
-
-	return e
-}
-
-func toCachedUrlRes(epath ExtendedPathRes) CachedUrlRes {
-	cur := CachedUrlRes{
-		Id:      epath.Id,
-		Pgroup:  epath.Pgroup,
-		PathNo:  epath.PathNo,
-		ResCode: epath.ResCode,
-		Url:     epath.Url,
-		Method:  epath.Method,
-		Ptype:   epath.Ptype,
-	}
-	return cur
 }
 
 // preprocess url, the processed url will always starts with '/' and never ends with '/'
@@ -991,22 +850,6 @@ func preprocessUrl(url string) string {
 	return string(ru)
 }
 
-func findPathRes(pathNo string) (ExtendedPathRes, error) {
-	var ep ExtendedPathRes
-	tx := mysql.GetMySQL().
-		Raw("select p.*, pr.res_code from path p left join path_resource pr on p.path_no = pr.path_no where p.path_no = ? limit 1", pathNo).
-		Scan(&ep)
-	if tx.Error != nil {
-		return ep, tx.Error
-	}
-
-	if tx.RowsAffected < 1 {
-		return ep, miso.NewErrf("Path not found")
-	}
-
-	return ep, nil
-}
-
 // global lock for resources
 func lockResourceGlobal(ec miso.Rail, runnable redis.LRunnable[any]) (any, error) {
 	return redis.RLockRun(ec, "user-vault:resource:global", runnable)
@@ -1027,11 +870,119 @@ func lockPathExec(ec miso.Rail, pathNo string, runnable redis.Runnable) error {
 	return redis.RLockExec(ec, "user-vault:path:"+pathNo, runnable)
 }
 
-// lock for role-resource cache
-func lockRoleResCache(ec miso.Rail, runnable redis.LRunnable[any]) (any, error) {
-	return redis.RLockRun(ec, "user-vault:role:res:cache", runnable)
-}
-
 func isDefAdmin(roleNo string) bool {
 	return roleNo == DefaultAdminRoleNo || roleNo == DefaultAdminRoleNo2
+}
+
+type RoleAccess struct {
+	Paths []PathAccessInfo
+}
+
+type PathAccessInfo struct {
+	ResCode string // resource code
+	Url     string // url
+	Method  string // http method
+	Ptype   string // path type: PROTECTED, PUBLIC
+}
+
+func BatchLoadRoleAccessCache(rail miso.Rail) error {
+
+	_, e := lockRoleAccessCache(rail, func() (any, error) {
+
+		lr, e := listRoleNos(rail)
+		if e != nil {
+			return nil, e
+		}
+
+		for _, roleNo := range lr {
+			e = LoadOneRoleAccessCache(rail, roleNo)
+			if e != nil {
+				return nil, e
+			}
+		}
+		return nil, nil
+	})
+	return e
+}
+
+func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
+	var paths []ExtendedPathRes
+	tx := mysql.GetMySQL().
+		Raw(`SELECT p.*, pr.res_code
+		FROM role_resource rr
+		LEFT JOIN path_resource pr ON rr.res_code = pr.res_code
+		LEFT JOIN path p ON p.path_no = pr.path_no
+		WHERE rr.role_no = ?
+		`, roleNo).
+		Scan(&paths)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if paths == nil {
+		return nil
+	}
+
+	var public []ExtendedPathRes
+	tx = mysql.GetMySQL().
+		Raw(`SELECT p.* FROM path p WHERE p.ptype = ?`, PathTypePublic).
+		Scan(&public)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if len(public) > 0 {
+		paths = append(paths, public...)
+	}
+
+	var pai []PathAccessInfo = util.MapTo[ExtendedPathRes, PathAccessInfo](paths,
+		func(t ExtendedPathRes) PathAccessInfo {
+			return PathAccessInfo{
+				ResCode: t.ResCode,
+				Url:     preprocessUrl(t.Url),
+				Method:  t.Method,
+				Ptype:   t.Ptype,
+			}
+		})
+	cached := RoleAccess{
+		Paths: pai,
+	}
+	err := roleAccessCache.Put(rail, roleNo, cached)
+	if err == nil {
+		rail.Infof("Updated RoleAccessCache for %v, path counts: %v, public paths: %v", roleNo, len(pai), len(public))
+		return nil
+	}
+	return err
+}
+
+func LoadPublicAccessCache(rail miso.Rail) error {
+	var public []ExtendedPathRes
+	tx := mysql.GetMySQL().
+		Raw(`SELECT p.* FROM path p WHERE p.ptype = ?`, PathTypePublic).
+		Scan(&public)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if public == nil {
+		return nil
+	}
+
+	var pai []PathAccessInfo = util.MapTo[ExtendedPathRes, PathAccessInfo](public,
+		func(t ExtendedPathRes) PathAccessInfo {
+			return PathAccessInfo{
+				ResCode: t.ResCode,
+				Url:     preprocessUrl(t.Url),
+				Method:  t.Method,
+				Ptype:   t.Ptype,
+			}
+		})
+	err := publicAccessCache.Put(rail, "", pai)
+	if err == nil {
+		rail.Infof("Updated PublicAccessCache, public paths: %v", len(public))
+		return nil
+	}
+	return err
+}
+
+// lock for role-access cache
+func lockRoleAccessCache(ec miso.Rail, runnable redis.LRunnable[any]) (any, error) {
+	return redis.RLockRun(ec, "user-vault:role:access:cache", runnable)
 }

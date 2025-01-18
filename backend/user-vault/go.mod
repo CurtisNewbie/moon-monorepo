@@ -5,6 +5,7 @@ go 1.22
 replace github.com/curtisnewbie/event-pump => ../event-pump
 
 require (
+	github.com/bmatcuk/doublestar/v4 v4.8.0
 	github.com/curtisnewbie/event-pump v0.0.13
 	github.com/curtisnewbie/miso v0.1.13
 	github.com/go-redis/redis v6.15.9+incompatible

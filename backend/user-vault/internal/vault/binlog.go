@@ -11,7 +11,10 @@ import (
 )
 
 const (
-	BinlogStreamUserCreated = "user-vault:binlog:user-created"
+	BinlogStreamUserCreated    = "user-vault:binlog:user-created"
+	BinlogStreamPathUpdated    = "user-vault:binlog:path-updated"
+	BinlogStreamRoleResUpdated = "user-vault:binlog:role-resource-updated"
+	BinlogStreamPathResUpdated = "user-vault:binlog:path-resource-updated"
 )
 
 func SubscribeBinlogEvent(rail miso.Rail) error {
@@ -43,5 +46,63 @@ func SubscribeBinlogEvent(rail miso.Rail) error {
 			},
 		},
 	)
+
+	binlog.SubscribeBinlogEventsOnBootstrapV2(
+		binlog.SubscribeBinlogOption{
+			ContinueOnErr: true,
+			Pipeline: pump.Pipeline{
+				Schema: miso.GetPropStr(mysql.PropMySQLSchema),
+				Table:  "path",
+				Stream: BinlogStreamPathUpdated,
+			},
+			Concurrency: 1,
+			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
+				if err := BatchLoadRoleAccessCache(rail); err != nil {
+					rail.Errorf("Failed to BatchLoadRoleAccessCache, %v", err)
+				}
+				if err := LoadPublicAccessCache(rail); err != nil {
+					rail.Errorf("Failed to LoadPublicAccessCache, %v", err)
+				}
+				return nil
+			},
+		},
+	)
+
+	binlog.SubscribeBinlogEventsOnBootstrapV2(
+		binlog.SubscribeBinlogOption{
+			ContinueOnErr: true,
+			Pipeline: pump.Pipeline{
+				Schema: miso.GetPropStr(mysql.PropMySQLSchema),
+				Table:  "role_resource",
+				Stream: BinlogStreamRoleResUpdated,
+			},
+			Concurrency: 1,
+			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
+				if err := BatchLoadRoleAccessCache(rail); err != nil {
+					rail.Errorf("Failed to BatchLoadRoleAccessCache, %v", err)
+				}
+				return nil
+			},
+		},
+	)
+
+	binlog.SubscribeBinlogEventsOnBootstrapV2(
+		binlog.SubscribeBinlogOption{
+			ContinueOnErr: true,
+			Pipeline: pump.Pipeline{
+				Schema: miso.GetPropStr(mysql.PropMySQLSchema),
+				Table:  "path_resource",
+				Stream: BinlogStreamPathResUpdated,
+			},
+			Concurrency: 1,
+			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
+				if err := BatchLoadRoleAccessCache(rail); err != nil {
+					rail.Errorf("Failed to BatchLoadRoleAccessCache, %v", err)
+				}
+				return nil
+			},
+		},
+	)
+
 	return nil
 }
