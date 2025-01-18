@@ -57,6 +57,7 @@ func SubscribeBinlogEvent(rail miso.Rail) error {
 			},
 			Concurrency: 1,
 			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
+				rail.Infof("Subscribed to path changes")
 				if err := BatchLoadRoleAccessCache(rail); err != nil {
 					rail.Errorf("Failed to BatchLoadRoleAccessCache, %v", err)
 				}
@@ -78,6 +79,7 @@ func SubscribeBinlogEvent(rail miso.Rail) error {
 			},
 			Concurrency: 1,
 			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
+				rail.Infof("Subscribed to role_resource changes")
 				if err := BatchLoadRoleAccessCache(rail); err != nil {
 					rail.Errorf("Failed to BatchLoadRoleAccessCache, %v", err)
 				}
@@ -96,6 +98,7 @@ func SubscribeBinlogEvent(rail miso.Rail) error {
 			},
 			Concurrency: 1,
 			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
+				rail.Infof("Subscribed to path_resource changes")
 				if err := BatchLoadRoleAccessCache(rail); err != nil {
 					rail.Errorf("Failed to BatchLoadRoleAccessCache, %v", err)
 				}
