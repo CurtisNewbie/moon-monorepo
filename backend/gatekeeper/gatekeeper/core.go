@@ -251,6 +251,10 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 		next()
 		return
 	}
+	if s, ok := strings.CutPrefix(authorization, "Bearer"); ok {
+		authorization = s
+	}
+	authorization = strings.TrimSpace(authorization)
 
 	// decode jwt token, extract claims and build a user struct as attr
 	tkn, err := jwt.JwtDecode(authorization)
@@ -368,8 +372,12 @@ func IpFilter(pc *miso.ProxyContext, next func()) {
 	_, r := pc.Inb.Unwrap()
 
 	if miso.GetPropBool(PropOverwriteRemoteIp) || r.Header.Get("x-forwarded-for") == "" {
-		r.Header.Set("x-forwarded-for", r.RemoteAddr)
-		pc.Rail.Debugf("Overwrote remote IP: %v", r.RemoteAddr)
+		v := r.RemoteAddr
+		if i := strings.LastIndexByte(v, ':'); i > -1 {
+			v = v[0:i]
+		}
+		r.Header.Set("x-forwarded-for", v)
+		pc.Rail.Debugf("Overwrote remote IP: %v", v)
 	}
 	next()
 }

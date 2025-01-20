@@ -19,7 +19,7 @@ export class TokenInterceptor implements HttpInterceptor {
     let tk = getToken();
     if (tk) {
       httpRequest = httpRequest.clone({
-        headers: httpRequest.headers.set("Authorization", tk),
+        headers: httpRequest.headers.set("Authorization", `Bearer ${tk}`),
       });
     }
     return next.handle(httpRequest);
