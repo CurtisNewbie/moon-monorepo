@@ -8,6 +8,7 @@ server:
   perf.enabled: false
   generate-endpoint-doc:
     file: "./doc/api.md"
+  gracefulShutdownTimeSec: 15
 
 mysql:
   enabled: true

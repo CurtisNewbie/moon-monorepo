@@ -9,6 +9,7 @@ server: # http server
   port: "8093"
   generate-endpoint-doc:
     file: "./doc/api.md"
+  gracefulShutdownTimeSec: 15
 
 consul:
   enabled: "true"

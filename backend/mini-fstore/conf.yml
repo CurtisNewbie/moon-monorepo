@@ -28,7 +28,7 @@ rabbitmq:
 server:
   host: localhost
   port: 8084
-  gracefulShutdownTimeSec: 5
+  gracefulShutdownTimeSec: 15
   generate-endpoint-doc:
     file: "./doc/api.md"
 
