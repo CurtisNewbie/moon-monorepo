@@ -369,7 +369,7 @@ func IpFilter(pc *miso.ProxyContext, next func()) {
 
 	if miso.GetPropBool(PropOverwriteRemoteIp) || r.Header.Get("x-forwarded-for") == "" {
 		r.Header.Set("x-forwarded-for", r.RemoteAddr)
-		pc.Rail.Infof("Overwrote remote IP: %v", r.RemoteAddr)
+		pc.Rail.Debugf("Overwrote remote IP: %v", r.RemoteAddr)
 	}
 	next()
 }
