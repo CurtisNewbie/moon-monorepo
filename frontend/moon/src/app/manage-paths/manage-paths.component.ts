@@ -51,7 +51,7 @@ export class ManagePathsComponent implements OnInit {
     { val: "HEAD", name: "Head" },
     { val: "OPTION", name: "Option" },
   ];
-  newPathReq: CreatePathReq = {};
+  newPathReq: CreatePathReq = { type: "PROTECTED" };
   showNewPath = false;
 
   expandedElement: WPath = null;
@@ -143,7 +143,7 @@ export class ManagePathsComponent implements OnInit {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
-          this.newPathReq = {};
+          this.newPathReq = { type: "PROTECTED" };
           this.showNewPath = false;
           this.fetchList();
         },

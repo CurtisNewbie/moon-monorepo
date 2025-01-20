@@ -24,14 +24,13 @@
         <mat-form-field>
             <mat-label>Type:</mat-label>
             <mat-select [(value)]="newPathReq.type">
-                <mat-option value="">ALL</mat-option>
                 <mat-option [value]="option.val" *ngFor="let option of PATH_TYPES">
                     {{option.name}}
                 </mat-option>
             </mat-select>
         </mat-form-field>
         <mat-form-field style="width: 100%;">
-            <mat-label>Resource</mat-label>
+            <mat-label>Bind To Resource (optional)</mat-label>
             <input matInput type="text" [(ngModel)]="newPathReq.resCode">
         </mat-form-field>
         <mat-form-field style="width: 100%;">
