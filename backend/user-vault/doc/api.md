@@ -2820,6 +2820,7 @@
     - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
     - "pathNo": (string) 
     - "group": (string) 
+    - "resCode": (string) 
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2828,7 +2829,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/path/update' \
       -H 'Content-Type: application/json' \
-      -d '{"group":"","pathNo":"","type":""}'
+      -d '{"group":"","pathNo":"","resCode":"","type":""}'
     ```
 
   - Miso HTTP Client:
@@ -2856,6 +2857,7 @@
       type?: string;                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
       pathNo?: string;
       group?: string;
+      resCode?: string;
     }
     ```
 

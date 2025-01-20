@@ -234,9 +234,10 @@ type GenResScriptReq struct {
 }
 
 type UpdatePathReq struct {
-	Type   string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	PathNo string `valid:"notEmpty"`
-	Group  string `valid:"notEmpty,maxLen:20"`
+	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
+	PathNo  string `valid:"notEmpty"`
+	Group   string `valid:"notEmpty,maxLen:20"`
+	ResCode string
 }
 
 type CreatePathReq struct {
@@ -363,9 +364,24 @@ func ListResources(ec miso.Rail, req ListResReq) (ListResResp, error) {
 
 func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
-		tx := mysql.GetMySQL().Exec(`update path set pgroup = ?, ptype = ? where path_no = ?`,
-			req.Group, req.Type, req.PathNo)
-		return nil, tx.Error
+		return nil, mysql.GetMySQL().Transaction(func(tx *gorm.DB) error {
+			tx = tx.Exec(`UPDATE path SET pgroup = ?, ptype = ? WHERE path_no = ?`,
+				req.Group, req.Type, req.PathNo)
+
+			if tx.Error != nil {
+				return miso.ErrUnknownError.WrapNew(tx.Error)
+			}
+
+			var n int
+			tx = tx.Raw(`SELECT id FROM path_resource WHERE path_no = ? AND res_code = ? LIMIT 1`, req.PathNo, req.ResCode).Scan(&n)
+			if tx.Error != nil {
+				return miso.ErrUnknownError.WrapNew(tx.Error)
+			}
+			if tx.RowsAffected < 1 {
+				return tx.Exec(`INSERT INTO path_resource (path_no, res_code) VALUES (?, ?)`, req.PathNo, req.ResCode).Error
+			}
+			return miso.ErrUnknownError.WrapNew(tx.Error)
+		})
 	})
 	return e
 }

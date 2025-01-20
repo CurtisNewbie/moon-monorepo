@@ -35,6 +35,7 @@ export class MngPathDialogComponent implements OnInit {
         type: this.dat.path.ptype,
         pathNo: this.dat.path.pathNo,
         group: this.dat.path.pgroup,
+        resCode: this.bindToResCode,
       })
       .subscribe({
         complete: () => {
