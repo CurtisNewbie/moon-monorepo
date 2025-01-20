@@ -32,6 +32,8 @@ jwt:
     issuer: "yongj.zhuang-auth-service"
 
 
-gatekeeper.whitelist.path.patterns:
-  - "/*/doc/api"
-  - "/debug/pprof/*"
+gatekeeper:
+  overwrite-remote-ip: false
+  whitelist.path.patterns:
+    - "/*/doc/api"
+    - "/debug/pprof/*"

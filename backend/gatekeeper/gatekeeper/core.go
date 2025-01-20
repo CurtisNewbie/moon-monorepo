@@ -38,6 +38,7 @@ const (
 
 	PropTimerExclPath         = "gatekeeper.timer.path.excl"
 	PropWhitelistPathPatterns = "gatekeeper.whitelist.path.patterns"
+	PropOverwriteRemoteIp     = "gatekeeper.overwrite-remote-ip"
 )
 
 type ServicePath struct {
@@ -68,6 +69,8 @@ func prepareServer(rail miso.Rail) error {
 	if !miso.IsProdMode() {
 		proxy.AddFilter(ReqTimeLogFilter)
 	}
+
+	proxy.AddFilter(IpFilter)
 
 	// healthcheck filter
 	healthcheckPath := miso.GetPropStr(miso.PropConsulHealthcheckUrl)
@@ -358,4 +361,15 @@ func ReqTimeLogFilter(pc *miso.ProxyContext, next func()) {
 	start := time.Now()
 	next()
 	pc.Rail.Infof("%-6v %-60v [%s]", r.Method, r.RequestURI, time.Since(start))
+}
+
+func IpFilter(pc *miso.ProxyContext, next func()) {
+	// IP is provided by nginx, but just in case the nginx is missing, we identify the remote IP ourselves
+	_, r := pc.Inb.Unwrap()
+
+	if miso.GetPropBool(PropOverwriteRemoteIp) || r.Header.Get("x-forwarded-for") == "" {
+		r.Header.Set("x-forwarded-for", r.RemoteAddr)
+		pc.Rail.Infof("Overwrote remote IP: %v", r.RemoteAddr)
+	}
+	next()
 }
