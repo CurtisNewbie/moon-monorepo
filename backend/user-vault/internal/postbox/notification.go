@@ -74,6 +74,11 @@ type ListedNotification struct {
 	CreateTime util.ETime
 }
 
+type QueryNotificationReq struct {
+	Page   miso.Paging
+	Status string
+}
+
 func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, user common.User) (miso.PageRes[ListedNotification], error) {
 	return mysql.NewPageQuery[ListedNotification]().
 		WithPage(req.Page).
@@ -110,6 +115,10 @@ func CountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, erro
 		Where("status = ?", StatusInit).
 		Scan(&count).Error
 	return count, err
+}
+
+type OpenNotificationReq struct {
+	NotifiNo string `valid:"notEmpty"`
 }
 
 func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {

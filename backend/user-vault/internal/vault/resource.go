@@ -10,6 +10,7 @@ import (
 	doublestar "github.com/bmatcuk/doublestar/v4"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
+	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -1002,4 +1003,51 @@ func LoadPublicAccessCache(rail miso.Rail) error {
 // lock for role-access cache
 func lockRoleAccessCache(ec miso.Rail, runnable redis.LRunnable[any]) (any, error) {
 	return redis.RLockRun(ec, "user-vault:role:access:cache", runnable)
+}
+
+func RegisterInternalPathResourcesOnBootstrapped(res []auth.Resource) {
+
+	miso.PostServerBootstrapped(func(rail miso.Rail) error {
+
+		user := common.NilUser()
+
+		app := miso.GetPropStr(miso.PropAppName)
+		for _, res := range res {
+			if res.Code == "" || res.Name == "" {
+				continue
+			}
+			if e := CreateResourceIfNotExist(rail, CreateResReq(res), user); e != nil {
+				return e
+			}
+		}
+
+		routes := miso.GetHttpRoutes()
+		for _, route := range routes {
+			if route.Url == "" {
+				continue
+			}
+			var routeType = PathTypeProtected
+			if route.Scope == miso.ScopePublic {
+				routeType = PathTypePublic
+			}
+
+			url := route.Url
+			if !strings.HasPrefix(url, "/") {
+				url = "/" + url
+			}
+
+			r := CreatePathReq{
+				Method:  route.Method,
+				Group:   app,
+				Url:     "/" + app + url,
+				Type:    routeType,
+				Desc:    route.Desc,
+				ResCode: route.Resource,
+			}
+			if err := CreatePath(rail, r, user); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

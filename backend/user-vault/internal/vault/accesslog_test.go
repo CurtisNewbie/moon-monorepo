@@ -27,7 +27,7 @@ func TestSendAccessLogEvent(t *testing.T) {
 		UserAgent:  "Linux Ubuntu",
 		UserId:     0,
 		Username:   "yongj.zhuang",
-		Url:        passwordLoginUrl,
+		Url:        "/user-vault/open/api/user/login",
 		AccessTime: util.Now(),
 		Success:    true,
 	})

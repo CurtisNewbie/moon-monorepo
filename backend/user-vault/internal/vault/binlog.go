@@ -35,7 +35,7 @@ func SubscribeBinlogEvent(rail miso.Rail) error {
 				err := api.CreateNotifiByAccessPipeline.Send(rail, api.CreateNotifiByAccessEvent{
 					Title:   fmt.Sprintf("Review user %v's registration", username),
 					Message: fmt.Sprintf("Please review new user %v's registration. A role should be assigned for the new user.", username),
-					ResCode: ResourceManagerUser,
+					ResCode: "manage-users",
 				})
 				if err != nil {
 					rail.Errorf("failed to create notification for UserRegister, %v", err)

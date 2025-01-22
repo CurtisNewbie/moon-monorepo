@@ -200,3 +200,7 @@ func NewLongPollSub(userId string, w http.ResponseWriter) *LPSub {
 		notified:    make(chan struct{}, 10),
 	}
 }
+
+func Poll(rail miso.Rail, user common.User, db *gorm.DB, w http.ResponseWriter, curr int) {
+	longPollingHandler.Poll(rail, user, db, w, curr)
+}

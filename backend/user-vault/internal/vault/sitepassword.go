@@ -9,6 +9,21 @@ import (
 	"gorm.io/gorm"
 )
 
+type ListSitePasswordReq struct {
+	Alias    string
+	Site     string
+	Username string
+	Paging   miso.Paging
+}
+
+type ListSitePasswordRes struct {
+	RecordId   string
+	Site       string
+	Alias      string
+	Username   string
+	CreateTime util.ETime
+}
+
 func ListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user common.User, db *gorm.DB) (miso.PageRes[ListSitePasswordRes], error) {
 	return mysql.NewPageQuery[ListSitePasswordRes]().
 		WithPage(req.Paging).
@@ -25,6 +40,14 @@ func ListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user common.User
 			return tx.Select("record_id,site,alias,username,create_time")
 		}).
 		Exec(rail, db)
+}
+
+type AddSitePasswordReq struct {
+	Site          string
+	Alias         string
+	Username      string `valid:"notEmpty"`
+	SitePassword  string `valid:"notEmpty"`
+	LoginPassword string `valid:"notEmpty"`
 }
 
 func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, db *gorm.DB) error {
@@ -50,12 +73,25 @@ func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, d
 	`, recordId, req.Site, req.Alias, req.Username, encrypted, user.UserNo, user.Username).Error
 }
 
+type RemoveSitePasswordRes struct {
+	RecordId string `valid:"notEmpty"`
+}
+
 func RemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes, user common.User, db *gorm.DB) error {
 	_, err := loadBasicSitePassword(rail, db, user.UserNo, req.RecordId)
 	if err != nil {
 		return err
 	}
 	return db.Exec("DELETE FROM site_password where record_id = ?", req.RecordId).Error
+}
+
+type DecryptSitePasswordReq struct {
+	LoginPassword string `valid:"notEmpty"`
+	RecordId      string `valid:"notEmpty"`
+}
+
+type DecryptSitePasswordRes struct {
+	Decrypted string
 }
 
 func DecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq, user common.User, db *gorm.DB) (DecryptSitePasswordRes, error) {
@@ -113,6 +149,12 @@ func pad256(b []byte) []byte {
 		b = cp
 	}
 	return b
+}
+
+type EditSitePasswordReq struct {
+	RecordId string
+	Site     string
+	Alias    string
 }
 
 func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User, db *gorm.DB) error {

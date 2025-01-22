@@ -346,6 +346,13 @@ func prepUserCred(pwd string) NewUserParam {
 	return u
 }
 
+type ListUserReq struct {
+	Username   *string     `json:"username"`
+	RoleNo     *string     `json:"roleNo"`
+	IsDisabled *int        `json:"isDisabled"`
+	Paging     miso.Paging `json:"paging"`
+}
+
 func ListUsers(rail miso.Rail, tx *gorm.DB, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
 	return mysql.NewPageQuery[api.UserInfo]().
 		WithPage(req.Paging).
@@ -369,6 +376,12 @@ func ListUsers(rail miso.Rail, tx *gorm.DB, req ListUserReq) (miso.PageRes[api.U
 		Exec(rail, tx)
 }
 
+type AdminUpdateUserReq struct {
+	UserNo     string `valid:"notEmpty"`
+	RoleNo     string `json:"roleNo"`
+	IsDisabled int    `json:"isDisabled"`
+}
+
 func AdminUpdateUser(rail miso.Rail, tx *gorm.DB, req AdminUpdateUserReq, operator common.User) error {
 	if operator.UserNo == req.UserNo {
 		return miso.NewErrf("You cannot update yourself")
@@ -385,6 +398,11 @@ func AdminUpdateUser(rail miso.Rail, tx *gorm.DB, req AdminUpdateUserReq, operat
 		`UPDATE user SET is_disabled = ?, update_by = ?, role_no = ? WHERE user_no = ?`,
 		req.IsDisabled, operator.Username, req.RoleNo, req.UserNo,
 	).Error
+}
+
+type AdminReviewUserReq struct {
+	UserId       int    `json:"userId" valid:"positive"`
+	ReviewStatus string `json:"reviewStatus"`
 }
 
 func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq) error {
@@ -442,6 +460,11 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 			return err
 		},
 	)
+}
+
+type RegisterReq struct {
+	Username string `json:"username" valid:"notEmpty"`
+	Password string `json:"password" valid:"notEmpty"`
 }
 
 func UserRegister(rail miso.Rail, db *gorm.DB, req RegisterReq) error {
@@ -706,6 +729,10 @@ func FindUserWithRes(rail miso.Rail, db *gorm.DB, req api.FetchUserWithResourceR
 		Scan(&users).
 		Error
 	return users, err
+}
+
+type ClearUserFailedLoginAttemptsReq struct {
+	UserNo string
 }
 
 func ClearFailedLoginAttempts(rail miso.Rail, userNo string) error {
