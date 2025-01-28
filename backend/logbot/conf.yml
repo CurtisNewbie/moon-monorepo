@@ -4,11 +4,10 @@ app.name: "logbot"
 server:
   host: "localhost"
   port: 8087
-  gracefulShutdownTimeSec: 5
+  gracefulShutdownTimeSec: 15
   perf.enabled: false
   generate-endpoint-doc:
     file: "./doc/api.md"
-  gracefulShutdownTimeSec: 15
 
 mysql:
   enabled: true
