@@ -4,7 +4,7 @@
         <div *ngIf="!name" class="ml-5 mr-5 alert alert-secondary">
             No PDF selected. Consider picking one to read?
         </div>
-        <div class="container">
+        <div class="container-fluid">
             <div id="pdfViewerDiv">
                 <ng2-pdfjs-viewer [zoom]="'page-fit'" id="pdfViewer" viewerId="fs-pdf-viewer" [download]="true"
                     [downloadFileName]="name" [showSpinner]="true" [fullScreen]="true" #pdfViewer>
