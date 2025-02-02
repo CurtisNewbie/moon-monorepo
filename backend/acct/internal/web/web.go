@@ -13,7 +13,7 @@ const (
 	CodeManageCashflows = "acct:ManageCashflows"
 )
 
-func RegisterEndpoints(rail miso.Rail) {
+func PrepareWebServer(rail miso.Rail) {
 	common.LoadBuiltinPropagationKeys()
 	auth.ExposeResourceInfo([]auth.Resource{{
 		Code: CodeManageCashflows,

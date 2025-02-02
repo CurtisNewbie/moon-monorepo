@@ -72,7 +72,7 @@ func PrepareWebServer(rail miso.Rail) error {
 //   - misoapi-desc: Media streaming using temporary file key, the file_key's ttl is extended with each subsequent
 //     request. This endpoint is expected to be accessible publicly without authorization, since a temporary
 //     file_key is generated and used.
-func TempKeyStreamFileEp(inb *miso.Inbound) {
+func ApiTempKeyStreamFile(inb *miso.Inbound) {
 	rail := inb.Rail()
 	w, r := inb.Unwrap()
 	query := r.URL.Query()
@@ -96,7 +96,7 @@ func TempKeyStreamFileEp(inb *miso.Inbound) {
 //   - misoapi-query-doc: key: temporary file key
 //   - misoapi-desc: Download file using temporary file key. This endpoint is expected to be accessible
 //     publicly without authorization, since a temporary file_key is generated and used.
-func TempKeyDownloadFileEp(inb *miso.Inbound) {
+func ApiTempKeyDownloadFile(inb *miso.Inbound) {
 	rail := inb.Rail()
 	w, r := inb.Unwrap()
 	key := strings.TrimSpace(r.URL.Query().Get("key"))
@@ -119,7 +119,7 @@ func TempKeyDownloadFileEp(inb *miso.Inbound) {
 //   - misoapi-header: filename: name of the uploaded file
 //   - misoapi-desc: Upload file. A temporary file_id is returned, which should be used to exchange
 //     the real file_id
-func UploadFileEp(inb *miso.Inbound) (string, error) {
+func ApiUploadFile(inb *miso.Inbound) (string, error) {
 	rail := inb.Rail()
 	_, r := inb.Unwrap()
 	fname := strings.TrimSpace(r.Header.Get("filename"))
@@ -158,7 +158,7 @@ type FileInfoReq struct {
 //
 //   - misoapi-http: GET /file/info
 //   - misoapi-desc: Fetch file info
-func GetFileInfoEp(inb *miso.Inbound, req FileInfoReq) (api.FstoreFile, error) {
+func ApiGetFileInfo(inb *miso.Inbound, req FileInfoReq) (api.FstoreFile, error) {
 	// fake fileId for uploaded file
 	if req.UploadFileId != "" {
 		rcmd := redis.GetRedis().Get("mini-fstore:upload:fileId:" + req.UploadFileId)
@@ -206,7 +206,7 @@ type DownloadFileReq struct {
 //   - misoapi-http: GET /file/key
 //   - misoapi-desc: Generate temporary file key for downloading and streaming. This endpoint is expected
 //     to be called internally by another backend service that validates the ownership of the file properly.
-func GenFileKeyEp(inb *miso.Inbound, req DownloadFileReq) (string, error) {
+func ApiGenFileKey(inb *miso.Inbound, req DownloadFileReq) (string, error) {
 	rail := inb.Rail()
 	timer := metrics.GenFileKeyTimer()
 	defer timer.ObserveDuration()
@@ -296,7 +296,7 @@ func parseByteRangeHeader(rangeHeader string) fstore.ByteRange {
 //   - misoapi-desc: Download files directly using file_id. This endpoint is expected to be protected and only used
 //     internally by another backend service. Users can eaily steal others file_id and attempt to download the file,
 //     so it's better not be exposed to the end users.
-func DirectDownloadFileEp(inb *miso.Inbound) {
+func ApiDirectDownloadFile(inb *miso.Inbound) {
 	rail := inb.Rail()
 	w, r := inb.Unwrap()
 	fileId := r.URL.Query().Get("fileId")
@@ -321,7 +321,7 @@ type DeleteFileReq struct {
 //
 //   - misoapi-http: DELETE /file
 //   - misoapi-desc: Mark file as deleted.
-func DeleteFileEp(inb *miso.Inbound, req DeleteFileReq) (any, error) {
+func ApiDeleteFile(inb *miso.Inbound, req DeleteFileReq) (any, error) {
 	rail := inb.Rail()
 	fileId := strings.TrimSpace(req.FileId)
 	if fileId == "" {
@@ -335,7 +335,7 @@ func DeleteFileEp(inb *miso.Inbound, req DeleteFileReq) (any, error) {
 //   - misoapi-http: POST /file/unzip
 //   - misoapi-desc: Unzip archive, upload all the zip entries, and reply the final results back to the caller
 //     asynchronously
-func UnzipFileEp(inb *miso.Inbound, req api.UnzipFileReq) (any, error) {
+func ApiUnzipFile(inb *miso.Inbound, req api.UnzipFileReq) (any, error) {
 	rail := inb.Rail()
 	return nil, fstore.TriggerUnzipFilePipeline(rail, mysql.GetMySQL(), req)
 }
@@ -346,7 +346,7 @@ func UnzipFileEp(inb *miso.Inbound, req api.UnzipFileReq) (any, error) {
 //   - misoapi-desc: Backup tool list files
 //   - misoapi-scope: PUBLIC
 //   - misoapi-header: Authorization: Basic Authorization
-func BackupListFilesEp(inb *miso.Inbound, req fstore.ListBackupFileReq) (fstore.ListBackupFileResp, error) {
+func ApiBackupListFiles(inb *miso.Inbound, req fstore.ListBackupFileReq) (fstore.ListBackupFileResp, error) {
 	rail := inb.Rail()
 	rail.Infof("Backup tool listing files %+v", req)
 	return fstore.ListBackupFiles(rail, mysql.GetMySQL(), req)
@@ -359,7 +359,7 @@ func BackupListFilesEp(inb *miso.Inbound, req fstore.ListBackupFileReq) (fstore.
 //   - misoapi-scope: PUBLIC
 //   - misoapi-header: Authorization: Basic Authorization
 //   - misoapi-query: fileId: actual file_id of the file record
-func BackupDownFileEp(inb *miso.Inbound) {
+func ApiBackupDownFile(inb *miso.Inbound) {
 	rail := inb.Rail()
 	w, r := inb.Unwrap()
 	fileId := strings.TrimSpace(r.URL.Query().Get("fileId"))
@@ -382,7 +382,7 @@ func BackupDownFileEp(inb *miso.Inbound) {
 //   - misoapi-http: POST /maintenance/remove-deleted
 //   - misoapi-desc: Remove files that are logically deleted and not linked (symbolically)
 //   - misoapi-resource: ref(ResCodeFstoreMaintenance)
-func RemoveDeletedFilesEp(inb *miso.Inbound) (any, error) {
+func ApiRemoveDeletedFiles(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
 	return nil, fstore.RemoveDeletedFiles(rail, mysql.GetMySQL())
 }
@@ -392,7 +392,7 @@ func RemoveDeletedFilesEp(inb *miso.Inbound) (any, error) {
 //   - misoapi-http: POST /maintenance/sanitize-storage
 //   - misoapi-desc: Sanitize storage, remove files in storage directory that don't exist in database
 //   - misoapi-resource: ref(ResCodeFstoreMaintenance)
-func SanitizeStorageEp(inb *miso.Inbound) (any, error) {
+func ApiSanitizeStorage(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
 	return nil, fstore.SanitizeStorage(rail)
 }
@@ -401,7 +401,7 @@ func SanitizeStorageEp(inb *miso.Inbound) (any, error) {
 //
 //   - misoapi-http: POST /maintenance/compute-checksum
 //   - misoapi-desc: Compute files' checksum if absent
-func ComputeChecksumEp(inb *miso.Inbound) (any, error) {
+func ApiComputeChecksum(inb *miso.Inbound) (any, error) {
 	rail := inb.Rail()
 	return nil, fstore.ComputeFilesChecksum(rail, mysql.GetMySQL())
 }
@@ -411,7 +411,7 @@ func ComputeChecksumEp(inb *miso.Inbound) (any, error) {
 //   - misoapi-http: Get /storage/info
 //   - misoapi-desc: Fetch storage info
 //   - misoapi-resource: ref(ResCodeFstoreMaintenance)
-func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
+func ApiFetchStorageInfo(inb *miso.Inbound) (fstore.StorageInfo, error) {
 	return fstore.LoadStorageInfo(), nil
 }
 
@@ -420,7 +420,7 @@ func FetchStorageInfoEp(inb *miso.Inbound) (fstore.StorageInfo, error) {
 //   - misoapi-http: Get /storage/usage-info
 //   - misoapi-desc: Fetch storage usage info
 //   - misoapi-resource: ref(ResCodeFstoreMaintenance)
-func FetchStorageUsageInfoEp(inb *miso.Inbound) ([]fstore.StorageUsageInfo, error) {
+func ApiFetchStorageUsageInfo(inb *miso.Inbound) ([]fstore.StorageUsageInfo, error) {
 	return fstore.LoadStorageUsageInfoCached(inb.Rail())
 }
 

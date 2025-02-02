@@ -12,7 +12,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, key string) error {
+    func ApiTempKeyStreamFile(rail miso.Rail, key string) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/file/stream", "fstore").
     		AddQueryParams("key", key).
@@ -40,16 +40,18 @@
       private http: HttpClient
     ) {}
 
-    let key: any | null = null;
-    this.http.get<any>(`/fstore/file/stream?key=${key}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    tempKeyStreamFile() {
+      let key: any | null = null;
+      this.http.get<any>(`/fstore/file/stream?key=${key}`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /file/raw
@@ -64,7 +66,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, key string) error {
+    func ApiTempKeyDownloadFile(rail miso.Rail, key string) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/file/raw", "fstore").
     		AddQueryParams("key", key).
@@ -92,16 +94,18 @@
       private http: HttpClient
     ) {}
 
-    let key: any | null = null;
-    this.http.get<any>(`/fstore/file/raw?key=${key}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    tempKeyDownloadFile() {
+      let key: any | null = null;
+      this.http.get<any>(`/fstore/file/raw?key=${key}`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - PUT /file
@@ -122,7 +126,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, filename string) (string, error) {
+    func ApiUploadFile(rail miso.Rail, filename string) (string, error) {
     	var res miso.GnResp[string]
     	err := miso.NewDynTClient(rail, "/file", "fstore").
     		AddHeader("filename", filename).
@@ -160,26 +164,28 @@
       private http: HttpClient
     ) {}
 
-    let filename: any | null = null;
-    this.http.put<any>(`/fstore/file`, null,
-      {
-        headers: {
-          "filename": filename
-        }
-      })
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    uploadFile() {
+      let filename: any | null = null;
+      this.http.put<any>(`/fstore/file`, null,
+        {
+          headers: {
+            "filename": filename
           }
-          let dat: string = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        })
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /file/info
@@ -207,7 +213,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, fileId string, uploadFileId string) (FstoreFile, error) {
+    func ApiGetFileInfo(rail miso.Rail, fileId string, uploadFileId string) (FstoreFile, error) {
     	var res miso.GnResp[FstoreFile]
     	err := miso.NewDynTClient(rail, "/file/info", "fstore").
     		AddQueryParams("fileId", fileId).
@@ -258,22 +264,24 @@
       private http: HttpClient
     ) {}
 
-    let fileId: any | null = null;
-    let uploadFileId: any | null = null;
-    this.http.get<any>(`/fstore/file/info?fileId=${fileId}&uploadFileId=${uploadFileId}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    getFileInfo() {
+      let fileId: any | null = null;
+      let uploadFileId: any | null = null;
+      this.http.get<any>(`/fstore/file/info?fileId=${fileId}&uploadFileId=${uploadFileId}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: FstoreFile = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: FstoreFile = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /file/key
@@ -293,7 +301,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, fileId string, filename string) (string, error) {
+    func ApiGenFileKey(rail miso.Rail, fileId string, filename string) (string, error) {
     	var res miso.GnResp[string]
     	err := miso.NewDynTClient(rail, "/file/key", "fstore").
     		AddQueryParams("fileId", fileId).
@@ -332,22 +340,24 @@
       private http: HttpClient
     ) {}
 
-    let fileId: any | null = null;
-    let filename: any | null = null;
-    this.http.get<any>(`/fstore/file/key?fileId=${fileId}&filename=${filename}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    genFileKey() {
+      let fileId: any | null = null;
+      let filename: any | null = null;
+      this.http.get<any>(`/fstore/file/key?fileId=${fileId}&filename=${filename}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: string = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /file/direct
@@ -361,7 +371,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, fileId string) error {
+    func ApiDirectDownloadFile(rail miso.Rail, fileId string) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/file/direct", "fstore").
     		AddQueryParams("fileId", fileId).
@@ -389,16 +399,18 @@
       private http: HttpClient
     ) {}
 
-    let fileId: any | null = null;
-    this.http.get<any>(`/fstore/file/direct?fileId=${fileId}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    directDownloadFile() {
+      let fileId: any | null = null;
+      this.http.get<any>(`/fstore/file/direct?fileId=${fileId}`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - DELETE /file
@@ -416,7 +428,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, fileId string) error {
+    func ApiDeleteFile(rail miso.Rail, fileId string) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/file", "fstore").
     		AddQueryParams("fileId", fileId).
@@ -453,20 +465,22 @@
       private http: HttpClient
     ) {}
 
-    let fileId: any | null = null;
-    this.http.delete<any>(`/fstore/file?fileId=${fileId}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    deleteFile() {
+      let fileId: any | null = null;
+      this.http.delete<any>(`/fstore/file?fileId=${fileId}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /file/unzip
@@ -488,7 +502,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendUnzipFileReq(rail miso.Rail, req UnzipFileReq) error {
+    func ApiUnzipFile(rail miso.Rail, req UnzipFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/file/unzip", "fstore").
     		PostJson(req).
@@ -533,20 +547,22 @@
       private http: HttpClient
     ) {}
 
-    let req: UnzipFileReq | null = null;
-    this.http.post<any>(`/fstore/file/unzip`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    unzipFile() {
+      let req: UnzipFileReq | null = null;
+      this.http.post<any>(`/fstore/file/unzip`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /backup/file/list
@@ -579,7 +595,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListBackupFileReq(rail miso.Rail, req ListBackupFileReq, authorization string) (ListBackupFileResp, error) {
+    func ApiBackupListFiles(rail miso.Rail, req ListBackupFileReq, authorization string) (ListBackupFileResp, error) {
     	var res miso.GnResp[ListBackupFileResp]
     	err := miso.NewDynTClient(rail, "/backup/file/list", "fstore").
     		AddHeader("authorization", authorization).
@@ -639,27 +655,29 @@
       private http: HttpClient
     ) {}
 
-    let authorization: any | null = null;
-    let req: ListBackupFileReq | null = null;
-    this.http.post<any>(`/fstore/backup/file/list`, req,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    backupListFiles() {
+      let authorization: any | null = null;
+      let req: ListBackupFileReq | null = null;
+      this.http.post<any>(`/fstore/backup/file/list`, req,
+        {
+          headers: {
+            "Authorization": authorization
           }
-          let dat: ListBackupFileResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        })
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListBackupFileResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /backup/file/raw
@@ -677,7 +695,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, fileId string, authorization string) error {
+    func ApiBackupDownFile(rail miso.Rail, fileId string, authorization string) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/backup/file/raw", "fstore").
     		AddQueryParams("fileId", fileId).
@@ -706,22 +724,24 @@
       private http: HttpClient
     ) {}
 
-    let fileId: any | null = null;
-    let authorization: any | null = null;
-    this.http.get<any>(`/fstore/backup/file/raw?fileId=${fileId}`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    backupDownFile() {
+      let fileId: any | null = null;
+      let authorization: any | null = null;
+      this.http.get<any>(`/fstore/backup/file/raw?fileId=${fileId}`,
+        {
+          headers: {
+            "Authorization": authorization
+          }
+        })
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - POST /maintenance/remove-deleted
@@ -738,7 +758,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) error {
+    func ApiRemoveDeletedFiles(rail miso.Rail) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/maintenance/remove-deleted", "fstore").
     		Post(nil).
@@ -774,19 +794,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/fstore/maintenance/remove-deleted`, null)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    removeDeletedFiles() {
+      this.http.post<any>(`/fstore/maintenance/remove-deleted`, null)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /maintenance/sanitize-storage
@@ -803,7 +825,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) error {
+    func ApiSanitizeStorage(rail miso.Rail) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/maintenance/sanitize-storage", "fstore").
     		Post(nil).
@@ -839,19 +861,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/fstore/maintenance/sanitize-storage`, null)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sanitizeStorage() {
+      this.http.post<any>(`/fstore/maintenance/sanitize-storage`, null)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /maintenance/compute-checksum
@@ -867,7 +891,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) error {
+    func ApiComputeChecksum(rail miso.Rail) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/maintenance/compute-checksum", "fstore").
     		Post(nil).
@@ -903,19 +927,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/fstore/maintenance/compute-checksum`, null)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    computeChecksum() {
+      this.http.post<any>(`/fstore/maintenance/compute-checksum`, null)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /storage/info
@@ -943,7 +969,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) (StorageInfo, error) {
+    func ApiFetchStorageInfo(rail miso.Rail) (StorageInfo, error) {
     	var res miso.GnResp[StorageInfo]
     	err := miso.NewDynTClient(rail, "/storage/info", "fstore").
     		Get().
@@ -997,20 +1023,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/storage/info`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchStorageInfo() {
+      this.http.get<any>(`/fstore/storage/info`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: StorageInfo = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: StorageInfo = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /storage/usage-info
@@ -1032,7 +1060,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]StorageUsageInfo, error) {
+    func ApiFetchStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
     	var res miso.GnResp[[]StorageUsageInfo]
     	err := miso.NewDynTClient(rail, "/storage/usage-info", "fstore").
     		Get().
@@ -1077,20 +1105,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/storage/usage-info`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchStorageUsageInfo() {
+      this.http.get<any>(`/fstore/storage/usage-info`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: StorageUsageInfo[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: StorageUsageInfo[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /maintenance/status
@@ -1109,7 +1139,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) (MaintenanceStatus, error) {
+    func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
     	var res miso.GnResp[MaintenanceStatus]
     	err := miso.NewDynTClient(rail, "/maintenance/status", "fstore").
     		Get().
@@ -1151,20 +1181,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/maintenance/status`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchMaintenanceStatus() {
+      this.http.get<any>(`/fstore/maintenance/status`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: MaintenanceStatus = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: MaintenanceStatus = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /auth/resource
@@ -1249,20 +1281,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/auth/resource`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendRequest() {
+      this.http.get<any>(`/fstore/auth/resource`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ResourceInfoRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ResourceInfoRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /metrics
@@ -1305,21 +1339,23 @@
       private http: HttpClient
     ) {}
 
-    let authorization: any | null = null;
-    this.http.get<any>(`/fstore/metrics`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      let authorization: any | null = null;
+      this.http.get<any>(`/fstore/metrics`,
+        {
+          headers: {
+            "Authorization": authorization
+          }
+        })
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof
@@ -1357,15 +1393,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/debug/pprof`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/fstore/debug/pprof`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/:name
@@ -1403,15 +1441,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/debug/pprof/:name`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/fstore/debug/pprof/:name`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/cmdline
@@ -1449,15 +1489,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/debug/pprof/cmdline`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/fstore/debug/pprof/cmdline`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/profile
@@ -1495,15 +1537,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/debug/pprof/profile`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/fstore/debug/pprof/profile`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/symbol
@@ -1541,15 +1585,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/debug/pprof/symbol`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/fstore/debug/pprof/symbol`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/trace
@@ -1587,15 +1633,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/debug/pprof/trace`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/fstore/debug/pprof/trace`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /doc/api
@@ -1635,15 +1683,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/fstore/doc/api`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/fstore/doc/api`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 # Event Pipelines

@@ -44,7 +44,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListCashFlowReq(rail miso.Rail, req ListCashFlowReq) (PageRes, error) {
+    func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list", "acct").
     		PostJson(req).
@@ -127,21 +127,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListCashFlowReq | null = null;
-    this.http.post<any>(`/acct/open/api/v1/cashflow/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listCashFlows() {
+      let req: ListCashFlowReq | null = null;
+      this.http.post<any>(`/acct/open/api/v1/cashflow/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/v1/cashflow/import/wechat
@@ -157,7 +159,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) error {
+    func ApiImportWechatCashflows(rail miso.Rail) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/import/wechat", "acct").
     		Post(nil).
@@ -193,19 +195,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/acct/open/api/v1/cashflow/import/wechat`, null)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    importWechatCashflows() {
+      this.http.post<any>(`/acct/open/api/v1/cashflow/import/wechat`, null)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/v1/cashflow/list-currency
@@ -222,7 +226,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]string, error) {
+    func ApiListCurrency(rail miso.Rail) ([]string, error) {
     	var res miso.GnResp[[]string]
     	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-currency", "acct").
     		Get().
@@ -260,20 +264,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/open/api/v1/cashflow/list-currency`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listCurrency() {
+      this.http.get<any>(`/acct/open/api/v1/cashflow/list-currency`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: string[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/v1/cashflow/list-statistics
@@ -309,7 +315,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiListStatisticsReq(rail miso.Rail, req ApiListStatisticsReq) (PageRes, error) {
+    func ApiListCashflowStatistics(rail miso.Rail, req ApiListStatisticsReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-statistics", "acct").
     		PostJson(req).
@@ -381,21 +387,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiListStatisticsReq | null = null;
-    this.http.post<any>(`/acct/open/api/v1/cashflow/list-statistics`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listCashflowStatistics() {
+      let req: ApiListStatisticsReq | null = null;
+      this.http.post<any>(`/acct/open/api/v1/cashflow/list-statistics`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/v1/cashflow/plot-statistics
@@ -421,7 +429,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiPlotStatisticsReq(rail miso.Rail, req ApiPlotStatisticsReq) ([]ApiPlotStatisticsRes, error) {
+    func ApiPlotCashflowStatistics(rail miso.Rail, req ApiPlotStatisticsReq) ([]ApiPlotStatisticsRes, error) {
     	var res miso.GnResp[[]ApiPlotStatisticsRes]
     	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/plot-statistics", "acct").
     		PostJson(req).
@@ -474,21 +482,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiPlotStatisticsReq | null = null;
-    this.http.post<any>(`/acct/open/api/v1/cashflow/plot-statistics`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    plotCashflowStatistics() {
+      let req: ApiPlotStatisticsReq | null = null;
+      this.http.post<any>(`/acct/open/api/v1/cashflow/plot-statistics`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ApiPlotStatisticsRes[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ApiPlotStatisticsRes[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /auth/resource
@@ -573,20 +583,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/auth/resource`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendRequest() {
+      this.http.get<any>(`/acct/auth/resource`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ResourceInfoRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ResourceInfoRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /metrics
@@ -629,21 +641,23 @@
       private http: HttpClient
     ) {}
 
-    let authorization: any | null = null;
-    this.http.get<any>(`/acct/metrics`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      let authorization: any | null = null;
+      this.http.get<any>(`/acct/metrics`,
+        {
+          headers: {
+            "Authorization": authorization
+          }
+        })
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof
@@ -681,15 +695,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/debug/pprof`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/acct/debug/pprof`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/:name
@@ -727,15 +743,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/debug/pprof/:name`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/acct/debug/pprof/:name`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/cmdline
@@ -773,15 +791,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/debug/pprof/cmdline`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/acct/debug/pprof/cmdline`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/profile
@@ -819,15 +839,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/debug/pprof/profile`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/acct/debug/pprof/profile`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/symbol
@@ -865,15 +887,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/debug/pprof/symbol`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/acct/debug/pprof/symbol`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/trace
@@ -911,15 +935,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/debug/pprof/trace`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/acct/debug/pprof/trace`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /doc/api
@@ -959,13 +985,15 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/acct/doc/api`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/acct/doc/api`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```

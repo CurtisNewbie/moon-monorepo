@@ -18,7 +18,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, fileName string, parentFileKey string) (bool, error) {
+    func ApiPreflightCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string) (bool, error) {
     	var res miso.GnResp[bool]
     	err := miso.NewDynTClient(rail, "/open/api/file/upload/duplication/preflight", "vfm").
     		AddQueryParams("fileName", fileName).
@@ -57,22 +57,24 @@
       private http: HttpClient
     ) {}
 
-    let fileName: any | null = null;
-    let parentFileKey: any | null = null;
-    this.http.get<any>(`/vfm/open/api/file/upload/duplication/preflight?fileName=${fileName}&parentFileKey=${parentFileKey}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    preflightCheckDuplicate() {
+      let fileName: any | null = null;
+      let parentFileKey: any | null = null;
+      this.http.get<any>(`/vfm/open/api/file/upload/duplication/preflight?fileName=${fileName}&parentFileKey=${parentFileKey}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: boolean = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: boolean = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/file/parent
@@ -94,7 +96,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, fileKey string) (ParentFileInfo, error) {
+    func ApiGetParentFile(rail miso.Rail, fileKey string) (ParentFileInfo, error) {
     	var res miso.GnResp[ParentFileInfo]
     	err := miso.NewDynTClient(rail, "/open/api/file/parent", "vfm").
     		AddQueryParams("fileKey", fileKey).
@@ -138,21 +140,23 @@
       private http: HttpClient
     ) {}
 
-    let fileKey: any | null = null;
-    this.http.get<any>(`/vfm/open/api/file/parent?fileKey=${fileKey}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    getParentFile() {
+      let fileKey: any | null = null;
+      this.http.get<any>(`/vfm/open/api/file/parent?fileKey=${fileKey}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ParentFileInfo = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ParentFileInfo = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/move-to-dir
@@ -174,7 +178,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendMoveIntoDirReq(rail miso.Rail, req MoveIntoDirReq) error {
+    func ApiMoveFileToDir(rail miso.Rail, req MoveIntoDirReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/move-to-dir", "vfm").
     		PostJson(req).
@@ -218,20 +222,22 @@
       private http: HttpClient
     ) {}
 
-    let req: MoveIntoDirReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/move-to-dir`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    moveFileToDir() {
+      let req: MoveIntoDirReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/move-to-dir`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/batch-move-to-dir
@@ -254,7 +260,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendBatchMoveIntoDirReq(rail miso.Rail, req BatchMoveIntoDirReq) error {
+    func ApiBatchMoveFileToDir(rail miso.Rail, req BatchMoveIntoDirReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/batch-move-to-dir", "vfm").
     		PostJson(req).
@@ -302,20 +308,22 @@
       private http: HttpClient
     ) {}
 
-    let req: BatchMoveIntoDirReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/batch-move-to-dir`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    batchMoveFileToDir() {
+      let req: BatchMoveIntoDirReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/batch-move-to-dir`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/make-dir
@@ -338,7 +346,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendMakeDirReq(rail miso.Rail, req MakeDirReq) (string, error) {
+    func ApiMakeDir(rail miso.Rail, req MakeDirReq) (string, error) {
     	var res miso.GnResp[string]
     	err := miso.NewDynTClient(rail, "/open/api/file/make-dir", "vfm").
     		PostJson(req).
@@ -383,21 +391,23 @@
       private http: HttpClient
     ) {}
 
-    let req: MakeDirReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/make-dir`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    makeDir() {
+      let req: MakeDirReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/make-dir`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: string = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/file/dir/list
@@ -418,7 +428,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]ListedDir, error) {
+    func ApiListDir(rail miso.Rail) ([]ListedDir, error) {
     	var res miso.GnResp[[]ListedDir]
     	err := miso.NewDynTClient(rail, "/open/api/file/dir/list", "vfm").
     		Get().
@@ -462,20 +472,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/open/api/file/dir/list`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listDir() {
+      this.http.get<any>(`/vfm/open/api/file/dir/list`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListedDir[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListedDir[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/list
@@ -522,7 +534,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListFileReq(rail miso.Rail, req ListFileReq) (PageRes, error) {
+    func ApiListFiles(rail miso.Rail, req ListFileReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/file/list", "vfm").
     		PostJson(req).
@@ -604,21 +616,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listFiles() {
+      let req: ListFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/delete
@@ -639,7 +653,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendDeleteFileReq(rail miso.Rail, req DeleteFileReq) error {
+    func ApiDeleteFiles(rail miso.Rail, req DeleteFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/delete", "vfm").
     		PostJson(req).
@@ -682,20 +696,22 @@
       private http: HttpClient
     ) {}
 
-    let req: DeleteFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/delete`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    deleteFiles() {
+      let req: DeleteFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/delete`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/dir/truncate
@@ -716,7 +732,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendDeleteFileReq(rail miso.Rail, req DeleteFileReq) error {
+    func ApiTruncateDir(rail miso.Rail, req DeleteFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/dir/truncate", "vfm").
     		PostJson(req).
@@ -759,20 +775,22 @@
       private http: HttpClient
     ) {}
 
-    let req: DeleteFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/dir/truncate`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    truncateDir() {
+      let req: DeleteFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/dir/truncate`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/dir/bottom-up-tree
@@ -797,7 +815,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendFetchDirTreeReq(rail miso.Rail, req FetchDirTreeReq) (DirBottomUpTreeNode, error) {
+    func ApiFetchDirBottomUpTree(rail miso.Rail, req FetchDirTreeReq) (DirBottomUpTreeNode, error) {
     	var res miso.GnResp[DirBottomUpTreeNode]
     	err := miso.NewDynTClient(rail, "/open/api/file/dir/bottom-up-tree", "vfm").
     		PostJson(req).
@@ -848,21 +866,23 @@
       private http: HttpClient
     ) {}
 
-    let req: FetchDirTreeReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/dir/bottom-up-tree`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchDirBottomUpTree() {
+      let req: FetchDirTreeReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/dir/bottom-up-tree`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: DirBottomUpTreeNode = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: DirBottomUpTreeNode = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/file/dir/top-down-tree
@@ -883,7 +903,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) (DirTopDownTreeNode, error) {
+    func ApiFetchDirTopDownTree(rail miso.Rail) (DirTopDownTreeNode, error) {
     	var res miso.GnResp[DirTopDownTreeNode]
     	err := miso.NewDynTClient(rail, "/open/api/file/dir/top-down-tree", "vfm").
     		Get().
@@ -927,20 +947,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/open/api/file/dir/top-down-tree`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchDirTopDownTree() {
+      this.http.get<any>(`/vfm/open/api/file/dir/top-down-tree`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: DirTopDownTreeNode = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: DirTopDownTreeNode = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/delete/batch
@@ -961,7 +983,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendBatchDeleteFileReq(rail miso.Rail, req BatchDeleteFileReq) error {
+    func ApiBatchDeleteFile(rail miso.Rail, req BatchDeleteFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/delete/batch", "vfm").
     		PostJson(req).
@@ -1004,20 +1026,22 @@
       private http: HttpClient
     ) {}
 
-    let req: BatchDeleteFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/delete/batch`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    batchDeleteFile() {
+      let req: BatchDeleteFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/delete/batch`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/create
@@ -1040,7 +1064,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendCreateFileReq(rail miso.Rail, req CreateFileReq) error {
+    func ApiCreateFile(rail miso.Rail, req CreateFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/create", "vfm").
     		PostJson(req).
@@ -1085,20 +1109,22 @@
       private http: HttpClient
     ) {}
 
-    let req: CreateFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/create`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    createFile() {
+      let req: CreateFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/create`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/info/update
@@ -1121,7 +1147,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendUpdateFileReq(rail miso.Rail, req UpdateFileReq) error {
+    func ApiUpdateFile(rail miso.Rail, req UpdateFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/info/update", "vfm").
     		PostJson(req).
@@ -1166,20 +1192,22 @@
       private http: HttpClient
     ) {}
 
-    let req: UpdateFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/info/update`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    updateFile() {
+      let req: UpdateFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/info/update`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/token/generate
@@ -1201,7 +1229,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendGenerateTempTokenReq(rail miso.Rail, req GenerateTempTokenReq) (string, error) {
+    func ApiGenFileTkn(rail miso.Rail, req GenerateTempTokenReq) (string, error) {
     	var res miso.GnResp[string]
     	err := miso.NewDynTClient(rail, "/open/api/file/token/generate", "vfm").
     		PostJson(req).
@@ -1245,21 +1273,23 @@
       private http: HttpClient
     ) {}
 
-    let req: GenerateTempTokenReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/token/generate`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    genFileTkn() {
+      let req: GenerateTempTokenReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/token/generate`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: string = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/file/unpack
@@ -1281,7 +1311,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendUnpackZipReq(rail miso.Rail, req UnpackZipReq) error {
+    func ApiUnpackZip(rail miso.Rail, req UnpackZipReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/unpack", "vfm").
     		PostJson(req).
@@ -1325,20 +1355,22 @@
       private http: HttpClient
     ) {}
 
-    let req: UnpackZipReq | null = null;
-    this.http.post<any>(`/vfm/open/api/file/unpack`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    unpackZip() {
+      let req: UnpackZipReq | null = null;
+      this.http.post<any>(`/vfm/open/api/file/unpack`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/file/token/qrcode
@@ -1353,7 +1385,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, token string) error {
+    func ApiGenFileTknQRCode(rail miso.Rail, token string) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/file/token/qrcode", "vfm").
     		AddQueryParams("token", token).
@@ -1381,16 +1413,18 @@
       private http: HttpClient
     ) {}
 
-    let token: any | null = null;
-    this.http.get<any>(`/vfm/open/api/file/token/qrcode?token=${token}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    genFileTknQRCode() {
+      let token: any | null = null;
+      this.http.get<any>(`/vfm/open/api/file/token/qrcode?token=${token}`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /open/api/vfolder/brief/owned
@@ -1410,7 +1444,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]VFolderBrief, error) {
+    func ApiListVFolderBrief(rail miso.Rail) ([]VFolderBrief, error) {
     	var res miso.GnResp[[]VFolderBrief]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/brief/owned", "vfm").
     		Get().
@@ -1453,20 +1487,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/open/api/vfolder/brief/owned`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listVFolderBrief() {
+      this.http.get<any>(`/vfm/open/api/vfolder/brief/owned`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: VFolderBrief[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: VFolderBrief[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/list
@@ -1505,7 +1541,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListVFolderReq(rail miso.Rail, req ListVFolderReq) (ListVFolderRes, error) {
+    func ApiListVFolders(rail miso.Rail, req ListVFolderReq) (ListVFolderRes, error) {
     	var res miso.GnResp[ListVFolderRes]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/list", "vfm").
     		PostJson(req).
@@ -1579,21 +1615,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListVFolderReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listVFolders() {
+      let req: ListVFolderReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListVFolderRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListVFolderRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/create
@@ -1615,7 +1653,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendCreateVFolderReq(rail miso.Rail, req CreateVFolderReq) (string, error) {
+    func ApiCreateVFolder(rail miso.Rail, req CreateVFolderReq) (string, error) {
     	var res miso.GnResp[string]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/create", "vfm").
     		PostJson(req).
@@ -1659,21 +1697,23 @@
       private http: HttpClient
     ) {}
 
-    let req: CreateVFolderReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/create`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    createVFolder() {
+      let req: CreateVFolderReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/create`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: string = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/file/add
@@ -1695,7 +1735,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendAddFileToVfolderReq(rail miso.Rail, req AddFileToVfolderReq) error {
+    func ApiVFolderAddFile(rail miso.Rail, req AddFileToVfolderReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/file/add", "vfm").
     		PostJson(req).
@@ -1739,20 +1779,22 @@
       private http: HttpClient
     ) {}
 
-    let req: AddFileToVfolderReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/file/add`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    vFolderAddFile() {
+      let req: AddFileToVfolderReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/file/add`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/file/remove
@@ -1774,7 +1816,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveFileFromVfolderReq(rail miso.Rail, req RemoveFileFromVfolderReq) error {
+    func ApiVFolderRemoveFile(rail miso.Rail, req RemoveFileFromVfolderReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/file/remove", "vfm").
     		PostJson(req).
@@ -1818,20 +1860,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveFileFromVfolderReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/file/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    vFolderRemoveFile() {
+      let req: RemoveFileFromVfolderReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/file/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/share
@@ -1853,7 +1897,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendShareVfolderReq(rail miso.Rail, req ShareVfolderReq) error {
+    func ApiShareVFolder(rail miso.Rail, req ShareVfolderReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/share", "vfm").
     		PostJson(req).
@@ -1897,20 +1941,22 @@
       private http: HttpClient
     ) {}
 
-    let req: ShareVfolderReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/share`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    shareVFolder() {
+      let req: ShareVfolderReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/share`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/access/remove
@@ -1932,7 +1978,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveGrantedFolderAccessReq(rail miso.Rail, req RemoveGrantedFolderAccessReq) error {
+    func ApiRemoveVFolderAccess(rail miso.Rail, req RemoveGrantedFolderAccessReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/access/remove", "vfm").
     		PostJson(req).
@@ -1976,20 +2022,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveGrantedFolderAccessReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/access/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    removeVFolderAccess() {
+      let req: RemoveGrantedFolderAccessReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/access/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/granted/list
@@ -2023,7 +2071,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListGrantedFolderAccessReq(rail miso.Rail, req ListGrantedFolderAccessReq) (ListGrantedFolderAccessRes, error) {
+    func ApiListVFolderAccess(rail miso.Rail, req ListGrantedFolderAccessReq) (ListGrantedFolderAccessRes, error) {
     	var res miso.GnResp[ListGrantedFolderAccessRes]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/granted/list", "vfm").
     		PostJson(req).
@@ -2092,21 +2140,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListGrantedFolderAccessReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/granted/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listVFolderAccess() {
+      let req: ListGrantedFolderAccessReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/granted/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListGrantedFolderAccessRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListGrantedFolderAccessRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/vfolder/remove
@@ -2127,7 +2177,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveVFolderReq(rail miso.Rail, req RemoveVFolderReq) error {
+    func ApiRemoveVFolder(rail miso.Rail, req RemoveVFolderReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/vfolder/remove", "vfm").
     		PostJson(req).
@@ -2170,20 +2220,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveVFolderReq | null = null;
-    this.http.post<any>(`/vfm/open/api/vfolder/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    removeVFolder() {
+      let req: RemoveVFolderReq | null = null;
+      this.http.post<any>(`/vfm/open/api/vfolder/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/gallery/brief/owned
@@ -2203,7 +2255,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]VGalleryBrief, error) {
+    func ApiListGalleryBriefs(rail miso.Rail) ([]VGalleryBrief, error) {
     	var res miso.GnResp[[]VGalleryBrief]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/brief/owned", "vfm").
     		Get().
@@ -2246,20 +2298,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/open/api/gallery/brief/owned`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listGalleryBriefs() {
+      this.http.get<any>(`/vfm/open/api/gallery/brief/owned`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: VGalleryBrief[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: VGalleryBrief[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/new
@@ -2291,7 +2345,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendCreateGalleryCmd(rail miso.Rail, req CreateGalleryCmd) (Gallery, error) {
+    func ApiCreateGallery(rail miso.Rail, req CreateGalleryCmd) (Gallery, error) {
     	var res miso.GnResp[Gallery]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/new", "vfm").
     		PostJson(req).
@@ -2349,21 +2403,23 @@
       private http: HttpClient
     ) {}
 
-    let req: CreateGalleryCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/new`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    createGallery() {
+      let req: CreateGalleryCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/new`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: Gallery = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: Gallery = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/update
@@ -2385,7 +2441,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendUpdateGalleryCmd(rail miso.Rail, req UpdateGalleryCmd) error {
+    func ApiUpdateGallery(rail miso.Rail, req UpdateGalleryCmd) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/update", "vfm").
     		PostJson(req).
@@ -2429,20 +2485,22 @@
       private http: HttpClient
     ) {}
 
-    let req: UpdateGalleryCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/update`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    updateGallery() {
+      let req: UpdateGalleryCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/update`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/delete
@@ -2463,7 +2521,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendDeleteGalleryCmd(rail miso.Rail, req DeleteGalleryCmd) error {
+    func ApiDeleteGallery(rail miso.Rail, req DeleteGalleryCmd) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/delete", "vfm").
     		PostJson(req).
@@ -2506,20 +2564,22 @@
       private http: HttpClient
     ) {}
 
-    let req: DeleteGalleryCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/delete`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    deleteGallery() {
+      let req: DeleteGalleryCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/delete`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/list
@@ -2559,7 +2619,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListGalleriesCmd(rail miso.Rail, req ListGalleriesCmd) (PageRes, error) {
+    func ApiListGalleries(rail miso.Rail, req ListGalleriesCmd) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/list", "vfm").
     		PostJson(req).
@@ -2634,21 +2694,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListGalleriesCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listGalleries() {
+      let req: ListGalleriesCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/access/grant
@@ -2670,7 +2732,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendPermitGalleryAccessCmd(rail miso.Rail, req PermitGalleryAccessCmd) error {
+    func ApiGranteGalleryAccess(rail miso.Rail, req PermitGalleryAccessCmd) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/access/grant", "vfm").
     		PostJson(req).
@@ -2714,20 +2776,22 @@
       private http: HttpClient
     ) {}
 
-    let req: PermitGalleryAccessCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/access/grant`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    granteGalleryAccess() {
+      let req: PermitGalleryAccessCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/access/grant`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/access/remove
@@ -2749,7 +2813,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveGalleryAccessCmd(rail miso.Rail, req RemoveGalleryAccessCmd) error {
+    func ApiRemoveGalleryAccess(rail miso.Rail, req RemoveGalleryAccessCmd) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/access/remove", "vfm").
     		PostJson(req).
@@ -2793,20 +2857,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveGalleryAccessCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/access/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    removeGalleryAccess() {
+      let req: RemoveGalleryAccessCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/access/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/access/list
@@ -2842,7 +2908,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListGrantedGalleryAccessCmd(rail miso.Rail, req ListGrantedGalleryAccessCmd) (PageRes, error) {
+    func ApiListGalleryAccess(rail miso.Rail, req ListGrantedGalleryAccessCmd) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/access/list", "vfm").
     		PostJson(req).
@@ -2913,21 +2979,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListGrantedGalleryAccessCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/access/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listGalleryAccess() {
+      let req: ListGrantedGalleryAccessCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/access/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/images
@@ -2961,7 +3029,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListGalleryImagesCmd(rail miso.Rail, req ListGalleryImagesCmd) (ListGalleryImagesResp, error) {
+    func ApiListGalleryImages(rail miso.Rail, req ListGalleryImagesCmd) (ListGalleryImagesResp, error) {
     	var res miso.GnResp[ListGalleryImagesResp]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/images", "vfm").
     		PostJson(req).
@@ -3030,21 +3098,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListGalleryImagesCmd | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/images`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listGalleryImages() {
+      let req: ListGalleryImagesCmd | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/images`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListGalleryImagesResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListGalleryImagesResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/gallery/image/transfer
@@ -3068,7 +3138,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendTransferGalleryImageReq(rail miso.Rail, req TransferGalleryImageReq) error {
+    func ApiTransferGalleryImage(rail miso.Rail, req TransferGalleryImageReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/gallery/image/transfer", "vfm").
     		PostJson(req).
@@ -3117,20 +3187,22 @@
       private http: HttpClient
     ) {}
 
-    let req: TransferGalleryImageReq | null = null;
-    this.http.post<any>(`/vfm/open/api/gallery/image/transfer`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    transferGalleryImage() {
+      let req: TransferGalleryImageReq | null = null;
+      this.http.post<any>(`/vfm/open/api/gallery/image/transfer`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/versioned-file/list
@@ -3169,7 +3241,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiListVerFileReq(rail miso.Rail, req ApiListVerFileReq) (PageRes, error) {
+    func ApiListVersionedFile(rail miso.Rail, req ApiListVerFileReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/versioned-file/list", "vfm").
     		PostJson(req).
@@ -3243,21 +3315,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiListVerFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/versioned-file/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listVersionedFile() {
+      let req: ApiListVerFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/versioned-file/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/versioned-file/history
@@ -3293,7 +3367,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiListVerFileHistoryReq(rail miso.Rail, req ApiListVerFileHistoryReq) (PageRes, error) {
+    func ApiListVersionedFileHistory(rail miso.Rail, req ApiListVerFileHistoryReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/versioned-file/history", "vfm").
     		PostJson(req).
@@ -3364,21 +3438,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiListVerFileHistoryReq | null = null;
-    this.http.post<any>(`/vfm/open/api/versioned-file/history`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listVersionedFileHistory() {
+      let req: ApiListVerFileHistoryReq | null = null;
+      this.http.post<any>(`/vfm/open/api/versioned-file/history`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/versioned-file/accumulated-size
@@ -3401,7 +3477,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiQryVerFileAccuSizeReq(rail miso.Rail, req ApiQryVerFileAccuSizeReq) (ApiQryVerFileAccuSizeRes, error) {
+    func ApiQryVersionedFileAccuSize(rail miso.Rail, req ApiQryVerFileAccuSizeReq) (ApiQryVerFileAccuSizeRes, error) {
     	var res miso.GnResp[ApiQryVerFileAccuSizeRes]
     	err := miso.NewDynTClient(rail, "/open/api/versioned-file/accumulated-size", "vfm").
     		PostJson(req).
@@ -3450,21 +3526,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiQryVerFileAccuSizeReq | null = null;
-    this.http.post<any>(`/vfm/open/api/versioned-file/accumulated-size`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    qryVersionedFileAccuSize() {
+      let req: ApiQryVerFileAccuSizeReq | null = null;
+      this.http.post<any>(`/vfm/open/api/versioned-file/accumulated-size`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ApiQryVerFileAccuSizeRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ApiQryVerFileAccuSizeRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/versioned-file/create
@@ -3488,7 +3566,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiCreateVerFileReq(rail miso.Rail, req ApiCreateVerFileReq) (ApiCreateVerFileRes, error) {
+    func ApiCreateVersionedFile(rail miso.Rail, req ApiCreateVerFileReq) (ApiCreateVerFileRes, error) {
     	var res miso.GnResp[ApiCreateVerFileRes]
     	err := miso.NewDynTClient(rail, "/open/api/versioned-file/create", "vfm").
     		PostJson(req).
@@ -3538,21 +3616,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiCreateVerFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/versioned-file/create`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    createVersionedFile() {
+      let req: ApiCreateVerFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/versioned-file/create`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ApiCreateVerFileRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ApiCreateVerFileRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/versioned-file/update
@@ -3575,7 +3655,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiUpdateVerFileReq(rail miso.Rail, req ApiUpdateVerFileReq) error {
+    func ApiUpdateVersionedFile(rail miso.Rail, req ApiUpdateVerFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/versioned-file/update", "vfm").
     		PostJson(req).
@@ -3620,20 +3700,22 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiUpdateVerFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/versioned-file/update`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    updateVersionedFile() {
+      let req: ApiUpdateVerFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/versioned-file/update`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/versioned-file/delete
@@ -3654,7 +3736,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendApiDelVerFileReq(rail miso.Rail, req ApiDelVerFileReq) error {
+    func ApiDelVersionedFile(rail miso.Rail, req ApiDelVerFileReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/versioned-file/delete", "vfm").
     		PostJson(req).
@@ -3697,20 +3779,22 @@
       private http: HttpClient
     ) {}
 
-    let req: ApiDelVerFileReq | null = null;
-    this.http.post<any>(`/vfm/open/api/versioned-file/delete`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    delVersionedFile() {
+      let req: ApiDelVerFileReq | null = null;
+      this.http.post<any>(`/vfm/open/api/versioned-file/delete`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /compensate/thumbnail
@@ -3727,7 +3811,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) error {
+    func ApiCompensateThumbnail(rail miso.Rail) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/compensate/thumbnail", "vfm").
     		Post(nil).
@@ -3763,19 +3847,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/vfm/compensate/thumbnail`, null)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    compensateThumbnail() {
+      this.http.post<any>(`/vfm/compensate/thumbnail`, null)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /compensate/regenerate-video-thumbnails
@@ -3792,7 +3878,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) error {
+    func ApiRegenerateVideoThumbnail(rail miso.Rail) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/compensate/regenerate-video-thumbnails", "vfm").
     		Post(nil).
@@ -3828,19 +3914,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.post<any>(`/vfm/compensate/regenerate-video-thumbnails`, null)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    regenerateVideoThumbnail() {
+      this.http.post<any>(`/vfm/compensate/regenerate-video-thumbnails`, null)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - PUT /bookmark/file/upload
@@ -3857,7 +3945,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) error {
+    func ApiUploadBookmarkFile(rail miso.Rail) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/bookmark/file/upload", "vfm").
     		Put(nil).
@@ -3893,19 +3981,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.put<any>(`/vfm/bookmark/file/upload`, null)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    uploadBookmarkFile() {
+      this.http.put<any>(`/vfm/bookmark/file/upload`, null)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /bookmark/list
@@ -3930,7 +4020,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListBookmarksReq(rail miso.Rail, req ListBookmarksReq) error {
+    func ApiListBookmarks(rail miso.Rail, req ListBookmarksReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/bookmark/list", "vfm").
     		PostJson(req).
@@ -3980,20 +4070,22 @@
       private http: HttpClient
     ) {}
 
-    let req: ListBookmarksReq | null = null;
-    this.http.post<any>(`/vfm/bookmark/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listBookmarks() {
+      let req: ListBookmarksReq | null = null;
+      this.http.post<any>(`/vfm/bookmark/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /bookmark/remove
@@ -4014,7 +4106,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveBookmarkReq(rail miso.Rail, req RemoveBookmarkReq) error {
+    func ApiRemoveBookmark(rail miso.Rail, req RemoveBookmarkReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/bookmark/remove", "vfm").
     		PostJson(req).
@@ -4057,20 +4149,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveBookmarkReq | null = null;
-    this.http.post<any>(`/vfm/bookmark/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    removeBookmark() {
+      let req: RemoveBookmarkReq | null = null;
+      this.http.post<any>(`/vfm/bookmark/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /bookmark/blacklist/list
@@ -4095,7 +4189,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListBookmarksReq(rail miso.Rail, req ListBookmarksReq) error {
+    func ApiListBlacklistedBookmarks(rail miso.Rail, req ListBookmarksReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/bookmark/blacklist/list", "vfm").
     		PostJson(req).
@@ -4145,20 +4239,22 @@
       private http: HttpClient
     ) {}
 
-    let req: ListBookmarksReq | null = null;
-    this.http.post<any>(`/vfm/bookmark/blacklist/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listBlacklistedBookmarks() {
+      let req: ListBookmarksReq | null = null;
+      this.http.post<any>(`/vfm/bookmark/blacklist/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /bookmark/blacklist/remove
@@ -4179,7 +4275,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveBookmarkReq(rail miso.Rail, req RemoveBookmarkReq) error {
+    func ApiRemoveBookmarkBlacklist(rail miso.Rail, req RemoveBookmarkReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/bookmark/blacklist/remove", "vfm").
     		PostJson(req).
@@ -4222,20 +4318,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveBookmarkReq | null = null;
-    this.http.post<any>(`/vfm/bookmark/blacklist/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    removeBookmarkBlacklist() {
+      let req: RemoveBookmarkReq | null = null;
+      this.http.post<any>(`/vfm/bookmark/blacklist/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /history/list-browse-history
@@ -4258,7 +4356,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]ListBrowseRecordRes, error) {
+    func ApiListBrowseHistory(rail miso.Rail) ([]ListBrowseRecordRes, error) {
     	var res miso.GnResp[[]ListBrowseRecordRes]
     	err := miso.NewDynTClient(rail, "/history/list-browse-history", "vfm").
     		Get().
@@ -4304,20 +4402,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/history/list-browse-history`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listBrowseHistory() {
+      this.http.get<any>(`/vfm/history/list-browse-history`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListBrowseRecordRes[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListBrowseRecordRes[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /history/record-browse-history
@@ -4338,7 +4438,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRecordBrowseHistoryReq(rail miso.Rail, req RecordBrowseHistoryReq) error {
+    func ApiRecordBrowseHistory(rail miso.Rail, req RecordBrowseHistoryReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/history/record-browse-history", "vfm").
     		PostJson(req).
@@ -4381,20 +4481,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RecordBrowseHistoryReq | null = null;
-    this.http.post<any>(`/vfm/history/record-browse-history`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    recordBrowseHistory() {
+      let req: RecordBrowseHistoryReq | null = null;
+      this.http.post<any>(`/vfm/history/record-browse-history`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /maintenance/status
@@ -4413,7 +4515,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) (MaintenanceStatus, error) {
+    func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
     	var res miso.GnResp[MaintenanceStatus]
     	err := miso.NewDynTClient(rail, "/maintenance/status", "vfm").
     		Get().
@@ -4455,20 +4557,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/maintenance/status`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchMaintenanceStatus() {
+      this.http.get<any>(`/vfm/maintenance/status`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: MaintenanceStatus = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: MaintenanceStatus = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /auth/resource
@@ -4553,20 +4657,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/auth/resource`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendRequest() {
+      this.http.get<any>(`/vfm/auth/resource`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ResourceInfoRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ResourceInfoRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /metrics
@@ -4609,21 +4715,23 @@
       private http: HttpClient
     ) {}
 
-    let authorization: any | null = null;
-    this.http.get<any>(`/vfm/metrics`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      let authorization: any | null = null;
+      this.http.get<any>(`/vfm/metrics`,
+        {
+          headers: {
+            "Authorization": authorization
+          }
+        })
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof
@@ -4661,15 +4769,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/debug/pprof`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/vfm/debug/pprof`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/:name
@@ -4707,15 +4817,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/debug/pprof/:name`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/vfm/debug/pprof/:name`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/cmdline
@@ -4753,15 +4865,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/debug/pprof/cmdline`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/vfm/debug/pprof/cmdline`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/profile
@@ -4799,15 +4913,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/debug/pprof/profile`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/vfm/debug/pprof/profile`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/symbol
@@ -4845,15 +4961,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/debug/pprof/symbol`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/vfm/debug/pprof/symbol`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/trace
@@ -4891,15 +5009,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/debug/pprof/trace`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/vfm/debug/pprof/trace`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /doc/api
@@ -4939,13 +5059,15 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/vfm/doc/api`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/vfm/doc/api`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```

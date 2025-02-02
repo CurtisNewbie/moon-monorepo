@@ -25,7 +25,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendLoginReq(rail miso.Rail, req LoginReq, xForwardedFor string, userAgent string) (string, error) {
+    func ApiUserLogin(rail miso.Rail, req LoginReq, xForwardedFor string, userAgent string) (string, error) {
     	var res miso.GnResp[string]
     	err := miso.NewDynTClient(rail, "/open/api/user/login", "user-vault").
     		AddHeader("xForwardedFor", xForwardedFor).
@@ -72,29 +72,31 @@
       private http: HttpClient
     ) {}
 
-    let xForwardedFor: any | null = null;
-    let userAgent: any | null = null;
-    let req: LoginReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/login`, req,
-      {
-        headers: {
-          "x-forwarded-for": xForwardedFor
-          "user-agent": userAgent
-        }
-      })
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userLogin() {
+      let xForwardedFor: any | null = null;
+      let userAgent: any | null = null;
+      let req: LoginReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/login`, req,
+        {
+          headers: {
+            "x-forwarded-for": xForwardedFor
+            "user-agent": userAgent
           }
-          let dat: string = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        })
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - POST /open/api/user/register/request
@@ -116,7 +118,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRegisterReq(rail miso.Rail, req RegisterReq) error {
+    func ApiUserRegister(rail miso.Rail, req RegisterReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/register/request", "user-vault").
     		PostJson(req).
@@ -160,20 +162,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RegisterReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/register/request`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userRegister() {
+      let req: RegisterReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/register/request`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/add
@@ -196,7 +200,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendAddUserParam(rail miso.Rail, req AddUserParam) error {
+    func ApiAdminAddUser(rail miso.Rail, req AddUserParam) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/add", "user-vault").
     		PostJson(req).
@@ -241,20 +245,22 @@
       private http: HttpClient
     ) {}
 
-    let req: AddUserParam | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/add`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminAddUser() {
+      let req: AddUserParam | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/add`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/list
@@ -298,7 +304,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListUserReq(rail miso.Rail, req ListUserReq) (PageRes, error) {
+    func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/user/list", "user-vault").
     		PostJson(req).
@@ -377,21 +383,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListUserReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminListUsers() {
+      let req: ListUserReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/info/update
@@ -414,7 +422,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendAdminUpdateUserReq(rail miso.Rail, req AdminUpdateUserReq) error {
+    func ApiAdminUpdateUser(rail miso.Rail, req AdminUpdateUserReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/info/update", "user-vault").
     		PostJson(req).
@@ -459,20 +467,22 @@
       private http: HttpClient
     ) {}
 
-    let req: AdminUpdateUserReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/info/update`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminUpdateUser() {
+      let req: AdminUpdateUserReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/info/update`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/registration/review
@@ -494,7 +504,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendAdminReviewUserReq(rail miso.Rail, req AdminReviewUserReq) error {
+    func ApiAdminReviewUser(rail miso.Rail, req AdminReviewUserReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/registration/review", "user-vault").
     		PostJson(req).
@@ -538,20 +548,22 @@
       private http: HttpClient
     ) {}
 
-    let req: AdminReviewUserReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/registration/review`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminReviewUser() {
+      let req: AdminReviewUserReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/registration/review`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/user/info
@@ -575,7 +587,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) (UserInfoRes, error) {
+    func ApiUserGetUserInfo(rail miso.Rail) (UserInfoRes, error) {
     	var res miso.GnResp[UserInfoRes]
     	err := miso.NewDynTClient(rail, "/open/api/user/info", "user-vault").
     		Get().
@@ -622,20 +634,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/open/api/user/info`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userGetUserInfo() {
+      this.http.get<any>(`/user-vault/open/api/user/info`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: UserInfoRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: UserInfoRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/password/update
@@ -657,7 +671,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendUpdatePasswordReq(rail miso.Rail, req UpdatePasswordReq) error {
+    func ApiUserUpdatePassword(rail miso.Rail, req UpdatePasswordReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/password/update", "user-vault").
     		PostJson(req).
@@ -701,20 +715,22 @@
       private http: HttpClient
     ) {}
 
-    let req: UpdatePasswordReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/password/update`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userUpdatePassword() {
+      let req: UpdatePasswordReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/password/update`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/token/exchange
@@ -736,7 +752,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendExchangeTokenReq(rail miso.Rail, req ExchangeTokenReq) (string, error) {
+    func ExchangeTokenEp(rail miso.Rail, req ExchangeTokenReq) (string, error) {
     	var res miso.GnResp[string]
     	err := miso.NewDynTClient(rail, "/open/api/token/exchange", "user-vault").
     		PostJson(req).
@@ -780,21 +796,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ExchangeTokenReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/token/exchange`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    exchangeTokenEp() {
+      let req: ExchangeTokenReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/token/exchange`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: string = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: string = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/token/user
@@ -820,7 +838,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, token string) (UserInfoBrief, error) {
+    func ApiGetTokenUserInfo(rail miso.Rail, token string) (UserInfoBrief, error) {
     	var res miso.GnResp[UserInfoBrief]
     	err := miso.NewDynTClient(rail, "/open/api/token/user", "user-vault").
     		AddQueryParams("token", token).
@@ -868,21 +886,23 @@
       private http: HttpClient
     ) {}
 
-    let token: any | null = null;
-    this.http.get<any>(`/user-vault/open/api/token/user?token=${token}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    getTokenUserInfo() {
+      let token: any | null = null;
+      this.http.get<any>(`/user-vault/open/api/token/user?token=${token}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: UserInfoBrief = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: UserInfoBrief = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/access/history
@@ -919,7 +939,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListAccessLogReq(rail miso.Rail, req ListAccessLogReq) (PageRes, error) {
+    func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/access/history", "user-vault").
     		PostJson(req).
@@ -991,21 +1011,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListAccessLogReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/access/history`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userListAccessHistory() {
+      let req: ListAccessLogReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/access/history`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/key/generate
@@ -1027,7 +1049,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendGenUserKeyReq(rail miso.Rail, req GenUserKeyReq) error {
+    func ApiUserGenUserKey(rail miso.Rail, req GenUserKeyReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/key/generate", "user-vault").
     		PostJson(req).
@@ -1071,20 +1093,22 @@
       private http: HttpClient
     ) {}
 
-    let req: GenUserKeyReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/key/generate`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userGenUserKey() {
+      let req: GenUserKeyReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/key/generate`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/key/list
@@ -1120,7 +1144,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListUserKeysReq(rail miso.Rail, req ListUserKeysReq) (PageRes, error) {
+    func ApiUserListUserKeys(rail miso.Rail, req ListUserKeysReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/user/key/list", "user-vault").
     		PostJson(req).
@@ -1191,21 +1215,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListUserKeysReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/key/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userListUserKeys() {
+      let req: ListUserKeysReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/key/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/key/delete
@@ -1226,7 +1252,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendDeleteUserKeyReq(rail miso.Rail, req DeleteUserKeyReq) error {
+    func ApiUserDeleteUserKey(rail miso.Rail, req DeleteUserKeyReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/key/delete", "user-vault").
     		PostJson(req).
@@ -1269,20 +1295,22 @@
       private http: HttpClient
     ) {}
 
-    let req: DeleteUserKeyReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/key/delete`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    userDeleteUserKey() {
+      let req: DeleteUserKeyReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/key/delete`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/resource/add
@@ -1304,7 +1332,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendCreateResReq(rail miso.Rail, req CreateResReq) error {
+    func ApiAdminAddResource(rail miso.Rail, req CreateResReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/resource/add", "user-vault").
     		PostJson(req).
@@ -1348,20 +1376,22 @@
       private http: HttpClient
     ) {}
 
-    let req: CreateResReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/resource/add`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminAddResource() {
+      let req: CreateResReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/resource/add`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/resource/remove
@@ -1382,7 +1412,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendDeleteResourceReq(rail miso.Rail, req DeleteResourceReq) error {
+    func ApiAdminRemoveResource(rail miso.Rail, req DeleteResourceReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/resource/remove", "user-vault").
     		PostJson(req).
@@ -1425,20 +1455,22 @@
       private http: HttpClient
     ) {}
 
-    let req: DeleteResourceReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/resource/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminRemoveResource() {
+      let req: DeleteResourceReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/resource/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/resource/brief/candidates
@@ -1460,7 +1492,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, roleNo string) ([]ResBrief, error) {
+    func ApiListResCandidates(rail miso.Rail, roleNo string) ([]ResBrief, error) {
     	var res miso.GnResp[[]ResBrief]
     	err := miso.NewDynTClient(rail, "/open/api/resource/brief/candidates", "user-vault").
     		AddQueryParams("roleNo", roleNo).
@@ -1504,21 +1536,23 @@
       private http: HttpClient
     ) {}
 
-    let roleNo: any | null = null;
-    this.http.get<any>(`/user-vault/open/api/resource/brief/candidates?roleNo=${roleNo}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listResCandidates() {
+      let roleNo: any | null = null;
+      this.http.get<any>(`/user-vault/open/api/resource/brief/candidates?roleNo=${roleNo}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ResBrief[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ResBrief[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/resource/list
@@ -1555,7 +1589,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListResReq(rail miso.Rail, req ListResReq) (ListResResp, error) {
+    func ApiAdminListRes(rail miso.Rail, req ListResReq) (ListResResp, error) {
     	var res miso.GnResp[ListResResp]
     	err := miso.NewDynTClient(rail, "/open/api/resource/list", "user-vault").
     		PostJson(req).
@@ -1627,21 +1661,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListResReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/resource/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminListRes() {
+      let req: ListResReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/resource/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListResResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListResResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/resource/brief/user
@@ -1661,7 +1697,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]ResBrief, error) {
+    func ApiListUserAccessibleRes(rail miso.Rail) ([]ResBrief, error) {
     	var res miso.GnResp[[]ResBrief]
     	err := miso.NewDynTClient(rail, "/open/api/resource/brief/user", "user-vault").
     		Get().
@@ -1704,20 +1740,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/open/api/resource/brief/user`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listUserAccessibleRes() {
+      this.http.get<any>(`/user-vault/open/api/resource/brief/user`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ResBrief[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ResBrief[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/resource/brief/all
@@ -1737,7 +1775,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]ResBrief, error) {
+    func ApiListAllResBrief(rail miso.Rail) ([]ResBrief, error) {
     	var res miso.GnResp[[]ResBrief]
     	err := miso.NewDynTClient(rail, "/open/api/resource/brief/all", "user-vault").
     		Get().
@@ -1780,20 +1818,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/open/api/resource/brief/all`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listAllResBrief() {
+      this.http.get<any>(`/user-vault/open/api/resource/brief/all`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ResBrief[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ResBrief[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/role/resource/add
@@ -1815,7 +1855,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendAddRoleResReq(rail miso.Rail, req AddRoleResReq) error {
+    func ApiAdminBindRoleRes(rail miso.Rail, req AddRoleResReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/role/resource/add", "user-vault").
     		PostJson(req).
@@ -1859,20 +1899,22 @@
       private http: HttpClient
     ) {}
 
-    let req: AddRoleResReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/role/resource/add`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminBindRoleRes() {
+      let req: AddRoleResReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/role/resource/add`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/role/resource/remove
@@ -1894,7 +1936,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveRoleResReq(rail miso.Rail, req RemoveRoleResReq) error {
+    func ApiAdminUnbindRoleRes(rail miso.Rail, req RemoveRoleResReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/role/resource/remove", "user-vault").
     		PostJson(req).
@@ -1938,20 +1980,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveRoleResReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/role/resource/remove`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminUnbindRoleRes() {
+      let req: RemoveRoleResReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/role/resource/remove`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/role/add
@@ -1972,7 +2016,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendAddRoleReq(rail miso.Rail, req AddRoleReq) error {
+    func ApiAdminAddRole(rail miso.Rail, req AddRoleReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/role/add", "user-vault").
     		PostJson(req).
@@ -2015,20 +2059,22 @@
       private http: HttpClient
     ) {}
 
-    let req: AddRoleReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/role/add`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminAddRole() {
+      let req: AddRoleReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/role/add`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/role/list
@@ -2065,7 +2111,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListRoleReq(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
+    func ApiAdminListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
     	var res miso.GnResp[ListRoleResp]
     	err := miso.NewDynTClient(rail, "/open/api/role/list", "user-vault").
     		PostJson(req).
@@ -2137,21 +2183,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListRoleReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/role/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminListRoles() {
+      let req: ListRoleReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/role/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListRoleResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListRoleResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/role/brief/all
@@ -2171,7 +2219,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail) ([]RoleBrief, error) {
+    func ApiAdminListRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
     	var res miso.GnResp[[]RoleBrief]
     	err := miso.NewDynTClient(rail, "/open/api/role/brief/all", "user-vault").
     		Get().
@@ -2214,20 +2262,22 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/open/api/role/brief/all`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminListRoleBriefs() {
+      this.http.get<any>(`/user-vault/open/api/role/brief/all`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: RoleBrief[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: RoleBrief[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/role/resource/list
@@ -2263,7 +2313,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListRoleResReq(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
+    func ApiAdminListRoleRes(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
     	var res miso.GnResp[ListRoleResResp]
     	err := miso.NewDynTClient(rail, "/open/api/role/resource/list", "user-vault").
     		PostJson(req).
@@ -2334,21 +2384,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListRoleResReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/role/resource/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminListRoleRes() {
+      let req: ListRoleResReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/role/resource/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListRoleResResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListRoleResResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/role/info
@@ -2372,7 +2424,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRoleInfoReq(rail miso.Rail, req RoleInfoReq) (RoleInfoResp, error) {
+    func ApiGetRoleInfo(rail miso.Rail, req RoleInfoReq) (RoleInfoResp, error) {
     	var res miso.GnResp[RoleInfoResp]
     	err := miso.NewDynTClient(rail, "/open/api/role/info", "user-vault").
     		PostJson(req).
@@ -2422,21 +2474,23 @@
       private http: HttpClient
     ) {}
 
-    let req: RoleInfoReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/role/info`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    getRoleInfo() {
+      let req: RoleInfoReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/role/info`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: RoleInfoResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: RoleInfoResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/path/list
@@ -2481,7 +2535,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListPathReq(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
+    func ApiAdminListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
     	var res miso.GnResp[ListPathResp]
     	err := miso.NewDynTClient(rail, "/open/api/path/list", "user-vault").
     		PostJson(req).
@@ -2561,21 +2615,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListPathReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/path/list`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminListPaths() {
+      let req: ListPathReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/path/list`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: ListPathResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: ListPathResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/path/resource/bind
@@ -2597,7 +2653,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendBindPathResReq(rail miso.Rail, req BindPathResReq) error {
+    func ApiAdminBindResPath(rail miso.Rail, req BindPathResReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/path/resource/bind", "user-vault").
     		PostJson(req).
@@ -2641,20 +2697,22 @@
       private http: HttpClient
     ) {}
 
-    let req: BindPathResReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/path/resource/bind`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminBindResPath() {
+      let req: BindPathResReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/path/resource/bind`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/path/resource/unbind
@@ -2676,7 +2734,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendUnbindPathResReq(rail miso.Rail, req UnbindPathResReq) error {
+    func ApiAdminUnbindResPath(rail miso.Rail, req UnbindPathResReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/path/resource/unbind", "user-vault").
     		PostJson(req).
@@ -2720,20 +2778,22 @@
       private http: HttpClient
     ) {}
 
-    let req: UnbindPathResReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/path/resource/unbind`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminUnbindResPath() {
+      let req: UnbindPathResReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/path/resource/unbind`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/path/delete
@@ -2754,7 +2814,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendDeletePathReq(rail miso.Rail, req DeletePathReq) error {
+    func ApiAdminDeletePath(rail miso.Rail, req DeletePathReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/path/delete", "user-vault").
     		PostJson(req).
@@ -2797,20 +2857,22 @@
       private http: HttpClient
     ) {}
 
-    let req: DeletePathReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/path/delete`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminDeletePath() {
+      let req: DeletePathReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/path/delete`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/path/update
@@ -2834,7 +2896,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendUpdatePathReq(rail miso.Rail, req UpdatePathReq) error {
+    func ApiAdminUpdatePath(rail miso.Rail, req UpdatePathReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/path/update", "user-vault").
     		PostJson(req).
@@ -2880,20 +2942,22 @@
       private http: HttpClient
     ) {}
 
-    let req: UpdatePathReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/path/update`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    adminUpdatePath() {
+      let req: UpdatePathReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/path/update`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /remote/user/info
@@ -2927,7 +2991,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendFindUserReq(rail miso.Rail, req FindUserReq) (UserInfo, error) {
+    func ApiFetchUserInfo(rail miso.Rail, req FindUserReq) (UserInfo, error) {
     	var res miso.GnResp[UserInfo]
     	err := miso.NewDynTClient(rail, "/remote/user/info", "user-vault").
     		PostJson(req).
@@ -2988,21 +3052,23 @@
       private http: HttpClient
     ) {}
 
-    let req: FindUserReq | null = null;
-    this.http.post<any>(`/user-vault/remote/user/info`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchUserInfo() {
+      let req: FindUserReq | null = null;
+      this.http.post<any>(`/user-vault/remote/user/info`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: UserInfo = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: UserInfo = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /remote/user/id
@@ -3021,7 +3087,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRequest(rail miso.Rail, username string) (int, error) {
+    func ApiFetchUserIdByName(rail miso.Rail, username string) (int, error) {
     	var res miso.GnResp[int]
     	err := miso.NewDynTClient(rail, "/remote/user/id", "user-vault").
     		AddQueryParams("username", username).
@@ -3059,21 +3125,23 @@
       private http: HttpClient
     ) {}
 
-    let username: any | null = null;
-    this.http.get<any>(`/user-vault/remote/user/id?username=${username}`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchUserIdByName() {
+      let username: any | null = null;
+      this.http.get<any>(`/user-vault/remote/user/id?username=${username}`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: number = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: number = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /remote/user/userno/username
@@ -3095,7 +3163,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendFetchNameByUserNoReq(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes, error) {
+    func ApiFetchUsernamesByNosEp(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes, error) {
     	var res miso.GnResp[FetchUsernamesRes]
     	err := miso.NewDynTClient(rail, "/remote/user/userno/username", "user-vault").
     		PostJson(req).
@@ -3144,21 +3212,23 @@
       private http: HttpClient
     ) {}
 
-    let req: FetchNameByUserNoReq | null = null;
-    this.http.post<any>(`/user-vault/remote/user/userno/username`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    fetchUsernamesByNosEp() {
+      let req: FetchNameByUserNoReq | null = null;
+      this.http.post<any>(`/user-vault/remote/user/userno/username`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: FetchUsernamesRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: FetchUsernamesRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /remote/user/list/with-role
@@ -3190,7 +3260,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendFetchUsersWithRoleReq(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
+    func ApiFindUserWithRoleEp(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
     	var res miso.GnResp[[]UserInfo]
     	err := miso.NewDynTClient(rail, "/remote/user/list/with-role", "user-vault").
     		PostJson(req).
@@ -3249,21 +3319,23 @@
       private http: HttpClient
     ) {}
 
-    let req: FetchUsersWithRoleReq | null = null;
-    this.http.post<any>(`/user-vault/remote/user/list/with-role`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    findUserWithRoleEp() {
+      let req: FetchUsersWithRoleReq | null = null;
+      this.http.post<any>(`/user-vault/remote/user/list/with-role`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: UserInfo[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: UserInfo[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /remote/user/list/with-resource
@@ -3295,7 +3367,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendFetchUserWithResourceReq(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
+    func ApiFindUserWithResourceEp(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
     	var res miso.GnResp[[]UserInfo]
     	err := miso.NewDynTClient(rail, "/remote/user/list/with-resource", "user-vault").
     		PostJson(req).
@@ -3354,21 +3426,23 @@
       private http: HttpClient
     ) {}
 
-    let req: FetchUserWithResourceReq | null = null;
-    this.http.post<any>(`/user-vault/remote/user/list/with-resource`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    findUserWithResourceEp() {
+      let req: FetchUserWithResourceReq | null = null;
+      this.http.post<any>(`/user-vault/remote/user/list/with-resource`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: UserInfo[] = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: UserInfo[] = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /remote/resource/add
@@ -3389,7 +3463,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendCreateResReq(rail miso.Rail, req CreateResReq) error {
+    func ApiReportResourceEp(rail miso.Rail, req CreateResReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/remote/resource/add", "user-vault").
     		PostJson(req).
@@ -3433,20 +3507,22 @@
       private http: HttpClient
     ) {}
 
-    let req: CreateResReq | null = null;
-    this.http.post<any>(`/user-vault/remote/resource/add`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    reportResourceEp() {
+      let req: CreateResReq | null = null;
+      this.http.post<any>(`/user-vault/remote/resource/add`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /remote/path/resource/access-test
@@ -3470,7 +3546,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendCheckResAccessReq(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
+    func ApiCheckResourceAccessEp(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
     	var res miso.GnResp[CheckResAccessResp]
     	err := miso.NewDynTClient(rail, "/remote/path/resource/access-test", "user-vault").
     		PostJson(req).
@@ -3521,21 +3597,23 @@
       private http: HttpClient
     ) {}
 
-    let req: CheckResAccessReq | null = null;
-    this.http.post<any>(`/user-vault/remote/path/resource/access-test`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    checkResourceAccessEp() {
+      let req: CheckResAccessReq | null = null;
+      this.http.post<any>(`/user-vault/remote/path/resource/access-test`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: CheckResAccessResp = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: CheckResAccessResp = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /remote/path/add
@@ -3561,7 +3639,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendCreatePathReq(rail miso.Rail, req CreatePathReq) error {
+    func ApiReportPath(rail miso.Rail, req CreatePathReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/remote/path/add", "user-vault").
     		PostJson(req).
@@ -3609,20 +3687,22 @@
       private http: HttpClient
     ) {}
 
-    let req: CreatePathReq | null = null;
-    this.http.post<any>(`/user-vault/remote/path/add`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    reportPath() {
+      let req: CreatePathReq | null = null;
+      this.http.post<any>(`/user-vault/remote/path/add`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/password/list-site-passwords
@@ -3660,7 +3740,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendListSitePasswordReq(rail miso.Rail, req ListSitePasswordReq) (PageRes, error) {
+    func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (PageRes, error) {
     	var res miso.GnResp[PageRes]
     	err := miso.NewDynTClient(rail, "/open/api/password/list-site-passwords", "user-vault").
     		PostJson(req).
@@ -3733,21 +3813,23 @@
       private http: HttpClient
     ) {}
 
-    let req: ListSitePasswordReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/password/list-site-passwords`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    listSitePasswords() {
+      let req: ListSitePasswordReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/password/list-site-passwords`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: PageRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: PageRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/password/add-site-password
@@ -3772,7 +3854,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendAddSitePasswordReq(rail miso.Rail, req AddSitePasswordReq) error {
+    func ApiAddSitePassword(rail miso.Rail, req AddSitePasswordReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/password/add-site-password", "user-vault").
     		PostJson(req).
@@ -3819,20 +3901,22 @@
       private http: HttpClient
     ) {}
 
-    let req: AddSitePasswordReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/password/add-site-password`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    addSitePassword() {
+      let req: AddSitePasswordReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/password/add-site-password`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/password/remove-site-password
@@ -3853,7 +3937,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendRemoveSitePasswordRes(rail miso.Rail, req RemoveSitePasswordRes) error {
+    func ApiRemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/password/remove-site-password", "user-vault").
     		PostJson(req).
@@ -3896,20 +3980,22 @@
       private http: HttpClient
     ) {}
 
-    let req: RemoveSitePasswordRes | null = null;
-    this.http.post<any>(`/user-vault/open/api/password/remove-site-password`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    removeSitePassword() {
+      let req: RemoveSitePasswordRes | null = null;
+      this.http.post<any>(`/user-vault/open/api/password/remove-site-password`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/password/decrypt-site-password
@@ -3933,7 +4019,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendDecryptSitePasswordReq(rail miso.Rail, req DecryptSitePasswordReq) (DecryptSitePasswordRes, error) {
+    func ApiDecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq) (DecryptSitePasswordRes, error) {
     	var res miso.GnResp[DecryptSitePasswordRes]
     	err := miso.NewDynTClient(rail, "/open/api/password/decrypt-site-password", "user-vault").
     		PostJson(req).
@@ -3983,21 +4069,23 @@
       private http: HttpClient
     ) {}
 
-    let req: DecryptSitePasswordReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/password/decrypt-site-password`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    decryptSitePassword() {
+      let req: DecryptSitePasswordReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/password/decrypt-site-password`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+            let dat: DecryptSitePasswordRes = resp.data;
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-          let dat: DecryptSitePasswordRes = resp.data;
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/password/edit-site-password
@@ -4020,7 +4108,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendEditSitePasswordReq(rail miso.Rail, req EditSitePasswordReq) error {
+    func ApiEditSitePassword(rail miso.Rail, req EditSitePasswordReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/password/edit-site-password", "user-vault").
     		PostJson(req).
@@ -4065,20 +4153,22 @@
       private http: HttpClient
     ) {}
 
-    let req: EditSitePasswordReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/password/edit-site-password`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    editSitePassword() {
+      let req: EditSitePasswordReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/password/edit-site-password`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/user/clear-failed-login-attempts
@@ -4099,7 +4189,7 @@
 
   - Miso HTTP Client:
     ```go
-    func SendClearUserFailedLoginAttemptsReq(rail miso.Rail, req ClearUserFailedLoginAttemptsReq) error {
+    func ApiClearUserFailedLoginAttempts(rail miso.Rail, req ClearUserFailedLoginAttemptsReq) error {
     	var res miso.GnResp[any]
     	err := miso.NewDynTClient(rail, "/open/api/user/clear-failed-login-attempts", "user-vault").
     		PostJson(req).
@@ -4142,20 +4232,22 @@
       private http: HttpClient
     ) {}
 
-    let req: ClearUserFailedLoginAttemptsReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/user/clear-failed-login-attempts`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    clearUserFailedLoginAttempts() {
+      let req: ClearUserFailedLoginAttemptsReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/user/clear-failed-login-attempts`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/v1/notification/create
@@ -4223,20 +4315,22 @@
       private http: HttpClient
     ) {}
 
-    let req: CreateNotificationReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/v1/notification/create`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendCreateNotificationReq() {
+      let req: CreateNotificationReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/v1/notification/create`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/v1/notification/query
@@ -4311,20 +4405,22 @@
       private http: HttpClient
     ) {}
 
-    let req: QueryNotificationReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/v1/notification/query`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendQueryNotificationReq() {
+      let req: QueryNotificationReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/v1/notification/query`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/v1/notification/count
@@ -4377,19 +4473,21 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/open/api/v1/notification/count`)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendRequest() {
+      this.http.get<any>(`/user-vault/open/api/v1/notification/count`)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/v1/notification/open
@@ -4453,20 +4551,22 @@
       private http: HttpClient
     ) {}
 
-    let req: OpenNotificationReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/v1/notification/open`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendOpenNotificationReq() {
+      let req: OpenNotificationReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/v1/notification/open`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - POST /open/api/v1/notification/open-all
@@ -4530,20 +4630,22 @@
       private http: HttpClient
     ) {}
 
-    let req: OpenNotificationReq | null = null;
-    this.http.post<any>(`/user-vault/open/api/v1/notification/open-all`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
+    sendOpenNotificationReq() {
+      let req: OpenNotificationReq | null = null;
+      this.http.post<any>(`/user-vault/open/api/v1/notification/open-all`, req)
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+              return;
+            }
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+        });
+    }
     ```
 
 - GET /open/api/v2/notification/count
@@ -4586,16 +4688,18 @@
       private http: HttpClient
     ) {}
 
-    let curr: any | null = null;
-    this.http.get<any>(`/user-vault/open/api/v2/notification/count?curr=${curr}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      let curr: any | null = null;
+      this.http.get<any>(`/user-vault/open/api/v2/notification/count?curr=${curr}`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /metrics
@@ -4638,21 +4742,23 @@
       private http: HttpClient
     ) {}
 
-    let authorization: any | null = null;
-    this.http.get<any>(`/user-vault/metrics`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      let authorization: any | null = null;
+      this.http.get<any>(`/user-vault/metrics`,
+        {
+          headers: {
+            "Authorization": authorization
+          }
+        })
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof
@@ -4690,15 +4796,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/debug/pprof`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/user-vault/debug/pprof`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/:name
@@ -4736,15 +4844,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/debug/pprof/:name`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/user-vault/debug/pprof/:name`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/cmdline
@@ -4782,15 +4892,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/debug/pprof/cmdline`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/user-vault/debug/pprof/cmdline`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/profile
@@ -4828,15 +4940,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/debug/pprof/profile`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/user-vault/debug/pprof/profile`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/symbol
@@ -4874,15 +4988,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/debug/pprof/symbol`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/user-vault/debug/pprof/symbol`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /debug/pprof/trace
@@ -4920,15 +5036,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/debug/pprof/trace`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/user-vault/debug/pprof/trace`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 - GET /doc/api
@@ -4968,15 +5086,17 @@
       private http: HttpClient
     ) {}
 
-    this.http.get<any>(`/user-vault/doc/api`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
+    sendRequest() {
+      this.http.get<any>(`/user-vault/doc/api`)
+        .subscribe({
+          next: () => {
+          },
+          error: (err) => {
+            console.log(err)
+            this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+          }
+        });
+    }
     ```
 
 # Event Pipelines

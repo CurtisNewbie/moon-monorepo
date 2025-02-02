@@ -58,7 +58,7 @@ type FetchUserIdByNameReq struct {
 // misoapi-http: POST /open/api/user/login
 // misoapi-desc: User Login using password, a JWT token is generated and returned
 // misoapi-scope: PUBLIC
-func UserLoginEp(inb *miso.Inbound, req LoginReq) (string, error) {
+func ApiUserLogin(inb *miso.Inbound, req LoginReq) (string, error) {
 	rail := inb.Rail()
 	token, user, err := vault.UserLogin(rail, mysql.GetMySQL(),
 		vault.PasswordLoginParam{Username: req.Username, Password: req.Password})
@@ -100,14 +100,14 @@ func RemoteAddr(forwardedFor string) string {
 // misoapi-http: POST /open/api/user/register/request
 // misoapi-desc: User request registration, approval needed
 // misoapi-scope: PUBLIC
-func UserRegisterEp(inb *miso.Inbound, req vault.RegisterReq) (any, error) {
+func ApiUserRegister(inb *miso.Inbound, req vault.RegisterReq) (any, error) {
 	return nil, vault.UserRegister(inb.Rail(), mysql.GetMySQL(), req)
 }
 
 // misoapi-http: POST /open/api/user/add
 // misoapi-desc: Admin create new user
 // misoapi-resource: ref(ResourceManagerUser)
-func AdminAddUserEp(inb *miso.Inbound, req vault.AddUserParam) (any, error) {
+func ApiAdminAddUser(inb *miso.Inbound, req vault.AddUserParam) (any, error) {
 	return nil, vault.NewUser(inb.Rail(), mysql.GetMySQL(), vault.CreateUserParam{
 		Username:     req.Username,
 		Password:     req.Password,
@@ -119,14 +119,14 @@ func AdminAddUserEp(inb *miso.Inbound, req vault.AddUserParam) (any, error) {
 // misoapi-http: POST /open/api/user/list
 // misoapi-desc: Admin list users
 // misoapi-resource: ref(ResourceManagerUser)
-func AdminListUsersEp(inb *miso.Inbound, req vault.ListUserReq) (miso.PageRes[api.UserInfo], error) {
+func ApiAdminListUsers(inb *miso.Inbound, req vault.ListUserReq) (miso.PageRes[api.UserInfo], error) {
 	return vault.ListUsers(inb.Rail(), mysql.GetMySQL(), req)
 }
 
 // misoapi-http: POST /open/api/user/info/update
 // misoapi-desc: Admin update user info
 // misoapi-resource: ref(ResourceManagerUser)
-func AdminUpdateUserEp(inb *miso.Inbound, req vault.AdminUpdateUserReq) (any, error) {
+func ApiAdminUpdateUser(inb *miso.Inbound, req vault.AdminUpdateUserReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.AdminUpdateUser(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
@@ -134,7 +134,7 @@ func AdminUpdateUserEp(inb *miso.Inbound, req vault.AdminUpdateUserReq) (any, er
 // misoapi-http: POST /open/api/user/registration/review
 // misoapi-desc: Admin review user registration
 // misoapi-resource: ref(ResourceManagerUser)
-func AdminReviewUserEp(inb *miso.Inbound, req vault.AdminReviewUserReq) (any, error) {
+func ApiAdminReviewUser(inb *miso.Inbound, req vault.AdminReviewUserReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.ReviewUserRegistration(rail, mysql.GetMySQL(), req)
 }
@@ -142,7 +142,7 @@ func AdminReviewUserEp(inb *miso.Inbound, req vault.AdminReviewUserReq) (any, er
 // misoapi-http: GET /open/api/user/info
 // misoapi-desc: User get user info
 // misoapi-scope: PUBLIC
-func UserGetUserInfoEp(inb *miso.Inbound) (UserInfoRes, error) {
+func ApiUserGetUserInfo(inb *miso.Inbound) (UserInfoRes, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(metrics.FetchUserInfoHisto)
 	defer timer.ObserveDuration()
@@ -170,7 +170,7 @@ func UserGetUserInfoEp(inb *miso.Inbound) (UserInfoRes, error) {
 // misoapi-http: POST /open/api/user/password/update
 // misoapi-desc: User update password
 // misoapi-resource: ref(ResourceBasicUser)
-func UserUpdatePasswordEp(inb *miso.Inbound, req vault.UpdatePasswordReq) (any, error) {
+func ApiUserUpdatePassword(inb *miso.Inbound, req vault.UpdatePasswordReq) (any, error) {
 	rail := inb.Rail()
 	u := common.GetUser(rail)
 	return nil, vault.UpdatePassword(rail, mysql.GetMySQL(), u.Username, req)
@@ -189,7 +189,7 @@ func ExchangeTokenEp(inb *miso.Inbound, req vault.ExchangeTokenReq) (string, err
 // misoapi-http: GET /open/api/token/user
 // misoapi-desc: Get user info by token. This endpoint is expected to be accessible publicly
 // misoapi-scope: PUBLIC
-func GetTokenUserInfoEp(inb *miso.Inbound, req GetTokenUserReq) (vault.UserInfoBrief, error) {
+func ApiGetTokenUserInfo(inb *miso.Inbound, req GetTokenUserReq) (vault.UserInfoBrief, error) {
 	rail := inb.Rail()
 	return vault.GetTokenUser(rail, mysql.GetMySQL(), req.Token)
 }
@@ -197,7 +197,7 @@ func GetTokenUserInfoEp(inb *miso.Inbound, req GetTokenUserReq) (vault.UserInfoB
 // misoapi-http: POST /open/api/access/history
 // misoapi-desc: User list access logs
 // misoapi-resource: ref(ResourceBasicUser)
-func UserListAccessHistoryEp(inb *miso.Inbound, req vault.ListAccessLogReq) (miso.PageRes[vault.ListedAccessLog], error) {
+func ApiUserListAccessHistory(inb *miso.Inbound, req vault.ListAccessLogReq) (miso.PageRes[vault.ListedAccessLog], error) {
 	rail := inb.Rail()
 	return vault.ListAccessLogs(rail, mysql.GetMySQL(), common.GetUser(rail), req)
 }
@@ -205,7 +205,7 @@ func UserListAccessHistoryEp(inb *miso.Inbound, req vault.ListAccessLogReq) (mis
 // misoapi-http: POST /open/api/user/key/generate
 // misoapi-desc: User generate user key
 // misoapi-resource: ref(ResourceBasicUser)
-func UserGenUserKeyEp(inb *miso.Inbound, req vault.GenUserKeyReq) (any, error) {
+func ApiUserGenUserKey(inb *miso.Inbound, req vault.GenUserKeyReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.GenUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).Username)
 }
@@ -213,7 +213,7 @@ func UserGenUserKeyEp(inb *miso.Inbound, req vault.GenUserKeyReq) (any, error) {
 // misoapi-http: POST /open/api/user/key/list
 // misoapi-desc: User list user keys
 // misoapi-resource: ref(ResourceBasicUser)
-func UserListUserKeysEp(inb *miso.Inbound, req vault.ListUserKeysReq) (miso.PageRes[vault.ListedUserKey], error) {
+func ApiUserListUserKeys(inb *miso.Inbound, req vault.ListUserKeysReq) (miso.PageRes[vault.ListedUserKey], error) {
 	rail := inb.Rail()
 	return vault.ListUserKeys(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
@@ -221,7 +221,7 @@ func UserListUserKeysEp(inb *miso.Inbound, req vault.ListUserKeysReq) (miso.Page
 // misoapi-http: POST /open/api/user/key/delete
 // misoapi-desc: User delete user key
 // misoapi-resource: ref(ResourceBasicUser)
-func UserDeleteUserKeyEp(inb *miso.Inbound, req vault.DeleteUserKeyReq) (any, error) {
+func ApiUserDeleteUserKey(inb *miso.Inbound, req vault.DeleteUserKeyReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.DeleteUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).UserNo)
 }
@@ -229,7 +229,7 @@ func UserDeleteUserKeyEp(inb *miso.Inbound, req vault.DeleteUserKeyReq) (any, er
 // misoapi-http: POST /open/api/resource/add
 // misoapi-desc: Admin add resource
 // misoapi-resource: ref(ResourceManageResources)
-func AdminAddResourceEp(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
+func ApiAdminAddResource(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, vault.CreateResourceIfNotExist(rail, req, user)
@@ -238,7 +238,7 @@ func AdminAddResourceEp(inb *miso.Inbound, req vault.CreateResReq) (any, error) 
 // misoapi-http: POST /open/api/resource/remove
 // misoapi-desc: Admin remove resource
 // misoapi-resource: ref(ResourceManageResources)
-func AdminRemoveResourceEp(inb *miso.Inbound, req vault.DeleteResourceReq) (any, error) {
+func ApiAdminRemoveResource(inb *miso.Inbound, req vault.DeleteResourceReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.DeleteResource(rail, req)
 }
@@ -246,7 +246,7 @@ func AdminRemoveResourceEp(inb *miso.Inbound, req vault.DeleteResourceReq) (any,
 // misoapi-http: GET /open/api/resource/brief/candidates
 // misoapi-desc: List all resource candidates for role
 // misoapi-resource: ref(ResourceManageResources)
-func ListResCandidatesEp(inb *miso.Inbound, req ListResCandidatesReq) ([]vault.ResBrief, error) {
+func ApiListResCandidates(inb *miso.Inbound, req ListResCandidatesReq) ([]vault.ResBrief, error) {
 	rail := inb.Rail()
 	return vault.ListResourceCandidatesForRole(rail, req.RoleNo)
 }
@@ -254,7 +254,7 @@ func ListResCandidatesEp(inb *miso.Inbound, req ListResCandidatesReq) ([]vault.R
 // misoapi-http: POST /open/api/resource/list
 // misoapi-desc: Admin list resources
 // misoapi-resource: ref(ResourceManageResources)
-func AdminListResEp(inb *miso.Inbound, req vault.ListResReq) (vault.ListResResp, error) {
+func ApiAdminListRes(inb *miso.Inbound, req vault.ListResReq) (vault.ListResResp, error) {
 	rail := inb.Rail()
 	return vault.ListResources(rail, req)
 }
@@ -262,7 +262,7 @@ func AdminListResEp(inb *miso.Inbound, req vault.ListResReq) (vault.ListResResp,
 // misoapi-http: GET /open/api/resource/brief/user
 // misoapi-desc: List resources that are accessible to current user
 // misoapi-scope: PUBLIC
-func ListUserAccessibleResEp(inb *miso.Inbound) ([]vault.ResBrief, error) {
+func ApiListUserAccessibleRes(inb *miso.Inbound) ([]vault.ResBrief, error) {
 	rail := inb.Rail()
 	u := common.GetUser(rail)
 	if u.IsNil {
@@ -274,7 +274,7 @@ func ListUserAccessibleResEp(inb *miso.Inbound) ([]vault.ResBrief, error) {
 // misoapi-http: GET /open/api/resource/brief/all
 // misoapi-desc: List all resource brief info
 // misoapi-scope: PUBLIC
-func ListAllResBriefEp(inb *miso.Inbound) ([]vault.ResBrief, error) {
+func ApiListAllResBrief(inb *miso.Inbound) ([]vault.ResBrief, error) {
 	rail := inb.Rail()
 	return vault.ListAllResBriefs(rail)
 }
@@ -282,7 +282,7 @@ func ListAllResBriefEp(inb *miso.Inbound) ([]vault.ResBrief, error) {
 // misoapi-http: POST /open/api/role/resource/add
 // misoapi-desc: Admin add resource to role
 // misoapi-resource: ref(ResourceManageResources)
-func AdminBindRoleResEp(inb *miso.Inbound, req vault.AddRoleResReq) (any, error) {
+func ApiAdminBindRoleRes(inb *miso.Inbound, req vault.AddRoleResReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, vault.AddResToRoleIfNotExist(rail, req, user)
@@ -291,7 +291,7 @@ func AdminBindRoleResEp(inb *miso.Inbound, req vault.AddRoleResReq) (any, error)
 // misoapi-http: POST /open/api/role/resource/remove
 // misoapi-desc: Admin remove resource from role
 // misoapi-resource: ref(ResourceManageResources)
-func AdminUnbindRoleResEp(inb *miso.Inbound, req vault.RemoveRoleResReq) (any, error) {
+func ApiAdminUnbindRoleRes(inb *miso.Inbound, req vault.RemoveRoleResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.RemoveResFromRole(rail, req)
 }
@@ -299,7 +299,7 @@ func AdminUnbindRoleResEp(inb *miso.Inbound, req vault.RemoveRoleResReq) (any, e
 // misoapi-http: POST /open/api/role/add
 // misoapi-desc: Admin add role
 // misoapi-resource: ref(ResourceManageResources)
-func AdminAddRoleEp(inb *miso.Inbound, req vault.AddRoleReq) (any, error) {
+func ApiAdminAddRole(inb *miso.Inbound, req vault.AddRoleReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, vault.AddRole(rail, req, user)
@@ -308,7 +308,7 @@ func AdminAddRoleEp(inb *miso.Inbound, req vault.AddRoleReq) (any, error) {
 // misoapi-http: POST /open/api/role/list
 // misoapi-desc: Admin list roles
 // misoapi-resource: ref(ResourceManageResources)
-func AdminListRolesEp(inb *miso.Inbound, req vault.ListRoleReq) (vault.ListRoleResp, error) {
+func ApiAdminListRoles(inb *miso.Inbound, req vault.ListRoleReq) (vault.ListRoleResp, error) {
 	rail := inb.Rail()
 	return vault.ListRoles(rail, req)
 }
@@ -316,7 +316,7 @@ func AdminListRolesEp(inb *miso.Inbound, req vault.ListRoleReq) (vault.ListRoleR
 // misoapi-http: GET /open/api/role/brief/all
 // misoapi-desc: Admin list role brief info
 // misoapi-resource: ref(ResourceManageResources)
-func AdminListRoleBriefsEp(inb *miso.Inbound) ([]vault.RoleBrief, error) {
+func ApiAdminListRoleBriefs(inb *miso.Inbound) ([]vault.RoleBrief, error) {
 	rail := inb.Rail()
 	return vault.ListAllRoleBriefs(rail)
 }
@@ -324,7 +324,7 @@ func AdminListRoleBriefsEp(inb *miso.Inbound) ([]vault.RoleBrief, error) {
 // misoapi-http: POST /open/api/role/resource/list
 // misoapi-desc: Admin list resources of role
 // misoapi-resource: ref(ResourceManageResources)
-func AdminListRoleResEp(inb *miso.Inbound, req vault.ListRoleResReq) (vault.ListRoleResResp, error) {
+func ApiAdminListRoleRes(inb *miso.Inbound, req vault.ListRoleResReq) (vault.ListRoleResResp, error) {
 	rail := inb.Rail()
 	return vault.ListRoleRes(rail, req)
 }
@@ -332,7 +332,7 @@ func AdminListRoleResEp(inb *miso.Inbound, req vault.ListRoleResReq) (vault.List
 // misoapi-http: POST /open/api/role/info
 // misoapi-desc: Get role info
 // misoapi-scope: PUBLIC
-func GetRoleInfoEp(inb *miso.Inbound, req api.RoleInfoReq) (api.RoleInfoResp, error) {
+func ApiGetRoleInfo(inb *miso.Inbound, req api.RoleInfoReq) (api.RoleInfoResp, error) {
 	rail := inb.Rail()
 	return vault.GetRoleInfo(rail, req)
 }
@@ -340,7 +340,7 @@ func GetRoleInfoEp(inb *miso.Inbound, req api.RoleInfoReq) (api.RoleInfoResp, er
 // misoapi-http: POST /open/api/path/list
 // misoapi-desc: Admin list paths
 // misoapi-resource: ref(ResourceManageResources)
-func AdminListPathsEp(inb *miso.Inbound, req vault.ListPathReq) (vault.ListPathResp, error) {
+func ApiAdminListPaths(inb *miso.Inbound, req vault.ListPathReq) (vault.ListPathResp, error) {
 	rail := inb.Rail()
 	return vault.ListPaths(rail, req)
 }
@@ -348,7 +348,7 @@ func AdminListPathsEp(inb *miso.Inbound, req vault.ListPathReq) (vault.ListPathR
 // misoapi-http: POST /open/api/path/resource/bind
 // misoapi-desc: Admin bind resource to path
 // misoapi-resource: ref(ResourceManageResources)
-func AdminBindResPathEp(inb *miso.Inbound, req vault.BindPathResReq) (any, error) {
+func ApiAdminBindResPath(inb *miso.Inbound, req vault.BindPathResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.BindPathRes(rail, req)
 }
@@ -356,7 +356,7 @@ func AdminBindResPathEp(inb *miso.Inbound, req vault.BindPathResReq) (any, error
 // misoapi-http: POST /open/api/path/resource/unbind
 // misoapi-desc: Admin unbind resource and path
 // misoapi-resource: ref(ResourceManageResources)
-func AdminUnbindResPathEp(inb *miso.Inbound, req vault.UnbindPathResReq) (any, error) {
+func ApiAdminUnbindResPath(inb *miso.Inbound, req vault.UnbindPathResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.UnbindPathRes(rail, req)
 }
@@ -364,7 +364,7 @@ func AdminUnbindResPathEp(inb *miso.Inbound, req vault.UnbindPathResReq) (any, e
 // misoapi-http: POST /open/api/path/delete
 // misoapi-desc: Admin delete path
 // misoapi-resource: ref(ResourceManageResources)
-func AdminDeletePathEp(inb *miso.Inbound, req vault.DeletePathReq) (any, error) {
+func ApiAdminDeletePath(inb *miso.Inbound, req vault.DeletePathReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.DeletePath(rail, req)
 }
@@ -372,21 +372,21 @@ func AdminDeletePathEp(inb *miso.Inbound, req vault.DeletePathReq) (any, error) 
 // misoapi-http: POST /open/api/path/update
 // misoapi-desc: Admin update path
 // misoapi-resource: ref(ResourceManageResources)
-func AdminUpdatePathEp(inb *miso.Inbound, req vault.UpdatePathReq) (any, error) {
+func ApiAdminUpdatePath(inb *miso.Inbound, req vault.UpdatePathReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.UpdatePath(rail, req)
 }
 
 // misoapi-http: POST /remote/user/info
 // misoapi-desc: Fetch user info
-func ItnFetchUserInfoEp(inb *miso.Inbound, req api.FindUserReq) (api.UserInfo, error) {
+func ApiFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (api.UserInfo, error) {
 	rail := inb.Rail()
 	return vault.ItnFindUserInfo(rail, mysql.GetMySQL(), req)
 }
 
 // misoapi-http: GET /remote/user/id
 // misoapi-desc: Fetch id of user with the username
-func ItnFetchUserIdByNameEp(inb *miso.Inbound, req FetchUserIdByNameReq) (int, error) {
+func ApiFetchUserIdByName(inb *miso.Inbound, req FetchUserIdByNameReq) (int, error) {
 	rail := inb.Rail()
 	u, err := vault.LoadUserBriefThrCache(rail, mysql.GetMySQL(), req.Username)
 	return u.Id, err
@@ -394,28 +394,28 @@ func ItnFetchUserIdByNameEp(inb *miso.Inbound, req FetchUserIdByNameReq) (int, e
 
 // misoapi-http: POST /remote/user/userno/username
 // misoapi-desc: Fetch usernames of users with the userNos
-func ItnFetchUsernamesByNosEp(inb *miso.Inbound, req api.FetchNameByUserNoReq) (api.FetchUsernamesRes, error) {
+func ApiFetchUsernamesByNosEp(inb *miso.Inbound, req api.FetchNameByUserNoReq) (api.FetchUsernamesRes, error) {
 	rail := inb.Rail()
 	return vault.ItnFindNameOfUserNo(rail, mysql.GetMySQL(), req)
 }
 
 // misoapi-http: POST /remote/user/list/with-role
 // misoapi-desc: Fetch users with the role_no
-func ItnFindUserWithRoleEp(inb *miso.Inbound, req api.FetchUsersWithRoleReq) ([]api.UserInfo, error) {
+func ApiFindUserWithRoleEp(inb *miso.Inbound, req api.FetchUsersWithRoleReq) ([]api.UserInfo, error) {
 	rail := inb.Rail()
 	return vault.ItnFindUsersWithRole(rail, mysql.GetMySQL(), req)
 }
 
 // misoapi-http: POST /remote/user/list/with-resource
 // misoapi-desc: Fetch users that have access to the resource
-func ItnFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
+func ApiFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
 	rail := inb.Rail()
 	return vault.FindUserWithRes(rail, mysql.GetMySQL(), req)
 }
 
 // misoapi-http: POST /remote/resource/add
 // misoapi-desc: Report resource. This endpoint should be used internally by another backend service.
-func ItnReportResourceEp(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
+func ApiReportResourceEp(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, vault.CreateResourceIfNotExist(rail, req, user)
@@ -423,7 +423,7 @@ func ItnReportResourceEp(inb *miso.Inbound, req vault.CreateResReq) (any, error)
 
 // misoapi-http: POST /remote/path/resource/access-test
 // misoapi-desc: Validate resource access
-func ItnCheckResourceAccessEp(inb *miso.Inbound, req api.CheckResAccessReq) (api.CheckResAccessResp, error) {
+func ApiCheckResourceAccessEp(inb *miso.Inbound, req api.CheckResAccessReq) (api.CheckResAccessResp, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(metrics.ResourceAccessCheckHisto)
 	defer timer.ObserveDuration()
@@ -433,7 +433,7 @@ func ItnCheckResourceAccessEp(inb *miso.Inbound, req api.CheckResAccessReq) (api
 // misoapi-http: POST /remote/path/add
 // misoapi-desc: Report endpoint info
 // misoapi-resource: ref(ResourceManageResources)
-func ReportPathEp(inb *miso.Inbound, req vault.CreatePathReq) (any, error) {
+func ApiReportPath(inb *miso.Inbound, req vault.CreatePathReq) (any, error) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	return nil, vault.CreatePath(rail, req, user)

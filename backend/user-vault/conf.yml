@@ -8,6 +8,14 @@ mysql:
   database: user_vault
   host: localhost
   port: 3306
+  connection:
+    parameters:
+      - "charset=utf8mb4"
+      - "parseTime=True"
+      - "loc=Local"
+      - "readTimeout=30s"
+      - "writeTimeout=30s"
+      - "timeout=3s"
 
 redis:
   enabled: true

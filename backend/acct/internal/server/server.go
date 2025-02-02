@@ -23,9 +23,8 @@ func BootstrapServer() {
 
 func PreServerBootstrap(rail miso.Rail) error {
 	// declare http endpoints, jobs/tasks, and other components here
-	web.RegisterEndpoints(rail)
+	web.PrepareWebServer(rail)
 	flow.LoadCategoryConfs(rail)
-
 	return nil
 }
 
