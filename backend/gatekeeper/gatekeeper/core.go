@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/middleware/jwt"
-	"github.com/curtisnewbie/miso/middleware/logbot"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -47,7 +46,6 @@ type ServicePath struct {
 }
 
 func Bootstrap(args []string) {
-	logbot.EnableLogbotErrLogReport()
 	miso.PreServerBootstrap(prepareServer)
 	miso.BootstrapServer(args)
 }

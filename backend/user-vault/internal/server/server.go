@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/curtisnewbie/miso/middleware/logbot"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -12,7 +11,6 @@ import (
 
 func BootstrapServer(args []string) {
 	common.LoadBuiltinPropagationKeys()
-	logbot.EnableLogbotErrLogReport()
 
 	miso.PreServerBootstrap(vault.SubscribeBinlogEvent)
 	miso.PreServerBootstrap(postbox.PrepareLongPollHandler)

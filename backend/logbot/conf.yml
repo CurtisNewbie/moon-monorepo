@@ -50,15 +50,20 @@ logbot:
     - app: user-vault
       file: ../user-vault/logs/user-vault.log
       type: go
+      report-error: true
     - app: vfm
       file: ../vfm/logs/vfm.log
       type: go
+      report-error: true
     - app: mini-fstore
       file: ../mini-fstore/logs/mini-fstore.log
       type: go
+      report-error: true
     - app: gatekeeper
       file: ../gatekeeper/logs/gatekeeper.log
       type: go
+      report-error: true
     - app: acct
       file: ../acct/logs/acct.log
       type: go
+      report-error: true

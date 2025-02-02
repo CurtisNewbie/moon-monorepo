@@ -17,6 +17,7 @@ type ErrorLog struct {
 }
 
 var (
+	// Deprecated: TODO remove this pipeline, logbot should tail the logs directly
 	ReportLogPipeline = rabbit.NewEventPipeline[ErrorLog]("logbot:error-log:report:pipeline").
 		LogPayload()
 )

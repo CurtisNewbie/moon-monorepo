@@ -14,7 +14,7 @@ type WatchConfig struct {
 	App         string
 	File        string
 	Type        string
-	ReportError bool
+	ReportError bool `mapstructure:"report-error"`
 }
 
 type LogBotConfig struct {

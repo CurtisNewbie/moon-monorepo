@@ -4,7 +4,6 @@ import (
 	"embed"
 	"os"
 
-	"github.com/curtisnewbie/miso/middleware/logbot"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 )
@@ -15,7 +14,6 @@ var (
 
 func PrepareServer() {
 	common.LoadBuiltinPropagationKeys()
-	logbot.EnableLogbotErrLogReport()
 	miso.PreServerBootstrap(SubscribeBinlogChanges)
 	miso.PreServerBootstrap(PrintVersion)
 	miso.PreServerBootstrap(PrepareEventBus)

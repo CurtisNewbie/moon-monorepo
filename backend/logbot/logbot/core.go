@@ -61,7 +61,7 @@ func recPos(rail miso.Rail, app string, nodeName string, pos int64) error {
 }
 
 func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
-	rail.Infof("Watching log file '%v' for app '%v'", wc.File, wc.App)
+	rail.Infof("Watching log file, config: %#v", wc)
 	f, err := os.Open(wc.File)
 
 	if err != nil {
