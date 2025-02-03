@@ -6,6 +6,7 @@ import {
   MatDialogRef,
 } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { copyToClipboard } from "src/common/clipboard";
 import { isEnterKey } from "src/common/condition";
 import { ConfirmDialog } from "src/common/dialog";
 import { Env } from "src/common/env-util";
@@ -154,7 +155,12 @@ export class EditSitePasswordDialogComponent {
       <ng-container *ngIf="decrypted">
         <mat-form-field style="width: 100%;">
           <mat-label>Decrypted:</mat-label>
-          <input matInput [ngModel]="decrypted" [disabled]="true" />
+          <input
+            matInput
+            [ngModel]="decrypted"
+            readonly="true"
+            (click)="copyDecrypted()"
+          />
         </mat-form-field>
       </ng-container>
 
@@ -199,6 +205,11 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
     >,
     @Inject(MAT_DIALOG_DATA) public data: DecryptSitePasswordDialogData
   ) {}
+
+  copyDecrypted = () => {
+    copyToClipboard(this.decrypted);
+    this.snackBar.open("Copied to clipboard", "ok", { duration: 1000 });
+  };
 
   loginPasssword: string = "";
   decrypted: string = "";
