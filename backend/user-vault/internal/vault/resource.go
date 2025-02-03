@@ -782,7 +782,7 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 		return forbidden, nil
 	}
 	if isDefAdmin(roleNo) {
-		rail.Infof("User is default admins, roleNo: %v", roleNo)
+		rail.Debugf("User is default admins, roleNo: %v", roleNo)
 		return permitted, nil
 	}
 
