@@ -4095,6 +4095,8 @@
     - "recordId": (string) 
     - "site": (string) 
     - "alias": (string) 
+    - "sitePassword": (string) new site password, optional
+    - "loginPassword": (string) only used when site password is provided
   - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -4103,7 +4105,7 @@
     ```sh
     curl -X POST 'http://localhost:8089/open/api/password/edit-site-password' \
       -H 'Content-Type: application/json' \
-      -d '{"alias":"","recordId":"","site":""}'
+      -d '{"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":""}'
     ```
 
   - Miso HTTP Client:
@@ -4131,6 +4133,8 @@
       recordId?: string;
       site?: string;
       alias?: string;
+      sitePassword?: string;         // new site password, optional
+      loginPassword?: string;        // only used when site password is provided
     }
     ```
 

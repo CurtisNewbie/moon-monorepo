@@ -15,6 +15,8 @@ export interface EditSitePasswordReq {
   recordId?: string;
   site?: string;
   alias?: string;
+  sitePassword?: string;
+  loginPassword?: string;
 }
 export interface DecryptSitePasswordDialogData {
   title?: string;
@@ -60,12 +62,32 @@ export interface RemoveSitePasswordRes {
       <ng-container>
         <mat-form-field style="width: 100%;">
           <mat-label>Alias</mat-label>
-          <input matInput [(ngModel)]="data.alias" />
+          <input matInput [(ngModel)]="editReq.alias" />
         </mat-form-field>
         <mat-form-field style="width: 100%;">
           <mat-label>Site</mat-label>
-          <input matInput [(ngModel)]="data.site" />
+          <input matInput [(ngModel)]="editReq.site" />
         </mat-form-field>
+        <mat-form-field style="width: 100%;">
+          <mat-label>New Site Password</mat-label>
+          <input
+            autocomplete="one-time-code"
+            type="password"
+            matInput
+            [(ngModel)]="editReq.sitePassword"
+          />
+        </mat-form-field>
+        <ng-container *ngIf="editReq.sitePassword">
+          <mat-form-field style="width: 100%;">
+            <mat-label>Login Password</mat-label>
+            <input
+              autocomplete="one-time-code"
+              type="password"
+              matInput
+              [(ngModel)]="editReq.loginPassword"
+            />
+          </mat-form-field>
+        </ng-container>
         <div class="justify-content-end d-flex">
           <button
             mat-raised-button
@@ -85,6 +107,7 @@ export interface RemoveSitePasswordRes {
   `,
 })
 export class EditSitePasswordDialogComponent {
+  editReq: EditSitePasswordReq;
   constructor(
     private snackBar: MatSnackBar,
     private http: HttpClient,
@@ -93,14 +116,16 @@ export class EditSitePasswordDialogComponent {
       ListSitePasswordRes
     >,
     @Inject(MAT_DIALOG_DATA) public data: ListSitePasswordRes
-  ) {}
-
-  editSitePassword() {
-    let req: EditSitePasswordReq = {
+  ) {
+    this.editReq = {
       recordId: this.data.recordId,
       site: this.data.site,
       alias: this.data.alias,
     };
+  }
+
+  editSitePassword() {
+    let req: EditSitePasswordReq = this.editReq;
     this.http
       .post<any>(`/user-vault/open/api/password/edit-site-password`, req)
       .subscribe({

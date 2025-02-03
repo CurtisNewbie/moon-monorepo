@@ -152,9 +152,11 @@ func pad256(b []byte) []byte {
 }
 
 type EditSitePasswordReq struct {
-	RecordId string
-	Site     string
-	Alias    string
+	RecordId      string
+	Site          string
+	Alias         string
+	SitePassword  string `desc:"new site password, optional"`
+	LoginPassword string `desc:"only used when site password is provided"`
 }
 
 func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User, db *gorm.DB) error {
@@ -162,6 +164,35 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 	if err != nil {
 		return err
 	}
-	return db.Exec(`UPDATE site_password SET site = ?, alias = ?,update_by = ? WHERE record_id = ?`,
-		req.Site, req.Alias, user.Username, req.RecordId).Error
+
+	var encryptedSitePwd string
+	if req.SitePassword != "" {
+		u, err := loadUser(rail, db, user.Username)
+		if err != nil {
+			return err
+		}
+
+		if !checkPassword(u.Password, u.Salt, req.LoginPassword) {
+			return miso.NewErrf("Login password incorrect, please try again")
+		}
+
+		encrypted, err := crypto.AesEcbEncrypt(pad256([]byte(req.LoginPassword)), req.SitePassword)
+		if err != nil {
+			rail.Warnf("Failed to encrypt site password, %v, %v", user.Username, err)
+			return miso.ErrUnknownError.WrapNew(err)
+		}
+		encryptedSitePwd = encrypted
+	}
+
+	_, err = mysql.NewQuery(db).From("site_password").
+		Eq("record_id", req.RecordId).
+		Set("site", req.Site).
+		Set("alias", req.Alias).
+		Set("update_by", user.Username).
+		SetIf(encryptedSitePwd != "", "password", encryptedSitePwd).
+		Update()
+	if err != nil {
+		return miso.ErrUnknownError.WrapNew(err)
+	}
+	return nil
 }
