@@ -450,6 +450,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           })
           .subscribe((resp) => {
             this.toaster.toast("Truncating directory, please wait for a while");
+            this.curr = null;
+            this.currId = -1;
             this.fetchFileInfoList();
           });
       });
@@ -917,7 +919,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   onRowClicked(evt: any, row: FileInfo, idx: number) {
     if (evt.metaKey) {
-      this.bookmarkFile(row)
+      this.bookmarkFile(row);
       return;
     }
 
