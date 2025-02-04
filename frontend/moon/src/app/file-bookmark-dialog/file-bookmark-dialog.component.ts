@@ -109,7 +109,13 @@ export class FileBookmarkDialogComponent implements OnInit {
         },
       })
       .afterClosed()
-      .subscribe();
+      .subscribe((moved) => {
+        if (!moved) {
+          return;
+        }
+        this.fileBookmark.clear();
+        this.reload();
+      });
   }
 
   deleteFiles() {
