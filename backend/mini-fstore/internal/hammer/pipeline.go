@@ -58,7 +58,6 @@ func ListenGenVideoThumbnailEvent(rail miso.Rail, evt api.VidThumbnailTriggerEve
 }
 
 func GenImageThumbnail(rail miso.Rail, evt api.ImgThumbnailTriggerEvent) (string, error) {
-	metrics.IncGenImgThumbnailCounter()
 	timer := metrics.GenImgThumbnailTimer()
 	defer func() {
 		dur := timer.ObserveDuration()
@@ -98,7 +97,6 @@ func GenImageThumbnail(rail miso.Rail, evt api.ImgThumbnailTriggerEvent) (string
 }
 
 func GenVideoThumbnail(rail miso.Rail, evt api.VidThumbnailTriggerEvent) (string, error) {
-	metrics.IncGenVideoThumbnailCounter()
 	timer := metrics.GenVideoThumbnailTimer()
 	defer func() {
 		dur := timer.ObserveDuration()
