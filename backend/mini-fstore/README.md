@@ -17,7 +17,7 @@ A mini file storage service. mini-fstore internally uses [miso](https://github.c
 For more configuration, see [miso](https://github.com/curtisnewbie/miso).
 
 | Property                           | Description                                                                                                                                                                                                                               | Default Value |
-|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | fstore.storage.dir                 | Storage Directory                                                                                                                                                                                                                         | ./storage     |
 | fstore.trash.dir                   | Trash Directory                                                                                                                                                                                                                           | ./trash       |
 | fstore.tmp.dir                     | Temporary directory                                                                                                                                                                                                                       | /tmp          |
@@ -31,6 +31,8 @@ For more configuration, see [miso](https://github.com/curtisnewbie/miso).
 - `mini_fstore_generate_file_key_duration`: histogram for monitoring time duration of random file key generation.
 - `mini_fstore_generate_img_thumbnail_duration`: histogram for monitoring time duration of image thumbnail generation.
 - `mini_fstore_generate_video_thumbnail_duration`: histogram for monitoring time duration of video thumbnail generation.
+- `mini_fstore_generate_img_thumbnail_count`: counter for image thumbnail generation
+- `mini_fstore_generate_video_thumbnail_count`: counter for video thumbnail generation
 
 ## Media Streming
 
@@ -38,10 +40,13 @@ The `/file/stream` endpoint can be used for media streaming.
 
 ```html
 <body>
-    <video controls>
-        <source src="http://localhost:8084/file/stream?key=0fR1H1O0t8xQZjPzbGz4lRx%2FbPacIg" type="video/mp4">
-        Yo something is wrong
-    </video>
+  <video controls>
+    <source
+      src="http://localhost:8084/file/stream?key=0fR1H1O0t8xQZjPzbGz4lRx%2FbPacIg"
+      type="video/mp4"
+    />
+    Yo something is wrong
+  </video>
 </body>
 ```
 
@@ -60,7 +65,7 @@ Currently, mini-fstore nodes must all share the same database and the same stora
 
 ## Maintenance
 
-mini-fstore automatically detects duplicate uploads by comparing size and sha1 checksum. If duplicate file is detected, these files are *symbolically* linked to the same file previously uploaded. This can massively reduce file storage, but multiple file records (multiple file_ids) can all point to a single file.
+mini-fstore automatically detects duplicate uploads by comparing size and sha1 checksum. If duplicate file is detected, these files are _symbolically_ linked to the same file previously uploaded. This can massively reduce file storage, but multiple file records (multiple file_ids) can all point to a single file.
 
 Whenever a file is marked logically deleted, the file is not truely deleted. In order to cleanup the storage for the deleted files including those that are possibly symbolically linked, you have to use the following endpoint to trigger the maintenance process. During the maintenance, uploading files is rejected.
 
@@ -81,4 +86,3 @@ curl -X POST 'http://localhost:8084/maintenance/compute-checksum'
 ```
 
 ## Update
-
