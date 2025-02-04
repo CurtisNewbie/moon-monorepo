@@ -95,7 +95,6 @@ func DeleteGalleryImage(rail miso.Rail, tx *gorm.DB, fileKey string) error {
 	err := tx.Exec("delete from gallery_image where file_key = ?", fileKey).Error
 	if err != nil {
 		return miso.WrapErrf(err, "failed to update gallery_image, uuid: %v", fileKey)
-
 	}
 	rail.Infof("Removed file %v from all galleries", fileKey)
 	return nil

@@ -3,7 +3,7 @@ module github.com/curtisnewbie/acct
 go 1.22
 
 require (
-	github.com/curtisnewbie/miso v0.1.14-beta.4.0.20250204093746-c5b21e31cf39
+	github.com/curtisnewbie/miso v0.1.14-beta.4.0.20250204103805-0a60a81c8d04
 	gorm.io/gorm v1.23.8
 )
 
