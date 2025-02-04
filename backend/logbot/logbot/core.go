@@ -350,9 +350,17 @@ func SaveErrorLog(rail miso.Rail, evt LogLineEvent) error {
 		Error
 
 	if err == nil {
+		nmsg := fmt.Sprintf("%s [%s,%s] %s : %s", evt.Time.FormatClassic(), evt.TraceId, evt.SpanId, evt.Caller, evt.Message)
+		if len(nmsg) > 1000 {
+			rnmsg := []rune(nmsg)
+			if len(rnmsg) > 1000 {
+				rnmsg = rnmsg[:997]
+				nmsg = string(rnmsg) + "..."
+			}
+		}
 		if cerr := uvault.CreateNotifiByAccessPipeline.Send(rail, uvault.CreateNotifiByAccessEvent{
 			Title:   fmt.Sprintf("Logbot - %s has error", evt.App),
-			Message: fmt.Sprintf("%s [%s,%s] %s : %s", evt.Time.FormatClassic(), evt.TraceId, evt.SpanId, evt.Caller, evt.Message),
+			Message: nmsg,
 			ResCode: ResourceManageLogbot,
 		}); cerr != nil {
 			rail.Errorf("failed to create platform notification, %v", cerr)
