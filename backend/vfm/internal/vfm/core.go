@@ -942,6 +942,15 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 	})
 }
 
+func RemoveDeletedFileFromAllVFolder(rail miso.Rail, tx *gorm.DB, fileKey string) error {
+	err := tx.Exec(`UPDATE file_vfolder SET is_del = 1 WHERE uuid = ?`, fileKey).Error
+	if err != nil {
+		return miso.WrapErrf(err, "failed to update file_vfolder, uuid: %v", fileKey)
+	}
+	rail.Infof("Removed file %v from all vfolders", fileKey)
+	return nil
+}
+
 type ListVFolderReq struct {
 	Page miso.Paging `json:"paging"`
 	Name string      `json:"name"`

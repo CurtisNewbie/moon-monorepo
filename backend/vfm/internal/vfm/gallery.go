@@ -344,5 +344,9 @@ func OnCreateGalleryImgEvent(rail miso.Rail, evt CreateGalleryImgEvent) error {
 
 func OnNotifyFileDeletedEvent(rail miso.Rail, evt NotifyFileDeletedEvent) error {
 	rail.Infof("Received NotifyFileDeletedEvent: %+v", evt)
-	return DeleteGalleryImage(rail, mysql.GetMySQL(), evt.FileKey)
+	err := DeleteGalleryImage(rail, mysql.GetMySQL(), evt.FileKey)
+	if err != nil {
+		return err
+	}
+	return RemoveDeletedFileFromAllVFolder(rail, mysql.GetMySQL(), evt.FileKey)
 }

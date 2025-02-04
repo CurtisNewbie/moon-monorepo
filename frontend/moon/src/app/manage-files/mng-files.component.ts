@@ -918,6 +918,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   onRowClicked(evt: any, row: FileInfo, idx: number) {
+    if (this.inFolderNo) {
+      return;
+    }
+
     if (evt.metaKey) {
       this.bookmarkFile(row);
       return;
