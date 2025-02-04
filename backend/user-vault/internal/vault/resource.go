@@ -370,18 +370,18 @@ func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 				req.Group, req.Type, req.PathNo)
 
 			if tx.Error != nil {
-				return miso.ErrUnknownError.WrapNew(tx.Error)
+				return miso.ErrUnknownError.Wrap(tx.Error)
 			}
 
 			var n int
 			tx = tx.Raw(`SELECT id FROM path_resource WHERE path_no = ? AND res_code = ? LIMIT 1`, req.PathNo, req.ResCode).Scan(&n)
 			if tx.Error != nil {
-				return miso.ErrUnknownError.WrapNew(tx.Error)
+				return miso.ErrUnknownError.Wrap(tx.Error)
 			}
 			if tx.RowsAffected < 1 {
 				return tx.Exec(`INSERT INTO path_resource (path_no, res_code) VALUES (?, ?)`, req.PathNo, req.ResCode).Error
 			}
-			return miso.ErrUnknownError.WrapNew(tx.Error)
+			return miso.ErrUnknownError.Wrap(tx.Error)
 		})
 	})
 	return e

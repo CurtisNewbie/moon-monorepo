@@ -179,7 +179,7 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 		encrypted, err := crypto.AesEcbEncrypt(pad256([]byte(req.LoginPassword)), req.SitePassword)
 		if err != nil {
 			rail.Warnf("Failed to encrypt site password, %v, %v", user.Username, err)
-			return miso.ErrUnknownError.WrapNew(err)
+			return miso.ErrUnknownError.Wrap(err)
 		}
 		encryptedSitePwd = encrypted
 	}
@@ -192,7 +192,7 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 		SetIf(encryptedSitePwd != "", "password", encryptedSitePwd).
 		Update()
 	if err != nil {
-		return miso.ErrUnknownError.WrapNew(err)
+		return miso.ErrUnknownError.Wrap(err)
 	}
 	return nil
 }
