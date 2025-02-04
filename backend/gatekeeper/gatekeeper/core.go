@@ -33,11 +33,13 @@ var (
 )
 
 const (
-	AttrAuthInfo = "gk.auth.info"
+	AttrAuthInfo           = "gk.auth.info"
+	AttrPprofAuthenticated = "gk.pprof.auth.pass"
 
 	PropTimerExclPath         = "gatekeeper.timer.path.excl"
 	PropWhitelistPathPatterns = "gatekeeper.whitelist.path.patterns"
 	PropOverwriteRemoteIp     = "gatekeeper.overwrite-remote-ip"
+	PropProxyPprofBearer      = "gatekeeper.proxy.pprof.bearer"
 )
 
 type ServicePath struct {
@@ -65,6 +67,7 @@ func prepareServer(rail miso.Rail) error {
 	proxy := miso.NewHttpProxy("/", ResolveServiceTarget)
 
 	proxy.AddFilter(ReqTimeLogFilter)
+	proxy.AddFilter(ProxyPprofAuthFilter)
 	proxy.AddFilter(IpFilter)
 
 	// healthcheck filter
@@ -287,6 +290,13 @@ func AccessFilter(pc *miso.ProxyContext, next func()) {
 	w, r := pc.Inb.Unwrap()
 	rail := pc.Rail
 
+	if strings.Contains(r.URL.Path, "/debug/pprof") {
+		if v, ok := pc.GetAttr(AttrPprofAuthenticated); ok && v.(bool) {
+			next()
+			return
+		}
+	}
+
 	var roleNo string
 	var u common.User = common.NilUser()
 
@@ -352,7 +362,8 @@ func TraceFilter(pc *miso.ProxyContext, next func()) {
 
 func ReqTimeLogFilter(pc *miso.ProxyContext, next func()) {
 	_, r := pc.Inb.Unwrap()
-	if r.RequestURI == "/health" {
+
+	if timerExclPath.Has(r.URL.Path) {
 		next()
 		return
 	}
@@ -374,5 +385,29 @@ func IpFilter(pc *miso.ProxyContext, next func()) {
 		r.Header.Set("x-forwarded-for", v)
 		pc.Rail.Debugf("Overwrote remote IP: %v", v)
 	}
+	next()
+}
+
+func ProxyPprofAuthFilter(pc *miso.ProxyContext, next func()) {
+	w, r := pc.Inb.Unwrap()
+	if strings.Contains(r.URL.Path, "/debug/pprof") {
+		bearer := miso.GetPropStr(PropProxyPprofBearer)
+
+		if bearer == "" && miso.IsProdMode() { // production must enable pprof authentication
+			pc.Rail.Infof("Attempt to request '%v', authentication for pprof is mandatory in production, rejected", r.RequestURI)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if bearer != "" {
+			authorization := r.Header.Get("Authorization")
+			if bearer != authorization {
+				pc.Rail.Infof("Attempt to request '%v', but bearer authentication failed, rejected", r.RequestURI)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+	}
+	pc.SetAttr(AttrPprofAuthenticated, true)
 	next()
 }

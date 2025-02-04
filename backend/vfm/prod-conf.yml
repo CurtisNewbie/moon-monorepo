@@ -22,6 +22,8 @@ server:
   web.enabled: true
   host: "0.0.0.0"
   port: 8086
+  pprof:
+    enabled: true
 
 consul:
   enabled: true

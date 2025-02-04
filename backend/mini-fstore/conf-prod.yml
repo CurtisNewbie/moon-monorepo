@@ -33,7 +33,7 @@ server:
   perf:
     enabled: false
   pprof:
-    enabled: false
+    enabled: true
 
 consul:
   enabled: true

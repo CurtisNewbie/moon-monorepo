@@ -28,15 +28,12 @@ metrics:
     enabled: true
     bearer: ${METRICS_BEARER}
 
-rabbitmq:
-  enabled: true
-  host: "${RABBITMQ_ADDR}"
-  port: 5672
-  username: "${RABBITMQ_USERNAME}"
-  password: "${RABBITMQ_PASSWORD}"
-  vhost: "/"
-
-gatekeeper.timer.path.excl:
-  - "/fstore/file/raw"
-  - "/fstore/file/stream"
-  - "/metrics"
+gatekeeper:
+  timer.path.excl:
+    - "/fstore/file/raw"
+    - "/fstore/file/stream"
+    - "/metrics"
+    - "/health"
+  proxy:
+    pprof:
+      bearer: "${GATEKEEPER_PPROF_BEARER}"
