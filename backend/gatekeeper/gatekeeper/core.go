@@ -64,10 +64,7 @@ func prepareServer(rail miso.Rail) error {
 	// create proxy
 	proxy := miso.NewHttpProxy("/", ResolveServiceTarget)
 
-	if !miso.IsProdMode() {
-		proxy.AddFilter(ReqTimeLogFilter)
-	}
-
+	proxy.AddFilter(ReqTimeLogFilter)
 	proxy.AddFilter(IpFilter)
 
 	// healthcheck filter
