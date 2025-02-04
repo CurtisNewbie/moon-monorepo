@@ -401,7 +401,8 @@ func ProxyPprofAuthFilter(pc *miso.ProxyContext, next func()) {
 
 		if bearer != "" {
 			authorization := r.Header.Get("Authorization")
-			if bearer != authorization {
+			provided, ok := miso.ParseBearer(authorization)
+			if !ok || bearer != provided {
 				pc.Rail.Infof("Attempt to request '%v', but bearer authentication failed, rejected", r.RequestURI)
 				w.WriteHeader(http.StatusUnauthorized)
 				return

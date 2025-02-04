@@ -39,7 +39,7 @@ See [miso](https://github.com/curtisnewbie/miso) for more about configuration.
    server="$1"
    out="/tmp/${server}_heap.pprof"
 
-   curl https://$server/debug/pprof/heap?seconds=$sec -H "Authorization: $tok" -v -o $out \
+   curl https://$server/debug/pprof/heap?seconds=$sec -H "Authorization: Bearer $tok" -v -o $out \
    ```
 
 4. Use go tool pprof to open the downloaded file:

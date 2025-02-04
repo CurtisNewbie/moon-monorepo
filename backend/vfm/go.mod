@@ -15,7 +15,7 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.16-0.20250120155940-cab5233e2c30
 	github.com/curtisnewbie/mini-fstore v0.1.18
-	github.com/curtisnewbie/miso v0.1.14-beta.4.0.20250204103805-0a60a81c8d04
+	github.com/curtisnewbie/miso v0.1.14-beta.4.0.20250204154742-087f1e1c6c13
 	github.com/curtisnewbie/user-vault v0.0.23
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
