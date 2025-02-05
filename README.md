@@ -141,7 +141,7 @@ go run cmd/main.go
 
 ### Script Example
 
-For example, to bootstrap all backend and frontend services:
+For example, to bootstrap all backend and frontend services (in development environment):
 
 ```bash
 # run event-pump
