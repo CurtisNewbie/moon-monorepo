@@ -781,10 +781,6 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 		}
 		return forbidden, nil
 	}
-	if isDefAdmin(roleNo) {
-		rail.Debugf("User is default admins, roleNo: %v", roleNo)
-		return permitted, nil
-	}
 
 	rr, err := roleAccessCache.Get(rail, roleNo, nil)
 	if err != nil {
@@ -911,6 +907,7 @@ func BatchLoadRoleAccessCache(rail miso.Rail) error {
 		if e != nil {
 			return nil, e
 		}
+		lr = append(lr, DefaultAdminRoleNo, DefaultAdminRoleNo2)
 
 		for _, roleNo := range lr {
 			e = LoadOneRoleAccessCache(rail, roleNo)
@@ -925,23 +922,35 @@ func BatchLoadRoleAccessCache(rail miso.Rail) error {
 
 func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 	var paths []ExtendedPathRes
-	tx := mysql.GetMySQL().
-		Raw(`SELECT p.*, pr.res_code
+
+	if isDefAdmin(roleNo) {
+		tx := mysql.GetMySQL().
+			Raw(`SELECT p.*, pr.res_code
+				FROM path_resource pr
+				LEFT JOIN path p ON p.path_no = pr.path_no`).
+			Scan(&paths)
+		if tx.Error != nil {
+			return miso.ErrUnknownError.Wrapf(tx.Error, "failed to load default admin's path resources")
+		}
+	} else {
+		tx := mysql.GetMySQL().
+			Raw(`SELECT p.*, pr.res_code
 		FROM role_resource rr
 		LEFT JOIN path_resource pr ON rr.res_code = pr.res_code
 		LEFT JOIN path p ON p.path_no = pr.path_no
 		WHERE rr.role_no = ?
 		`, roleNo).
-		Scan(&paths)
-	if tx.Error != nil {
-		return tx.Error
+			Scan(&paths)
+		if tx.Error != nil {
+			return tx.Error
+		}
 	}
 	if paths == nil {
 		return nil
 	}
 
 	var public []ExtendedPathRes
-	tx = mysql.GetMySQL().
+	tx := mysql.GetMySQL().
 		Raw(`SELECT p.* FROM path p WHERE p.ptype = ?`, PathTypePublic).
 		Scan(&public)
 	if tx.Error != nil {
