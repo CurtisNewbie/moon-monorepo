@@ -7,8 +7,9 @@ export function onEmptyToken(callback) {
 }
 
 export function setToken(token: string) {
-  if (token === null) localStorage.removeItem(TOKEN);
-  else {
+  if (token === null) {
+    localStorage.removeItem(TOKEN);
+  } else {
     localStorage.setItem(TOKEN, token);
   }
 }

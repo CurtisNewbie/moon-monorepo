@@ -6,6 +6,7 @@ import { PlatformNotificationService } from "../platform-notification.service";
 import { HttpClient } from "@angular/common/http";
 import { Version } from "../version";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { getToken } from "src/common/api-util";
 
 @Component({
   selector: "app-nav",
@@ -97,5 +98,14 @@ export class NavComponent implements OnInit, OnDestroy {
 
   openGithub() {
     window.open("https://github.com/curtisnewbie/moon-monorepo", "_blank");
+  }
+
+  redirectToEventPumpDashboard() {
+    let tok = getToken();
+    if (tok) {
+      document.cookie =
+        "Gatekeeper_Authorization = Bearer " + tok + "; path = /event-pump;";
+      window.open("/event-pump/static/", "_blank");
+    }
   }
 }
