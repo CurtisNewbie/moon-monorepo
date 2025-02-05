@@ -39,7 +39,6 @@
         </mat-menu>
 
         <mat-menu #admin="matMenu">
-            <button mat-menu-item (click)="redirectToEventPumpDashboard()" *ngIf="hasAnyRes('event-pump-dashboard')">Event-Pump Dashboard</button>
             <button mat-menu-item routerLink="/manage-user" routerLinkActive="active"
                 *ngIf="hasRes('manage-users')">Manage
                 Users</button>
@@ -56,6 +55,8 @@
                 *ngIf="hasAnyRes('fstore:server:maintenance','vfm:server:maintenance')">
                 File Storage
                 Storage</button>
+            <button mat-menu-item (click)="redirectToEventPumpDashboard()"
+                *ngIf="hasAnyRes('event-pump-dashboard')">Event-Pump Dashboard</button>
         </mat-menu>
 
         <mat-menu #file="matMenu">

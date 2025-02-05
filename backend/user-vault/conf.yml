@@ -55,6 +55,7 @@ monitor:
   - service: "vfm"
   - service: "fstore"
   - service: "acct"
+  - service: "event-pump"
 
 client:
   addr:
