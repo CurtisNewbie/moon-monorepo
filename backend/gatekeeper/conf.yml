@@ -1,3 +1,5 @@
+# https://github.com/CurtisNewbie/miso/blob/main/doc/config.md
+
 mode.production: false
 
 app.name: "gatekeeper"
@@ -29,3 +31,9 @@ gatekeeper:
     - "/debug/pprof/*"
     - "/metrics"
     - "/health"
+
+client:
+  addr:
+    event-pump:
+      host: localhost
+      port: 8088

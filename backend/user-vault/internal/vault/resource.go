@@ -779,6 +779,7 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 			}
 			return permitted, nil
 		}
+		rail.Infof("Rejected '%v %s', roleNo: '%s', role doesn't have access to required resource", method, url, roleNo)
 		return forbidden, nil
 	}
 

@@ -40,6 +40,9 @@ const (
 	PropWhitelistPathPatterns = "gatekeeper.whitelist.path.patterns"
 	PropOverwriteRemoteIp     = "gatekeeper.overwrite-remote-ip"
 	PropProxyPprofBearer      = "gatekeeper.proxy.pprof.bearer"
+
+	HeaderAuthorization = "Authorization"
+	CookieAuthorization = "Gatekeeper_Authorization"
 )
 
 type ServicePath struct {
@@ -241,7 +244,15 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 
 	rail := pc.Rail
 	_, r := pc.Inb.Unwrap()
-	authorization := r.Header.Get("Authorization")
+	authorization := r.Header.Get(HeaderAuthorization)
+
+	// fallback to cookie
+	if authorization == "" {
+		ck, err := r.Cookie(CookieAuthorization)
+		if err == nil && ck != nil {
+			authorization = ck.Value
+		}
+	}
 	rail.Debugf("Authorization: %v", authorization)
 
 	// no token available
@@ -260,7 +271,7 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 
 	// token invalid, but the public endpoints are still accessible, so we don't stop here
 	if err != nil || !tkn.Valid {
-		rail.Debugf("Token invalid, %v", err)
+		rail.Infof("Token invalid, %v", err)
 		next()
 		return
 	}
