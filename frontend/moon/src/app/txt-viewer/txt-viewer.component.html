@@ -1,13 +1,13 @@
 <div class="mt-2">
-    <h4 style="word-wrap: break-word;">{{name}}</h4>
-    <div style="height: 100%;">
+    <h4 class="mb-4" style="word-wrap: break-word;">{{name}}</h4>
+    <div style="height: 85vh;">
         <div *ngIf="!name" class="ml-5 mr-5 alert alert-secondary">
             No file selected. Consider picking one to read?
         </div>
-        <div class="container-fluid mt-4" style="height: 80vh;">
-            <div style="touch-action: manipulation; overflow: auto; height: 100%; ">
+        <div class="container-fluid" style="height: 100%">
+            <div style="height: 100%">
                 <pre
-                    style="height: 100%; "><code [highlight]="content" [lineNumbers]="false" style="height: 100%; text-wrap: pretty;" class="rounded"> </code></pre>
+                    style="height: 100%; "><code [highlight]="content" [lineNumbers]="false" style="touch-action: manipulation; height: 100%; text-wrap: pretty; overflow: auto" class="rounded"> </code></pre>
             </div>
         </div>
     </div>
