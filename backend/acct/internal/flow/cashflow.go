@@ -3,7 +3,6 @@ package flow
 import (
 	"net/http"
 	"os"
-	"runtime"
 
 	"github.com/curtisnewbie/miso/middleware/money"
 	"github.com/curtisnewbie/miso/middleware/mysql"
@@ -16,7 +15,7 @@ import (
 )
 
 var (
-	importPool    *util.AsyncPool
+	importPool    *util.AsyncPool = util.NewIOAsyncPool()
 	categoryConfs map[string]CategoryConf
 )
 
@@ -24,16 +23,6 @@ const (
 	DirectionIn  = "IN"
 	DirectionOut = "OUT"
 )
-
-func init() {
-	c := 1
-	max := runtime.NumCPU()
-	if max > 1 {
-		c = max / 2
-	}
-	importPool = util.NewIOAsyncPool()
-	miso.Infof("Created import pool with %d workers", c)
-}
 
 type CategoryConf struct {
 	Code string
