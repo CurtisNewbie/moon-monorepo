@@ -1,11 +1,10 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { environment } from "src/environments/environment";
 import { PagingController } from "src/common/paging";
-import { Toaster } from "../notification.service";
 import { ResBrief } from "../user.service";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialog } from "src/common/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface DialogDat {
   roleName: string;
@@ -43,8 +42,8 @@ export class MngRoleDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<MngRoleDialogComponent, DialogDat>,
     @Inject(MAT_DIALOG_DATA) public dat: DialogDat,
     private http: HttpClient,
-    private toaster: Toaster,
-    private confirmDialog: ConfirmDialog
+    private confirmDialog: ConfirmDialog,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -65,7 +64,7 @@ export class MngRoleDialogComponent implements OnInit {
 
   addResource() {
     if (!this.addResCode) {
-      this.toaster.toast("Please select resource to add");
+      this.snackBar.open("Please select resource to add", "ok", { duration: 3000 });;
       return;
     }
 

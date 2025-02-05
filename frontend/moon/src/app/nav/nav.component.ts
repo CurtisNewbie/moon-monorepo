@@ -3,9 +3,9 @@ import { UserInfo } from "src/common/user-info";
 import { UserService } from "../user.service";
 import { copyToClipboard } from "src/common/clipboard";
 import { PlatformNotificationService } from "../platform-notification.service";
-import { Toaster } from "../notification.service";
 import { HttpClient } from "@angular/common/http";
 import { Version } from "../version";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-nav",
@@ -16,7 +16,7 @@ export class NavComponent implements OnInit, OnDestroy {
   version = Version;
   userInfo: UserInfo = null;
   copyToClipboard = (s) => {
-    this.toaster.toast("Copied to clipboard");
+    this.snackBar.open("Copied to clipboard", "ok", { duration: 3000 });;
     copyToClipboard(s);
   };
   unreadCount = 0;
@@ -26,7 +26,7 @@ export class NavComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private http: HttpClient,
     private platformNotification: PlatformNotificationService,
-    private toaster: Toaster
+    private snackBar: MatSnackBar,
   ) {
     platformNotification.subscribeChange().subscribe({
       next: () => {

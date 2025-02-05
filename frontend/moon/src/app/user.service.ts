@@ -1,15 +1,14 @@
 import { Injectable, OnDestroy } from "@angular/core";
 import { BehaviorSubject, Subscription, timer } from "rxjs";
 import { Observable } from "rxjs";
-import { environment } from "src/environments/environment";
 import { Resp } from "src/common/resp";
 import { ChangePasswordParam, UserInfo } from "src/common/user-info";
 import { NavigationService } from "./navigation.service";
-import { Toaster } from "./notification.service";
 import { NavType } from "./routes";
 import { getToken, setToken, onEmptyToken } from "src/common/api-util";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface RoleBrief {
   roleNo?: string;
@@ -52,8 +51,8 @@ export class UserService implements OnDestroy {
   constructor(
     private http: HttpClient,
     private nav: NavigationService,
-    private notifi: Toaster,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {
     onEmptyToken(() => {
       if (this.router.url != "/register") {
@@ -150,7 +149,7 @@ export class UserService implements OnDestroy {
             callback();
           }
         } else {
-          this.notifi.toast("Please login first");
+          this.snackBar.open("Please login first", "ok", { duration: 3000 });
           setToken(null);
           this._notifyUserInfo(null);
           this.nav.navigateTo(NavType.LOGIN_PAGE);

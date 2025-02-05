@@ -1,9 +1,9 @@
 import { Component, OnInit } from "@angular/core";
 import { NavigationService } from "../navigation.service";
-import { Toaster } from "../notification.service";
 import { UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
 import { NavType } from "../routes";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-register",
@@ -17,15 +17,17 @@ export class RegisterComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private toaster: Toaster,
-    private nav: NavigationService
+    private nav: NavigationService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {}
 
   register(): void {
     if (!this.usernameInput || !this.passwordInput) {
-      this.toaster.toast("Please enter username and password");
+      this.snackBar.open("Please enter username and password", "ok", {
+        duration: 3000,
+      });
       return;
     }
     this.userService
@@ -33,13 +35,14 @@ export class RegisterComponent implements OnInit {
       .subscribe({
         next: (r) => {
           if (r.error) {
-            this.toaster.toast(r.msg, 5000);
+            this.snackBar.open(r.msg, "ok", { duration: 5000 });
             return;
           }
 
-          this.toaster.toast(
+          this.snackBar.open(
             "Registered, please wait for administrator's approval",
-            5000
+            "ok",
+            { duration: 5000 }
           );
           this.nav.navigateTo(NavType.LOGIN_PAGE);
         },

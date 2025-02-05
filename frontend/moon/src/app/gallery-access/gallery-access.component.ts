@@ -1,10 +1,9 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { isEnterKey } from "src/common/condition";
 import { PagingController } from "src/common/paging";
-import { Toaster } from "../notification.service";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
-import { environment } from "src/environments/environment";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export type GalleryAccessGranted = {
   id: number;
@@ -31,7 +30,7 @@ export class GalleryAccessComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private toaster: Toaster,
+    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<
       GalleryAccessComponent,
       GrantGalleryAccessDialogData
@@ -47,7 +46,7 @@ export class GalleryAccessComponent implements OnInit {
 
   grantFolderAccess() {
     if (!this.grantedTo) {
-      this.toaster.toast("Enter username first");
+      this.snackBar.open("Enter username first", "ok", { duration: 3000 });
       return;
     }
 
@@ -58,7 +57,7 @@ export class GalleryAccessComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.toaster.toast("Access granted");
+          this.snackBar.open("Access granted", "ok", { duration: 3000 });
           this.fetchAccessGranted();
         },
       });

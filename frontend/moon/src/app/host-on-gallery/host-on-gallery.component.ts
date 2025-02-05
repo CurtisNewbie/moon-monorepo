@@ -1,11 +1,10 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { ConfirmDialog } from "src/common/dialog";
-import { Toaster } from "../notification.service";
 import { filterAlike } from "src/common/select-util";
 import { GalleryBrief } from "src/common/gallery";
-import { environment } from "src/environments/environment";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 type GlFile = {
   fileKey: string;
@@ -41,7 +40,7 @@ export class HostOnGalleryComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public dat: Data,
     private http: HttpClient,
     private confirmDialog: ConfirmDialog,
-    private toaster: Toaster
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -79,7 +78,11 @@ export class HostOnGalleryComponent implements OnInit {
           })
           .subscribe({
             complete: () => {
-              this.toaster.toast("Request success! It may take a while.");
+              this.snackBar.open(
+                "Request success! It may take a while.",
+                "ok",
+                { duration: 3000 }
+              );
             },
           });
       }
@@ -89,7 +92,7 @@ export class HostOnGalleryComponent implements OnInit {
   private extractToGalleryNo(): string {
     const gname = this.addToGalleryName;
     if (!gname) {
-      this.toaster.toast("Please select gallery");
+      this.snackBar.open("Please select gallery", "ok", { duration: 3000 });
       return;
     }
 
@@ -97,12 +100,18 @@ export class HostOnGalleryComponent implements OnInit {
       (v) => v.name === gname
     );
     if (!matched || matched.length < 1) {
-      this.toaster.toast("Gallery not found, please check and try again");
+      this.snackBar.open(
+        "Gallery not found, please check and try again",
+        "ok",
+        { duration: 3000 }
+      );
       return null;
     }
     if (matched.length > 1) {
-      this.toaster.toast(
-        "Found multiple galleries with the same name, please try again"
+      this.snackBar.open(
+        "Found multiple galleries with the same name, please try again",
+        "ok",
+        { duration: 3000 }
       );
       return null;
     }
@@ -110,13 +119,11 @@ export class HostOnGalleryComponent implements OnInit {
   }
 
   private _fetchOwnedGalleryBrief() {
-    this.http
-      .get<any>(`vfm/open/api/gallery/brief/owned`)
-      .subscribe({
-        next: (resp) => {
-          this.galleryBriefs = resp.data;
-          this.onAddToGalleryNameChanged();
-        },
-      });
+    this.http.get<any>(`vfm/open/api/gallery/brief/owned`).subscribe({
+      next: (resp) => {
+        this.galleryBriefs = resp.data;
+        this.onAddToGalleryNameChanged();
+      },
+    });
   }
 }

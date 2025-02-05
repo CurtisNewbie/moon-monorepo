@@ -5,28 +5,25 @@ import {
   getExpanded,
   isIdEqual,
 } from "src/animate/animate-util";
-import { Toaster } from "../notification.service";
-import { environment } from "src/environments/environment";
 import { isEnterKey } from "src/common/condition";
 import { copyToClipboard } from "src/common/clipboard";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface UserToken {
+  id: number;
 
-    id: number;
+  /** secret key */
+  secretKey: string;
 
-    /** secret key */
-    secretKey: string;
+  /** name of the key */
+  name: string;
 
-    /** name of the key */
-    name: string;
+  /** when the key is expired */
+  expirationTime: Date;
 
-    /** when the key is expired */
-    expirationTime: Date;
-
-    /** when the record is created */
-    createTime: Date;
-
+  /** when the record is created */
+  createTime: Date;
 }
 
 @Component({
@@ -58,7 +55,10 @@ export class ManageKeysComponent implements OnInit {
   isEnter = isEnterKey;
   copyToClipboard = copyToClipboard;
 
-  constructor(private http: HttpClient, private toaster: Toaster) {}
+  constructor(
+    private http: HttpClient,
+    private snackBar: MatSnackBar,
+  ) {}
 
   ngOnInit() {}
 
@@ -101,11 +101,11 @@ export class ManageKeysComponent implements OnInit {
 
   generateRandomKey() {
     if (!this.password) {
-      this.toaster.toast("Please enter password");
+      this.snackBar.open("Please enter password", "ok", { duration: 3000 });;
       return;
     }
     if (!this.newUserKeyName) {
-      this.toaster.toast("Please enter key name");
+      this.snackBar.open("Please enter key name", "ok", { duration: 3000 });;
       return;
     }
 

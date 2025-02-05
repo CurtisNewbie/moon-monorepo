@@ -9,9 +9,9 @@ import {
 import { Observable, throwError } from "rxjs";
 import { catchError } from "rxjs/operators";
 import { UserService } from "../user.service";
-import { Toaster } from "../notification.service";
 import { Resp } from "src/common/resp";
 import { Router } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 /**
  * Intercept http error response
@@ -20,8 +20,8 @@ import { Router } from "@angular/router";
 export class ErrorInterceptor implements HttpInterceptor {
   constructor(
     private userService: UserService,
-    private toaster: Toaster,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   intercept(
@@ -34,19 +34,23 @@ export class ErrorInterceptor implements HttpInterceptor {
           // console.log("Http error response: ", e);
 
           if (e.status === 401) {
-            this.toaster.toast("Please login first");
+            this.snackBar.open("Please login first", "ok", { duration: 3000 });
             if (this.router.url != "/register") {
               this.userService.logout();
             }
           } else if (e.status === 403) {
             let r: Resp<any> = e.error as Resp<any>;
             if (r) {
-              this.toaster.toast(r.msg, 6000);
+              this.snackBar.open(r.msg, "ok", { duration: 6000 });
             } else {
-              this.toaster.toast("Forbidden", 1000);
+              this.snackBar.open("Forbidden", "ok", { duration: 1000 });
             }
           } else {
-            this.toaster.toast("Unknown server error, please try again later");
+            this.snackBar.open(
+              "Unknown server error, please try again later",
+              "ok",
+              { duration: 3000 }
+            );
           }
           return throwError(e);
         }

@@ -1,11 +1,10 @@
 import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { PagingController } from "src/common/paging";
 import { isEnterKey } from "src/common/condition";
-import { environment } from "src/environments/environment";
 import { Observable } from "rxjs";
 import { HttpClient, HttpEvent } from "@angular/common/http";
-import { Toaster } from "../notification.service";
 import { ConfirmDialog } from "src/common/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-manage-bookmarks",
@@ -29,8 +28,8 @@ export class ManageBookmarksComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private toaster: Toaster,
-    private confirmDialog: ConfirmDialog
+    private confirmDialog: ConfirmDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {}
@@ -66,7 +65,7 @@ export class ManageBookmarksComponent implements OnInit {
         if (this.uploadFileInput) {
           this.uploadFileInput.nativeElement.value = null;
         }
-        this.toaster.toast("Bookmarks uploaded");
+        this.snackBar.open("Bookmarks uploaded", "ok", { duration: 3000 });
         this.showUploadPanel = false;
       },
     });
@@ -74,7 +73,7 @@ export class ManageBookmarksComponent implements OnInit {
 
   onFileSelected(files: File[]) {
     if (files == null || files.length < 1) {
-      this.toaster.toast("Please select file");
+      this.snackBar.open("Please select file", "ok", { duration: 3000 });
       return;
     }
     this.file = files[0];
@@ -91,23 +90,17 @@ export class ManageBookmarksComponent implements OnInit {
   }
 
   remove(id) {
-    this.http
-      .post<any>(`vfm/bookmark/remove`, { id: id })
-      .subscribe({
-        complete: () => this.fetchList(),
-      });
+    this.http.post<any>(`vfm/bookmark/remove`, { id: id }).subscribe({
+      complete: () => this.fetchList(),
+    });
   }
 
   uploadToTmpFile(file: File): Observable<HttpEvent<any>> {
-    return this.http.put<HttpEvent<any>>(
-      "vfm/bookmark/file/upload",
-      file,
-      {
-        observe: "events",
-        reportProgress: true,
-        withCredentials: true,
-      }
-    );
+    return this.http.put<HttpEvent<any>>("vfm/bookmark/file/upload", file, {
+      observe: "events",
+      reportProgress: true,
+      withCredentials: true,
+    });
   }
 
   resetSearchName() {

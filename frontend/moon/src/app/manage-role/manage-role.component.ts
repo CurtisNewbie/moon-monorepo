@@ -1,13 +1,12 @@
 import { Component, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { animateElementExpanding } from "src/animate/animate-util";
-import { environment } from "src/environments/environment";
 import { PagingController } from "src/common/paging";
 import { MngRoleDialogComponent } from "../mng-role-dialog/mng-role-dialog.component";
-import { Toaster } from "../notification.service";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface ERole {
   id?: number;
@@ -31,19 +30,8 @@ export class ManageRoleComponent implements OnInit {
   pagingController: PagingController;
 
   readonly tabcol = this.env.isMobile()
-    ? [
-        "roleNo",
-        "name",
-        "updateTime",
-      ]
-    : [
-        "roleNo",
-        "name",
-        "createBy",
-        "createTime",
-        "updateBy",
-        "updateTime",
-      ];
+    ? ["roleNo", "name", "updateTime"]
+    : ["roleNo", "name", "createBy", "createTime", "updateBy", "updateTime"];
   roles: ERole[] = [];
 
   isEnter = isEnterKey;
@@ -51,8 +39,8 @@ export class ManageRoleComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
-    private toaster: Toaster,
-    public env: Env
+    public env: Env,
+    private snackBar: MatSnackBar
   ) {}
 
   reset() {
@@ -107,7 +95,9 @@ export class ManageRoleComponent implements OnInit {
 
   createNewRole() {
     if (!this.newRoleName) {
-      this.toaster.toast("Please enter new role name");
+      this.snackBar.open("Please enter new role name", "ok", {
+        duration: 3000,
+      });
       return;
     }
 

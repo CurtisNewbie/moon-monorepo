@@ -12,7 +12,6 @@ import {
 import { Subscription } from "rxjs";
 import { FileInfoService, TokenType } from "../file-info.service";
 import { HttpClient, HttpEventType } from "@angular/common/http";
-import { Toaster } from "../notification.service";
 import { MediaStreamerComponent } from "../media-streamer/media-streamer.component";
 import {
   MAT_DIALOG_DATA,
@@ -24,6 +23,7 @@ import { NavType } from "../routes";
 import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
 import { isEnterKey } from "src/common/condition";
 import { Env } from "src/common/env-util";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface VerFileHistoryDialogData {
   verFileId?: string;
@@ -228,7 +228,6 @@ export class VerFileHistoryComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private toaster: Toaster,
     public dialogRef: MatDialogRef<
       VerFileHistoryComponent,
       VerFileHistoryDialogData
@@ -516,10 +515,10 @@ export class VersionedFileComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private fileService: FileInfoService,
-    private toaster: Toaster,
     private dialog: MatDialog,
     private nav: NavigationService,
-    public env: Env
+    public env: Env,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {}
@@ -581,12 +580,14 @@ export class VersionedFileComponent implements OnInit {
     this.isUploading = false;
     this.uploadFile = null;
     this.uploadFileName = "";
-    this.toaster.toast("File uploading cancelled");
+    this.snackBar.open("File uploading cancelled", "ok", { duration: 3000 });
   }
 
   upload() {
     if (!this.uploadFile) {
-      this.toaster.toast("Please select file to upload");
+      this.snackBar.open("Please select file to upload", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -595,7 +596,7 @@ export class VersionedFileComponent implements OnInit {
       this.isUploading = false;
       this.uploadFile = null;
       this.uploadFileName = "";
-      this.toaster.toast(`Failed to upload file`);
+      this.snackBar.open("Failed to upload file", "ok", { duration: 3000 });
     };
 
     this.uploadSub = this.fileService

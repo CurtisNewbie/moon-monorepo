@@ -9,10 +9,10 @@ import {
   HttpHeaderResponse,
 } from "@angular/common/http";
 import { Observable } from "rxjs";
-import { catchError, filter } from "rxjs/operators";
+import { filter } from "rxjs/operators";
 import { Resp } from "src/common/resp";
 import { Router } from "@angular/router";
-import { Toaster } from "../notification.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 // TODO: Deprecate this
 /**
@@ -20,7 +20,7 @@ import { Toaster } from "../notification.service";
  */
 @Injectable()
 export class RespInterceptor implements HttpInterceptor {
-  constructor(private router: Router, private notifi: Toaster) {}
+  constructor(private router: Router, private snackBar: MatSnackBar) {}
 
   intercept(
     httpRequest: HttpRequest<any>,
@@ -37,7 +37,7 @@ export class RespInterceptor implements HttpInterceptor {
         if (e instanceof HttpResponse) {
           let r: Resp<any> = e.body as Resp<any>;
           if (r.error) {
-            this.notifi.toast(r.msg, 6000);
+            this.snackBar.open(r.msg, "ok", { duration: 6000 });
             return false; // filter out this value
           }
         }

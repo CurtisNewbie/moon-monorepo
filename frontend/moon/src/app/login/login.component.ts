@@ -1,10 +1,10 @@
 import { Component, OnInit } from "@angular/core";
 import { NavigationService } from "../navigation.service";
-import { Toaster } from "../notification.service";
 import { NavType } from "../routes";
 import { UserService } from "../user.service";
 import { setToken } from "src/common/api-util";
 import { PlatformNotificationService } from "../platform-notification.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-login",
@@ -18,8 +18,8 @@ export class LoginComponent implements OnInit {
   constructor(
     private userService: UserService,
     private nav: NavigationService,
-    private toaster: Toaster,
-    private platformNotification: PlatformNotificationService
+    private platformNotification: PlatformNotificationService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -36,7 +36,9 @@ export class LoginComponent implements OnInit {
    */
   public login(): void {
     if (!this.usernameInput || !this.passwordInput) {
-      this.toaster.toast("Please enter username and password");
+      this.snackBar.open("Please enter username and password", "ok", {
+        duration: 3000,
+      });
       return;
     }
     this.userService.login(this.usernameInput, this.passwordInput).subscribe({

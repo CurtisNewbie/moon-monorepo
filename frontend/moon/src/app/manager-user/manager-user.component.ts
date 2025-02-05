@@ -13,11 +13,11 @@ import {
   USER_IS_DISABLED_OPTIONS,
 } from "src/common/user-info";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
-import { Toaster } from "../notification.service";
 import { RoleBrief, UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface ClearUserFailedLoginAttemptsReq {
   userNo?: string;
@@ -64,11 +64,11 @@ export class ManagerUserComponent implements OnInit {
   isEnter = isEnterKey;
 
   constructor(
-    private toaster: Toaster,
     private dialog: MatDialog,
     private http: HttpClient,
     private userService: UserService,
-    public env: Env
+    public env: Env,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -80,7 +80,9 @@ export class ManagerUserComponent implements OnInit {
    */
   addUser(): void {
     if (!this.usernameToBeAdded || !this.passswordToBeAdded) {
-      this.toaster.toast("Please enter username and password");
+      this.snackBar.open("Please enter username and password", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -223,13 +225,15 @@ export class ManagerUserComponent implements OnInit {
       .subscribe({
         next: (resp) => {
           if (resp.error) {
-            this.toaster.toast(resp.msg);
+            this.snackBar.open(resp.msg, "ok", { duration: 3000 });
             return;
           }
         },
         error: (err) => {
           console.log(err);
-          this.toaster.toast("Request failed, unknown error");
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
         },
       });
   }

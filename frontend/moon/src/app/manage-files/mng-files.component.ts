@@ -19,7 +19,6 @@ import {
 } from "src/common/file-info";
 import { PagingController } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
-import { Toaster } from "../notification.service";
 import { animateElementExpanding, isIdEqual } from "../../animate/animate-util";
 import { FileInfoService, TokenType } from "../file-info.service";
 import { NavigationService } from "../navigation.service";
@@ -186,7 +185,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   setSearchFileType = (fileType) => (this.searchParam.fileType = fileType);
 
   constructor(
-    private toaster: Toaster,
     private dialog: MatDialog,
     private fileService: FileInfoService,
     private nav: NavigationService,
@@ -243,7 +241,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   mkdir() {
     const dirName = this.newDirName;
     if (!dirName) {
-      this.toaster.toast("Please enter new directory name");
+      this.snackBar.open("Please enter new directory name", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -317,12 +317,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /** Upload file */
   upload(): void {
     if (this.isUploading) {
-      this.toaster.toast("Uploading, please wait for a moment");
+      this.snackBar.open("Uploading, please wait for a moment", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
     if (this.uploadParam.files.length < 1) {
-      this.toaster.toast("Please select a file to upload");
+      this.snackBar.open("Please select a file to upload", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -330,7 +334,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     // single file upload name is required
     if (!this.displayedUploadName && isSingleUpload) {
-      this.toaster.toast("Please enter filename");
+      this.snackBar.open("Please enter filename", "ok", { duration: 3000 });
       return;
     }
 
@@ -449,7 +453,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             uuid: f.uuid,
           })
           .subscribe((resp) => {
-            this.toaster.toast("Truncating directory, please wait for a while");
+            this.snackBar.open(
+              "Truncating directory, please wait for a while",
+              "ok",
+              { duration: 3000 }
+            );
             this.curr = null;
             this.currId = -1;
             this.fetchFileInfoList();
@@ -479,7 +487,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     this.isUploading = false;
     this._resetFileUploadParam();
-    this.toaster.toast("File uploading cancelled");
+    this.snackBar.open("File uploading cancelled", "ok", { duration: 3000 });
   }
 
   /** Update file's info */
@@ -827,7 +835,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     const abortUpload = () => {
       this.progress = null;
       this.isUploading = false;
-      this.toaster.toast(`Failed to upload file ${name} `);
+      this.snackBar.open(`Failed to upload file ${name} `, "ok", {
+        duration: 3000,
+      });
       this._resetFileUploadParam();
     };
 
@@ -954,7 +964,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       .subscribe({
         next: () => {
           this.fetchFileInfoList();
-          this.toaster.toast(`Unpacking ${fi.name}, please be patient.`);
+          this.snackBar.open(`Unpacking ${fi.name}, please be patient.`, "ok", {
+            duration: 3000,
+          });
           this.currId = -1;
         },
       });
@@ -982,7 +994,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           });
 
         copyToClipboard(url);
-        this.toaster.toast("Link copied to clipboard", 3000, "ok");
+        this.snackBar.open("Link copied to clipboard", "ok", {
+          duration: 3000,
+        });
 
         dialogRef.afterClosed().subscribe((confirm) => {
           // do nothing

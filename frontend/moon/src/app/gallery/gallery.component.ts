@@ -10,11 +10,11 @@ import { Gallery } from "src/common/gallery";
 import { Paging, PagingController } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { NavigationService } from "../navigation.service";
-import { Toaster } from "../notification.service";
 import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 import { GalleryAccessComponent } from "../gallery-access/gallery-access.component";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface ListGalleriesResp {
   paging: Paging;
@@ -53,9 +53,9 @@ export class GalleryComponent implements OnInit {
   constructor(
     public env: Env,
     private http: HttpClient,
-    private toaster: Toaster,
     private navigation: NavigationService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit() {}
@@ -76,7 +76,7 @@ export class GalleryComponent implements OnInit {
 
   createGallery() {
     if (!this.newGalleryName) {
-      this.toaster.toast("Please enter new gallery's name");
+      this.snackBar.open("Please enter new gallery's name", "ok", { duration: 3000 });;
       return;
     }
 

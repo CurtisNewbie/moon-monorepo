@@ -12,18 +12,17 @@ import {
   MatSelectionListChange,
 } from "@angular/material/list";
 import { Subscription } from "rxjs";
-import { environment } from "src/environments/environment";
 import { VFolder } from "src/common/folder";
 import { PagingController } from "src/common/paging";
 import { Resp } from "src/common/resp";
 import { UserInfo } from "src/common/user-info";
 import { GrantAccessDialogComponent } from "../grant-access-dialog/grant-access-dialog.component";
 import { NavigationService } from "../navigation.service";
-import { Toaster } from "../notification.service";
 import { NavType } from "../routes";
 import { UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-folder",
@@ -50,10 +49,10 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
   constructor(
     private http: HttpClient,
-    private toaster: Toaster,
     private navi: NavigationService,
     private dialog: MatDialog,
-    private userService: UserService
+    private userService: UserService,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -108,7 +107,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
       })
       .subscribe({
         next: (resp) => {
-          this.toaster.toast("Virtual Folder Removed");
+          this.snackBar.open("Virtual Folder Removed", "ok", { duration: 3000 });;
           this.fetchFolders();
         },
       });
@@ -168,7 +167,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
   createFolder(): void {
     if (!this.newFolderName) {
-      this.toaster.toast("Please enter folder name");
+      this.snackBar.open("Please enter folder name", "ok", { duration: 3000 });;
       return;
     }
 

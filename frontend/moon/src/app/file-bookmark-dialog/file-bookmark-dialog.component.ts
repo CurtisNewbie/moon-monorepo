@@ -1,6 +1,5 @@
 import { Component, OnInit } from "@angular/core";
 import { FileBookmark, TempFile } from "src/common/file-bookmark";
-import { Toaster } from "../notification.service";
 import { MatDialog } from "@angular/material/dialog";
 import { DirectoryMoveFileComponent } from "../directory-move-file/directory-move-file.component";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
@@ -74,7 +73,6 @@ export class FileBookmarkDialogComponent implements OnInit {
 
   constructor(
     private fileBookmark: FileBookmark,
-    private toaster: Toaster,
     private dialog: MatDialog,
     private http: HttpClient
   ) {}

@@ -1,13 +1,12 @@
 import { Component, OnInit } from "@angular/core";
 import { getExpanded, isIdEqual } from "src/animate/animate-util";
-import { environment } from "src/environments/environment";
 import { PagingController } from "src/common/paging";
-import { Toaster } from "../notification.service";
 import { isEnterKey } from "src/common/condition";
 import { MngResDialogComponent } from "../mng-res-dialog/mng-res-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface WRes {
   id?: number;
@@ -51,9 +50,9 @@ export class ManageResourcesComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private toaster: Toaster,
     private dialog: MatDialog,
-    public env: Env
+    public env: Env,
+    private snackBar: MatSnackBar,
   ) {}
 
   reset() {
@@ -94,11 +93,11 @@ export class ManageResourcesComponent implements OnInit {
 
   createNewRes() {
     if (!this.newResName) {
-      this.toaster.toast("Please enter new resource name");
+      this.snackBar.open("Please enter new resource name", "ok", { duration: 3000 });;
       return;
     }
     if (!this.newResCode) {
-      this.toaster.toast("Please enter new resource code");
+      this.snackBar.open("Please enter new resource code", "ok", { duration: 3000 });;
       return;
     }
 

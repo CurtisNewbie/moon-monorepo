@@ -3,9 +3,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { ConfirmDialog } from "src/common/dialog";
 import { VFolderBrief } from "src/common/folder";
 import { filterAlike } from "src/common/select-util";
-import { environment } from "src/environments/environment";
-import { Toaster } from "../notification.service";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 type VfFile = {
   fileKey: string;
@@ -34,7 +33,7 @@ export class VfolderAddFileComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public dat: Data,
     private http: HttpClient,
     private confirmDialog: ConfirmDialog,
-    private notifi: Toaster
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -49,20 +48,20 @@ export class VfolderAddFileComponent implements OnInit {
   }
 
   fetchOwnedVFolderBrief() {
-    this.http
-      .get<any>(`vfm/open/api/vfolder/brief/owned`)
-      .subscribe({
-        next: (resp) => {
-          this.vfolderBrief = resp.data;
-          this.onAddToVFolderNameChanged();
-        },
-      });
+    this.http.get<any>(`vfm/open/api/vfolder/brief/owned`).subscribe({
+      next: (resp) => {
+        this.vfolderBrief = resp.data;
+        this.onAddToVFolderNameChanged();
+      },
+    });
   }
 
   addToVirtualFolder() {
     const vfolderName = this.addToVFolderName;
     if (!vfolderName) {
-      this.notifi.toast("Please select a folder first");
+      this.snackBar.open("Please select a folder first", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -71,12 +70,18 @@ export class VfolderAddFileComponent implements OnInit {
       (v) => v.name === vfolderName
     );
     if (!matched || matched.length < 1) {
-      this.notifi.toast("Virtual Folder not found, please check and try again");
+      this.snackBar.open(
+        "Virtual Folder not found, please check and try again",
+        "ok",
+        { duration: 3000 }
+      );
       return;
     }
     if (matched.length > 1) {
-      this.notifi.toast(
-        "Found multiple virtual folder with the same name, please try again"
+      this.snackBar.open(
+        "Found multiple virtual folder with the same name, please try again",
+        "ok",
+        { duration: 3000 }
       );
       return;
     }
@@ -95,7 +100,7 @@ export class VfolderAddFileComponent implements OnInit {
           })
           .subscribe({
             complete: () => {
-              this.notifi.toast("Success");
+              this.snackBar.open("Success", "ok", { duration: 3000 });
             },
           });
       }
