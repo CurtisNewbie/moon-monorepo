@@ -48,6 +48,10 @@ export class ManageBookmarksComponent implements OnInit {
       })
       .subscribe({
         next: (r) => {
+          if (r.error) {
+            this.snackBar.open(r.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.tabdat = r.data.payload;
           this.pagingController.onTotalChanged(r.data.paging);
         },
@@ -91,6 +95,12 @@ export class ManageBookmarksComponent implements OnInit {
 
   remove(id) {
     this.http.post<any>(`vfm/bookmark/remove`, { id: id }).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+      },
       complete: () => this.fetchList(),
     });
   }

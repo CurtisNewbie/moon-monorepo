@@ -55,7 +55,7 @@ export class GalleryComponent implements OnInit {
     private http: HttpClient,
     private navigation: NavigationService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {}
@@ -67,6 +67,10 @@ export class GalleryComponent implements OnInit {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.pagingController.onTotalChanged(resp.data.paging);
           this.galleries = resp.data.payload;
           this.expandedElement = null;
@@ -76,7 +80,9 @@ export class GalleryComponent implements OnInit {
 
   createGallery() {
     if (!this.newGalleryName) {
-      this.snackBar.open("Please enter new gallery's name", "ok", { duration: 3000 });;
+      this.snackBar.open("Please enter new gallery's name", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -86,6 +92,10 @@ export class GalleryComponent implements OnInit {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.newGalleryName = null;
         },
         complete: () => {
@@ -123,6 +133,12 @@ export class GalleryComponent implements OnInit {
             galleryNo: galleryNo,
           })
           .subscribe({
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
+            },
             complete: () => this.fetchGalleries(),
           });
         this.expandedElement = null;
@@ -145,11 +161,17 @@ export class GalleryComponent implements OnInit {
     if (!galleryNo || !name) return;
 
     this.http
-      .post(`vfm/open/api/gallery/update`, {
+      .post<any>(`vfm/open/api/gallery/update`, {
         galleryNo: galleryNo,
         name: name,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => {
           this.expandedElement = null;
           this.fetchGalleries();

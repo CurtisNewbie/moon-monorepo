@@ -249,12 +249,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     this.newDirName = null;
     this.http
-      .post(`vfm/open/api/file/make-dir`, {
+      .post<any>(`vfm/open/api/file/make-dir`, {
         name: dirName,
         parentFile: this.inDirFileKey,
       })
       .subscribe({
-        next: () => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.fetchFileInfoList();
           this.makingDir = false;
         },
@@ -285,6 +289,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.fileInfoList = [];
           if (resp.data.payload) {
             for (let f of resp.data.payload) {
@@ -387,6 +395,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       .get<any>(`vfm/open/api/file/parent?fileKey=${this.inDirFileKey}`)
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           if (resp.data) {
             this.goToDir(resp.data.fileKey);
           } else {
@@ -453,6 +465,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             uuid: f.uuid,
           })
           .subscribe((resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
+            }
             this.snackBar.open(
               "Truncating directory, please wait for a while",
               "ok",
@@ -501,6 +517,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         sensitiveMode: u.sensitiveMode,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => {
           this.fetchFileInfoList();
           this.curr = null;
@@ -537,6 +559,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       )
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+
           const token = resp.data;
 
           const getDownloadUrl = () =>
@@ -865,12 +892,17 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
               // create the record in vfm
               this.http
-                .post(`vfm/open/api/file/create`, {
+                .post<any>(`vfm/open/api/file/create`, {
                   filename: uploadParam.fileName,
                   fstoreFileId: fstoreRes.data,
                   parentFile: uploadParam.parentFile,
                 })
                 .subscribe({
+                  next: (resp) => {
+                    if (resp.error) {
+                      abortUpload();
+                    }
+                  },
                   complete: onComplete,
                   error: () => {
                     abortUpload();
@@ -900,6 +932,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         )
         .subscribe({
           next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
+            }
             let isDuplicate = resp.data;
             if (!isDuplicate) {
               uploadFileCallback();
@@ -957,12 +993,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   unpack(fi: FileInfo) {
     this.http
-      .post(`vfm/open/api/file/unpack`, {
+      .post<any>(`vfm/open/api/file/unpack`, {
         fileKey: fi.uuid,
         parentFileKey: this.inDirFileKey,
       })
       .subscribe({
-        next: () => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.fetchFileInfoList();
           this.snackBar.open(`Unpacking ${fi.name}, please be patient.`, "ok", {
             duration: 3000,

@@ -51,12 +51,16 @@ export class GalleryAccessComponent implements OnInit {
     }
 
     this.http
-      .post<void>(`vfm/open/api/gallery/access/grant`, {
+      .post<any>(`vfm/open/api/gallery/access/grant`, {
         galleryNo: this.data.galleryNo,
         username: this.grantedTo,
       })
       .subscribe({
-        next: () => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.snackBar.open("Access granted", "ok", { duration: 3000 });
           this.fetchAccessGranted();
         },
@@ -75,6 +79,10 @@ export class GalleryAccessComponent implements OnInit {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.grantedAccesses = [];
           if (resp.data.payload) {
             for (let g of resp.data.payload) {
@@ -93,12 +101,16 @@ export class GalleryAccessComponent implements OnInit {
 
   removeFolderAccess(userNo: string): void {
     this.http
-      .post<void>(`vfm/open/api/gallery/access/remove`, {
+      .post<any>(`vfm/open/api/gallery/access/remove`, {
         userNo: userNo,
         galleryNo: this.data.galleryNo,
       })
       .subscribe({
-        next: () => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.fetchAccessGranted();
         },
       });

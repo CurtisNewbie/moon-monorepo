@@ -59,8 +59,15 @@ export class DirectoryMoveFileComponent implements OnInit {
       reqs.push({ uuid: f.fileKey, parentFileUuid: dirFileKey });
     }
     this.http
-      .post(`/vfm/open/api/file/batch-move-to-dir`, { instructions: reqs })
-      .subscribe();
+      .post<any>(`/vfm/open/api/file/batch-move-to-dir`, { instructions: reqs })
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
+      });
   }
 
   fetchTopDownDirTree() {

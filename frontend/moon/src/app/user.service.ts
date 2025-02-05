@@ -36,6 +36,10 @@ export class UserService implements OnDestroy {
       if (t != null) {
         this.exchangeToken(t).subscribe({
           next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
+            }
             setToken(resp.data);
           },
         });
@@ -64,6 +68,10 @@ export class UserService implements OnDestroy {
   public fetchUserResources() {
     this.http.get<any>(`user-vault/open/api/resource/brief/user`).subscribe({
       next: (res) => {
+        if (res.error) {
+          this.snackBar.open(res.msg, "ok", { duration: 6000 });
+          return;
+        }
         this.resources = new Set();
         if (res.data) {
           for (let r of res.data) {
@@ -107,24 +115,6 @@ export class UserService implements OnDestroy {
   }
 
   /**
-   * Add user, only admin is allowed to add user
-   * @param username
-   * @param password
-   * @returns
-   */
-  public addUser(
-    username: string,
-    password: string,
-    userRole: string
-  ): Observable<Resp<any>> {
-    return this.http.post<any>(`user-vault/open/api/user/register`, {
-      username,
-      password,
-      userRole,
-    });
-  }
-
-  /**
    * Register user
    * @param username
    * @param password
@@ -163,20 +153,6 @@ export class UserService implements OnDestroy {
   }
 
   /**
-   * Fetch user details
-   */
-  public fetchUserDetails(): Observable<
-    Resp<{
-      id;
-      username;
-      role;
-      registerDate;
-    }>
-  > {
-    return this.http.get<any>(`user-vault/open/api/user/info`);
-  }
-
-  /**
    * Exchange Token
    */
   private exchangeToken(token: string): Observable<Resp<string>> {
@@ -197,9 +173,5 @@ export class UserService implements OnDestroy {
 
   public fetchRoleBriefs(): Observable<Resp<any>> {
     return this.http.get<any>(`user-vault/open/api/role/brief/all`);
-  }
-
-  public fetchAllResBrief(): Observable<Resp<any>> {
-    return this.http.get<any>(`user-vault/open/api/resource/brief/all`);
   }
 }

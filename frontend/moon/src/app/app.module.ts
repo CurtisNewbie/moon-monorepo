@@ -15,7 +15,6 @@ import { LoginComponent } from "./login/login.component";
 import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { NavComponent } from "./nav/nav.component";
-import { RespInterceptor } from "./interceptors/resp-interceptor";
 import { ErrorInterceptor } from "./interceptors/error-interceptor";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { MatDatepickerModule } from "@angular/material/datepicker";
@@ -186,7 +185,6 @@ PlotlyModule.plotlyjs = PlotlyJS;
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: APP_BASE_HREF, useValue: "/" },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: RespInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
     {
       provide: HIGHLIGHT_OPTIONS,

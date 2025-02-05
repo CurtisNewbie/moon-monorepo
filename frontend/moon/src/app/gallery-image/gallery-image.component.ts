@@ -17,6 +17,7 @@ import { NavType } from "../routes";
 import { MatMenuTrigger } from "@angular/material/menu";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { Subscription } from "rxjs";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-gallery-image",
@@ -39,7 +40,8 @@ export class GalleryImageComponent implements OnInit {
     private _lightbox: Lightbox,
     private _lbConfig: LightboxConfig,
     private _lightboxEvent: LightboxEvent,
-    private browseHistoryRecorder: BrowseHistoryRecorder
+    private browseHistoryRecorder: BrowseHistoryRecorder,
+    private snackBar: MatSnackBar
   ) {
     _lbConfig.containerElementResolver = (doc: Document) =>
       doc.getElementById("lightboxdiv");
@@ -70,6 +72,10 @@ export class GalleryImageComponent implements OnInit {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.pagingController.onTotalChanged(resp.data.paging);
 
           this.images = [];

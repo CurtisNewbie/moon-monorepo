@@ -16,7 +16,7 @@ export class NavComponent implements OnInit, OnDestroy {
   version = Version;
   userInfo: UserInfo = null;
   copyToClipboard = (s) => {
-    this.snackBar.open("Copied to clipboard", "ok", { duration: 3000 });;
+    this.snackBar.open("Copied to clipboard", "ok", { duration: 3000 });
     copyToClipboard(s);
   };
   unreadCount = 0;
@@ -26,7 +26,7 @@ export class NavComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private http: HttpClient,
     private platformNotification: PlatformNotificationService,
-    private snackBar: MatSnackBar,
+    private snackBar: MatSnackBar
   ) {
     platformNotification.subscribeChange().subscribe({
       next: () => {
@@ -79,7 +79,13 @@ export class NavComponent implements OnInit, OnDestroy {
         `user-vault/open/api/v2/notification/count?curr=${this.unreadCount}`
       )
       .subscribe({
-        next: (res) => (this.unreadCount = res.data),
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.unreadCount = resp.data;
+        },
         complete: () => {
           this.fetching = false;
         },

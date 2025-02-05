@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { environment } from "src/environments/environment";
 import { PagingController } from "src/common/paging";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface OperateLog {
   /** name of operation */
@@ -40,29 +41,32 @@ export class OperateHistoryComponent implements OnInit {
     "operateParam",
   ];
 
-  constructor(
-    private http: HttpClient,
-  ) { }
+  constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   fetchOperateLogList(): void {
-    this.http.post<any>(
-       `user-vault/open/api/operate/history`,
-      this.pagingController.paging
-    ).subscribe({
-      next: (resp) => {
-        this.operateLogList = [];
-        if (resp.data.operateLogVoList) {
-          for (let r of resp.data.operateLogVoList) {
-            if (r.operateTime) r.operateTime = new Date(r.operateTime);
-            this.operateLogList.push(r);
+    this.http
+      .post<any>(
+        `user-vault/open/api/operate/history`,
+        this.pagingController.paging
+      )
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
           }
-        }
-        this.pagingController.onTotalChanged(resp.data.paging);
-      },
-    });
+          this.operateLogList = [];
+          if (resp.data.operateLogVoList) {
+            for (let r of resp.data.operateLogVoList) {
+              if (r.operateTime) r.operateTime = new Date(r.operateTime);
+              this.operateLogList.push(r);
+            }
+          }
+          this.pagingController.onTotalChanged(resp.data.paging);
+        },
+      });
   }
 
   onPagingControllerReady(pc) {
@@ -70,5 +74,4 @@ export class OperateHistoryComponent implements OnInit {
     this.pagingController.onPageChanged = () => this.fetchOperateLogList();
     this.fetchOperateLogList();
   }
-
 }

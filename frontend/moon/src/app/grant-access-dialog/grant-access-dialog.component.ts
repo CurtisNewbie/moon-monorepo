@@ -41,18 +41,22 @@ export class GrantAccessDialogComponent implements OnInit {
 
   grantFolderAccess() {
     if (!this.grantedTo) {
-      this.snackBar.open("Enter username first", "ok", { duration: 3000 });;
+      this.snackBar.open("Enter username first", "ok", { duration: 3000 });
       return;
     }
 
     this.http
-      .post<void>(`vfm/open/api/vfolder/share`, {
+      .post<any>(`vfm/open/api/vfolder/share`, {
         folderNo: this.data.folderNo,
         username: this.grantedTo,
       })
       .subscribe({
-        next: () => {
-          this.snackBar.open("Access granted", "ok", { duration: 3000 });;
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.snackBar.open("Access granted", "ok", { duration: 3000 });
           this.fetchAccessGranted();
         },
       });
@@ -70,6 +74,10 @@ export class GrantAccessDialogComponent implements OnInit {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.grantedAccesses = [];
           if (resp.data.payload) {
             for (let g of resp.data.payload) {
@@ -88,12 +96,16 @@ export class GrantAccessDialogComponent implements OnInit {
 
   removeFolderAccess(userNo: string): void {
     this.http
-      .post<void>(`vfm/open/api/vfolder/access/remove`, {
+      .post<any>(`vfm/open/api/vfolder/access/remove`, {
         userNo: userNo,
         folderNo: this.data.folderNo,
       })
       .subscribe({
-        next: () => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.fetchAccessGranted();
         },
       });

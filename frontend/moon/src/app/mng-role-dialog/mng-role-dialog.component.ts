@@ -43,7 +43,7 @@ export class MngRoleDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public dat: DialogDat,
     private http: HttpClient,
     private confirmDialog: ConfirmDialog,
-    private snackBar: MatSnackBar,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -56,15 +56,21 @@ export class MngRoleDialogComponent implements OnInit {
         `user-vault/open/api/resource/brief/candidates?roleNo=${this.dat.roleNo}`
       )
       .subscribe({
-        next: (res) => {
-          this.resBriefs = res.data;
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.resBriefs = resp.data;
         },
       });
   }
 
   addResource() {
     if (!this.addResCode) {
-      this.snackBar.open("Please select resource to add", "ok", { duration: 3000 });;
+      this.snackBar.open("Please select resource to add", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -74,7 +80,11 @@ export class MngRoleDialogComponent implements OnInit {
         resCode: this.addResCode,
       })
       .subscribe({
-        next: (res) => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.addResCode = null;
           this.listResources();
           this.fetchResourceCandidates();
@@ -89,14 +99,18 @@ export class MngRoleDialogComponent implements OnInit {
         paging: this.pagingController.paging,
       })
       .subscribe({
-        next: (res) => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.roleRes = [];
-          if (res.data && res.data.payload) {
-            for (let r of res.data.payload) {
+          if (resp.data && resp.data.payload) {
+            for (let r of resp.data.payload) {
               if (r.createTime) r.createTime = new Date(r.createTime);
               this.roleRes.push(r);
             }
-            this.pagingController.onTotalChanged(res.data.paging);
+            this.pagingController.onTotalChanged(resp.data.paging);
           }
         },
       });
@@ -121,7 +135,11 @@ export class MngRoleDialogComponent implements OnInit {
             resCode: roleRes.resCode,
           })
           .subscribe({
-            next: (res) => {
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
               this.listResources();
               this.fetchResourceCandidates();
             },

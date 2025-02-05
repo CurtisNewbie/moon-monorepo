@@ -55,10 +55,7 @@ export class ManageKeysComponent implements OnInit {
   isEnter = isEnterKey;
   copyToClipboard = copyToClipboard;
 
-  constructor(
-    private http: HttpClient,
-    private snackBar: MatSnackBar,
-  ) {}
+  constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
 
   ngOnInit() {}
 
@@ -75,6 +72,10 @@ export class ManageKeysComponent implements OnInit {
         paging: this.pagingController.paging,
       })
       .subscribe((resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
         if (resp.data) {
           this.tokens = [];
           if (resp.data.payload) {
@@ -101,11 +102,11 @@ export class ManageKeysComponent implements OnInit {
 
   generateRandomKey() {
     if (!this.password) {
-      this.snackBar.open("Please enter password", "ok", { duration: 3000 });;
+      this.snackBar.open("Please enter password", "ok", { duration: 3000 });
       return;
     }
     if (!this.newUserKeyName) {
-      this.snackBar.open("Please enter key name", "ok", { duration: 3000 });;
+      this.snackBar.open("Please enter key name", "ok", { duration: 3000 });
       return;
     }
 
@@ -115,12 +116,16 @@ export class ManageKeysComponent implements OnInit {
     this.password = null;
 
     this.http
-      .post<void>(`user-vault/open/api/user/key/generate`, {
+      .post<any>(`user-vault/open/api/user/key/generate`, {
         password: pw,
         keyName: keyName,
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.fetchList();
           this.newUserKeyName = null;
           this.panelDisplayed = false;
@@ -130,10 +135,16 @@ export class ManageKeysComponent implements OnInit {
 
   deleteUserKey(id: number) {
     this.http
-      .post<void>(`user-vault/open/api/user/key/delete`, {
+      .post<any>(`user-vault/open/api/user/key/delete`, {
         userKeyId: id,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => this.fetchList(),
       });
   }

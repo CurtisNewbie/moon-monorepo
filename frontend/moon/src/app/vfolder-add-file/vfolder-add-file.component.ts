@@ -50,6 +50,10 @@ export class VfolderAddFileComponent implements OnInit {
   fetchOwnedVFolderBrief() {
     this.http.get<any>(`vfm/open/api/vfolder/brief/owned`).subscribe({
       next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
         this.vfolderBrief = resp.data;
         this.onAddToVFolderNameChanged();
       },
@@ -94,12 +98,16 @@ export class VfolderAddFileComponent implements OnInit {
       ],
       () => {
         this.http
-          .post(`vfm/open/api/vfolder/file/add`, {
+          .post<any>(`vfm/open/api/vfolder/file/add`, {
             folderNo: addToFolderNo,
             fileKeys: this.dat.files.map((f) => f.fileKey),
           })
           .subscribe({
-            complete: () => {
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
               this.snackBar.open("Success", "ok", { duration: 3000 });
             },
           });

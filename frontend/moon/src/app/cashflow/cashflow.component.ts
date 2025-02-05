@@ -354,6 +354,12 @@ export class CashflowComponent implements OnInit {
       this.http
         .post<any>(`/acct/open/api/v1/cashflow/import/wechat`, this.file)
         .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
+            }
+          },
           complete: () => {
             this.file = null;
             this.showUploadPanel = false;

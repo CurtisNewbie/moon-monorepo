@@ -73,11 +73,15 @@ export class HostOnGalleryComponent implements OnInit {
         });
 
         this.http
-          .post(`vfm/open/api/gallery/image/transfer`, {
+          .post<any>(`vfm/open/api/gallery/image/transfer`, {
             images: params,
           })
           .subscribe({
-            complete: () => {
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
               this.snackBar.open(
                 "Request success! It may take a while.",
                 "ok",
@@ -121,6 +125,10 @@ export class HostOnGalleryComponent implements OnInit {
   private _fetchOwnedGalleryBrief() {
     this.http.get<any>(`vfm/open/api/gallery/brief/owned`).subscribe({
       next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
         this.galleryBriefs = resp.data;
         this.onAddToGalleryNameChanged();
       },

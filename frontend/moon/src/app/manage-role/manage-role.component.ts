@@ -57,6 +57,10 @@ export class ManageRoleComponent implements OnInit {
       })
       .subscribe({
         next: (r) => {
+          if (r.error) {
+            this.snackBar.open(r.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.roles = [];
           if (r.data && r.data.payload) {
             for (let ro of r.data.payload) {
@@ -102,11 +106,15 @@ export class ManageRoleComponent implements OnInit {
     }
 
     this.http
-      .post(`user-vault/open/api/role/add`, {
+      .post<any>(`user-vault/open/api/role/add`, {
         name: this.newRoleName,
       })
       .subscribe({
-        next: (res) => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.newRoleDialog = false;
           this.newRoleName = null;
           this.fetchList();

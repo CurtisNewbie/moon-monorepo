@@ -93,6 +93,12 @@ export class ManagerUserComponent implements OnInit {
         roleNo: this.userRoleOfAddedUser,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => {
           this.userRoleOfAddedUser = null;
           this.usernameToBeAdded = null;
@@ -106,6 +112,11 @@ export class ManagerUserComponent implements OnInit {
   fetchRoleBriefs(): void {
     this.userService.fetchRoleBriefs().subscribe({
       next: (dat) => {
+        if (dat.error) {
+          this.snackBar.open(dat.msg, "ok", { duration: 6000 });
+          return;
+        }
+
         this.roleBriefs = [];
         if (dat.data) {
           this.roleBriefs = dat.data;
@@ -120,6 +131,10 @@ export class ManagerUserComponent implements OnInit {
       .post<any>(`user-vault/open/api/user/list`, this.searchParam)
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.userInfoList = [];
           if (resp.data.payload) {
             for (let r of resp.data.payload) {
@@ -143,12 +158,18 @@ export class ManagerUserComponent implements OnInit {
    */
   updateUserInfo(): void {
     this.http
-      .post<void>(`user-vault/open/api/user/info/update`, {
+      .post<any>(`user-vault/open/api/user/info/update`, {
         userNo: this.expandedElement.userNo,
         roleNo: this.expandedElement.roleNo,
         isDisabled: this.expandedElement.isDisabled,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => {
           this.fetchUserInfoList();
           this.expandedElement = null;
@@ -176,10 +197,16 @@ export class ManagerUserComponent implements OnInit {
       console.log(confirm);
       if (confirm) {
         this.http
-          .post<void>(`user-vault/open/api/user/delete`, {
+          .post<any>(`user-vault/open/api/user/delete`, {
             id: this.expandedElement.id,
           })
           .subscribe({
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
+            },
             complete: () => {
               this.expandedElement = null;
               this.fetchUserInfoList();
@@ -191,11 +218,17 @@ export class ManagerUserComponent implements OnInit {
 
   reviewRegistration(userId: number, reviewStatus: string) {
     this.http
-      .post<void>(`user-vault/open/api/user/registration/review`, {
+      .post<any>(`user-vault/open/api/user/registration/review`, {
         userId: userId,
         reviewStatus: reviewStatus,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => {
           this.fetchUserInfoList();
           this.expandedElement = null;

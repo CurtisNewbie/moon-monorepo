@@ -11,6 +11,7 @@ import { WPath } from "../manage-paths/manage-paths.component";
 import { WRes } from "../manage-resources/manage-resources.component";
 import { ConfirmDialog } from "src/common/dialog";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface DialogDat {
   res: WRes;
@@ -39,7 +40,8 @@ export class MngResDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public dat: DialogDat,
     private dialog: MatDialog,
     private confirmDialog: ConfirmDialog,
-    private http: HttpClient
+    private http: HttpClient,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {}
@@ -51,16 +53,20 @@ export class MngResDialogComponent implements OnInit {
         resCode: this.dat.res.code,
       })
       .subscribe({
-        next: (r) => {
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.paths = [];
-          if (r.data && r.data.payload) {
-            for (let ro of r.data.payload) {
+          if (resp.data && resp.data.payload) {
+            for (let ro of resp.data.payload) {
               if (ro.createTime) ro.createTime = new Date(ro.createTime);
               if (ro.updateTime) ro.updateTime = new Date(ro.updateTime);
               this.paths.push(ro);
             }
           }
-          this.pagingController.onTotalChanged(r.data.paging);
+          this.pagingController.onTotalChanged(resp.data.paging);
         },
       });
   }
@@ -79,11 +85,15 @@ export class MngResDialogComponent implements OnInit {
       console.log(confirm);
       if (confirm) {
         this.http
-          .post(`user-vault/open/api/resource/remove`, {
+          .post<any>(`user-vault/open/api/resource/remove`, {
             resCode: this.dat.res.code,
           })
           .subscribe({
-            next: (r) => {
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
               this.dialogRef.close();
             },
           });
@@ -101,11 +111,17 @@ export class MngResDialogComponent implements OnInit {
 
     this.confirmDialog.show(title, msg, () => {
       this.http
-        .post(`user-vault/open/api/path/resource/unbind`, {
+        .post<any>(`user-vault/open/api/path/resource/unbind`, {
           pathNo: pathNo,
           resCode: resCode,
         })
-        .subscribe(() => this.listPathsBound());
+        .subscribe((resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.listPathsBound();
+        });
     });
   }
 

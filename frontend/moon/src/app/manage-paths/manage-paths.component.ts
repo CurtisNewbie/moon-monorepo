@@ -115,6 +115,10 @@ export class ManagePathsComponent implements OnInit {
       })
       .subscribe({
         next: (r) => {
+          if (r.error) {
+            this.snackBar.open(r.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.paths = [];
           if (r.data && r.data.payload) {
             for (let ro of r.data.payload) {

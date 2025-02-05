@@ -4,6 +4,7 @@ import { environment } from "src/environments/environment";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface ListedErrorLog {
   id?: number;
@@ -41,7 +42,11 @@ export class ManageLogsComponent implements OnInit {
   tabdat = [];
   isEnter = isEnterKey;
 
-  constructor(private http: HttpClient, public env: Env) {}
+  constructor(
+    private http: HttpClient,
+    public env: Env,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {}
 
@@ -64,6 +69,10 @@ export class ManageLogsComponent implements OnInit {
       })
       .subscribe({
         next: (r) => {
+          if (r.error) {
+            this.snackBar.open(r.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.tabdat = [];
           if (r.data && r.data.payload) {
             for (let ro of r.data.payload) {

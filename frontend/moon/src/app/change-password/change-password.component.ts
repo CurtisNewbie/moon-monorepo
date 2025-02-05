@@ -21,11 +21,10 @@ export class ChangePasswordComponent implements OnInit {
   constructor(
     private nav: NavigationService,
     private userService: UserService,
-    private snackBar: MatSnackBar,
-  ) { }
+    private snackBar: MatSnackBar
+  ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   changePassword() {
     if (
@@ -33,12 +32,14 @@ export class ChangePasswordComponent implements OnInit {
       !hasText(this.changePasswordParam.newPassword) ||
       !hasText(this.newPasswordConfirm)
     ) {
-      this.snackBar.open("Please enter passwords", "ok", { duration: 3000 });;
+      this.snackBar.open("Please enter passwords", "ok", { duration: 3000 });
       return;
     }
 
     if (this.changePasswordParam.newPassword !== this.newPasswordConfirm) {
-      this.snackBar.open("Confirmed password is not matched", "ok", { duration: 3000 });;
+      this.snackBar.open("Confirmed password is not matched", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -46,13 +47,19 @@ export class ChangePasswordComponent implements OnInit {
       this.changePasswordParam.prevPassword ===
       this.changePasswordParam.newPassword
     ) {
-      this.snackBar.open("new password must be different", "ok", { duration: 3000 });;
+      this.snackBar.open("new password must be different", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
     this.userService.changePassword(this.changePasswordParam).subscribe({
       next: (result) => {
-        this.snackBar.open("Password changed", "ok", { duration: 3000 });;
+        if (result.error) {
+          this.snackBar.open(result.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.snackBar.open("Password changed", "ok", { duration: 3000 });
         this.nav.navigateTo(NavType.MANAGE_USER);
       },
       complete: () => {

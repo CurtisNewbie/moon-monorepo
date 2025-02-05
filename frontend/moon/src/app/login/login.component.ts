@@ -43,6 +43,10 @@ export class LoginComponent implements OnInit {
     }
     this.userService.login(this.usernameInput, this.passwordInput).subscribe({
       next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
         setToken(resp.data);
         this.routeToHomePage();
         this.userService.fetchUserInfo();

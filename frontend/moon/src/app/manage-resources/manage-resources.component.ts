@@ -52,7 +52,7 @@ export class ManageResourcesComponent implements OnInit {
     private http: HttpClient,
     private dialog: MatDialog,
     public env: Env,
-    private snackBar: MatSnackBar,
+    private snackBar: MatSnackBar
   ) {}
 
   reset() {
@@ -72,6 +72,10 @@ export class ManageResourcesComponent implements OnInit {
       })
       .subscribe({
         next: (r) => {
+          if (r.error) {
+            this.snackBar.open(r.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.resources = [];
           if (r.data && r.data.payload) {
             for (let ro of r.data.payload) {
@@ -93,21 +97,29 @@ export class ManageResourcesComponent implements OnInit {
 
   createNewRes() {
     if (!this.newResName) {
-      this.snackBar.open("Please enter new resource name", "ok", { duration: 3000 });;
+      this.snackBar.open("Please enter new resource name", "ok", {
+        duration: 3000,
+      });
       return;
     }
     if (!this.newResCode) {
-      this.snackBar.open("Please enter new resource code", "ok", { duration: 3000 });;
+      this.snackBar.open("Please enter new resource code", "ok", {
+        duration: 3000,
+      });
       return;
     }
 
     this.http
-      .post(`user-vault/open/api/resource/add`, {
+      .post<any>(`user-vault/open/api/resource/add`, {
         name: this.newResName,
         code: this.newResCode,
       })
       .subscribe({
         next: (r) => {
+          if (r.error) {
+            this.snackBar.open(r.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.newResDialog = false;
           this.newResName = null;
           this.newResCode = null;

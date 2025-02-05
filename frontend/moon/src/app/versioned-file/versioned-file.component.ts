@@ -236,7 +236,8 @@ export class VerFileHistoryComponent implements OnInit {
     private fileService: FileInfoService,
     private dialog: MatDialog,
     private nav: NavigationService,
-    public env: Env
+    public env: Env,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -257,8 +258,12 @@ export class VerFileHistoryComponent implements OnInit {
         verFileId: this.data.verFileId,
       })
       .subscribe({
-        next: (r) => {
-          this.totalSizeLabel = resolveSize(r.data.sizeInBytes);
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.totalSizeLabel = resolveSize(resp.data.sizeInBytes);
         },
       });
   }
@@ -270,12 +275,16 @@ export class VerFileHistoryComponent implements OnInit {
         verFileId: this.data.verFileId,
       })
       .subscribe({
-        next: (r) => {
-          if (!r.data.payload) {
-            r.data.payload = [];
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
           }
-          this.tabdata = r.data.payload;
-          this.pagingController.onTotalChanged(r.data.paging);
+          if (!resp.data.payload) {
+            resp.data.payload = [];
+          }
+          this.tabdata = resp.data.payload;
+          this.pagingController.onTotalChanged(resp.data.paging);
           for (let f of this.tabdata) {
             if (f.thumbnail) {
               f.thumbnail =
@@ -529,12 +538,16 @@ export class VersionedFileComponent implements OnInit {
       name: this.searchName,
     };
     this.http.post<any>(`vfm/open/api/versioned-file/list`, req).subscribe({
-      next: (r) => {
-        if (!r.data.payload) {
-          r.data.payload = [];
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
         }
-        this.tabdat = r.data.payload;
-        this.pagingController.onTotalChanged(r.data.paging);
+        if (!resp.data.payload) {
+          resp.data.payload = [];
+        }
+        this.tabdat = resp.data.payload;
+        this.pagingController.onTotalChanged(resp.data.paging);
         for (let f of this.tabdat) {
           if (f.thumbnail) {
             f.thumbnail =
@@ -631,6 +644,12 @@ export class VersionedFileComponent implements OnInit {
             }
 
             sub.subscribe({
+              next: (resp) => {
+                if (resp.error) {
+                  this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                  return;
+                }
+              },
               complete: () => {
                 this.progress = null;
                 this.isUploading = false;

@@ -8,6 +8,7 @@ import { VfolderAddFileComponent } from "../vfolder-add-file/vfolder-add-file.co
 import { guessFileIconClz, isImageByName } from "src/common/file";
 import { FileType } from "src/common/file-info";
 import { HostOnGalleryComponent } from "../host-on-gallery/host-on-gallery.component";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-file-bookmark-dialog",
@@ -74,7 +75,8 @@ export class FileBookmarkDialogComponent implements OnInit {
   constructor(
     private fileBookmark: FileBookmark,
     private dialog: MatDialog,
-    private http: HttpClient
+    private http: HttpClient,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -146,7 +148,11 @@ export class FileBookmarkDialogComponent implements OnInit {
           .post<any>(`vfm/open/api/file/delete/batch`, {
             fileKeys: fks,
           })
-          .subscribe(() => {
+          .subscribe((resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
+            }
             this.fileBookmark.clear();
             this.reload();
           });

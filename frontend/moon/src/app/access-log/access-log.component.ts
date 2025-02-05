@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { environment } from "src/environments/environment";
 import { PagingController } from "src/common/paging";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface AccessLog {
   id: number;
@@ -31,7 +32,7 @@ export class AccessLogComponent implements OnInit {
   accessLogList: AccessLog[] = [];
   pagingController: PagingController;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
 
   ngOnInit() {}
 
@@ -42,6 +43,11 @@ export class AccessLogComponent implements OnInit {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+
           if (resp.data.payload) {
             this.accessLogList = resp.data.payload;
           } else {

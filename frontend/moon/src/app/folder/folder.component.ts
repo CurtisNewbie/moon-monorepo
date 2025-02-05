@@ -52,7 +52,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
     private navi: NavigationService,
     private dialog: MatDialog,
     private userService: UserService,
-    private snackBar: MatSnackBar,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -107,7 +107,13 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
       })
       .subscribe({
         next: (resp) => {
-          this.snackBar.open("Virtual Folder Removed", "ok", { duration: 3000 });;
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.snackBar.open("Virtual Folder Removed", "ok", {
+            duration: 3000,
+          });
           this.fetchFolders();
         },
       });
@@ -140,12 +146,13 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
   fetchFolders(): void {
     this.searchParam.paging = this.pagingController.paging;
     this.http
-      .post<Resp<any>>(
-        `vfm/open/api/vfolder/list`,
-        this.searchParam
-      )
+      .post<Resp<any>>(`vfm/open/api/vfolder/list`, this.searchParam)
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.folders = [];
           if (resp.data.payload) {
             this.folders = resp.data.payload.map((r) => {
@@ -167,7 +174,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
   createFolder(): void {
     if (!this.newFolderName) {
-      this.snackBar.open("Please enter folder name", "ok", { duration: 3000 });;
+      this.snackBar.open("Please enter folder name", "ok", { duration: 3000 });
       return;
     }
 
@@ -178,6 +185,10 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
       })
       .subscribe({
         next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
           this.fetchFolders();
           this.newFolderName = "";
         },

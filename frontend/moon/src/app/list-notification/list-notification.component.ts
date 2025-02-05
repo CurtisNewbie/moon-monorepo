@@ -6,6 +6,7 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { PlatformNotificationService } from "../platform-notification.service";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface Notification {
   id: number;
@@ -36,7 +37,8 @@ export class ListNotificationComponent implements OnInit {
     private http: HttpClient,
     private dialog: MatDialog,
     private platformNotification: PlatformNotificationService,
-    public env: Env
+    public env: Env,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {}
@@ -48,6 +50,10 @@ export class ListNotificationComponent implements OnInit {
         page: this.pagingController.paging,
       })
       .subscribe((resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
         if (resp.data) {
           this.data = [];
           if (resp.data.payload) {
@@ -91,6 +97,12 @@ export class ListNotificationComponent implements OnInit {
         notifiNo: notifiNo,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => {
           this.platformNotification.triggerChange();
         },
@@ -143,7 +155,11 @@ export class ListNotificationComponent implements OnInit {
             notifiNo: last,
           })
           .subscribe({
-            next: () => {
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
               this.platformNotification.triggerChange();
               this.fetchList();
             },

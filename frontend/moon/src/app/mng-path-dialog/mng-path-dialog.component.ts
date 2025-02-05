@@ -4,6 +4,7 @@ import { environment } from "src/environments/environment";
 import { WPath } from "../manage-paths/manage-paths.component";
 import { MngResDialogComponent } from "../mng-res-dialog/mng-res-dialog.component";
 import { HttpClient } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface DialogDat {
   path: WPath;
@@ -24,20 +25,27 @@ export class MngPathDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<MngResDialogComponent, DialogDat>,
     @Inject(MAT_DIALOG_DATA) public dat: DialogDat,
-    private http: HttpClient
+    private http: HttpClient,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {}
 
   update() {
     this.http
-      .post(`user-vault/open/api/path/update`, {
+      .post<any>(`user-vault/open/api/path/update`, {
         type: this.dat.path.ptype,
         pathNo: this.dat.path.pathNo,
         group: this.dat.path.pgroup,
         resCode: this.bindToResCode,
       })
       .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+        },
         complete: () => {
           this.dialogRef.close();
         },
