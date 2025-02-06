@@ -244,6 +244,8 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 
 	rail := pc.Rail
 	_, r := pc.Inb.Unwrap()
+
+	// header
 	authorization := r.Header.Get(HeaderAuthorization)
 
 	// fallback to cookie
@@ -260,10 +262,11 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 		next()
 		return
 	}
-	if s, ok := strings.CutPrefix(authorization, "Bearer"); ok {
+
+	// parse bearer
+	if s, ok := miso.ParseBearer(authorization); ok {
 		authorization = s
 	}
-	authorization = strings.TrimSpace(authorization)
 
 	// decode jwt token, extract claims and build a user struct as attr
 	tkn, err := jwt.JwtDecode(authorization)
