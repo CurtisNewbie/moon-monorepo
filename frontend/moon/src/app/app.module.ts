@@ -92,6 +92,7 @@ import { ScrollingModule } from "@angular/cdk/scrolling";
 import { DirTreeNavComponent } from "./dir-tree-nav/dir-tree-nav.component";
 import { HIGHLIGHT_OPTIONS, HighlightModule } from "ngx-highlightjs";
 import { FileBookmarkDialogComponent } from "./file-bookmark-dialog/file-bookmark-dialog.component";
+import { EventPumpDashboardComponent } from './event-pump-dashboard/event-pump-dashboard.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -146,6 +147,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     BrowseHistoryComponent,
     DirTreeNavComponent,
     FileBookmarkDialogComponent,
+    EventPumpDashboardComponent,
   ],
   imports: [
     PlotlyModule,

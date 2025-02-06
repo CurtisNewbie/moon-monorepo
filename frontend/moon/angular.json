@@ -8,8 +8,8 @@
       "schematics": {
         "@schematics/angular:component": {
           "standalone": false,
-          "inlineStyle": true,
-          "inlineTemplate": true,
+          "inlineStyle": false,
+          "inlineTemplate": false,
           "skipTests": true
         },
         "@schematics/angular:directive": {
@@ -47,10 +47,7 @@
               "./node_modules/ngx-lightbox/lightbox.css"
             ],
             "scripts": [],
-            "allowedCommonJsDependencies": [
-              "highlight.js",
-              "ngx-lightbox"
-            ]
+            "allowedCommonJsDependencies": ["highlight.js", "ngx-lightbox"]
           },
           "configurations": {
             "production": {
@@ -141,9 +138,7 @@
               "tsconfig.spec.json",
               "e2e/tsconfig.json"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "exclude": ["**/node_modules/**"]
           }
         },
         "e2e": {

@@ -30,6 +30,7 @@ import { WebpageViewerComponent } from "./webpage-viewer/webpage-viewer.componen
 import { SitePasswordComponent } from "./site-password/site-password.component";
 import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.component";
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
+import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
 
 const routes: Routes = [
   {
@@ -151,6 +152,10 @@ const routes: Routes = [
   {
     path: "browse-history",
     component: BrowseHistoryComponent,
+  },
+  {
+    path: "event-pump-dashboard",
+    component: EventPumpDashboardComponent,
   },
   { path: "**", redirectTo: "/" + NavType.USER_DETAILS },
 ];

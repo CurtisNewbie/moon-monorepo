@@ -99,13 +99,4 @@ export class NavComponent implements OnInit, OnDestroy {
   openGithub() {
     window.open("https://github.com/curtisnewbie/moon-monorepo", "_blank");
   }
-
-  redirectToEventPumpDashboard() {
-    let tok = getToken();
-    if (tok) {
-      document.cookie =
-        "Gatekeeper_Authorization = Bearer " + tok + "; path = /event-pump;";
-      window.open("/event-pump/static/", "_blank");
-    }
-  }
 }

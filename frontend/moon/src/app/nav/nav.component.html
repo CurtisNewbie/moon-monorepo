@@ -55,7 +55,7 @@
                 *ngIf="hasAnyRes('fstore:server:maintenance','vfm:server:maintenance')">
                 File Storage
                 Storage</button>
-            <button mat-menu-item (click)="redirectToEventPumpDashboard()"
+            <button mat-menu-item routerLink="/event-pump-dashboard" routerLinkActive="active"
                 *ngIf="hasAnyRes('event-pump-dashboard')">Event-Pump Dashboard</button>
         </mat-menu>
 
