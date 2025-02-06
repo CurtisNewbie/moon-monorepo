@@ -107,6 +107,7 @@ func prepareServer(rail miso.Rail) error {
 	// paths that are not measured by prometheus timer
 	timerExclPath.AddAll(miso.GetPropStrSlice(PropTimerExclPath))
 	timerExclPath.Add(miso.GetPropStr(miso.PropMetricsRoute))
+	rail.Infof("Timer excluded paths: %v", timerExclPath)
 	return nil
 }
 

@@ -29,6 +29,7 @@ gatekeeper:
   whitelist.path.patterns:
     - "/*/doc/api"
     - "/debug/pprof/*"
+  timer.path.excl:
     - "/metrics"
     - "/health"
 
