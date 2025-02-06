@@ -650,6 +650,11 @@ func UploadFile(rail miso.Rail, rd io.Reader, filename string) (string, error) {
 		link = duplicateFileId
 	}
 
+	// sync, make sure the file is fully flushed to disk
+	if err := f.Sync(); err != nil {
+		return "", miso.ErrUnknownError.Wrapf(err, "failed to sync file, filename: %v, target: %v", filename, target)
+	}
+
 	ecf := CreateFileRec(rail, CreateFile{
 		FileId: fileId,
 		Name:   filename,
