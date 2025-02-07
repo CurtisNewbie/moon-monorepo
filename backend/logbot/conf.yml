@@ -1,3 +1,5 @@
+# https://github.com/CurtisNewbie/miso/blob/main/doc/config.md
+
 mode.production: false
 app.name: "logbot"
 

@@ -3,7 +3,7 @@ module github.com/curtisnewbie/mini-fstore
 go 1.22
 
 require (
-	github.com/curtisnewbie/miso v0.1.14-beta.4.0.20250204154742-087f1e1c6c13
+	github.com/curtisnewbie/miso v0.1.14-beta.5.0.20250206153910-e0a76465d950
 	github.com/disintegration/gift v1.2.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
@@ -15,6 +15,7 @@ require (
 require (
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.8.0 // indirect
 	github.com/bsm/redislock v0.0.0-20191219095057-3d76f17a9f1e // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect

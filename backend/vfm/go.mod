@@ -15,7 +15,7 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.16-0.20250120155940-cab5233e2c30
 	github.com/curtisnewbie/mini-fstore v0.1.18
-	github.com/curtisnewbie/miso v0.1.14-beta.4.0.20250204154742-087f1e1c6c13
+	github.com/curtisnewbie/miso v0.1.14-beta.5.0.20250206153910-e0a76465d950
 	github.com/curtisnewbie/user-vault v0.0.23
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
@@ -25,6 +25,7 @@ require (
 require (
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.8.0 // indirect
 	github.com/bsm/redislock v0.0.0-20191219095057-3d76f17a9f1e // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
