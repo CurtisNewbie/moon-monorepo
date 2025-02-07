@@ -128,7 +128,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 		}
 
 		// check if the file is still valid
-		if time.Since(lastRead) > 15*time.Second {
+		if time.Since(lastRead) > 5*time.Second {
 			rail.Debug("Checking if the file is still valid, ", wc.File)
 
 			reopenFile := false
@@ -137,6 +137,12 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 			if es != nil {
 				// if the file is deleted, es will still be nil
 				reopenFile = true
+				rail.Infof("File may have been deleted, %v, %v", wc.File, err)
+			} else {
+				if fi.Size() < pos {
+					reopenFile = true
+					rail.Infof("File may have been truncated, %v", wc.File)
+				}
 			}
 
 			if !reopenFile {
@@ -149,6 +155,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 				}
 				if nlink < 1 { // no hard links, the underlying file is deleted already
 					reopenFile = true
+					rail.Infof("File may have been deleted, %v", wc.File)
 				}
 			}
 
