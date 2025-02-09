@@ -32,6 +32,7 @@ gatekeeper:
   timer.path.excl:
     - "/metrics"
     - "/health"
+    - "/user-vault/open/api/v2/notification/count"
 
 client:
   addr:
