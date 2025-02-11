@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -322,7 +321,7 @@ func AccessFilter(pc *miso.ProxyContext, next func()) {
 
 	inWhitelist := false
 	for _, pat := range whitelistPatterns {
-		if ok, _ := path.Match(pat, r.URL.Path); ok {
+		if ok := util.MatchPath(pat, r.URL.Path); ok {
 			inWhitelist = true
 			break
 		}
