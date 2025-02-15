@@ -1110,6 +1110,13 @@ func CreateFile(rail miso.Rail, tx *gorm.DB, r CreateFileReq, user common.User) 
 	}, user)
 }
 
+type SysCreateFileReq struct {
+	Filename         string `json:"filename"`
+	FakeFstoreFileId string `json:"fstoreFileId"`
+	ParentFile       string `json:"parentFile"`
+	UserNo           string
+}
+
 type SaveFileReq struct {
 	Filename   string
 	FileId     string

@@ -384,6 +384,22 @@ func ApiFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (api.UserInfo, err
 	return vault.ItnFindUserInfo(rail, mysql.GetMySQL(), req)
 }
 
+// misoapi-http: POST /internal/v1/user/info/common
+// misoapi-desc: System fetch user info as common.User
+func ApiSysFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (common.User, error) {
+	rail := inb.Rail()
+	v, err := vault.ItnFindUserInfo(rail, mysql.GetMySQL(), req)
+	if err != nil {
+		return common.User{}, err
+	}
+	return common.User{
+		UserNo:   v.UserNo,
+		Username: v.Username,
+		RoleNo:   v.RoleNo,
+		IsNil:    false,
+	}, nil
+}
+
 // misoapi-http: GET /remote/user/id
 // misoapi-desc: Fetch id of user with the username
 func ApiFetchUserIdByName(inb *miso.Inbound, req FetchUserIdByNameReq) (int, error) {

@@ -5,7 +5,7 @@ go 1.22
 replace github.com/curtisnewbie/user-vault => ../user-vault
 
 require (
-	github.com/curtisnewbie/miso v0.1.14
+	github.com/curtisnewbie/miso v0.1.15-0.20250216124953-457e9b25aa42
 	github.com/curtisnewbie/user-vault v0.0.0
 	github.com/prometheus/client_golang v1.4.0
 	github.com/spf13/cast v1.6.0

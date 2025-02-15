@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 
+	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 )
@@ -98,6 +99,27 @@ func SendCheckResAccessReq(rail miso.Rail, req CheckResAccessReq) (CheckResAcces
 	if err != nil {
 		rail.Errorf("Request failed, %v", err)
 		var dat CheckResAccessResp
+		return dat, err
+	}
+	dat, err := res.Res()
+	if err != nil {
+		rail.Errorf("Request failed, %v", err)
+	}
+	return dat, err
+}
+
+type FindUserCommonReq struct {
+	UserNo string `json:"userNo"`
+}
+
+func FindUserCommon(rail miso.Rail, req FindUserCommonReq) (common.User, error) {
+	var res miso.GnResp[common.User]
+	err := miso.NewDynTClient(rail, "/internal/v1/user/info/common", "user-vault").
+		PostJson(req).
+		Json(&res)
+	if err != nil {
+		rail.Errorf("Request failed, %v", err)
+		var dat common.User
 		return dat, err
 	}
 	dat, err := res.Res()

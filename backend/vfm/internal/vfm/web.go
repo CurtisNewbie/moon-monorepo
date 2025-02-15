@@ -207,7 +207,7 @@ func ApiBatchDeleteFile(rail miso.Rail, db *gorm.DB, req BatchDeleteFileReq, use
 	return nil, nil
 }
 
-// Create file.
+// User Create file.
 //
 //   - misoapi-http: POST /open/api/file/create
 //   - misoapi-desc: User create file
@@ -215,6 +215,28 @@ func ApiBatchDeleteFile(rail miso.Rail, db *gorm.DB, req BatchDeleteFileReq, use
 func ApiCreateFile(rail miso.Rail, db *gorm.DB, req CreateFileReq, user common.User) (any, error) {
 	_, err := CreateFile(rail, db, req, user)
 	return nil, err
+}
+
+// System create file.
+//
+//   - misoapi-http: POST /internal/v1/file/create
+//   - misoapi-desc: System create file
+func ApiSysCreateFile(rail miso.Rail, db *gorm.DB, req SysCreateFileReq) (string, error) {
+
+	user, err := vault.FindUserCommon(rail, vault.FindUserCommonReq{
+		UserNo: req.UserNo,
+	})
+	if err != nil {
+		return "", miso.ErrUnknownError.Wrapf(err, "failed to find user %v", req.UserNo)
+	}
+
+	fk, err := CreateFile(rail, db, CreateFileReq{
+		Filename:         req.Filename,
+		FakeFstoreFileId: req.FakeFstoreFileId,
+		ParentFile:       req.ParentFile,
+	}, user)
+
+	return fk, err
 }
 
 // Update file.
