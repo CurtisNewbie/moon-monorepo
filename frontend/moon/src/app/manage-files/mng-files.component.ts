@@ -1111,4 +1111,17 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         setTimeout(() => this.fetchFileInfoList(), 300);
       });
   }
+
+  onDivKey(evt) {
+    if (this.inFolderNo) {
+      return;
+    }
+
+    if (evt.key == "a" && evt.metaKey) {
+      evt.preventDefault();
+      for (let f of this.fileInfoList) {
+        this.bookmarkFile(f);
+      }
+    }
+  }
 }

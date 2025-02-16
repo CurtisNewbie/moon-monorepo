@@ -1,328 +1,334 @@
-<div *ngIf="inDirFileName" class="ms-4 me-4">
-    <mat-card style="padding: 10px">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h5><i style="max-width:30px; max-height:30px; padding: 5px 5px 0px 5px;"
-                        class="bi bi-folder icon-button-large"> </i>
-                    {{inDirFileName}}</h5>
-            </div>
-            <button mat-icon-button class="m-1 icon-button-large" matTooltip="Go up one level of the directory tree"
-                *ngIf="inDirFileKey" (click)="goPrevDir()"><i class="bi bi-arrow-left-circle"></i></button>
-        </div>
-    </mat-card>
+<div (keydown)="onDivKey($event)" tabindex="0">
 
-</div>
-
-<!-- TODO: change to dialog?  -->
-<!-- upload param start -->
-<ng-container *ngIf="!inFolderNo && expandUploadPanel">
-    <div class="container">
-        <div class="container p-4 mt-3 shadow rounded border">
-            <h4 class="mt-3 mb-3">Upload </h4>
-
-            <ng-container *ngIf="uploadParam.files != null && uploadParam.files.length > 0">
-                <mat-form-field class="mt-1 mb-1" style="width:100%">
-                    <mat-label>Name</mat-label>
-                    <input matInput type="text" id="filenameInput" [(ngModel)]="displayedUploadName"
-                        [disabled]="isFileNameInputDisabled()">
-                    <button *ngIf="displayedUploadName" matSuffix aria-label="Clear" (click)="displayedUploadName=''"
-                        class="btn-close" [disabled]="isFileNameInputDisabled()">
-                    </button>
-                </mat-form-field>
-            </ng-container>
-
-            <div class="input-group input-group-lg mt-1 mb-1">
-                <input type="file" class="form-control darkmode" #uploadFileInput
-                    (change)="onFileSelected($event.target.files)" aria-describedby="basic-addon1" multiple
-                    [disabled]="isUploading">
-            </div>
-
-            <div class="mt-3 mb-2">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <div>
-                        <section *ngIf="this.uploadParam.files">
-                            <mat-checkbox class="m-1" [disabled]="isUploading" [(ngModel)]="ignoreOnDupName">
-                                Skip Uploaded Files (By Name)
-                            </mat-checkbox>
-                        </section>
-                    </div>
-                    <div>
-                        <div class="d-flex flex-wrap">
-                            <button class="ml-2 mr-2" mat-raised-button (click)="upload()" [disabled]="isUploading"
-                                *ngIf="!isUploading"> Upload </button>
-                            <button class="ml-2 mr-2" *ngIf="isUploading" mat-raised-button
-                                (click)="cancelFileUpload()">
-                                Cancel
-                            </button>
-                        </div>
-                        <small style="color: cadetblue;" *ngIf="progress != null">Progress: {{progress}}</small>
-                    </div>
+    <div *ngIf="inDirFileName" class="ms-4 me-4">
+        <mat-card style="padding: 10px">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5><i style="max-width:30px; max-height:30px; padding: 5px 5px 0px 5px;"
+                            class="bi bi-folder icon-button-large"> </i>
+                        {{inDirFileName}}</h5>
                 </div>
+                <button mat-icon-button class="m-1 icon-button-large" matTooltip="Go up one level of the directory tree"
+                    *ngIf="inDirFileKey" (click)="goPrevDir()"><i class="bi bi-arrow-left-circle"></i></button>
             </div>
-        </div>
-    </div>
-</ng-container>
+        </mat-card>
 
-<!-- TODO: change to dialog? -->
-<!-- create directory  -->
-<ng-container *ngIf="makingDir">
-    <div class="container">
-        <div class="container p-4 mt-3 shadow rounded border">
-            <h4 class="mt-2 mb-2">New Directory</h4>
-
-            <mat-form-field style="width: 100%;">
-                <mat-label>Directory Name</mat-label>
-                <input matInput type="text" (keyup)="isEnterKeyPressed($event) && mkdir()" [(ngModel)]="newDirName">
-                <button *ngIf="newDirName" class="btn-close" matSuffix aria-label="Clear"
-                    (click)="newDirName=''"></button>
-            </mat-form-field>
-
-            <div class="justify-content-end d-flex">
-                <button mat-raised-button class="mt-2" (click)="mkdir()">Submit</button>
-            </div>
-        </div>
     </div>
 
-</ng-container>
+    <!-- TODO: change to dialog?  -->
+    <!-- upload param start -->
+    <ng-container *ngIf="!inFolderNo && expandUploadPanel">
+        <div class="container">
+            <div class="container p-4 mt-3 shadow rounded border">
+                <h4 class="mt-3 mb-3">Upload </h4>
 
-<div class="mt-3">
-    <div *ngIf="inFolderName" class="m-2">
-        <mat-card>Virtual Folder: '{{inFolderName}}'</mat-card>
-    </div>
-
-    <div class="d-flex flex-wrap justify-content-between">
-        <!-- search param start -->
-        <div>
-            <div *ngIf="!inFolderNo && !makingDir && !expandUploadPanel"
-                class="d-flex flex-wrap align-items-center gap-4">
-
-                <div class="" *ngIf="searchParam.fileKey">
-                    <mat-form-field style="width: 300px; max-width: 80vw;">
-                        <mat-label>File Key</mat-label>
-                        <input matInput type="text" disabled="true" [(ngModel)]="searchParam.fileKey"
-                            (keyup)="isEnterKeyPressed($event) && fetchFileInfoList()">
-                    </mat-form-field>
-                </div>
-
-                <div class="">
-                    <mat-form-field style="width: 300px; max-width: 80vw;">
+                <ng-container *ngIf="uploadParam.files != null && uploadParam.files.length > 0">
+                    <mat-form-field class="mt-1 mb-1" style="width:100%">
                         <mat-label>Name</mat-label>
-                        <input matInput type="text" id="searchFilenameInput" [(ngModel)]="searchParam.name"
-                            (keyup)="isEnterKeyPressed($event) && fetchFileInfoList()">
-                        <button *ngIf="searchParam.name" matSuffix aria-label="Clear" (click)="searchParam.name=''"
-                            class="btn-close">
+                        <input matInput type="text" id="filenameInput" [(ngModel)]="displayedUploadName"
+                            [disabled]="isFileNameInputDisabled()">
+                        <button *ngIf="displayedUploadName" matSuffix aria-label="Clear"
+                            (click)="displayedUploadName=''" class="btn-close" [disabled]="isFileNameInputDisabled()">
                         </button>
                     </mat-form-field>
+                </ng-container>
+
+                <div class="input-group input-group-lg mt-1 mb-1">
+                    <input type="file" class="form-control darkmode" #uploadFileInput
+                        (change)="onFileSelected($event.target.files)" aria-describedby="basic-addon1" multiple
+                        [disabled]="isUploading">
                 </div>
-                <mat-form-field>
-                    <mat-label>File Type</mat-label>
-                    <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
-                        <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
-                            {{option.name}}
-                        </mat-option>
-                    </mat-select>
+
+                <div class="mt-3 mb-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div>
+                            <section *ngIf="this.uploadParam.files">
+                                <mat-checkbox class="m-1" [disabled]="isUploading" [(ngModel)]="ignoreOnDupName">
+                                    Skip Uploaded Files (By Name)
+                                </mat-checkbox>
+                            </section>
+                        </div>
+                        <div>
+                            <div class="d-flex flex-wrap">
+                                <button class="ml-2 mr-2" mat-raised-button (click)="upload()" [disabled]="isUploading"
+                                    *ngIf="!isUploading"> Upload </button>
+                                <button class="ml-2 mr-2" *ngIf="isUploading" mat-raised-button
+                                    (click)="cancelFileUpload()">
+                                    Cancel
+                                </button>
+                            </div>
+                            <small style="color: cadetblue;" *ngIf="progress != null">Progress: {{progress}}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+
+    <!-- TODO: change to dialog? -->
+    <!-- create directory  -->
+    <ng-container *ngIf="makingDir">
+        <div class="container">
+            <div class="container p-4 mt-3 shadow rounded border">
+                <h4 class="mt-2 mb-2">New Directory</h4>
+
+                <mat-form-field style="width: 100%;">
+                    <mat-label>Directory Name</mat-label>
+                    <input matInput type="text" (keyup)="isEnterKeyPressed($event) && mkdir()" [(ngModel)]="newDirName">
+                    <button *ngIf="newDirName" class="btn-close" matSuffix aria-label="Clear"
+                        (click)="newDirName=''"></button>
                 </mat-form-field>
-                <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
-                    [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
-                    Mode</mat-checkbox>
+
+                <div class="justify-content-end d-flex">
+                    <button mat-raised-button class="mt-2" (click)="mkdir()">Submit</button>
+                </div>
             </div>
         </div>
-        <!-- search param eed -->
 
-        <div class="d-flex justify-content-end">
+    </ng-container>
 
-            <div class="d-flex justify-content-end flex-wrap">
-
-                <ng-container *ngIf="!inFolderName">
-                    <button mat-icon-button class="m-1 icon-button-large"
-                        [matBadge]="this.fileBookmark.bucket.size > 0? this.fileBookmark.bucket.size : ''"
-                        matTooltip="Bookmark files to undertake batch operation" matTooltipPosition="above"
-                        matTooltipShowDelay="200" matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
-                        (click)="showFileBookmark()">
-                        <i class="bi bi-bookmarks icon-button-large"></i> </button>
-
-                    <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
-                        matTooltip="Show directory tree" (click)="popDirTree()"> <i class="bi bi-signpost-split"></i>
-                    </button>
-                </ng-container>
-
-
-                <button mat-icon-button class="m-1 icon-button-large" *ngIf="inFolderNo" (click)="leaveFolder()"><i
-                        class="bi bi-arrow-left-circle"></i></button>
-
-                <ng-container *ngIf="!inFolderNo">
-                    <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above" matTooltip="Upload"
-                        [class.status-green]="expandUploadPanel" [disabled]="isUploading" (click)="toggleUploadPanel()">
-                        <i class="bi bi-cloud-upload"></i></button>
-                    <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
-                        matTooltip="Make New Directory" (click)="toggleMkdirPanel()" [class.status-green]="makingDir"><i
-                            class="bi bi-folder-plus"></i></button>
-                </ng-container>
-
-                <button mat-icon-button class="m-1 icon-button-large" (click)="fetchFileInfoList()"><i
-                        class="bi bi-arrow-clockwise"></i></button>
-                <button mat-icon-button class="m-1 icon-button-large" (click)="resetSearchParam()"><i
-                        class="bi bi-slash-circle"></i></button>
-            </div>
+    <div class="mt-3">
+        <div *ngIf="inFolderName" class="m-2">
+            <mat-card>Virtual Folder: '{{inFolderName}}'</mat-card>
         </div>
-    </div>
 
-    <!-- table start -->
-    <div class="mb-2" style="min-height: 50vh">
-        <table mat-table [dataSource]="fileInfoList" style="width: 100%; height: 70%" multiTemplateDataRows>
+        <div class="d-flex flex-wrap justify-content-between">
+            <!-- search param start -->
+            <div>
+                <div *ngIf="!inFolderNo && !makingDir && !expandUploadPanel"
+                    class="d-flex flex-wrap align-items-center gap-4">
 
-            <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef> <b>Name</b> </th>
-                <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.name}}
-                    </span></td>
-            </ng-container>
+                    <div class="" *ngIf="searchParam.fileKey">
+                        <mat-form-field style="width: 300px; max-width: 80vw;">
+                            <mat-label>File Key</mat-label>
+                            <input matInput type="text" disabled="true" [(ngModel)]="searchParam.fileKey"
+                                (keyup)="isEnterKeyPressed($event) && fetchFileInfoList()">
+                        </mat-form-field>
+                    </div>
 
-            <ng-container matColumnDef="thumbnail">
-                <th mat-header-cell *matHeaderCellDef> <b>Preview</b> </th>
-                <td mat-cell *matCellDef="let f">
-                    <img style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="f.thumbnailUrl"
-                        [src]="f.thumbnailUrl" />
-                    <i style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="!f.thumbnailUrl"
-                        [ngClass]="['bi', 'icon-button-large', guessFileIcon(f)]"></i>
-                </td>
-            </ng-container>
+                    <div class="">
+                        <mat-form-field style="width: 300px; max-width: 80vw;">
+                            <mat-label>Name</mat-label>
+                            <input matInput type="text" id="searchFilenameInput" [(ngModel)]="searchParam.name"
+                                (keyup)="isEnterKeyPressed($event) && fetchFileInfoList()">
+                            <button *ngIf="searchParam.name" matSuffix aria-label="Clear" (click)="searchParam.name=''"
+                                class="btn-close">
+                            </button>
+                        </mat-form-field>
+                    </div>
+                    <mat-form-field>
+                        <mat-label>File Type</mat-label>
+                        <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
+                            <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
+                                {{option.name}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
+                        [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
+                        Mode</mat-checkbox>
+                </div>
+            </div>
+            <!-- search param eed -->
 
-            <ng-container matColumnDef="parentFileName">
-                <th mat-header-cell *matHeaderCellDef [matTooltip]="'Name of directory that each file belongs to'"
-                    matTooltipShowDelay="300">
-                    <b>In Directory</b>
-                </th>
-                <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.parentFileName}}
-                    </span></td>
-            </ng-container>
+            <div class="d-flex justify-content-end">
 
-            <ng-container matColumnDef="uploader">
-                <th mat-header-cell *matHeaderCellDef> <b>Uploader</b></th>
-                <td mat-cell *matCellDef="let f"> {{f.uploaderName}} </td>
-            </ng-container>
+                <div class="d-flex justify-content-end flex-wrap">
 
-            <ng-container matColumnDef="uploadTime">
-                <th mat-header-cell *matHeaderCellDef> <b>Upload Time</b> </th>
-                <td mat-cell *matCellDef="let f"> {{f.uploadTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
-            </ng-container>
+                    <ng-container *ngIf="!inFolderName">
+                        <button mat-icon-button class="m-1 icon-button-large"
+                            [matBadge]="this.fileBookmark.bucket.size > 0? this.fileBookmark.bucket.size : ''"
+                            matTooltip="Bookmark files to undertake batch operation" matTooltipPosition="above"
+                            matTooltipShowDelay="200" matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
+                            (click)="showFileBookmark()">
+                            <i class="bi bi-bookmarks icon-button-large"></i> </button>
 
-            <ng-container matColumnDef="size">
-                <th mat-header-cell *matHeaderCellDef> <b>Size</b></th>
-                <td mat-cell *matCellDef="let f"> {{f.isDir ? '-' : f.sizeLabel}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="fileType">
-                <th mat-header-cell *matHeaderCellDef>
-                    <b>Type</b>
-                </th>
-                <td mat-cell *matCellDef="let f">
-                    <ng-container *ngIf="f.isDir"><b><i>{{f.fileTypeLabel}}</i></b></ng-container>
-                    <ng-container *ngIf="!f.isDir">{{f.fileTypeLabel}}</ng-container>
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="updateTime">
-                <th mat-header-cell *matHeaderCellDef> <b>Update Time</b> </th>
-                <td mat-cell *matCellDef="let f"> {{f.updateTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
-            </ng-container>
+                        <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
+                            matTooltip="Show directory tree" (click)="popDirTree()"> <i
+                                class="bi bi-signpost-split"></i>
+                        </button>
+                    </ng-container>
 
 
-            <ng-container matColumnDef="operation">
-                <th mat-header-cell *matHeaderCellDef> <b>Operation</b> </th>
-                <td mat-cell *matCellDef="let f">
+                    <button mat-icon-button class="m-1 icon-button-large" *ngIf="inFolderNo" (click)="leaveFolder()"><i
+                            class="bi bi-arrow-left-circle"></i></button>
+
                     <ng-container *ngIf="!inFolderNo">
-                        <button mat-icon-button class="m-2" [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
-                            [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''" matBadgeColor="warn"
-                            matBadgeOverlap="true" matBadgeSize="small"
-                            matTooltip="Bookmark file for batch operation. Click row with meta key for convenience."
-                            matTooltipShowDelay="1000" (click)=" $event.stopPropagation() || bookmarkFile(f)"><i
-                                class="bi icon-button-large"
-                                [class]="this.fileBookmark.has(f.uuid) ? 'bi-bookmark-dash': 'bi-bookmark-plus'"></i></button>
-
-                        <button class="icon-button-large" mat-icon-button matTooltipShowDelay="500"
-                            (click)="$event.stopPropagation() || selectExpanded(f)">
-                            <i class="bi bi-gear"></i>
-                        </button>
+                        <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
+                            matTooltip="Upload" [class.status-green]="expandUploadPanel" [disabled]="isUploading"
+                            (click)="toggleUploadPanel()">
+                            <i class="bi bi-cloud-upload"></i></button>
+                        <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
+                            matTooltip="Make New Directory" (click)="toggleMkdirPanel()"
+                            [class.status-green]="makingDir"><i class="bi bi-folder-plus"></i></button>
                     </ng-container>
 
-                    <ng-container *ngIf="f.isFile">
-                        <button class="icon-button-large" mat-icon-button
-                            (click)="$event.stopPropagation() || jumpToDownloadUrl(f.uuid)">
-                            <i class="bi bi-cloud-download"></i>
-                        </button>
-                    </ng-container>
-                </td>
-            </ng-container>
+                    <button mat-icon-button class="m-1 icon-button-large" (click)="fetchFileInfoList()"><i
+                            class="bi bi-arrow-clockwise"></i></button>
+                    <button mat-icon-button class="m-1 icon-button-large" (click)="resetSearchParam()"><i
+                            class="bi bi-slash-circle"></i></button>
+                </div>
+            </div>
+        </div>
 
-            <ng-container matColumnDef="expandedElement">
-                <td mat-cell *matCellDef="let u" [attr.colspan]="displayedColumns.length">
-                    <ng-container *ngIf="curr != null && !inFolderNo">
-                        <div class="element-detail"
-                            [@detailExpand]="(currId > -1 && u.id == currId) ? 'expanded' : 'collapsed'">
-                            <div class="container-fluid m-4">
-                                <div class="d-flex align-items-center flex-wrap">
-                                    <div>
-                                        <mat-form-field style="width: 100%;">
-                                            <mat-label>Name</mat-label>
-                                            <input matInput type="text" [(ngModel)]="curr.name">
-                                        </mat-form-field>
-                                        <mat-checkbox [checked]="curr.sensitiveMode=='Y'"
-                                            (change)="sensitiveModeChecked($event, curr)"
-                                            (click)="$event.stopPropagation();" [labelPosition]="'before'">Sensitive
-                                            Content</mat-checkbox>
+        <!-- table start -->
+        <div class="mb-2" style="min-height: 50vh">
+            <table mat-table [dataSource]="fileInfoList" style="width: 100%; height: 70%" multiTemplateDataRows>
+
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef> <b>Name</b> </th>
+                    <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.name}}
+                        </span></td>
+                </ng-container>
+
+                <ng-container matColumnDef="thumbnail">
+                    <th mat-header-cell *matHeaderCellDef> <b>Preview</b> </th>
+                    <td mat-cell *matCellDef="let f">
+                        <img style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="f.thumbnailUrl"
+                            [src]="f.thumbnailUrl" />
+                        <i style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="!f.thumbnailUrl"
+                            [ngClass]="['bi', 'icon-button-large', guessFileIcon(f)]"></i>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="parentFileName">
+                    <th mat-header-cell *matHeaderCellDef [matTooltip]="'Name of directory that each file belongs to'"
+                        matTooltipShowDelay="300">
+                        <b>In Directory</b>
+                    </th>
+                    <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.parentFileName}}
+                        </span></td>
+                </ng-container>
+
+                <ng-container matColumnDef="uploader">
+                    <th mat-header-cell *matHeaderCellDef> <b>Uploader</b></th>
+                    <td mat-cell *matCellDef="let f"> {{f.uploaderName}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="uploadTime">
+                    <th mat-header-cell *matHeaderCellDef> <b>Upload Time</b> </th>
+                    <td mat-cell *matCellDef="let f"> {{f.uploadTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="size">
+                    <th mat-header-cell *matHeaderCellDef> <b>Size</b></th>
+                    <td mat-cell *matCellDef="let f"> {{f.isDir ? '-' : f.sizeLabel}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="fileType">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <b>Type</b>
+                    </th>
+                    <td mat-cell *matCellDef="let f">
+                        <ng-container *ngIf="f.isDir"><b><i>{{f.fileTypeLabel}}</i></b></ng-container>
+                        <ng-container *ngIf="!f.isDir">{{f.fileTypeLabel}}</ng-container>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="updateTime">
+                    <th mat-header-cell *matHeaderCellDef> <b>Update Time</b> </th>
+                    <td mat-cell *matCellDef="let f"> {{f.updateTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="operation">
+                    <th mat-header-cell *matHeaderCellDef> <b>Operation</b> </th>
+                    <td mat-cell *matCellDef="let f">
+                        <ng-container *ngIf="!inFolderNo">
+                            <button mat-icon-button class="m-2"
+                                [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
+                                [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''" matBadgeColor="warn"
+                                matBadgeOverlap="true" matBadgeSize="small"
+                                matTooltip="Bookmark file for batch operation. Click row with meta key for convenience."
+                                matTooltipShowDelay="1000" (click)=" $event.stopPropagation() || bookmarkFile(f)"><i
+                                    class="bi icon-button-large"
+                                    [class]="this.fileBookmark.has(f.uuid) ? 'bi-bookmark-dash': 'bi-bookmark-plus'"></i></button>
+
+                            <button class="icon-button-large" mat-icon-button matTooltipShowDelay="500"
+                                (click)="$event.stopPropagation() || selectExpanded(f)">
+                                <i class="bi bi-gear"></i>
+                            </button>
+                        </ng-container>
+
+                        <ng-container *ngIf="f.isFile">
+                            <button class="icon-button-large" mat-icon-button
+                                (click)="$event.stopPropagation() || jumpToDownloadUrl(f.uuid)">
+                                <i class="bi bi-cloud-download"></i>
+                            </button>
+                        </ng-container>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="expandedElement">
+                    <td mat-cell *matCellDef="let u" [attr.colspan]="displayedColumns.length">
+                        <ng-container *ngIf="curr != null && !inFolderNo">
+                            <div class="element-detail"
+                                [@detailExpand]="(currId > -1 && u.id == currId) ? 'expanded' : 'collapsed'">
+                                <div class="container-fluid m-4">
+                                    <div class="d-flex align-items-center flex-wrap">
+                                        <div>
+                                            <mat-form-field style="width: 100%;">
+                                                <mat-label>Name</mat-label>
+                                                <input matInput type="text" [(ngModel)]="curr.name">
+                                            </mat-form-field>
+                                            <mat-checkbox [checked]="curr.sensitiveMode=='Y'"
+                                                (change)="sensitiveModeChecked($event, curr)"
+                                                (click)="$event.stopPropagation();" [labelPosition]="'before'">Sensitive
+                                                Content</mat-checkbox>
+                                        </div>
+
+                                        <ng-container *ngIf="curr.isDir">
+                                            <div>
+                                                <button mat-icon-button matTooltip="Update" (click)="update(curr)">
+                                                    <i class="bi bi-floppy icon-button-large"></i> </button>
+                                            </div>
+                                            <div>
+                                                <button mat-icon-button matTooltip="Truncate directory"
+                                                    (click)="truncateDir(curr)"> <i
+                                                        class="bi bi-eraser icon-button-large"></i> </button>
+                                            </div>
+                                        </ng-container>
+
+                                        <ng-container *ngIf="curr.isFile">
+                                            <div>
+                                                <button mat-icon-button matTooltip="Update" (click)="update(curr)">
+                                                    <i class="bi bi-floppy icon-button-large"></i> </button>
+                                            </div>
+                                            <div>
+                                                <button mat-icon-button matTooltip="Share By Link"
+                                                    (click)="generateTempToken(curr)"> <i
+                                                        class="bi bi-link-45deg icon-button-large"></i> </button>
+                                            </div>
+                                            <div>
+                                                <button mat-icon-button matTooltip="Share By QRCode"
+                                                    (click)="generateTempTokenQrCode(curr)"> <i
+                                                        class="bi bi-qr-code-scan icon-button-large"></i> </button>
+                                            </div>
+                                            <div *ngIf="canUnpack(curr)">
+                                                <button mat-icon-button matTooltip="Unzip To Directory"
+                                                    (click)="unpack(curr)"><i
+                                                        class="bi bi-box-seam icon-button-large"></i></button>
+                                            </div>
+                                        </ng-container>
                                     </div>
-
-                                    <ng-container *ngIf="curr.isDir">
-                                        <div>
-                                            <button mat-icon-button matTooltip="Update" (click)="update(curr)">
-                                                <i class="bi bi-floppy icon-button-large"></i> </button>
-                                        </div>
-                                        <div>
-                                            <button mat-icon-button matTooltip="Truncate directory"
-                                                (click)="truncateDir(curr)"> <i
-                                                    class="bi bi-eraser icon-button-large"></i> </button>
-                                        </div>
-                                    </ng-container>
-
-                                    <ng-container *ngIf="curr.isFile">
-                                        <div>
-                                            <button mat-icon-button matTooltip="Update" (click)="update(curr)">
-                                                <i class="bi bi-floppy icon-button-large"></i> </button>
-                                        </div>
-                                        <div>
-                                            <button mat-icon-button matTooltip="Share By Link"
-                                                (click)="generateTempToken(curr)"> <i
-                                                    class="bi bi-link-45deg icon-button-large"></i> </button>
-                                        </div>
-                                        <div>
-                                            <button mat-icon-button matTooltip="Share By QRCode"
-                                                (click)="generateTempTokenQrCode(curr)"> <i
-                                                    class="bi bi-qr-code-scan icon-button-large"></i> </button>
-                                        </div>
-                                        <div *ngIf="canUnpack(curr)">
-                                            <button mat-icon-button matTooltip="Unzip To Directory"
-                                                (click)="unpack(curr)"><i
-                                                    class="bi bi-box-seam icon-button-large"></i></button>
-                                        </div>
-                                    </ng-container>
                                 </div>
                             </div>
-                        </div>
-                    </ng-container>
-                </td>
-            </ng-container>
+                        </ng-container>
+                    </td>
+                </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
-            </tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
-                [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked($event, row, i)"
-                matTooltipShowDelay="1000"
-                [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
-            </tr>
-            <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
-        </table>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
+                </tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
+                    [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked($event, row, i)"
+                    matTooltipShowDelay="1000"
+                    [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
+                </tr>
+                <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
+            </table>
+        </div>
+
+        <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+
     </div>
-
-    <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
-
 </div>
