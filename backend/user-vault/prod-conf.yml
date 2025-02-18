@@ -50,6 +50,7 @@ monitor:
   - service: "fstore"
   - service: "acct"
   - service: "event-pump"
+  - service: "drone"
 
 client:
   addr:

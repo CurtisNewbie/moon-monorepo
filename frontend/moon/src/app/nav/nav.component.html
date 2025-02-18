@@ -21,6 +21,7 @@
             <button mat-menu-item [matMenuTriggerFor]="file" *ngIf="hasRes('manage-files')">File & Gallery</button>
             <button mat-menu-item [matMenuTriggerFor]="doc" *ngIf="hasRes('manage-bookmarks')">Documents</button>
             <button mat-menu-item [matMenuTriggerFor]="fin" *ngIf="hasAnyRes('acct:ManageCashflows')">Finance</button>
+            <button mat-menu-item [matMenuTriggerFor]="droneMenu" *ngIf="hasAnyRes('drone-manage-task')">Drone</button>
         </mat-menu>
 
         <mat-menu #user="matMenu">
@@ -89,6 +90,10 @@
             <button mat-menu-item>Version: {{version}}</button>
             <button mat-menu-item (click)="openGithub()">Github <i
                     class="ms-2 me-2 bi bi-github icon-button-large"></i></button>
+        </mat-menu>
+
+        <mat-menu #droneMenu="matMenu" class="m-2">
+            <button mat-menu-item routerLink="/drone-task">Drone Tasks</button>
         </mat-menu>
     </div>
 </ng-container>

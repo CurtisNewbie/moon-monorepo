@@ -31,6 +31,7 @@ import { SitePasswordComponent } from "./site-password/site-password.component";
 import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.component";
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
 import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
+import { DroneTaskComponent } from "./drone-task/drone-task.component";
 
 const routes: Routes = [
   {
@@ -156,6 +157,10 @@ const routes: Routes = [
   {
     path: "event-pump-dashboard",
     component: EventPumpDashboardComponent,
+  },
+  {
+    path: "drone-task",
+    component: DroneTaskComponent,
   },
   { path: "**", redirectTo: "/" + NavType.USER_DETAILS },
 ];

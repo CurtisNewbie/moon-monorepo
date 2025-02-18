@@ -88,8 +88,22 @@
     -d '{"password":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type LoginReq struct {
+  	Username string `json:"username"`
+  	Password string `json:"password"`
+  	XForwardedFor string
+  	UserAgent string
+  }
+
+  type string struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiUserLogin(rail miso.Rail, req LoginReq, xForwardedFor string, userAgent string) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/user/login", "user-vault").
@@ -182,8 +196,13 @@
     -d '{"password":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type RegisterReq struct {
+  	Username string `json:"username"`
+  	Password string `json:"password"`
+  }
+
   func ApiUserRegister(rail miso.Rail, req RegisterReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/register/request", "user-vault").
@@ -265,8 +284,14 @@
     -d '{"password":"","roleNo":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type AddUserParam struct {
+  	Username string `json:"username"`
+  	Password string `json:"password"`
+  	RoleNo string `json:"roleNo"`
+  }
+
   func ApiAdminAddUser(rail miso.Rail, req AddUserParam) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/add", "user-vault").
@@ -370,8 +395,28 @@
     -d '{"isDisabled":0,"paging":{"limit":0,"page":0,"total":0},"roleNo":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListUserReq struct {
+  	Username *string `json:"username"`
+  	RoleNo *string `json:"roleNo"`
+  	IsDisabled *int `json:"isDisabled"`
+  	Paging miso.Paging `json:"paging"`
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type PageRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (PageRes, error) {
   	var res miso.GnResp[PageRes]
   	err := miso.NewDynTClient(rail, "/open/api/user/list", "user-vault").
@@ -489,8 +534,14 @@
     -d '{"isDisabled":0,"roleNo":"","userNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type AdminUpdateUserReq struct {
+  	UserNo string
+  	RoleNo string `json:"roleNo"`
+  	IsDisabled int `json:"isDisabled"`
+  }
+
   func ApiAdminUpdateUser(rail miso.Rail, req AdminUpdateUserReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/info/update", "user-vault").
@@ -572,8 +623,13 @@
     -d '{"reviewStatus":"","userId":0}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type AdminReviewUserReq struct {
+  	UserId int `json:"userId"`
+  	ReviewStatus string `json:"reviewStatus"`
+  }
+
   func ApiAdminReviewUser(rail miso.Rail, req AdminReviewUserReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/registration/review", "user-vault").
@@ -656,8 +712,15 @@
   curl -X GET 'http://localhost:8089/open/api/user/info'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type UserInfoRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiUserGetUserInfo(rail miso.Rail) (UserInfoRes, error) {
   	var res miso.GnResp[UserInfoRes]
   	err := miso.NewDynTClient(rail, "/open/api/user/info", "user-vault").
@@ -741,8 +804,13 @@
     -d '{"newPassword":"","prevPassword":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type UpdatePasswordReq struct {
+  	PrevPassword string `json:"prevPassword"`
+  	NewPassword string `json:"newPassword"`
+  }
+
   func ApiUserUpdatePassword(rail miso.Rail, req UpdatePasswordReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/password/update", "user-vault").
@@ -823,8 +891,19 @@
     -d '{"token":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ExchangeTokenReq struct {
+  	Token string `json:"token"`
+  }
+
+  type string struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ExchangeTokenEp(rail miso.Rail, req ExchangeTokenReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/token/exchange", "user-vault").
@@ -910,8 +989,15 @@
   curl -X GET 'http://localhost:8089/open/api/token/user?token='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type UserInfoBrief struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiGetTokenUserInfo(rail miso.Rail, token string) (UserInfoBrief, error) {
   	var res miso.GnResp[UserInfoBrief]
   	err := miso.NewDynTClient(rail, "/open/api/token/user", "user-vault").
@@ -1012,8 +1098,25 @@
     -d '{"paging":{"limit":0,"page":0,"total":0}}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListAccessLogReq struct {
+  	Paging miso.Paging `json:"paging"`
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type PageRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (PageRes, error) {
   	var res miso.GnResp[PageRes]
   	err := miso.NewDynTClient(rail, "/open/api/access/history", "user-vault").
@@ -1123,8 +1226,13 @@
     -d '{"keyName":"","password":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type GenUserKeyReq struct {
+  	Password string `json:"password"`
+  	KeyName string `json:"keyName"`
+  }
+
   func ApiUserGenUserKey(rail miso.Rail, req GenUserKeyReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/key/generate", "user-vault").
@@ -1219,8 +1327,26 @@
     -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListUserKeysReq struct {
+  	Paging miso.Paging `json:"paging"`
+  	Name string `json:"name"`
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type PageRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiUserListUserKeys(rail miso.Rail, req ListUserKeysReq) (PageRes, error) {
   	var res miso.GnResp[PageRes]
   	err := miso.NewDynTClient(rail, "/open/api/user/key/list", "user-vault").
@@ -1328,8 +1454,12 @@
     -d '{"userKeyId":0}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type DeleteUserKeyReq struct {
+  	UserKeyId int `json:"userKeyId"`
+  }
+
   func ApiUserDeleteUserKey(rail miso.Rail, req DeleteUserKeyReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/key/delete", "user-vault").
@@ -1409,8 +1539,13 @@
     -d '{"code":"","name":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type CreateResReq struct {
+  	Name string `json:"name"`
+  	Code string `json:"code"`
+  }
+
   func ApiAdminAddResource(rail miso.Rail, req CreateResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/resource/add", "user-vault").
@@ -1490,8 +1625,12 @@
     -d '{"resCode":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type DeleteResourceReq struct {
+  	ResCode string `json:"resCode"`
+  }
+
   func ApiAdminRemoveResource(rail miso.Rail, req DeleteResourceReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/resource/remove", "user-vault").
@@ -1571,8 +1710,15 @@
   curl -X GET 'http://localhost:8089/open/api/resource/brief/candidates?roleNo='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type []ResBrief struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiListResCandidates(rail miso.Rail, roleNo string) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
   	err := miso.NewDynTClient(rail, "/open/api/resource/brief/candidates", "user-vault").
@@ -1669,8 +1815,25 @@
     -d '{"paging":{"limit":0,"page":0,"total":0}}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListResReq struct {
+  	Paging miso.Paging `json:"paging"`
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type ListResResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiAdminListRes(rail miso.Rail, req ListResReq) (ListResResp, error) {
   	var res miso.GnResp[ListResResp]
   	err := miso.NewDynTClient(rail, "/open/api/resource/list", "user-vault").
@@ -1778,8 +1941,15 @@
   curl -X GET 'http://localhost:8089/open/api/resource/brief/user'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type []ResBrief struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiListUserAccessibleRes(rail miso.Rail) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
   	err := miso.NewDynTClient(rail, "/open/api/resource/brief/user", "user-vault").
@@ -1857,8 +2027,15 @@
   curl -X GET 'http://localhost:8089/open/api/resource/brief/all'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type []ResBrief struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiListAllResBrief(rail miso.Rail) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
   	err := miso.NewDynTClient(rail, "/open/api/resource/brief/all", "user-vault").
@@ -1938,8 +2115,13 @@
     -d '{"resCode":"","roleNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type AddRoleResReq struct {
+  	RoleNo string `json:"roleNo"`
+  	ResCode string `json:"resCode"`
+  }
+
   func ApiAdminBindRoleRes(rail miso.Rail, req AddRoleResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/role/resource/add", "user-vault").
@@ -2020,8 +2202,13 @@
     -d '{"resCode":"","roleNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type RemoveRoleResReq struct {
+  	RoleNo string `json:"roleNo"`
+  	ResCode string `json:"resCode"`
+  }
+
   func ApiAdminUnbindRoleRes(rail miso.Rail, req RemoveRoleResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/role/resource/remove", "user-vault").
@@ -2101,8 +2288,12 @@
     -d '{"name":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type AddRoleReq struct {
+  	Name string `json:"name"`
+  }
+
   func ApiAdminAddRole(rail miso.Rail, req AddRoleReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/role/add", "user-vault").
@@ -2197,8 +2388,25 @@
     -d '{"paging":{"limit":0,"page":0,"total":0}}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListRoleReq struct {
+  	Paging miso.Paging `json:"paging"`
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type ListRoleResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiAdminListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
   	var res miso.GnResp[ListRoleResp]
   	err := miso.NewDynTClient(rail, "/open/api/role/list", "user-vault").
@@ -2306,8 +2514,15 @@
   curl -X GET 'http://localhost:8089/open/api/role/brief/all'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type []RoleBrief struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiAdminListRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
   	var res miso.GnResp[[]RoleBrief]
   	err := miso.NewDynTClient(rail, "/open/api/role/brief/all", "user-vault").
@@ -2401,8 +2616,26 @@
     -d '{"paging":{"limit":0,"page":0,"total":0},"roleNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListRoleResReq struct {
+  	Paging miso.Paging `json:"paging"`
+  	RoleNo string `json:"roleNo"`
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type ListRoleResResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiAdminListRoleRes(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
   	var res miso.GnResp[ListRoleResResp]
   	err := miso.NewDynTClient(rail, "/open/api/role/resource/list", "user-vault").
@@ -2513,8 +2746,19 @@
     -d '{"roleNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type RoleInfoReq struct {
+  	RoleNo string `json:"roleNo"`
+  }
+
+  type RoleInfoResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiGetRoleInfo(rail miso.Rail, req RoleInfoReq) (RoleInfoResp, error) {
   	var res miso.GnResp[RoleInfoResp]
   	err := miso.NewDynTClient(rail, "/open/api/role/info", "user-vault").
@@ -2625,8 +2869,29 @@
     -d '{"paging":{"limit":0,"page":0,"total":0},"pgroup":"","ptype":"","resCode":"","url":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListPathReq struct {
+  	ResCode string `json:"resCode"`
+  	Pgroup string `json:"pgroup"`
+  	Url string `json:"url"`
+  	Ptype string `json:"ptype"`    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+  	Paging miso.Paging `json:"paging"`
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type ListPathResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiAdminListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
   	var res miso.GnResp[ListPathResp]
   	err := miso.NewDynTClient(rail, "/open/api/path/list", "user-vault").
@@ -2744,8 +3009,13 @@
     -d '{"pathNo":"","resCode":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type BindPathResReq struct {
+  	PathNo string `json:"pathNo"`
+  	ResCode string `json:"resCode"`
+  }
+
   func ApiAdminBindResPath(rail miso.Rail, req BindPathResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/resource/bind", "user-vault").
@@ -2826,8 +3096,13 @@
     -d '{"pathNo":"","resCode":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type UnbindPathResReq struct {
+  	PathNo string `json:"pathNo"`
+  	ResCode string `json:"resCode"`
+  }
+
   func ApiAdminUnbindResPath(rail miso.Rail, req UnbindPathResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/resource/unbind", "user-vault").
@@ -2907,8 +3182,12 @@
     -d '{"pathNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type DeletePathReq struct {
+  	PathNo string `json:"pathNo"`
+  }
+
   func ApiAdminDeletePath(rail miso.Rail, req DeletePathReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/delete", "user-vault").
@@ -2990,8 +3269,15 @@
     -d '{"group":"","pathNo":"","resCode":"","type":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type UpdatePathReq struct {
+  	Type string                    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+  	PathNo string
+  	Group string
+  	ResCode string
+  }
+
   func ApiAdminUpdatePath(rail miso.Rail, req UpdatePathReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/update", "user-vault").
@@ -3086,8 +3372,21 @@
     -d '{"userId":0,"userNo":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type FindUserReq struct {
+  	UserId *int `json:"userId"`
+  	UserNo *string `json:"userNo"`
+  	Username *string `json:"username"`
+  }
+
+  type UserInfo struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFetchUserInfo(rail miso.Rail, req FindUserReq) (UserInfo, error) {
   	var res miso.GnResp[UserInfo]
   	err := miso.NewDynTClient(rail, "/remote/user/info", "user-vault").
@@ -3190,8 +3489,21 @@
     -d '{"userId":0,"userNo":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type FindUserReq struct {
+  	UserId *int `json:"userId"`
+  	UserNo *string `json:"userNo"`
+  	Username *string `json:"username"`
+  }
+
+  type User struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (User, error) {
   	var res miso.GnResp[User]
   	err := miso.NewDynTClient(rail, "/internal/v1/user/info/common", "user-vault").
@@ -3279,8 +3591,15 @@
   curl -X GET 'http://localhost:8089/remote/user/id?username='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type int struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFetchUserIdByName(rail miso.Rail, username string) (int, error) {
   	var res miso.GnResp[int]
   	err := miso.NewDynTClient(rail, "/remote/user/id", "user-vault").
@@ -3356,8 +3675,19 @@
     -d '{"userNos":[]}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type FetchNameByUserNoReq struct {
+  	UserNos []string `json:"userNos"`
+  }
+
+  type FetchUsernamesRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFetchUsernamesByNosEp(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes, error) {
   	var res miso.GnResp[FetchUsernamesRes]
   	err := miso.NewDynTClient(rail, "/remote/user/userno/username", "user-vault").
@@ -3454,8 +3784,19 @@
     -d '{"roleNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type FetchUsersWithRoleReq struct {
+  	RoleNo string
+  }
+
+  type []UserInfo struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFindUserWithRoleEp(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
   	var res miso.GnResp[[]UserInfo]
   	err := miso.NewDynTClient(rail, "/remote/user/list/with-role", "user-vault").
@@ -3562,8 +3903,19 @@
     -d '{"resourceCode":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type FetchUserWithResourceReq struct {
+  	ResourceCode string
+  }
+
+  type []UserInfo struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFindUserWithResourceEp(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
   	var res miso.GnResp[[]UserInfo]
   	err := miso.NewDynTClient(rail, "/remote/user/list/with-resource", "user-vault").
@@ -3659,8 +4011,13 @@
     -d '{"code":"","name":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type CreateResReq struct {
+  	Name string `json:"name"`
+  	Code string `json:"code"`
+  }
+
   func ApiReportResourceEp(rail miso.Rail, req CreateResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/remote/resource/add", "user-vault").
@@ -3743,8 +4100,21 @@
     -d '{"method":"","roleNo":"","url":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type CheckResAccessReq struct {
+  	RoleNo string `json:"roleNo"`
+  	Url string `json:"url"`
+  	Method string `json:"method"`
+  }
+
+  type CheckResAccessResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiCheckResourceAccessEp(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
   	var res miso.GnResp[CheckResAccessResp]
   	err := miso.NewDynTClient(rail, "/remote/path/resource/access-test", "user-vault").
@@ -3837,8 +4207,17 @@
     -d '{"desc":"","group":"","method":"","resCode":"","type":"","url":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type CreatePathReq struct {
+  	Type string                    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+  	Url string
+  	Group string
+  	Method string
+  	Desc string
+  	ResCode string
+  }
+
   func ApiReportPath(rail miso.Rail, req CreatePathReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/remote/path/add", "user-vault").
@@ -3939,8 +4318,28 @@
     -d '{"alias":"","paging":{"limit":0,"page":0,"total":0},"site":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListSitePasswordReq struct {
+  	Alias string
+  	Site string
+  	Username string
+  	Paging miso.Paging
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type PageRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (PageRes, error) {
   	var res miso.GnResp[PageRes]
   	err := miso.NewDynTClient(rail, "/open/api/password/list-site-passwords", "user-vault").
@@ -4054,8 +4453,16 @@
     -d '{"alias":"","loginPassword":"","site":"","sitePassword":"","username":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type AddSitePasswordReq struct {
+  	Site string
+  	Alias string
+  	Username string
+  	SitePassword string
+  	LoginPassword string
+  }
+
   func ApiAddSitePassword(rail miso.Rail, req AddSitePasswordReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/password/add-site-password", "user-vault").
@@ -4138,8 +4545,12 @@
     -d '{"recordId":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type RemoveSitePasswordRes struct {
+  	RecordId string
+  }
+
   func ApiRemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/password/remove-site-password", "user-vault").
@@ -4221,8 +4632,20 @@
     -d '{"loginPassword":"","recordId":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type DecryptSitePasswordReq struct {
+  	LoginPassword string
+  	RecordId string
+  }
+
+  type DecryptSitePasswordRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiDecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq) (DecryptSitePasswordRes, error) {
   	var res miso.GnResp[DecryptSitePasswordRes]
   	err := miso.NewDynTClient(rail, "/open/api/password/decrypt-site-password", "user-vault").
@@ -4313,8 +4736,16 @@
     -d '{"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type EditSitePasswordReq struct {
+  	RecordId string
+  	Site string
+  	Alias string
+  	SitePassword string            // new site password, optional
+  	LoginPassword string           // only used when site password is provided
+  }
+
   func ApiEditSitePassword(rail miso.Rail, req EditSitePasswordReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/password/edit-site-password", "user-vault").
@@ -4397,8 +4828,12 @@
     -d '{"userNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ClearUserFailedLoginAttemptsReq struct {
+  	UserNo string
+  }
+
   func ApiClearUserFailedLoginAttempts(rail miso.Rail, req ClearUserFailedLoginAttemptsReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/clear-failed-login-attempts", "user-vault").
@@ -4479,8 +4914,14 @@
     -d '{"message":"","receiverUserNos":[],"title":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type CreateNotificationReq struct {
+  	Title string
+  	Message string
+  	ReceiverUserNos []string
+  }
+
   func SendCreateNotificationReq(rail miso.Rail, req CreateNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/create", "user-vault").
@@ -4565,8 +5006,19 @@
     -d '{"page":{"limit":0,"page":0,"total":0},"status":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type QueryNotificationReq struct {
+  	Page miso.Paging
+  	Status string
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
   func SendQueryNotificationReq(rail miso.Rail, req QueryNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/query", "user-vault").
@@ -4648,7 +5100,7 @@
   curl -X GET 'http://localhost:8089/open/api/v1/notification/count'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -4720,8 +5172,12 @@
     -d '{"notifiNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type OpenNotificationReq struct {
+  	NotifiNo string
+  }
+
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/open", "user-vault").
@@ -4800,8 +5256,12 @@
     -d '{"notifiNo":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type OpenNotificationReq struct {
+  	NotifiNo string
+  }
+
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/open-all", "user-vault").
@@ -4874,7 +5334,7 @@
   curl -X GET 'http://localhost:8089/open/api/v2/notification/count?curr='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail, curr string) error {
   	var res miso.GnResp[any]
@@ -4929,7 +5389,7 @@
     -H 'Authorization: '
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail, authorization string) error {
   	var res miso.GnResp[any]
@@ -4985,7 +5445,7 @@
   curl -X GET 'http://localhost:8089/debug/pprof'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -5034,7 +5494,7 @@
   curl -X GET 'http://localhost:8089/debug/pprof/:name'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -5083,7 +5543,7 @@
   curl -X GET 'http://localhost:8089/debug/pprof/cmdline'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -5132,7 +5592,7 @@
   curl -X GET 'http://localhost:8089/debug/pprof/profile'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -5181,7 +5641,7 @@
   curl -X GET 'http://localhost:8089/debug/pprof/symbol'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -5230,7 +5690,7 @@
   curl -X GET 'http://localhost:8089/debug/pprof/trace'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -5281,7 +5741,7 @@
   curl -X GET 'http://localhost:8089/doc/api'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]

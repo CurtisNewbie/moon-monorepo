@@ -60,8 +60,31 @@
     -d '{"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":0,"transTimeStart":0}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListCashFlowReq struct {
+  	Paging miso.Paging
+  	Direction string               // Flow Direction: IN / OUT
+  	TransTimeStart *util.ETime     // Transaction Time Range Start
+  	TransTimeEnd *util.ETime       // Transaction Time Range End
+  	TransId string                 // Transaction ID
+  	Category string                // Category Code
+  	MinAmt *money.Amt              // Minimum amount
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type PageRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (PageRes, error) {
   	var res miso.GnResp[PageRes]
   	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list", "acct").
@@ -176,7 +199,7 @@
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/import/wechat'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiImportWechatCashflows(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -244,8 +267,15 @@
   curl -X GET 'http://localhost:8093/open/api/v1/cashflow/list-currency'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type []string struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiListCurrency(rail miso.Rail) ([]string, error) {
   	var res miso.GnResp[[]string]
   	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-currency", "acct").
@@ -334,8 +364,28 @@
     -d '{"aggRange":"","aggType":"","currency":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ApiListStatisticsReq struct {
+  	Paging miso.Paging
+  	AggType string                 // Aggregation Type.
+  	AggRange string                // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+  	Currency string                // Currency
+  }
+
+  type Paging struct {
+  	Limit int `json:"limit"`       // page limit
+  	Page int `json:"page"`         // page number, 1-based
+  	Total int `json:"total"`       // total count
+  }
+
+  type PageRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiListCashflowStatistics(rail miso.Rail, req ApiListStatisticsReq) (PageRes, error) {
   	var res miso.GnResp[PageRes]
   	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-statistics", "acct").
@@ -449,8 +499,30 @@
     -d '{"aggType":"","currency":"","endTime":0,"startTime":0}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ApiPlotStatisticsReq struct {
+  	StartTime util.ETime
+  	EndTime util.ETime
+  	AggType string                 // Aggregation Type.
+  	Currency string                // Currency
+  }
+
+  type ETime struct {
+  	Time time.Time
+  }
+
+  type ETime struct {
+  	Time time.Time
+  }
+
+  type []ApiPlotStatisticsRes struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiPlotCashflowStatistics(rail miso.Rail, req ApiPlotStatisticsReq) ([]ApiPlotStatisticsRes, error) {
   	var res miso.GnResp[[]ApiPlotStatisticsRes]
   	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/plot-statistics", "acct").
@@ -547,8 +619,20 @@
   curl -X GET 'http://localhost:8093/auth/resource'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type GnResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data auth.ResourceInfoRes `json:"data"`
+  }
+
+  type ResourceInfoRes struct {
+  	Resources []auth.Resource
+  	Paths []auth.Endpoint
+  }
+
   func SendRequest(rail miso.Rail) (GnResp, error) {
   	var res miso.GnResp[GnResp]
   	err := miso.NewDynTClient(rail, "/auth/resource", "acct").
@@ -635,7 +719,7 @@
     -H 'Authorization: '
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail, authorization string) error {
   	var res miso.GnResp[any]
@@ -691,7 +775,7 @@
   curl -X GET 'http://localhost:8093/debug/pprof'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -740,7 +824,7 @@
   curl -X GET 'http://localhost:8093/debug/pprof/:name'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -789,7 +873,7 @@
   curl -X GET 'http://localhost:8093/debug/pprof/cmdline'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -838,7 +922,7 @@
   curl -X GET 'http://localhost:8093/debug/pprof/profile'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -887,7 +971,7 @@
   curl -X GET 'http://localhost:8093/debug/pprof/symbol'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -936,7 +1020,7 @@
   curl -X GET 'http://localhost:8093/debug/pprof/trace'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -987,7 +1071,7 @@
   curl -X GET 'http://localhost:8093/doc/api'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]

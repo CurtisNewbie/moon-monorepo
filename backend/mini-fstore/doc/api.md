@@ -39,7 +39,7 @@
   curl -X GET 'http://localhost:8084/file/stream?key='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiTempKeyStreamFile(rail miso.Rail, key string) error {
   	var res miso.GnResp[any]
@@ -94,7 +94,7 @@
   curl -X GET 'http://localhost:8084/file/raw?key='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiTempKeyDownloadFile(rail miso.Rail, key string) error {
   	var res miso.GnResp[any]
@@ -155,8 +155,15 @@
     -H 'filename: '
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type string struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiUploadFile(rail miso.Rail, filename string) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/file", "fstore").
@@ -243,8 +250,15 @@
   curl -X GET 'http://localhost:8084/file/info?fileId=&uploadFileId='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type FstoreFile struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiGetFileInfo(rail miso.Rail, fileId string, uploadFileId string) (FstoreFile, error) {
   	var res miso.GnResp[FstoreFile]
   	err := miso.NewDynTClient(rail, "/file/info", "fstore").
@@ -332,8 +346,15 @@
   curl -X GET 'http://localhost:8084/file/key?fileId=&filename='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type string struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiGenFileKey(rail miso.Rail, fileId string, filename string) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/file/key", "fstore").
@@ -403,7 +424,7 @@
   curl -X GET 'http://localhost:8084/file/direct?fileId='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiDirectDownloadFile(rail miso.Rail, fileId string) error {
   	var res miso.GnResp[any]
@@ -461,7 +482,7 @@
   curl -X DELETE 'http://localhost:8084/file?fileId='
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiDeleteFile(rail miso.Rail, fileId string) error {
   	var res miso.GnResp[any]
@@ -536,8 +557,14 @@
     -d '{"extra":"","fileId":"","replyToEventBus":""}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type UnzipFileReq struct {
+  	FileId string                  // file_id of zip file
+  	ReplyToEventBus string         // name of the rabbitmq exchange to reply to, routing_key is '#'
+  	Extra string                   // extra information that will be passed around for the caller
+  }
+
   func ApiUnzipFile(rail miso.Rail, req UnzipFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/file/unzip", "fstore").
@@ -630,8 +657,20 @@
     -d '{"idOffset":0,"limit":0}'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type ListBackupFileReq struct {
+  	Limit int64
+  	IdOffset int
+  }
+
+  type ListBackupFileResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiBackupListFiles(rail miso.Rail, req ListBackupFileReq, authorization string) (ListBackupFileResp, error) {
   	var res miso.GnResp[ListBackupFileResp]
   	err := miso.NewDynTClient(rail, "/backup/file/list", "fstore").
@@ -731,7 +770,7 @@
     -H 'Authorization: '
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiBackupDownFile(rail miso.Rail, fileId string, authorization string) error {
   	var res miso.GnResp[any]
@@ -795,7 +834,7 @@
   curl -X POST 'http://localhost:8084/maintenance/remove-deleted'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiRemoveDeletedFiles(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -863,7 +902,7 @@
   curl -X POST 'http://localhost:8084/maintenance/sanitize-storage'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiSanitizeStorage(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -930,7 +969,7 @@
   curl -X POST 'http://localhost:8084/maintenance/compute-checksum'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func ApiComputeChecksum(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -1009,8 +1048,15 @@
   curl -X GET 'http://localhost:8084/storage/info'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type StorageInfo struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFetchStorageInfo(rail miso.Rail) (StorageInfo, error) {
   	var res miso.GnResp[StorageInfo]
   	err := miso.NewDynTClient(rail, "/storage/info", "fstore").
@@ -1101,8 +1147,15 @@
   curl -X GET 'http://localhost:8084/storage/usage-info'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type []StorageUsageInfo struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFetchStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
   	var res miso.GnResp[[]StorageUsageInfo]
   	err := miso.NewDynTClient(rail, "/storage/usage-info", "fstore").
@@ -1181,8 +1234,15 @@
   curl -X GET 'http://localhost:8084/maintenance/status'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type MaintenanceStatus struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data interface {} `json:"data"` // response data
+  }
+
   func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
   	var res miso.GnResp[MaintenanceStatus]
   	err := miso.NewDynTClient(rail, "/maintenance/status", "fstore").
@@ -1267,8 +1327,20 @@
   curl -X GET 'http://localhost:8084/auth/resource'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
+  type GnResp struct {
+  	ErrorCode string `json:"errorCode"` // error code
+  	Msg string `json:"msg"`        // message
+  	Error bool `json:"error"`      // whether the request was successful
+  	Data auth.ResourceInfoRes `json:"data"`
+  }
+
+  type ResourceInfoRes struct {
+  	Resources []auth.Resource
+  	Paths []auth.Endpoint
+  }
+
   func SendRequest(rail miso.Rail) (GnResp, error) {
   	var res miso.GnResp[GnResp]
   	err := miso.NewDynTClient(rail, "/auth/resource", "fstore").
@@ -1355,7 +1427,7 @@
     -H 'Authorization: '
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail, authorization string) error {
   	var res miso.GnResp[any]
@@ -1411,7 +1483,7 @@
   curl -X GET 'http://localhost:8084/debug/pprof'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -1460,7 +1532,7 @@
   curl -X GET 'http://localhost:8084/debug/pprof/:name'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -1509,7 +1581,7 @@
   curl -X GET 'http://localhost:8084/debug/pprof/cmdline'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -1558,7 +1630,7 @@
   curl -X GET 'http://localhost:8084/debug/pprof/profile'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -1607,7 +1679,7 @@
   curl -X GET 'http://localhost:8084/debug/pprof/symbol'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -1656,7 +1728,7 @@
   curl -X GET 'http://localhost:8084/debug/pprof/trace'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
@@ -1707,7 +1779,7 @@
   curl -X GET 'http://localhost:8084/doc/api'
   ```
 
-- Miso HTTP Client:
+- Miso HTTP Client (experimental, demo may not work):
   ```go
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
