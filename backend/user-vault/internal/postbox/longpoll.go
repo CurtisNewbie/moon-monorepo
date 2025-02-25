@@ -107,10 +107,19 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 
 	l.pool.Go(func() {
 		rail = rail.NextSpan()
-		loadCount := func() (exit bool) {
+		loadCount := func(alwaysClose bool) (exit bool) {
 			next, err := CachedCountNotification(rail, db, user)
 			if err == nil && next != curr {
 				if err := lps.Write(next); err != nil {
+					rail.Errorf("Failed to write to LPSub, lps.id: %v, userId: %v, %v", lps.id, userNo, err)
+				}
+				exit = true
+			} else if alwaysClose {
+				v := curr
+				if err == nil {
+					v = next
+				}
+				if err := lps.Write(v); err != nil {
 					rail.Errorf("Failed to write to LPSub, lps.id: %v, userId: %v, %v", lps.id, userNo, err)
 				}
 				exit = true
@@ -129,7 +138,7 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 			rail.Infof("Remove LongPollSub, response has been written, lps.id: %v, userNo: %v", lps.id, userNo)
 		}()
 
-		exit := loadCount()
+		exit := loadCount(false)
 		if exit {
 			return
 		}
@@ -137,12 +146,10 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 		for {
 			select {
 			case <-t.C:
-				if loadCount() {
-					return
-				}
+				loadCount(true) // close no matter what
 			case <-lps.notified:
 				rail.Infof("LongPolling notified, query latest unread notification count for %v, %v", lps.id, user.UserNo)
-				if loadCount() {
+				if loadCount(false) {
 					return
 				}
 			case <-rail.Context().Done():
@@ -185,6 +192,17 @@ func (l *LPSub) Write(m any) error {
 	l.w.WriteHeader(http.StatusOK)
 	l.w.Header().Add("Content-Type", "application/json")
 	return json.EncodeJson(l.w, r)
+}
+
+func (l *LPSub) Close() {
+	l.mu.Lock()
+
+	if l.closed {
+		return
+	}
+	l.closed = true
+	l.mu.Unlock()
+	l.untilClosed <- struct{}{}
 }
 
 func (l *LPSub) Wait() {

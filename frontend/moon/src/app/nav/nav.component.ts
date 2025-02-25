@@ -81,11 +81,13 @@ export class NavComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-            return;
+          if (resp) {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
+            }
+            this.unreadCount = resp.data;
           }
-          this.unreadCount = resp.data;
         },
         complete: () => {
           this.fetching = false;
