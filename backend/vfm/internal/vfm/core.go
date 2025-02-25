@@ -462,7 +462,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 	// lock the file
 	flock := fileLock(rail, req.Uuid)
 	if err := flock.Lock(); err != nil {
-		return err
+		return miso.WrapErr(err)
 	}
 	defer flock.Unlock()
 
@@ -534,9 +534,13 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 
 		}
 
-		return tx.Exec("UPDATE file_info SET parent_file = ?, update_by = ?, update_time = ? WHERE uuid = ?",
+		err := tx.Exec("UPDATE file_info SET parent_file = ?, update_by = ?, update_time = ? WHERE uuid = ?",
 			req.ParentFileUuid, user.Username, time.Now(), req.Uuid).
 			Error
+		if err != nil {
+			return miso.WrapErr(err)
+		}
+		return nil
 	})
 
 	return err
@@ -553,15 +557,15 @@ func _saveFile(rail miso.Rail, tx *gorm.DB, f FileInfo, user common.User) error 
 	f.UploadTime = now
 	f.CreateTime = now
 	f.UploaderNo = user.UserNo
-	f.Hidden = f.Hidden
 
 	err := tx.Table("file_info").
 		Omit("id", "update_time", "update_by").
 		Create(&f).Error
 	if err == nil {
 		rail.Infof("Saved file %+v", f)
+		return nil
 	}
-	return err
+	return miso.WrapErr(err)
 }
 
 func fileLock(rail miso.Rail, fileKey string) *redis.RLock {
@@ -1495,30 +1499,28 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 func HandleZipUnpackResult(rail miso.Rail, db *gorm.DB, evt fstore.UnzipFileReplyEvent) error {
 	var extra UnpackZipExtra
 	if err := json.ParseJson([]byte(evt.Extra), &extra); err != nil {
-		return fmt.Errorf("failed to unmarshal from extra, %v", err)
+		return miso.UnknownErrf(err, "failed to unmarshal from extra")
 	}
 
 	if len(evt.ZipEntries) < 1 {
 		return nil
 	}
 
-	return db.Transaction(func(tx *gorm.DB) error {
-		for _, ze := range evt.ZipEntries {
-			_, err := SaveFileRecord(rail, tx, SaveFileReq{
-				Filename:   ze.Name,
-				FileId:     ze.FileId,
-				Size:       ze.Size,
-				ParentFile: extra.ParentFileKey,
-			}, common.User{
-				UserNo:   extra.UserNo,
-				Username: extra.Username,
-			})
-			if err != nil {
-				return fmt.Errorf("failed to save zip entry, entry: %v, %w", ze, err)
-			}
+	for _, ze := range evt.ZipEntries {
+		_, err := SaveFileRecord(rail, db, SaveFileReq{
+			Filename:   ze.Name,
+			FileId:     ze.FileId,
+			Size:       ze.Size,
+			ParentFile: extra.ParentFileKey,
+		}, common.User{
+			UserNo:   extra.UserNo,
+			Username: extra.Username,
+		})
+		if err != nil {
+			return miso.UnknownErrf(err, "failed to save zip entry, entry: %#v", ze)
 		}
-		return nil
-	})
+	}
+	return nil
 }
 
 func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.User, async bool) error {

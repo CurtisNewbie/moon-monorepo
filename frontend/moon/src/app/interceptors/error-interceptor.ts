@@ -45,6 +45,9 @@ export class ErrorInterceptor implements HttpInterceptor {
             } else {
               this.snackBar.open("Forbidden", "ok", { duration: 1000 });
             }
+          } else if (e.status === 504) {
+            // gateway timeout
+            return throwError(e);
           } else {
             this.snackBar.open(
               "Unknown server error, please try again later",
