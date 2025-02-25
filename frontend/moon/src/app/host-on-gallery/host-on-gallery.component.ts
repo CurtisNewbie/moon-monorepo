@@ -51,46 +51,28 @@ export class HostOnGalleryComponent implements OnInit {
     const addToGalleryNo = this.extractToGalleryNo();
     if (!addToGalleryNo) return;
 
-    let icnt = this.dat.files.filter((f) => f.type == "FILE").length;
-    let dcnt = this.dat.files.length - icnt;
+    let params = this.dat.files.map((f) => {
+      return {
+        fileKey: f.fileKey,
+        galleryNo: addToGalleryNo,
+      };
+    });
 
-    let msgs = [];
-    msgs.push(`You have selected ${icnt} images and ${dcnt} directores.`);
-    msgs.push(
-      `All images will transferred and hosted on gallery '${this.addToGalleryName}', it may take a while.`
-    );
-    msgs.push("");
-
-    this.confirmDialog.show(
-      `Hosting Images On Gallery '${this.addToGalleryName}'`,
-      msgs,
-      () => {
-        let params = this.dat.files.map((f) => {
-          return {
-            fileKey: f.fileKey,
-            galleryNo: addToGalleryNo,
-          };
-        });
-
-        this.http
-          .post<any>(`vfm/open/api/gallery/image/transfer`, {
-            images: params,
-          })
-          .subscribe({
-            next: (resp) => {
-              if (resp.error) {
-                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-                return;
-              }
-              this.snackBar.open(
-                "Request success! It may take a while.",
-                "ok",
-                { duration: 3000 }
-              );
-            },
+    this.http
+      .post<any>(`vfm/open/api/gallery/image/transfer`, {
+        images: params,
+      })
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.snackBar.open("Request success! It may take a while.", "ok", {
+            duration: 3000,
           });
-      }
-    );
+        },
+      });
   }
 
   private extractToGalleryNo(): string {

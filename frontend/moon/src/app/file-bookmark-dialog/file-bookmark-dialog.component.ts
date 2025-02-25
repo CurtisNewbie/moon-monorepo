@@ -170,7 +170,12 @@ export class FileBookmarkDialogComponent implements OnInit {
         data: { files: selected },
       })
       .afterClosed()
-      .subscribe();
+      .subscribe((added) => {
+        if (added) {
+          this.fileBookmark.clear();
+          this.reload();
+        }
+      });
   }
 
   addToGallery() {
@@ -196,7 +201,12 @@ export class FileBookmarkDialogComponent implements OnInit {
         data: { files: selected },
       })
       .afterClosed()
-      .subscribe();
+      .subscribe((added) => {
+        if (added) {
+          this.fileBookmark.clear();
+          this.reload();
+        }
+      });
   }
 
   clear() {

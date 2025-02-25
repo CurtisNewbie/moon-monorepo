@@ -32,7 +32,6 @@ export class VfolderAddFileComponent implements OnInit {
     public dialogRef: MatDialogRef<VfolderAddFileComponent, Data>,
     @Inject(MAT_DIALOG_DATA) public dat: Data,
     private http: HttpClient,
-    private confirmDialog: ConfirmDialog,
     private snackBar: MatSnackBar
   ) {}
 
@@ -91,27 +90,19 @@ export class VfolderAddFileComponent implements OnInit {
     }
     addToFolderNo = matched[0].folderNo;
 
-    this.confirmDialog.show(
-      "Confirm Dialog",
-      [
-        `Add these ${this.dat.files.length} files to folder '${this.addToVFolderName}'?`,
-      ],
-      () => {
-        this.http
-          .post<any>(`vfm/open/api/vfolder/file/add`, {
-            folderNo: addToFolderNo,
-            fileKeys: this.dat.files.map((f) => f.fileKey),
-          })
-          .subscribe({
-            next: (resp) => {
-              if (resp.error) {
-                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-                return;
-              }
-              this.snackBar.open("Success", "ok", { duration: 3000 });
-            },
-          });
-      }
-    );
+    this.http
+      .post<any>(`vfm/open/api/vfolder/file/add`, {
+        folderNo: addToFolderNo,
+        fileKeys: this.dat.files.map((f) => f.fileKey),
+      })
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.snackBar.open("Success", "ok", { duration: 3000 });
+        },
+      });
   }
 }
