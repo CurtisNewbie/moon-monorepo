@@ -24,6 +24,11 @@ import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
 import { isEnterKey } from "src/common/condition";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ConfirmDialog } from "src/common/dialog";
+
+export interface ApiDelVerFileReq {
+  verFileId?: string; // Versioned File Id
+}
 
 export interface VerFileHistoryDialogData {
   verFileId?: string;
@@ -361,7 +366,7 @@ export interface ApiListVerFileRes {
       <div class="input-group input-group-lg mt-1 mb-1">
         <input
           type="file"
-          class="form-control"
+          class="form-control darkmode"
           #uploadFileInput
           (change)="onFileSelected($event.target.files)"
           aria-describedby="basic-addon1"
@@ -483,6 +488,13 @@ export interface ApiListVerFileRes {
             >
               History
             </button>
+            <button
+              mat-raised-button
+              class="m-2"
+              (click)="$event.stopPropagation() || deleteVerFile(f)"
+            >
+              Delete
+            </button>
           </td>
         </ng-container>
 
@@ -527,7 +539,8 @@ export class VersionedFileComponent implements OnInit {
     private dialog: MatDialog,
     private nav: NavigationService,
     public env: Env,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private confirm: ConfirmDialog
   ) {}
 
   ngOnInit(): void {}
@@ -710,5 +723,35 @@ export class VersionedFileComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirm) => {
       // do nothing
     });
+  }
+
+  deleteVerFile(f: ApiListVerFileRes) {
+    this.confirm.show(
+      `Delete ${f.name}?`,
+      [
+        `Are you sure you want to delete ${f.name}?`,
+        "All snapshots are deleted as well.",
+      ],
+      () => {
+        let req: ApiDelVerFileReq = { verFileId: f.verFileId };
+        this.http
+          .post<any>(`/vfm/open/api/versioned-file/delete`, req)
+          .subscribe({
+            next: (resp) => {
+              if (resp.error) {
+                this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                return;
+              }
+              this.fetch();
+            },
+            error: (err) => {
+              console.log(err);
+              this.snackBar.open("Request failed, unknown error", "ok", {
+                duration: 3000,
+              });
+            },
+          });
+      }
+    );
   }
 }

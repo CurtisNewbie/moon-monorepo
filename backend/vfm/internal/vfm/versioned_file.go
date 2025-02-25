@@ -241,10 +241,10 @@ func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.U
 		WHERE ver_file_id = ?
 	`, req.VerFileId).Scan(&uvf)
 	if tx.Error != nil {
-		return fmt.Errorf("failed to query versioned_file, req: %#v, %v", req, tx.Error)
+		return miso.UnknownErrf(tx.Error, "failed to query versioned_file, req: %#v", req)
 	}
 	if tx.RowsAffected < 1 {
-		return miso.NewErrf("File not found", "ver_file_id not found, %v", req.VerFileId)
+		return miso.NewErrf("File not found").WithInternalMsg("ver_file_id not found, %v", req.VerFileId)
 	}
 	if uvf.UploaderNo != user.UserNo {
 		return miso.NewErrf("Not permitted")
