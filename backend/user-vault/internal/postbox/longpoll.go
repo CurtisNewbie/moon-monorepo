@@ -127,9 +127,6 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 			return
 		}
 
-		t := time.NewTicker(30 * time.Second)
-		defer t.Stop()
-
 		defer func() {
 			l.mu.Lock()
 			defer l.mu.Unlock()
@@ -145,7 +142,7 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 
 		for {
 			select {
-			case <-t.C:
+			case <-time.After(30 * time.Second):
 				loadCount(true) // close no matter what
 			case <-lps.notified:
 				rail.Infof("LongPolling notified, query latest unread notification count for %v, %v", lps.id, user.UserNo)
