@@ -15,9 +15,10 @@ func SubscribeBinlogChanges(rail miso.Rail) error {
 			EventTypes: []client.EventType{client.EventTypeInsert, client.EventTypeUpdate},
 			Stream:     "event.bus.postbox.notification.count.changed",
 		},
-		Concurrency:   2,
-		ContinueOnErr: true,
-		Listener:      evictNotifCountCache,
+		Concurrency:        2,
+		ContinueOnErr:      true,
+		Listener:           evictNotifCountCache,
+		ListenerLogPayload: true,
 	})
 	return nil
 }
