@@ -22,7 +22,7 @@
                     </mat-option>
                 </mat-select>
             </mat-form-field>
-            <div class="mt-1 mb-1">
+            <div class="mt-1 mb-1" style="max-height: 700px; overflow: scroll;">
                 <mat-tree [dataSource]="dirTreeDataSource" [treeControl]="dirTreeControl" class="tree">
                     <mat-nested-tree-node *matTreeNodeDef="let node; when: dirTree.treeHasChild">
                         <li>
@@ -56,6 +56,9 @@
         <button mat-icon-button class="m-1 icon-button-large" [class.status-green]="createTaskPanelShown"
             (click)="toggleCreateTaskPanelShown()">
             <i class="bi bi-send-arrow-down"></i></button>
+        <button mat-icon-button class="m-1 icon-button-large" (click)="listTasks()">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
     </div>
 </div>
 
