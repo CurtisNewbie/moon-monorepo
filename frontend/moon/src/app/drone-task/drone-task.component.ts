@@ -116,6 +116,7 @@ export class DroneTaskComponent implements OnInit {
         this.createTaskReq = {};
         this.createTaskDirName = "";
         this.createTaskPanelShown = false;
+        this.listTasks();
       },
       error: (err) => {
         console.log(err);
