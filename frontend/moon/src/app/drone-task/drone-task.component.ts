@@ -1,7 +1,12 @@
+import { NestedTreeControl } from "@angular/cdk/tree";
 import { HttpClient } from "@angular/common/http";
 import { Component, OnInit } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatTreeNestedDataSource } from "@angular/material/tree";
+import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
 import { Paging, PagingController } from "src/common/paging";
+import { NavigationService } from "../navigation.service";
+import { NavType } from "../routes";
 
 export interface CreateTaskReq {
   dirFileKey?: string;
@@ -30,6 +35,8 @@ export interface ListedTask {
   attempt?: number;
   url?: string;
   platform?: string;
+  dirFileKey?: string;
+  createdAt?: number;
 }
 
 @Component({
@@ -38,11 +45,25 @@ export interface ListedTask {
   styleUrls: ["./drone-task.component.css"],
 })
 export class DroneTaskComponent implements OnInit {
+  createTaskPanelShown: boolean = false;
+  createTaskDirName: string = "";
+  createTaskReq: CreateTaskReq = {};
+  dirTreeControl = new NestedTreeControl<DirTopDownTreeNode>(
+    (node) => node.child
+  );
+  platforms: string[] = [];
+  dirTreeDataSource = new MatTreeNestedDataSource<DirTopDownTreeNode>();
   pagingController: PagingController;
   tabdata: ListedTask[] = [];
+
   ngOnInit(): void {}
 
-  constructor(private snackBar: MatSnackBar, private http: HttpClient) {}
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient,
+    public dirTree: DirTree,
+    private nav: NavigationService
+  ) {}
 
   listTasks() {
     let req: ListTaskReq | null = null;
@@ -85,13 +106,14 @@ export class DroneTaskComponent implements OnInit {
   }
 
   createTask() {
-    let req: CreateTaskReq | null = null;
+    let req: CreateTaskReq = this.createTaskReq;
     this.http.post<any>(`/drone/open/api/create-task`, req).subscribe({
       next: (resp) => {
         if (resp.error) {
           this.snackBar.open(resp.msg, "ok", { duration: 6000 });
           return;
         }
+        this.createTaskReq = {};
       },
       error: (err) => {
         console.log(err);
@@ -106,5 +128,49 @@ export class DroneTaskComponent implements OnInit {
     this.pagingController = pc;
     this.pagingController.onPageChanged = () => this.listTasks();
     this.listTasks();
+  }
+
+  fetchTopDownDirTree() {
+    this.dirTree.fetchTopDownDirTree((dat) => {
+      this.dirTreeDataSource.data = [dat];
+      this.dirTreeControl.dataNodes = this.dirTreeDataSource.data;
+      this.dirTreeControl.expandAll();
+    });
+  }
+
+  selectDir(n) {
+    this.createTaskReq.dirFileKey = n.fileKey;
+    this.createTaskDirName = n.name;
+  }
+
+  toggleCreateTaskPanelShown() {
+    this.createTaskPanelShown = !this.createTaskPanelShown;
+    if (this.createTaskPanelShown) {
+      this.fetchTopDownDirTree();
+      this.listPlatforms();
+    }
+  }
+
+  listPlatforms() {
+    this.http.get<any>(`/drone/open/api/list-platforms`).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: string[] = resp.data;
+        this.platforms = dat;
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  gotoDir(dirFileKey) {
+    this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: dirFileKey }]);
   }
 }

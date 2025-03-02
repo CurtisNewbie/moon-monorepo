@@ -73,6 +73,8 @@ export class DirectoryMoveFileComponent implements OnInit {
   fetchTopDownDirTree() {
     this.dirTree.fetchTopDownDirTree((dat) => {
       this.dirTreeDataSource.data = [dat];
+      this.dirTreeControl.dataNodes = this.dirTreeDataSource.data;
+      this.dirTreeControl.expandAll();
     });
   }
 
