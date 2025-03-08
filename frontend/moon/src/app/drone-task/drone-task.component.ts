@@ -66,7 +66,7 @@ export class DroneTaskComponent implements OnInit {
   ) {}
 
   listTasks() {
-    let req: ListTaskReq | null = null;
+    let req: ListTaskReq = { paging: this.pagingController.paging };
     this.http.post<any>(`/drone/open/api/list-task`, req).subscribe({
       next: (resp) => {
         if (resp.error) {
