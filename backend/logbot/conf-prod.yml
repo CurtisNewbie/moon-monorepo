@@ -73,3 +73,7 @@ logbot:
       file: /usr/src/logs/watch/acct.log
       type: go
       report-error: true
+    - app: drone
+      file: /usr/src/logs/watch/drone.log
+      type: go
+      report-error: true
