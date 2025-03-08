@@ -55,6 +55,7 @@
 - [GET /history/list-browse-history](#get-historylist-browse-history)
 - [POST /history/record-browse-history](#post-historyrecord-browse-history)
 - [GET /maintenance/status](#get-maintenancestatus)
+- [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [GET /auth/resource](#get-authresource)
 - [GET /metrics](#get-metrics)
 - [GET /debug/pprof](#get-debugpprof)
@@ -84,13 +85,6 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type bool struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ApiPreflightCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string) (bool, error) {
   	var res miso.GnResp[bool]
   	err := miso.NewDynTClient(rail, "/open/api/file/upload/duplication/preflight", "vfm").
@@ -171,10 +165,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ParentFileInfo struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	FileKey string `json:"fileKey"`
+  	Filename string `json:"fileName"`
   }
 
   func ApiGetParentFile(rail miso.Rail, fileKey string) (ParentFileInfo, error) {
@@ -349,7 +341,12 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type BatchMoveIntoDirReq struct {
-  	Instructions []vfm.MoveIntoDirReq
+  	Instructions []MoveIntoDirReq
+  }
+
+  type MoveIntoDirReq struct {
+  	Uuid string `json:"uuid"`
+  	ParentFileUuid string `json:"parentFileUuid"`
   }
 
   func ApiBatchMoveFileToDir(rail miso.Rail, req BatchMoveIntoDirReq) error {
@@ -444,13 +441,6 @@
   	Name string `json:"name"`
   }
 
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ApiMakeDir(rail miso.Rail, req MakeDirReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/file/make-dir", "vfm").
@@ -534,11 +524,10 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []ListedDir struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedDir struct {
+  	Id int `json:"id"`
+  	Uuid string `json:"uuid"`
+  	Name string `json:"name"`
   }
 
   func ApiListDir(rail miso.Rail) ([]ListedDir, error) {
@@ -658,17 +647,19 @@
   	FileKey *string
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedFile struct {
+  	Id int `json:"id"`
+  	Uuid string `json:"uuid"`
+  	Name string `json:"name"`
+  	UploadTime util.ETime `json:"uploadTime"`
+  	UploaderName string `json:"uploaderName"`
+  	SizeInBytes int64 `json:"sizeInBytes"`
+  	FileType string `json:"fileType"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	ParentFileName string `json:"parentFileName"`
+  	SensitiveMode string `json:"sensitiveMode"`
+  	ThumbnailToken string `json:"thumbnailToken"`
   }
 
   func ApiListFiles(rail miso.Rail, req ListFileReq) (PageRes, error) {
@@ -968,10 +959,9 @@
   }
 
   type DirBottomUpTreeNode struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	FileKey string
+  	Name string
+  	Child *DirBottomUpTreeNode
   }
 
   func ApiFetchDirBottomUpTree(rail miso.Rail, req FetchDirTreeReq) (DirBottomUpTreeNode, error) {
@@ -1064,10 +1054,9 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DirTopDownTreeNode struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	FileKey string
+  	Name string
+  	Child []DirTopDownTreeNode
   }
 
   func ApiFetchDirTopDownTree(rail miso.Rail) (DirTopDownTreeNode, error) {
@@ -1335,13 +1324,6 @@
   	UserNo string
   }
 
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ApiSysCreateFile(rail miso.Rail, req SysCreateFileReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/internal/v1/file/create", "vfm").
@@ -1520,13 +1502,6 @@
   ```go
   type GenerateTempTokenReq struct {
   	FileKey string `json:"fileKey"`
-  }
-
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
   }
 
   func ApiGenFileTkn(rail miso.Rail, req GenerateTempTokenReq) (string, error) {
@@ -1752,11 +1727,9 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []VFolderBrief struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type VFolderBrief struct {
+  	FolderNo string `json:"folderNo"`
+  	Name string `json:"name"`
   }
 
   func ApiListVFolderBrief(rail miso.Rail) ([]VFolderBrief, error) {
@@ -1862,17 +1835,20 @@
   	Name string `json:"name"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
+  type ListVFolderRes struct {
+  	Page miso.Paging `json:"paging"`
+  	Payload []ListedVFolder `json:"payload"`
   }
 
-  type ListVFolderRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedVFolder struct {
+  	Id int `json:"id"`
+  	FolderNo string `json:"folderNo"`
+  	Name string `json:"name"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
+  	Ownership string `json:"ownership"`
   }
 
   func ApiListVFolders(rail miso.Rail, req ListVFolderReq) (ListVFolderRes, error) {
@@ -1990,13 +1966,6 @@
   ```go
   type CreateVFolderReq struct {
   	Name string `json:"name"`
-  }
-
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
   }
 
   func ApiCreateVFolder(rail miso.Rail, req CreateVFolderReq) (string, error) {
@@ -2447,17 +2416,15 @@
   	FolderNo string `json:"folderNo"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
+  type ListGrantedFolderAccessRes struct {
+  	Page miso.Paging `json:"paging"`
+  	Payload []ListedFolderAccess `json:"payload"`
   }
 
-  type ListGrantedFolderAccessRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedFolderAccess struct {
+  	UserNo string `json:"userNo"`
+  	Username string `json:"username"`
+  	CreateTime util.ETime `json:"createTime"`
   }
 
   func ApiListVFolderAccess(rail miso.Rail, req ListGrantedFolderAccessReq) (ListGrantedFolderAccessRes, error) {
@@ -2650,11 +2617,9 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []VGalleryBrief struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type VGalleryBrief struct {
+  	GalleryNo string `json:"galleryNo"`
+  	Name string `json:"name"`
   }
 
   func ApiListGalleryBriefs(rail miso.Rail) ([]VGalleryBrief, error) {
@@ -2753,10 +2718,16 @@
   }
 
   type Gallery struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Id int64
+  	GalleryNo string
+  	UserNo string
+  	Name string
+  	DirFileKey string
+  	CreateTime util.ETime
+  	CreateBy string
+  	UpdateTime util.ETime
+  	UpdateBy string
+  	IsDel bool
   }
 
   func ApiCreateGallery(rail miso.Rail, req CreateGalleryCmd) (Gallery, error) {
@@ -3049,17 +3020,18 @@
   	Paging miso.Paging `json:"paging"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type VGallery struct {
+  	ID int64 `json:"id"`
+  	GalleryNo string `json:"galleryNo"`
+  	UserNo string `json:"userNo"`
+  	Name string `json:"name"`
+  	CreateBy string `json:"createBy"`
+  	UpdateBy string `json:"updateBy"`
+  	IsOwner bool `json:"isOwner"`
+  	CreateTimeStr string `json:"createTime"`
+  	UpdateTimeStr string `json:"updateTime"`
+  	DirFileKey string
   }
 
   func ApiListGalleries(rail miso.Rail, req ListGalleriesCmd) (PageRes, error) {
@@ -3369,17 +3341,13 @@
   	Paging miso.Paging
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedGalleryAccessRes struct {
+  	Id int
+  	GalleryNo string
+  	UserNo string
+  	Username string
+  	CreateTime util.ETime
   }
 
   func ApiListGalleryAccess(rail miso.Rail, req ListGrantedGalleryAccessCmd) (PageRes, error) {
@@ -3509,17 +3477,15 @@
   	Paging miso.Paging `json:"paging"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
+  type ListGalleryImagesResp struct {
+  	Images []ImageInfo `json:"images"`
+  	Paging miso.Paging `json:"paging"`
   }
 
-  type ListGalleryImagesResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ImageInfo struct {
+  	FileKey string
+  	ThumbnailToken string `json:"thumbnailToken"`
+  	FileTempToken string `json:"fileTempToken"`
   }
 
   func ApiListGalleryImages(rail miso.Rail, req ListGalleryImagesCmd) (ListGalleryImagesResp, error) {
@@ -3633,7 +3599,13 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type TransferGalleryImageReq struct {
-  	Images []vfm.CreateGalleryImageCmd
+  	Images []CreateGalleryImageCmd
+  }
+
+  type CreateGalleryImageCmd struct {
+  	GalleryNo string `json:"galleryNo"`
+  	Name string `json:"name"`
+  	FileKey string `json:"fileKey"`
   }
 
   func ApiTransferGalleryImage(rail miso.Rail, req TransferGalleryImageReq) error {
@@ -3745,17 +3717,16 @@
   	Name *string                   // file name
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ApiListVerFileRes struct {
+  	VerFileId string               // versioned file id
+  	Name string                    // file name
+  	FileKey string                 // file key
+  	SizeInBytes int64              // size in bytes
+  	UploadTime util.ETime          // last upload time
+  	CreateTime util.ETime          // create time of the versioned file record
+  	UpdateTime util.ETime          // Update time of the versioned file record
+  	Thumbnail string               // thumbnail token
   }
 
   func ApiListVersionedFile(rail miso.Rail, req ApiListVerFileReq) (PageRes, error) {
@@ -3890,17 +3861,13 @@
   	VerFileId string               // versioned file id
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ApiListVerFileHistoryRes struct {
+  	Name string                    // file name
+  	FileKey string                 // file key
+  	SizeInBytes int64              // size in bytes
+  	UploadTime util.ETime          // last upload time
+  	Thumbnail string               // thumbnail token
   }
 
   func ApiListVersionedFileHistory(rail miso.Rail, req ApiListVerFileHistoryReq) (PageRes, error) {
@@ -4019,10 +3986,7 @@
   }
 
   type ApiQryVerFileAccuSizeRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	SizeInBytes int64              // total size in bytes
   }
 
   func ApiQryVersionedFileAccuSize(rail miso.Rail, req ApiQryVerFileAccuSizeReq) (ApiQryVerFileAccuSizeRes, error) {
@@ -4121,10 +4085,7 @@
   }
 
   type ApiCreateVerFileRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	VerFileId string               // Versioned File Id
   }
 
   func ApiCreateVersionedFile(rail miso.Rail, req ApiCreateVerFileReq) (ApiCreateVerFileRes, error) {
@@ -4602,12 +4563,6 @@
   	Paging miso.Paging
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
-
   func ApiListBookmarks(rail miso.Rail, req ListBookmarksReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/bookmark/list", "vfm").
@@ -4788,12 +4743,6 @@
   	Paging miso.Paging
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
-
   func ApiListBlacklistedBookmarks(rail miso.Rail, req ListBookmarksReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/bookmark/blacklist/list", "vfm").
@@ -4967,11 +4916,12 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []ListBrowseRecordRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListBrowseRecordRes struct {
+  	Time util.ETime
+  	FileKey string
+  	Name string
+  	ThumbnailToken string
+  	Deleted bool
   }
 
   func ApiListBrowseHistory(rail miso.Rail) ([]ListBrowseRecordRes, error) {
@@ -5140,10 +5090,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type MaintenanceStatus struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	UnderMaintenance bool
   }
 
   func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
@@ -5206,25 +5153,98 @@
   }
   ```
 
+## GET /internal/file/upload/duplication/preflight
+
+- Description: Internal endpoint, Preflight check for duplicate file uploads
+  - Query Parameter:
+  - "fileName": 
+  - "parentFileKey": 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (bool) response data
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8086/internal/file/upload/duplication/preflight?fileName=&parentFileKey='
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  func ApiInternalCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string) (bool, error) {
+  	var res miso.GnResp[bool]
+  	err := miso.NewDynTClient(rail, "/internal/file/upload/duplication/preflight", "vfm").
+  		AddQueryParams("fileName", fileName).
+  		AddQueryParams("parentFileKey", parentFileKey).
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return false, err
+  	}
+  	dat, err := res.Res()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return dat, err
+  }
+  ```
+
+- JSON Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: boolean;                // response data
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  internalCheckDuplicate() {
+    let fileName: any | null = null;
+    let parentFileKey: any | null = null;
+    this.http.get<any>(`/vfm/internal/file/upload/duplication/preflight?fileName=${fileName}&parentFileKey=${parentFileKey}`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: boolean = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
 ## GET /auth/resource
 
 - Description: Expose resource and endpoint information to other backend service for authorization.
 - Expected Access Scope: PROTECTED
 - JSON Response:
-    - "errorCode": (string) error code
-    - "msg": (string) message
-    - "error": (bool) whether the request was successful
-    - "data": (ResourceInfoRes) response data
-      - "resources": ([]auth.Resource) 
-        - "name": (string) resource name
-        - "code": (string) resource code, unique identifier
-      - "paths": ([]auth.Endpoint) 
-        - "type": (string) access scope type: PROTECTED/PUBLIC
-        - "url": (string) endpoint url
-        - "group": (string) app name
-        - "desc": (string) description of the endpoint
-        - "resCode": (string) resource code
-        - "method": (string) http method
+    - "resources": ([]auth.Resource) 
+      - "name": (string) resource name
+      - "code": (string) resource code, unique identifier
+    - "paths": ([]auth.Endpoint) 
+      - "type": (string) access scope type: PROTECTED/PUBLIC
+      - "url": (string) endpoint url
+      - "group": (string) app name
+      - "desc": (string) description of the endpoint
+      - "resCode": (string) resource code
+      - "method": (string) http method
 - cURL:
   ```sh
   curl -X GET 'http://localhost:8086/auth/resource'
@@ -5232,26 +5252,33 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type GnResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data auth.ResourceInfoRes `json:"data"`
-  }
-
   type ResourceInfoRes struct {
-  	Resources []auth.Resource
-  	Paths []auth.Endpoint
+  	Resources []Resource
+  	Paths []Endpoint
   }
 
-  func SendRequest(rail miso.Rail) (GnResp, error) {
-  	var res miso.GnResp[GnResp]
+  type Resource struct {
+  	Name string `json:"name"`      // resource name
+  	Code string `json:"code"`      // resource code, unique identifier
+  }
+
+  type Endpoint struct {
+  	Type string `json:"type"`      // access scope type: PROTECTED/PUBLIC
+  	Url string `json:"url"`        // endpoint url
+  	Group string `json:"group"`    // app name
+  	Desc string `json:"desc"`      // description of the endpoint
+  	ResCode string `json:"resCode"` // resource code
+  	Method string `json:"method"`  // http method
+  }
+
+  func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
+  	var res miso.GnResp[ResourceInfoRes]
   	err := miso.NewDynTClient(rail, "/auth/resource", "vfm").
   		Get().
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat GnResp
+  		var dat ResourceInfoRes
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -5264,13 +5291,6 @@
 
 - JSON Response Object In TypeScript:
   ```ts
-  export interface GnResp {
-    errorCode?: string;            // error code
-    msg?: string;                  // message
-    error?: boolean;               // whether the request was successful
-    data?: ResourceInfoRes;
-  }
-
   export interface ResourceInfoRes {
     resources?: Resource[];
     paths?: Endpoint[];
@@ -5302,14 +5322,9 @@
   ) {}
 
   sendRequest() {
-    this.http.get<any>(`/vfm/auth/resource`)
+    this.http.get<ResourceInfoRes>(`/vfm/auth/resource`)
       .subscribe({
         next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
-          }
-          let dat: ResourceInfoRes = resp.data;
         },
         error: (err) => {
           console.log(err)

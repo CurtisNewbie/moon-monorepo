@@ -45,7 +45,7 @@ func RegisterHttpRoutes(rail miso.Rail) error {
 //   - misoapi-desc: Preflight check for duplicate file uploads
 //   - misoapi-resource: ref(ResManageFiles)
 func ApiPreflightCheckDuplicate(rail miso.Rail, db *gorm.DB, req PreflightCheckReq, user common.User) (bool, error) {
-	return FileExists(rail, db, req, user)
+	return FileExists(rail, db, req, user.UserNo)
 }
 
 // Fetch parent file.
@@ -672,4 +672,19 @@ func ApiRecordBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User, req R
 //   - misoapi-resource: ref(ResVfmMaintenance)
 func ApiFetchMaintenanceStatus() (MaintenanceStatus, error) {
 	return CheckMaintenanceStatus()
+}
+
+type InternalCheckDuplicateReq struct {
+	Filename      string `form:"fileName"`
+	ParentFileKey string `form:"parentFileKey"`
+	UserNo        string
+}
+
+// Internal endpoint, Preflight check for duplicate file uploads.
+//
+//   - misoapi-http: GET /internal/file/upload/duplication/preflight
+//   - misoapi-desc: Internal endpoint, Preflight check for duplicate file uploads
+func ApiInternalCheckDuplicate(rail miso.Rail, db *gorm.DB, req InternalCheckDuplicateReq) (bool, error) {
+	pcq := PreflightCheckReq{Filename: req.Filename, ParentFileKey: req.ParentFileKey}
+	return FileExists(rail, db, pcq, req.UserNo)
 }

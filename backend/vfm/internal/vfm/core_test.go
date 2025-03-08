@@ -93,7 +93,7 @@ func TestFileExists(t *testing.T) {
 	corePreTest(t)
 	c := miso.EmptyRail()
 	fname := "test-files.zip"
-	exist, e := FileExists(c, mysql.GetMySQL(), PreflightCheckReq{Filename: fname}, testUser())
+	exist, e := FileExists(c, mysql.GetMySQL(), PreflightCheckReq{Filename: fname}, testUser().UserNo)
 	if e != nil {
 		t.Fatal(e)
 	}

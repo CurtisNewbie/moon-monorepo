@@ -345,13 +345,13 @@ type PreflightCheckReq struct {
 	ParentFileKey string `form:"parentFileKey"`
 }
 
-func FileExists(c miso.Rail, tx *gorm.DB, req PreflightCheckReq, user common.User) (bool, error) {
+func FileExists(c miso.Rail, tx *gorm.DB, req PreflightCheckReq, userNo string) (bool, error) {
 	var id int
 	t := tx.Table("file_info").
 		Select("id").
 		Where("parent_file = ?", req.ParentFileKey).
 		Where("name = ?", req.Filename).
-		Where("uploader_no = ?", user.UserNo).
+		Where("uploader_no = ?", userNo).
 		Where("file_type = ?", FileTypeFile).
 		Where("is_logic_deleted = ?", DelN).
 		Where("is_del = ?", false).
