@@ -37,6 +37,7 @@ export interface ListedTask {
   platform?: string;
   dirFileKey?: string;
   createdAt?: number;
+  fileCount?: number;
 }
 
 @Component({
