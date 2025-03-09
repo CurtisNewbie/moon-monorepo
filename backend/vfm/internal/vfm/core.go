@@ -1257,9 +1257,6 @@ func validateFileAccess(rail miso.Rail, tx *gorm.DB, fileKey string, userNo stri
 	if f.Deleted() {
 		return f, miso.NewErrf("File deleted")
 	}
-	if !f.IsFile() {
-		return f, miso.NewErrf("Downloading a directory is not supported")
-	}
 
 	// is uploader of the file
 	permitted := f.UploaderNo == userNo
@@ -1296,6 +1293,9 @@ func GenTempToken(rail miso.Rail, tx *gorm.DB, r GenerateTempTokenReq, user comm
 	f, err := validateFileAccess(rail, tx, r.FileKey, user.UserNo)
 	if err != nil {
 		return "", fmt.Errorf("failed to validate file access, user: %+v, %w", user, err)
+	}
+	if !f.IsFile() {
+		return "", miso.NewErrf("Downloading a directory is not supported")
 	}
 
 	if f.FstoreFileId == "" {
