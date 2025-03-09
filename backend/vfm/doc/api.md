@@ -15,7 +15,6 @@
 - [GET /open/api/file/dir/top-down-tree](#get-openapifiledirtop-down-tree)
 - [POST /open/api/file/delete/batch](#post-openapifiledeletebatch)
 - [POST /open/api/file/create](#post-openapifilecreate)
-- [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [POST /open/api/file/info/update](#post-openapifileinfoupdate)
 - [POST /open/api/file/token/generate](#post-openapifiletokengenerate)
 - [POST /open/api/file/unpack](#post-openapifileunpack)
@@ -55,6 +54,7 @@
 - [GET /history/list-browse-history](#get-historylist-browse-history)
 - [POST /history/record-browse-history](#post-historyrecord-browse-history)
 - [GET /maintenance/status](#get-maintenancestatus)
+- [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
 - [GET /auth/resource](#get-authresource)
@@ -1287,101 +1287,6 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## POST /internal/v1/file/create
-
-- Description: System create file
-- JSON Request:
-    - "filename": (string) 
-    - "fstoreFileId": (string) 
-    - "parentFile": (string) 
-    - "userNo": (string) 
-- JSON Response:
-    - "errorCode": (string) error code
-    - "msg": (string) message
-    - "error": (bool) whether the request was successful
-    - "data": (string) response data
-- cURL:
-  ```sh
-  curl -X POST 'http://localhost:8086/internal/v1/file/create' \
-    -H 'Content-Type: application/json' \
-    -d '{"filename":"","fstoreFileId":"","parentFile":"","userNo":""}'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  type SysCreateFileReq struct {
-  	Filename string `json:"filename"`
-  	FakeFstoreFileId string `json:"fstoreFileId"`
-  	ParentFile string `json:"parentFile"`
-  	UserNo string
-  }
-
-  func ApiSysCreateFile(rail miso.Rail, req SysCreateFileReq) (string, error) {
-  	var res miso.GnResp[string]
-  	err := miso.NewDynTClient(rail, "/internal/v1/file/create", "vfm").
-  		PostJson(req).
-  		Json(&res)
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  		return "", err
-  	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
-  }
-  ```
-
-- JSON Request Object In TypeScript:
-  ```ts
-  export interface SysCreateFileReq {
-    filename?: string;
-    fstoreFileId?: string;
-    parentFile?: string;
-    userNo?: string;
-  }
-  ```
-
-- JSON Response Object In TypeScript:
-  ```ts
-  export interface Resp {
-    errorCode?: string;            // error code
-    msg?: string;                  // message
-    error?: boolean;               // whether the request was successful
-    data?: string;                 // response data
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sysCreateFile() {
-    let req: SysCreateFileReq | null = null;
-    this.http.post<any>(`/vfm/internal/v1/file/create`, req)
-      .subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
-          }
-          let dat: string = resp.data;
         },
         error: (err) => {
           console.log(err)
@@ -5145,6 +5050,101 @@
             return;
           }
           let dat: MaintenanceStatus = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /internal/v1/file/create
+
+- Description: System create file
+- JSON Request:
+    - "filename": (string) 
+    - "fstoreFileId": (string) 
+    - "parentFile": (string) 
+    - "userNo": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (string) response data
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/internal/v1/file/create' \
+    -H 'Content-Type: application/json' \
+    -d '{"filename":"","fstoreFileId":"","parentFile":"","userNo":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type SysCreateFileReq struct {
+  	Filename string `json:"filename"`
+  	FakeFstoreFileId string `json:"fstoreFileId"`
+  	ParentFile string `json:"parentFile"`
+  	UserNo string
+  }
+
+  func ApiSysCreateFile(rail miso.Rail, req SysCreateFileReq) (string, error) {
+  	var res miso.GnResp[string]
+  	err := miso.NewDynTClient(rail, "/internal/v1/file/create", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return "", err
+  	}
+  	dat, err := res.Res()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return dat, err
+  }
+  ```
+
+- JSON Request Object In TypeScript:
+  ```ts
+  export interface SysCreateFileReq {
+    filename?: string;
+    fstoreFileId?: string;
+    parentFile?: string;
+    userNo?: string;
+  }
+  ```
+
+- JSON Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: string;                 // response data
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sysCreateFile() {
+    let req: SysCreateFileReq | null = null;
+    this.http.post<any>(`/vfm/internal/v1/file/create`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: string = resp.data;
         },
         error: (err) => {
           console.log(err)
