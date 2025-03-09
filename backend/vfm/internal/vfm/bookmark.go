@@ -109,10 +109,10 @@ func TransferTmpFile(rail miso.Rail, reader io.Reader) (string, error) {
 
 	f, err := os.Create(path)
 	if err != nil {
-		return "", ErrUploadFiled.WithInternalMsg("create file failed, path: %v, %v", path, err)
+		return "", ErrUploadFailed.WithInternalMsg("create file failed, path: %v, %v", path, err)
 	}
 	if _, err := io.Copy(f, reader); err != nil {
-		return "", ErrUploadFiled.WithInternalMsg("transfer file failed, path: %v, %v", path, err)
+		return "", ErrUploadFailed.WithInternalMsg("transfer file failed, path: %v, %v", path, err)
 	}
 	rail.Infof("Transferred file to path: %v", path)
 	return path, nil

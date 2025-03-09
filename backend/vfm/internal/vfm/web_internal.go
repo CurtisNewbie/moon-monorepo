@@ -2,6 +2,7 @@ package vfm
 
 import (
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -54,4 +55,23 @@ type InternalCheckFileAccessReq struct {
 //   - misoapi-desc: Internal endpoint, Check if user has access to the file
 func ApiInternalCheckFileAccess(rail miso.Rail, db *gorm.DB, req InternalCheckFileAccessReq) error {
 	return ValidateFileAccess(rail, db, req.FileKey, req.UserNo)
+}
+
+type InternalFetchFileInfoReq struct {
+	FileKey string `vaild:"notEmpty"`
+}
+
+type InternalFetchFileInfoRes struct {
+	Name        string
+	UploadTime  util.ETime
+	SizeInBytes int64
+	FileType    string
+}
+
+// Internal endpoint. Fetch file info.
+//
+//   - misoapi-http: POST /internal/file/fetch-info
+//   - misoapi-desc: Internal endpoint. Fetch file info.
+func ApiInternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
+	return InternalFetchFileInfo(rail, db, req)
 }

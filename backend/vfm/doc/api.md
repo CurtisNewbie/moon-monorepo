@@ -57,6 +57,7 @@
 - [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
+- [POST /internal/file/fetch-info](#post-internalfilefetch-info)
 - [GET /auth/resource](#get-authresource)
 - [GET /metrics](#get-metrics)
 - [GET /debug/pprof](#get-debugpprof)
@@ -5061,7 +5062,7 @@
 
 ## POST /internal/v1/file/create
 
-- Description: System create file
+- Description: Internal endpoint, System create file
 - JSON Request:
     - "filename": (string) 
     - "fstoreFileId": (string) 
@@ -5308,6 +5309,111 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /internal/file/fetch-info
+
+- Description: Internal endpoint. Fetch file info.
+- JSON Request:
+    - "fileKey": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (InternalFetchFileInfoRes) response data
+      - "name": (string) 
+      - "uploadTime": (int64) 
+      - "sizeInBytes": (int64) 
+      - "fileType": (string) 
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/internal/file/fetch-info' \
+    -H 'Content-Type: application/json' \
+    -d '{"fileKey":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type InternalFetchFileInfoReq struct {
+  	FileKey string
+  }
+
+  type InternalFetchFileInfoRes struct {
+  	Name string
+  	UploadTime util.ETime
+  	SizeInBytes int64
+  	FileType string
+  }
+
+  func ApiInternalFetchFileInfo(rail miso.Rail, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
+  	var res miso.GnResp[InternalFetchFileInfoRes]
+  	err := miso.NewDynTClient(rail, "/internal/file/fetch-info", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		var dat InternalFetchFileInfoRes
+  		return dat, err
+  	}
+  	dat, err := res.Res()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return dat, err
+  }
+  ```
+
+- JSON Request Object In TypeScript:
+  ```ts
+  export interface InternalFetchFileInfoReq {
+    fileKey?: string;
+  }
+  ```
+
+- JSON Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: InternalFetchFileInfoRes;
+  }
+
+  export interface InternalFetchFileInfoRes {
+    name?: string;
+    uploadTime?: number;
+    sizeInBytes?: number;
+    fileType?: string;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  internalFetchFileInfo() {
+    let req: InternalFetchFileInfoReq | null = null;
+    this.http.post<any>(`/vfm/internal/file/fetch-info`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: InternalFetchFileInfoRes = resp.data;
         },
         error: (err) => {
           console.log(err)

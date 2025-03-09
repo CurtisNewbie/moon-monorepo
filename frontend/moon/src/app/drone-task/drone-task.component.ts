@@ -36,6 +36,7 @@ export interface ListedTask {
   url?: string;
   platform?: string;
   dirFileKey?: string;
+  dirName?: string;
   createdAt?: number;
   fileCount?: number;
 }

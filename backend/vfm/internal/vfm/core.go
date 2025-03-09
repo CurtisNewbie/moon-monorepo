@@ -1789,3 +1789,19 @@ func ValidateFileAccess(rail miso.Rail, db *gorm.DB, fileKey string, userNo stri
 	}
 	return nil
 }
+
+func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
+	var res InternalFetchFileInfoRes
+	n, err := mysql.NewQuery(db).
+		Table("file_info").
+		Eq("uuid", req.FileKey).
+		Select("name,upload_time,size_in_bytes,file_type").
+		Scan(&res)
+	if err != nil {
+		return res, miso.UnknownErrf(err, "fileKey: %v", req.FileKey)
+	}
+	if n < 1 {
+		return res, ErrFileNotFound.WithInternalMsg("fileKey: %v", req.FileKey)
+	}
+	return res, nil
+}
