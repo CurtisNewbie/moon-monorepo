@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/curtisnewbie/miso/middleware/jwt"
@@ -13,20 +12,14 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	uvault "github.com/curtisnewbie/user-vault/api"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 )
 
 var (
 	errPathNotFound = miso.NewErrf("Path not found")
 
-	timerHistoVec     *prometheus.HistogramVec = miso.NewPromHistoVec("gatekeeper_request_duration", []string{"url"})
-	timerExclPath                              = util.NewSet[string]()
-	histoVecTimerPool                          = sync.Pool{
-		New: func() any {
-			return miso.NewVecTimer(timerHistoVec)
-		},
-	}
+	timerHisto    = miso.NewPromHisto("gatekeeper_all_request_duration")
+	timerExclPath = util.NewSet[string]()
 
 	whitelistPatterns []string
 )
@@ -168,12 +161,8 @@ func MetricsFilter(pc *miso.ProxyContext, next func()) {
 		return
 	}
 
-	timer := histoVecTimerPool.Get().(*miso.VecTimer)
-	timer.Reset()
-	defer func() {
-		timer.ObserveDuration(pc.ProxyPath)
-		histoVecTimerPool.Put(timer)
-	}()
+	timer := miso.NewHistTimer(timerHisto)
+	defer timer.ObserveDuration()
 
 	next()
 }
