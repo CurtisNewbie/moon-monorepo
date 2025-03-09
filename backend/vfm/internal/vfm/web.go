@@ -688,3 +688,16 @@ func ApiInternalCheckDuplicate(rail miso.Rail, db *gorm.DB, req InternalCheckDup
 	pcq := PreflightCheckReq{Filename: req.Filename, ParentFileKey: req.ParentFileKey}
 	return FileExists(rail, db, pcq, req.UserNo)
 }
+
+type InternalCheckFileAccessReq struct {
+	FileKey string
+	UserNo  string
+}
+
+// Internal endpoint, Check if user has access to the file
+//
+//   - misoapi-http: POST /internal/file/check-access
+//   - misoapi-desc: Internal endpoint, Check if user has access to the file
+func ApiInternalCheckFileAccess(rail miso.Rail, db *gorm.DB, req InternalCheckFileAccessReq) error {
+	return ValidateFileAccess(rail, db, req.FileKey, req.UserNo)
+}

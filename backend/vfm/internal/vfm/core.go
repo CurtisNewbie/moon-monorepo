@@ -1781,3 +1781,11 @@ func queryFileFstoreInfo(tx *gorm.DB, fileKeys []string) (map[string]FileFstoreI
 			func(r FileFstoreInfo) FileFstoreInfo { return r }),
 		nil
 }
+
+func ValidateFileAccess(rail miso.Rail, db *gorm.DB, fileKey string, userNo string) error {
+	_, err := validateFileAccess(rail, db, fileKey, userNo)
+	if err != nil {
+		return miso.ErrNotPermitted.Wrapf(err, "failed to validate file access, userNo: %v, fileKey: %v", userNo, fileKey)
+	}
+	return nil
+}

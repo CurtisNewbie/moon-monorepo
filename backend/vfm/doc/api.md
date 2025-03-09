@@ -56,6 +56,7 @@
 - [POST /history/record-browse-history](#post-historyrecord-browse-history)
 - [GET /maintenance/status](#get-maintenancestatus)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
+- [POST /internal/file/check-access](#post-internalfilecheck-access)
 - [GET /auth/resource](#get-authresource)
 - [GET /metrics](#get-metrics)
 - [GET /debug/pprof](#get-debugpprof)
@@ -5221,6 +5222,92 @@
             return;
           }
           let dat: boolean = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /internal/file/check-access
+
+- Description: Internal endpoint, Check if user has access to the file
+- JSON Request:
+    - "fileKey": (string) 
+    - "userNo": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/internal/file/check-access' \
+    -H 'Content-Type: application/json' \
+    -d '{"fileKey":"","userNo":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type InternalCheckFileAccessReq struct {
+  	FileKey string
+  	UserNo string
+  }
+
+  func ApiInternalCheckFileAccess(rail miso.Rail, req InternalCheckFileAccessReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynTClient(rail, "/internal/file/check-access", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- JSON Request Object In TypeScript:
+  ```ts
+  export interface InternalCheckFileAccessReq {
+    fileKey?: string;
+    userNo?: string;
+  }
+  ```
+
+- JSON Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  internalCheckFileAccess() {
+    let req: InternalCheckFileAccessReq | null = null;
+    this.http.post<any>(`/vfm/internal/file/check-access`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
         },
         error: (err) => {
           console.log(err)
