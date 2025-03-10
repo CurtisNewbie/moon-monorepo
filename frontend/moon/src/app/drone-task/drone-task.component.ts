@@ -90,8 +90,8 @@ export class DroneTaskComponent implements OnInit {
     });
   }
 
-  cancelTask() {
-    let req: CancelTaskReq | null = null;
+  cancelTask(taskId) {
+    let req: CancelTaskReq = {taskId: taskId};
     this.http.post<any>(`/drone/open/api/cancel-task`, req).subscribe({
       next: (resp) => {
         if (resp.error) {
