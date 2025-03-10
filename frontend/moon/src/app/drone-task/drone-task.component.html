@@ -11,8 +11,12 @@
                 <input matInput [(ngModel)]="createTaskReq.url" />
             </mat-form-field>
             <mat-form-field style="width: 100%">
-                <mat-label>Directory</mat-label>
+                <mat-label>Parent Directory</mat-label>
                 <input matInput disabled [ngModel]="createTaskDirName" />
+            </mat-form-field>
+            <mat-form-field style="width: 100%">
+                <mat-label>New Directory Name (Optional)</mat-label>
+                <input matInput [(ngModel)]="createTaskReq.makeDirName" />
             </mat-form-field>
             <mat-form-field>
                 <mat-label>Platform</mat-label>
@@ -104,10 +108,12 @@
                 </div>
             </td>
         </ng-container>
-        <tr mat-header-row *matHeaderRowDef="['taskId','status','attempt','url','platform','dirName','fileCount','createdAt','operation']">
+        <tr mat-header-row
+            *matHeaderRowDef="['taskId','status','attempt','url','platform','dirName','fileCount','createdAt','operation']">
         </tr>
         <tr mat-row
-            *matRowDef="let row; columns: ['taskId','status','attempt','url','platform','dirName','fileCount','createdAt','operation'];"></tr>
+            *matRowDef="let row; columns: ['taskId','status','attempt','url','platform','dirName','fileCount','createdAt','operation'];">
+        </tr>
     </table>
 </div>
 <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>

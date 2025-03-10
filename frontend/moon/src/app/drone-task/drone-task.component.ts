@@ -12,6 +12,7 @@ export interface CreateTaskReq {
   dirFileKey?: string;
   platform?: string;
   url?: string;
+  makeDirName?: string;
 }
 
 export interface CancelTaskReq {
