@@ -75,3 +75,38 @@ type InternalFetchFileInfoRes struct {
 func ApiInternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
 	return InternalFetchFileInfo(rail, db, req)
 }
+
+type SysMakeDirReq struct {
+	ParentFile string `valid:"notEmpty"`
+	UserNo     string `valid:"notEmpty"`
+	Name       string `valid:"notEmpty"`
+}
+
+// Internal endpoint. System make directory.
+//
+//   - misoapi-http: POST /internal/v1/file/make-dir
+//   - misoapi-desc: Internal endpoint, System make directory.
+func ApiSysMakeDir(rail miso.Rail, db *gorm.DB, req SysMakeDirReq) (string, error) {
+
+	user, err := vault.FindUserCommon(rail, vault.FindUserCommonReq{
+		UserNo: req.UserNo,
+	})
+	if err != nil {
+		return "", miso.ErrUnknownError.Wrapf(err, "failed to find user %v", req.UserNo)
+	}
+
+	dirKey, err := CheckDirExists(rail, db, CheckDirExistsReq{ParentFile: req.ParentFile, Name: req.Name}, user)
+	if err != nil {
+		return "", err
+	}
+	if dirKey != "" {
+		return dirKey, nil
+	}
+
+	fk, err := MakeDir(rail, db, MakeDirReq{
+		ParentFile: req.ParentFile,
+		Name:       req.Name,
+	}, user)
+
+	return fk, err
+}

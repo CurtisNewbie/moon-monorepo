@@ -1805,3 +1805,38 @@ func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInf
 	}
 	return res, nil
 }
+
+type CheckDirExistsReq struct {
+	ParentFile string `valid:"notEmpty"`
+	Name       string `valid:"notEmpty"`
+}
+
+func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user common.User) (string, error) {
+	dirLock := fileLock(rail, req.ParentFile)
+	if err := dirLock.Lock(); err != nil {
+		return "", miso.UnknownErrf(err, "Unable to lock dir: %v", req.ParentFile)
+	}
+	defer dirLock.Unlock()
+
+	fi, err := findFile(rail, db, req.ParentFile)
+	if err != nil {
+		return "", ErrFileNotFound.Wrapf(err, "failed to find file, parentFile: %v", req.ParentFile)
+	}
+	if fi == nil {
+		return "", ErrFileNotFound
+	}
+
+	var dirKey string
+	_, err = mysql.NewQuery(db).
+		Table("file_info").
+		Eq("parent_file", req.ParentFile).
+		Eq("name", req.Name).
+		Where("is_logic_deleted != ?", DelY).
+		Limit(1).
+		Select("uuid").
+		Scan(&dirKey)
+	if err != nil {
+		return "", miso.UnknownErrf(err, "failed to CheckDirExists, parentFile: %v, name: %v", req.ParentFile, req.Name)
+	}
+	return dirKey, nil
+}

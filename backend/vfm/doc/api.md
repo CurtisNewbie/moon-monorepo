@@ -58,6 +58,7 @@
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
 - [POST /internal/file/fetch-info](#post-internalfilefetch-info)
+- [POST /internal/v1/file/make-dir](#post-internalv1filemake-dir)
 - [GET /auth/resource](#get-authresource)
 - [GET /metrics](#get-metrics)
 - [GET /debug/pprof](#get-debugpprof)
@@ -5414,6 +5415,98 @@
             return;
           }
           let dat: InternalFetchFileInfoRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /internal/v1/file/make-dir
+
+- Description: Internal endpoint, System make directory.
+- JSON Request:
+    - "parentFile": (string) 
+    - "userNo": (string) 
+    - "name": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (string) response data
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/internal/v1/file/make-dir' \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"","parentFile":"","userNo":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type SysMakeDirReq struct {
+  	ParentFile string
+  	UserNo string
+  	Name string
+  }
+
+  func ApiSysMakeDir(rail miso.Rail, req SysMakeDirReq) (string, error) {
+  	var res miso.GnResp[string]
+  	err := miso.NewDynTClient(rail, "/internal/v1/file/make-dir", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return "", err
+  	}
+  	dat, err := res.Res()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return dat, err
+  }
+  ```
+
+- JSON Request Object In TypeScript:
+  ```ts
+  export interface SysMakeDirReq {
+    parentFile?: string;
+    userNo?: string;
+    name?: string;
+  }
+  ```
+
+- JSON Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: string;                 // response data
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sysMakeDir() {
+    let req: SysMakeDirReq | null = null;
+    this.http.post<any>(`/vfm/internal/v1/file/make-dir`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: string = resp.data;
         },
         error: (err) => {
           console.log(err)
