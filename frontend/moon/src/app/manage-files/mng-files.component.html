@@ -127,6 +127,8 @@
                     <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
                         [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
                         Mode</mat-checkbox>
+                    <mat-checkbox
+                        [(ngModel)]="orderByName" (ngModelChange)="fetchFileInfoList()">Order By Name</mat-checkbox>
                 </div>
             </div>
             <!-- search param eed -->

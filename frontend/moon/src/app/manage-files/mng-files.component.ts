@@ -113,6 +113,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
+  orderByName = false;
 
   /*
   -----------------------
@@ -267,6 +268,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   // Go to dir, i.e., list files under the directory
   goToDir(fileKey) {
+    this.orderByName = false;
     this.expandUploadPanel = false;
     this.curr = null;
     this.resetSearchParam(false, false);
@@ -285,6 +287,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         parentFile: this.searchParam.parentFile,
         fileType: this.searchParam.fileType,
         sensitive: this.inSensitiveMode,
+        orderByName: this.orderByName,
         fileKey: this.searchParam.fileKey,
       })
       .subscribe({

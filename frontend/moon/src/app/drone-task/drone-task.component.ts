@@ -8,6 +8,10 @@ import { Paging, PagingController } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 
+export interface RetryTaskReq {
+  taskId?: string;
+}
+
 export interface CreateTaskReq {
   dirFileKey?: string;
   platform?: string;
@@ -91,7 +95,7 @@ export class DroneTaskComponent implements OnInit {
   }
 
   cancelTask(taskId) {
-    let req: CancelTaskReq = {taskId: taskId};
+    let req: CancelTaskReq = { taskId: taskId };
     this.http.post<any>(`/drone/open/api/cancel-task`, req).subscribe({
       next: (resp) => {
         if (resp.error) {
@@ -177,5 +181,24 @@ export class DroneTaskComponent implements OnInit {
 
   gotoDir(dirFileKey) {
     this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: dirFileKey }]);
+  }
+
+  retryTask(taskId) {
+    let req: RetryTaskReq = { taskId: taskId };
+    this.http.post<any>(`/drone/open/api/retry-task`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.listTasks();
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
   }
 }

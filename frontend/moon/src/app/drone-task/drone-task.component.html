@@ -104,9 +104,15 @@
             <th mat-header-cell *matHeaderCellDef> Operation </th>
             <td mat-cell *matCellDef="let u">
                 <div class="d-flex gap-2">
-                    <button class="mat-raised-button" (click)="gotoDir(u.dirFileKey)">Goto Dir</button>
+                    <ng-container *ngIf="u.dirFileKey">
+                        <button class="mat-raised-button" (click)="gotoDir(u.dirFileKey)">Goto Dir</button>
+                    </ng-container>
                     <ng-container *ngIf="u.status != 'COMPLETED'">
                         <button class="mat-raised-button" (click)="cancelTask(u.taskId)">Cancel</button>
+                    </ng-container>
+
+                    <ng-container *ngIf="u.status == 'COMPLETED'">
+                        <button class="mat-raised-button" (click)="retryTask(u.taskId)">Retry</button>
                     </ng-container>
                 </div>
             </td>

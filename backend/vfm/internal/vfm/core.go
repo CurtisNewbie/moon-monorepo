@@ -233,13 +233,14 @@ func queryFilenames(tx *gorm.DB, fileKeys []string) (map[string]string, error) {
 }
 
 type ListFileReq struct {
-	Page       miso.Paging `json:"paging"`
-	Filename   *string     `json:"filename"`
-	FolderNo   *string     `json:"folderNo"`
-	FileType   *string     `json:"fileType"`
-	ParentFile *string     `json:"parentFile"`
-	Sensitive  *bool       `json:"sensitive"`
-	FileKey    *string
+	Page        miso.Paging `json:"paging"`
+	Filename    *string     `json:"filename"`
+	FolderNo    *string     `json:"folderNo"`
+	FileType    *string     `json:"fileType"`
+	ParentFile  *string     `json:"parentFile"`
+	Sensitive   *bool       `json:"sensitive"`
+	FileKey     *string
+	OrderByName bool
 }
 
 func (q ListFileReq) IsEmpty() bool {
@@ -316,6 +317,10 @@ func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user commo
 				Eq("fi.is_del", 0).
 				Eq("fi.hidden", 0)
 
+			if req.OrderByName {
+				q = q.Order("fi.name asc")
+			}
+
 			if req.FileKey != nil {
 				q = q.Eq("fi.uuid", *req.FileKey)
 			}
@@ -331,8 +336,13 @@ func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user commo
 
 			if req.Filename != nil && *req.Filename != "" {
 				q = q.Where("match(fi.name) against (? IN NATURAL LANGUAGE MODE)", req.Filename)
+				if !req.OrderByName {
+					q = q.Order("fi.id desc")
+				}
 			} else {
-				q = q.Order("fi.file_type asc, fi.id desc")
+				if !req.OrderByName {
+					q = q.Order("fi.file_type asc, fi.id desc")
+				}
 			}
 
 			return q
@@ -1582,11 +1592,7 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 				return
 			}
 			if len(l) < 1 {
-				if err := DeleteFile(rail, db, DeleteFileReq{Uuid: dir.Uuid}, user, nil); err != nil {
-					rail.Errorf("failed to delete current directory: %v, %v", dir.Uuid, err)
-				} else {
-					rail.Infof("Truncated dir %v", req.Uuid)
-				}
+				rail.Infof("Truncated dir %v", req.Uuid)
 				return
 			}
 			minId = l[len(l)-1].Id
