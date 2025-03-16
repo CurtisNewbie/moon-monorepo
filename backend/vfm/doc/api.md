@@ -610,6 +610,7 @@
     - "parentFile": (*string) 
     - "sensitive": (*bool) 
     - "fileKey": (*string) 
+    - "orderByName": (bool) 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -635,7 +636,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/list' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
+    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -648,6 +649,7 @@
   	ParentFile *string `json:"parentFile"`
   	Sensitive *bool `json:"sensitive"`
   	FileKey *string
+  	OrderByName bool
   }
 
 
@@ -693,6 +695,7 @@
     parentFile?: string;
     sensitive?: boolean;
     fileKey?: string;
+    orderByName?: boolean;
   }
 
   export interface Paging {
@@ -5162,6 +5165,7 @@
   - Query Parameter:
   - "fileName": 
   - "parentFileKey": 
+  - "userNo": 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5169,16 +5173,17 @@
     - "data": (bool) response data
 - cURL:
   ```sh
-  curl -X GET 'http://localhost:8086/internal/file/upload/duplication/preflight?fileName=&parentFileKey='
+  curl -X GET 'http://localhost:8086/internal/file/upload/duplication/preflight?fileName=&parentFileKey=&userNo='
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  func ApiInternalCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string) (bool, error) {
+  func ApiInternalCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string, userNo string) (bool, error) {
   	var res miso.GnResp[bool]
   	err := miso.NewDynTClient(rail, "/internal/file/upload/duplication/preflight", "vfm").
   		AddQueryParams("fileName", fileName).
   		AddQueryParams("parentFileKey", parentFileKey).
+  		AddQueryParams("userNo", userNo).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5216,7 +5221,8 @@
   internalCheckDuplicate() {
     let fileName: any | null = null;
     let parentFileKey: any | null = null;
-    this.http.get<any>(`/vfm/internal/file/upload/duplication/preflight?fileName=${fileName}&parentFileKey=${parentFileKey}`)
+    let userNo: any | null = null;
+    this.http.get<any>(`/vfm/internal/file/upload/duplication/preflight?fileName=${fileName}&parentFileKey=${parentFileKey}&userNo=${userNo}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

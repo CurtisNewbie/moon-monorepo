@@ -32,7 +32,7 @@ func ApiSysCreateFile(rail miso.Rail, db *gorm.DB, req SysCreateFileReq) (string
 type InternalCheckDuplicateReq struct {
 	Filename      string `form:"fileName"`
 	ParentFileKey string `form:"parentFileKey"`
-	UserNo        string
+	UserNo        string `form:"userNo"`
 }
 
 // Internal endpoint, Preflight check for duplicate file uploads.
