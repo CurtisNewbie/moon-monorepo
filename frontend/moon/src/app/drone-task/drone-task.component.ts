@@ -150,6 +150,7 @@ export class DroneTaskComponent implements OnInit {
   selectDir(n) {
     this.createTaskReq.dirFileKey = n.fileKey;
     this.createTaskDirName = n.name;
+    this.dirTreeControl.collapseAll();
   }
 
   toggleCreateTaskPanelShown() {

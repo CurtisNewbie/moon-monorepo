@@ -83,5 +83,6 @@ export class DirectoryMoveFileComponent implements OnInit {
     this.snackBar.open(`Selected directory /${n.name}`, "ok", {
       duration: 1500,
     });
+    this.dirTreeControl.collapseAll();
   }
 }

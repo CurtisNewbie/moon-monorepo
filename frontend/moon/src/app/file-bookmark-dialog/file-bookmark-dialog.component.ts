@@ -13,7 +13,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 @Component({
   selector: "app-file-bookmark-dialog",
   template: `
-    <h1 mat-dialog-title>Bookmarked Files</h1>
+    <h1 mat-dialog-title>Temporary Basket</h1>
     <div mat-dialog-content>
       <ng-container *ngIf="dat.length > 0">
         <div class="d-flex flex-wrap gap-2 justify-content-end">
