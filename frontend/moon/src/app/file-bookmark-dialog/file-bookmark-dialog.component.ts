@@ -119,10 +119,10 @@ export class FileBookmarkDialogComponent implements OnInit {
   }
 
   deleteFiles() {
-    let msgs = [`You sure you want to delete the following files?`, ""];
-    for (let s of this.dat) {
-      msgs.push(s.name);
-    }
+    let msgs = [`You sure you want to delete the selected ${this.dat.length} files?`, ""];
+    // for (let s of this.dat) {
+    //   msgs.push(s.name);
+    // }
 
     this.dialog
       .open(ConfirmDialogComponent, {
