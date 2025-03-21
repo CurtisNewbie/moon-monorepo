@@ -157,13 +157,6 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ApiUploadFile(rail miso.Rail, filename string) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/file", "fstore").
@@ -253,10 +246,14 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type FstoreFile struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	FileId string `json:"fileId"`  // file unique identifier
+  	Name string `json:"name"`      // file name
+  	Status string `json:"status"`  // status, 'NORMAL', 'LOG_DEL' (logically deleted), 'PHY_DEL' (physically deleted)
+  	Size int64 `json:"size"`       // file size in bytes
+  	Md5 string `json:"md5"`        // MD5 checksum
+  	UplTime util.ETime `json:"uplTime"` // upload time
+  	LogDelTime *util.ETime `json:"logDelTime"` // logically deleted at
+  	PhyDelTime *util.ETime `json:"phyDelTime"` // physically deleted at
   }
 
   func ApiGetFileInfo(rail miso.Rail, fileId string, uploadFileId string) (FstoreFile, error) {
@@ -348,13 +345,6 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ApiGenFileKey(rail miso.Rail, fileId string, filename string) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/file/key", "fstore").
@@ -665,10 +655,16 @@
   }
 
   type ListBackupFileResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Files []BackupFileInf
+  }
+
+  type BackupFileInf struct {
+  	Id int64
+  	FileId string
+  	Name string
+  	Status string
+  	Size int64
+  	Md5 string
   }
 
   func ApiBackupListFiles(rail miso.Rail, req ListBackupFileReq, authorization string) (ListBackupFileResp, error) {
@@ -1051,10 +1047,19 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type StorageInfo struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Volumns []VolumnInfo
+  }
+
+  type VolumnInfo struct {
+  	Mounted string
+  	Total uint64
+  	Used uint64
+  	Available uint64
+  	UsedPercent float64
+  	TotalText string
+  	UsedText string
+  	AvailableText string
+  	UsedPercentText string
   }
 
   func ApiFetchStorageInfo(rail miso.Rail) (StorageInfo, error) {
@@ -1149,11 +1154,11 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []StorageUsageInfo struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type StorageUsageInfo struct {
+  	Type string
+  	Path string
+  	Used uint64
+  	UsedText string
   }
 
   func ApiFetchStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
@@ -1237,10 +1242,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type MaintenanceStatus struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	UnderMaintenance bool
   }
 
   func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
@@ -1308,20 +1310,16 @@
 - Description: Expose resource and endpoint information to other backend service for authorization.
 - Expected Access Scope: PROTECTED
 - JSON Response:
-    - "errorCode": (string) error code
-    - "msg": (string) message
-    - "error": (bool) whether the request was successful
-    - "data": (ResourceInfoRes) response data
-      - "resources": ([]auth.Resource) 
-        - "name": (string) resource name
-        - "code": (string) resource code, unique identifier
-      - "paths": ([]auth.Endpoint) 
-        - "type": (string) access scope type: PROTECTED/PUBLIC
-        - "url": (string) endpoint url
-        - "group": (string) app name
-        - "desc": (string) description of the endpoint
-        - "resCode": (string) resource code
-        - "method": (string) http method
+    - "resources": ([]auth.Resource) 
+      - "name": (string) resource name
+      - "code": (string) resource code, unique identifier
+    - "paths": ([]auth.Endpoint) 
+      - "type": (string) access scope type: PROTECTED/PUBLIC
+      - "url": (string) endpoint url
+      - "group": (string) app name
+      - "desc": (string) description of the endpoint
+      - "resCode": (string) resource code
+      - "method": (string) http method
 - cURL:
   ```sh
   curl -X GET 'http://localhost:8084/auth/resource'
@@ -1329,26 +1327,33 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type GnResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data auth.ResourceInfoRes `json:"data"`
-  }
-
   type ResourceInfoRes struct {
-  	Resources []auth.Resource
-  	Paths []auth.Endpoint
+  	Resources []Resource
+  	Paths []Endpoint
   }
 
-  func SendRequest(rail miso.Rail) (GnResp, error) {
-  	var res miso.GnResp[GnResp]
+  type Resource struct {
+  	Name string `json:"name"`      // resource name
+  	Code string `json:"code"`      // resource code, unique identifier
+  }
+
+  type Endpoint struct {
+  	Type string `json:"type"`      // access scope type: PROTECTED/PUBLIC
+  	Url string `json:"url"`        // endpoint url
+  	Group string `json:"group"`    // app name
+  	Desc string `json:"desc"`      // description of the endpoint
+  	ResCode string `json:"resCode"` // resource code
+  	Method string `json:"method"`  // http method
+  }
+
+  func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
+  	var res miso.GnResp[ResourceInfoRes]
   	err := miso.NewDynTClient(rail, "/auth/resource", "fstore").
   		Get().
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat GnResp
+  		var dat ResourceInfoRes
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -1361,13 +1366,6 @@
 
 - JSON Response Object In TypeScript:
   ```ts
-  export interface GnResp {
-    errorCode?: string;            // error code
-    msg?: string;                  // message
-    error?: boolean;               // whether the request was successful
-    data?: ResourceInfoRes;
-  }
-
   export interface ResourceInfoRes {
     resources?: Resource[];
     paths?: Endpoint[];
@@ -1399,14 +1397,9 @@
   ) {}
 
   sendRequest() {
-    this.http.get<any>(`/fstore/auth/resource`)
+    this.http.get<ResourceInfoRes>(`/fstore/auth/resource`)
       .subscribe({
         next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
-          }
-          let dat: ResourceInfoRes = resp.data;
         },
         error: (err) => {
           console.log(err)

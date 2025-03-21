@@ -93,15 +93,6 @@
   type LoginReq struct {
   	Username string `json:"username"`
   	Password string `json:"password"`
-  	XForwardedFor string
-  	UserAgent string
-  }
-
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
   }
 
   func ApiUserLogin(rail miso.Rail, req LoginReq, xForwardedFor string, userAgent string) (string, error) {
@@ -404,17 +395,19 @@
   	Paging miso.Paging `json:"paging"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type UserInfo struct {
+  	Id int
+  	Username string
+  	RoleName string
+  	RoleNo string
+  	UserNo string
+  	ReviewStatus string
+  	IsDisabled int
+  	CreateTime util.ETime
+  	CreateBy string
+  	UpdateTime util.ETime
+  	UpdateBy string
   }
 
   func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (PageRes, error) {
@@ -715,10 +708,12 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UserInfoRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Id int
+  	Username string
+  	RoleName string
+  	RoleNo string
+  	UserNo string
+  	RegisterDate string
   }
 
   func ApiUserGetUserInfo(rail miso.Rail) (UserInfoRes, error) {
@@ -897,13 +892,6 @@
   	Token string `json:"token"`
   }
 
-  type string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ExchangeTokenEp(rail miso.Rail, req ExchangeTokenReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/token/exchange", "user-vault").
@@ -992,10 +980,12 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UserInfoBrief struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Id int `json:"id"`
+  	Username string `json:"username"`
+  	RoleName string `json:"roleName"`
+  	RoleNo string `json:"roleNo"`
+  	UserNo string `json:"userNo"`
+  	RegisterDate string `json:"registerDate"`
   }
 
   func ApiGetTokenUserInfo(rail miso.Rail, token string) (UserInfoBrief, error) {
@@ -1104,17 +1094,15 @@
   	Paging miso.Paging `json:"paging"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedAccessLog struct {
+  	Id int `json:"id"`
+  	UserAgent string `json:"userAgent"`
+  	IpAddress string `json:"ipAddress"`
+  	Username string `json:"username"`
+  	Url string `json:"url"`
+  	AccessTime util.ETime `json:"accessTime"`
+  	Success bool
   }
 
   func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (PageRes, error) {
@@ -1334,17 +1322,13 @@
   	Name string `json:"name"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedUserKey struct {
+  	Id int `json:"id"`
+  	SecretKey string `json:"secretKey"`
+  	Name string `json:"name"`
+  	ExpirationTime util.ETime `json:"expirationTime"`
+  	CreateTime util.ETime `json:"createTime"`
   }
 
   func ApiUserListUserKeys(rail miso.Rail, req ListUserKeysReq) (PageRes, error) {
@@ -1712,11 +1696,9 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []ResBrief struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ResBrief struct {
+  	Code string `json:"code"`
+  	Name string `json:"name"`
   }
 
   func ApiListResCandidates(rail miso.Rail, roleNo string) ([]ResBrief, error) {
@@ -1821,17 +1803,19 @@
   	Paging miso.Paging `json:"paging"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
+  type ListResResp struct {
+  	Paging miso.Paging `json:"paging"`
+  	Payload []WRes `json:"payload"`
   }
 
-  type ListResResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type WRes struct {
+  	Id int `json:"id"`
+  	Code string `json:"code"`
+  	Name string `json:"name"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
   }
 
   func ApiAdminListRes(rail miso.Rail, req ListResReq) (ListResResp, error) {
@@ -1943,11 +1927,9 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []ResBrief struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ResBrief struct {
+  	Code string `json:"code"`
+  	Name string `json:"name"`
   }
 
   func ApiListUserAccessibleRes(rail miso.Rail) ([]ResBrief, error) {
@@ -2029,11 +2011,9 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []ResBrief struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ResBrief struct {
+  	Code string `json:"code"`
+  	Name string `json:"name"`
   }
 
   func ApiListAllResBrief(rail miso.Rail) ([]ResBrief, error) {
@@ -2394,17 +2374,19 @@
   	Paging miso.Paging `json:"paging"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
+  type ListRoleResp struct {
+  	Payload []WRole `json:"payload"`
+  	Paging miso.Paging `json:"paging"`
   }
 
-  type ListRoleResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type WRole struct {
+  	Id int `json:"id"`
+  	RoleNo string `json:"roleNo"`
+  	Name string `json:"name"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
   }
 
   func ApiAdminListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
@@ -2516,11 +2498,9 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []RoleBrief struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type RoleBrief struct {
+  	RoleNo string `json:"roleNo"`
+  	Name string `json:"name"`
   }
 
   func ApiAdminListRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
@@ -2623,17 +2603,17 @@
   	RoleNo string `json:"roleNo"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
+  type ListRoleResResp struct {
+  	Paging miso.Paging `json:"paging"`
+  	Payload []ListedRoleRes `json:"payload"`
   }
 
-  type ListRoleResResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListedRoleRes struct {
+  	Id int `json:"id"`
+  	ResCode string `json:"resCode"`
+  	ResName string `json:"resName"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
   }
 
   func ApiAdminListRoleRes(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
@@ -2753,10 +2733,8 @@
   }
 
   type RoleInfoResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	RoleNo string `json:"roleNo"`
+  	Name string `json:"name"`
   }
 
   func ApiGetRoleInfo(rail miso.Rail, req RoleInfoReq) (RoleInfoResp, error) {
@@ -2879,17 +2857,23 @@
   	Paging miso.Paging `json:"paging"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
+  type ListPathResp struct {
+  	Paging miso.Paging `json:"paging"`
+  	Payload []WPath `json:"payload"`
   }
 
-  type ListPathResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type WPath struct {
+  	Id int `json:"id"`
+  	Pgroup string `json:"pgroup"`
+  	PathNo string `json:"pathNo"`
+  	Method string `json:"method"`
+  	Desc string `json:"desc"`
+  	Url string `json:"url"`
+  	Ptype string `json:"ptype"`    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
   }
 
   func ApiAdminListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
@@ -3381,10 +3365,17 @@
   }
 
   type UserInfo struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Id int
+  	Username string
+  	RoleName string
+  	RoleNo string
+  	UserNo string
+  	ReviewStatus string
+  	IsDisabled int
+  	CreateTime util.ETime
+  	CreateBy string
+  	UpdateTime util.ETime
+  	UpdateBy string
   }
 
   func ApiFetchUserInfo(rail miso.Rail, req FindUserReq) (UserInfo, error) {
@@ -3498,10 +3489,9 @@
   }
 
   type User struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	UserNo string
+  	Username string
+  	RoleNo string
   }
 
   func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (User, error) {
@@ -3593,13 +3583,6 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type int struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ApiFetchUserIdByName(rail miso.Rail, username string) (int, error) {
   	var res miso.GnResp[int]
   	err := miso.NewDynTClient(rail, "/remote/user/id", "user-vault").
@@ -3682,10 +3665,7 @@
   }
 
   type FetchUsernamesRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	UserNoToUsername map[string]string `json:"userNoToUsername"`
   }
 
   func ApiFetchUsernamesByNosEp(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes, error) {
@@ -3790,11 +3770,18 @@
   	RoleNo string
   }
 
-  type []UserInfo struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type UserInfo struct {
+  	Id int
+  	Username string
+  	RoleName string
+  	RoleNo string
+  	UserNo string
+  	ReviewStatus string
+  	IsDisabled int
+  	CreateTime util.ETime
+  	CreateBy string
+  	UpdateTime util.ETime
+  	UpdateBy string
   }
 
   func ApiFindUserWithRoleEp(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
@@ -3909,11 +3896,18 @@
   	ResourceCode string
   }
 
-  type []UserInfo struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type UserInfo struct {
+  	Id int
+  	Username string
+  	RoleName string
+  	RoleNo string
+  	UserNo string
+  	ReviewStatus string
+  	IsDisabled int
+  	CreateTime util.ETime
+  	CreateBy string
+  	UpdateTime util.ETime
+  	UpdateBy string
   }
 
   func ApiFindUserWithResourceEp(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
@@ -4109,10 +4103,7 @@
   }
 
   type CheckResAccessResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Valid bool `json:"valid"`
   }
 
   func ApiCheckResourceAccessEp(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
@@ -4327,17 +4318,13 @@
   	Paging miso.Paging
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListSitePasswordRes struct {
+  	RecordId string
+  	Site string
+  	Alias string
+  	Username string
+  	CreateTime util.ETime
   }
 
   func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (PageRes, error) {
@@ -4640,10 +4627,7 @@
   }
 
   type DecryptSitePasswordRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  	Decrypted string
   }
 
   func ApiDecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq) (DecryptSitePasswordRes, error) {
@@ -5011,12 +4995,6 @@
   type QueryNotificationReq struct {
   	Page miso.Paging
   	Status string
-  }
-
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
   }
 
   func SendQueryNotificationReq(rail miso.Rail, req QueryNotificationReq) error {

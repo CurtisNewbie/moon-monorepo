@@ -41,12 +41,6 @@
   	Page miso.Paging `json:"page"`
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
-
   func SendListErrorLogReq(rail miso.Rail, req ListErrorLogReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/log/error/list", "logbot").
@@ -120,20 +114,16 @@
 - Description: Expose resource and endpoint information to other backend service for authorization.
 - Expected Access Scope: PROTECTED
 - JSON Response:
-    - "errorCode": (string) error code
-    - "msg": (string) message
-    - "error": (bool) whether the request was successful
-    - "data": (ResourceInfoRes) response data
-      - "resources": ([]auth.Resource) 
-        - "name": (string) resource name
-        - "code": (string) resource code, unique identifier
-      - "paths": ([]auth.Endpoint) 
-        - "type": (string) access scope type: PROTECTED/PUBLIC
-        - "url": (string) endpoint url
-        - "group": (string) app name
-        - "desc": (string) description of the endpoint
-        - "resCode": (string) resource code
-        - "method": (string) http method
+    - "resources": ([]auth.Resource) 
+      - "name": (string) resource name
+      - "code": (string) resource code, unique identifier
+    - "paths": ([]auth.Endpoint) 
+      - "type": (string) access scope type: PROTECTED/PUBLIC
+      - "url": (string) endpoint url
+      - "group": (string) app name
+      - "desc": (string) description of the endpoint
+      - "resCode": (string) resource code
+      - "method": (string) http method
 - cURL:
   ```sh
   curl -X GET 'http://localhost:8087/auth/resource'
@@ -141,26 +131,33 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type GnResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data auth.ResourceInfoRes `json:"data"`
-  }
-
   type ResourceInfoRes struct {
-  	Resources []auth.Resource
-  	Paths []auth.Endpoint
+  	Resources []Resource
+  	Paths []Endpoint
   }
 
-  func SendRequest(rail miso.Rail) (GnResp, error) {
-  	var res miso.GnResp[GnResp]
+  type Resource struct {
+  	Name string `json:"name"`      // resource name
+  	Code string `json:"code"`      // resource code, unique identifier
+  }
+
+  type Endpoint struct {
+  	Type string `json:"type"`      // access scope type: PROTECTED/PUBLIC
+  	Url string `json:"url"`        // endpoint url
+  	Group string `json:"group"`    // app name
+  	Desc string `json:"desc"`      // description of the endpoint
+  	ResCode string `json:"resCode"` // resource code
+  	Method string `json:"method"`  // http method
+  }
+
+  func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
+  	var res miso.GnResp[ResourceInfoRes]
   	err := miso.NewDynTClient(rail, "/auth/resource", "logbot").
   		Get().
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat GnResp
+  		var dat ResourceInfoRes
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -173,13 +170,6 @@
 
 - JSON Response Object In TypeScript:
   ```ts
-  export interface GnResp {
-    errorCode?: string;            // error code
-    msg?: string;                  // message
-    error?: boolean;               // whether the request was successful
-    data?: ResourceInfoRes;
-  }
-
   export interface ResourceInfoRes {
     resources?: Resource[];
     paths?: Endpoint[];
@@ -211,14 +201,9 @@
   ) {}
 
   sendRequest() {
-    this.http.get<any>(`/logbot/auth/resource`)
+    this.http.get<ResourceInfoRes>(`/logbot/auth/resource`)
       .subscribe({
         next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
-          }
-          let dat: ResourceInfoRes = resp.data;
         },
         error: (err) => {
           console.log(err)

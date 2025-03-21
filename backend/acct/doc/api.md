@@ -72,17 +72,20 @@
   	MinAmt *money.Amt              // Minimum amount
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ListCashFlowRes struct {
+  	Direction string               // Flow Direction: IN / OUT
+  	TransTime util.ETime           // Transaction Time
+  	TransId string                 // Transaction ID
+  	Counterparty string            // Counterparty of the transaction
+  	PaymentMethod string           // Payment Method
+  	Amount string                  // Amount
+  	Currency string                // Currency
+  	Extra string                   // Extra Information
+  	Category string                // Category Code
+  	CategoryName string            // Category Name
+  	Remark string                  // Remark
+  	CreatedAt util.ETime           // Create Time
   }
 
   func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (PageRes, error) {
@@ -269,13 +272,6 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type []string struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
-  }
-
   func ApiListCurrency(rail miso.Rail) ([]string, error) {
   	var res miso.GnResp[[]string]
   	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-currency", "acct").
@@ -373,17 +369,12 @@
   	Currency string                // Currency
   }
 
-  type Paging struct {
-  	Limit int `json:"limit"`       // page limit
-  	Page int `json:"page"`         // page number, 1-based
-  	Total int `json:"total"`       // total count
-  }
 
-  type PageRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ApiListStatisticsRes struct {
+  	AggType string                 // Aggregation Type.
+  	AggRange string                // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+  	AggValue string                // Aggregation Value.
+  	Currency string                // Currency
   }
 
   func ApiListCashflowStatistics(rail miso.Rail, req ApiListStatisticsReq) (PageRes, error) {
@@ -502,25 +493,15 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiPlotStatisticsReq struct {
-  	StartTime util.ETime
-  	EndTime util.ETime
+  	StartTime util.ETime           // Start time
+  	EndTime util.ETime             // End time
   	AggType string                 // Aggregation Type.
   	Currency string                // Currency
   }
 
-  type ETime struct {
-  	Time time.Time
-  }
-
-  type ETime struct {
-  	Time time.Time
-  }
-
-  type []ApiPlotStatisticsRes struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data interface {} `json:"data"` // response data
+  type ApiPlotStatisticsRes struct {
+  	AggRange string                // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+  	AggValue string                // Aggregation Value.
   }
 
   func ApiPlotCashflowStatistics(rail miso.Rail, req ApiPlotStatisticsReq) ([]ApiPlotStatisticsRes, error) {
@@ -600,20 +581,16 @@
 - Description: Expose resource and endpoint information to other backend service for authorization.
 - Expected Access Scope: PROTECTED
 - JSON Response:
-    - "errorCode": (string) error code
-    - "msg": (string) message
-    - "error": (bool) whether the request was successful
-    - "data": (ResourceInfoRes) response data
-      - "resources": ([]auth.Resource) 
-        - "name": (string) resource name
-        - "code": (string) resource code, unique identifier
-      - "paths": ([]auth.Endpoint) 
-        - "type": (string) access scope type: PROTECTED/PUBLIC
-        - "url": (string) endpoint url
-        - "group": (string) app name
-        - "desc": (string) description of the endpoint
-        - "resCode": (string) resource code
-        - "method": (string) http method
+    - "resources": ([]auth.Resource) 
+      - "name": (string) resource name
+      - "code": (string) resource code, unique identifier
+    - "paths": ([]auth.Endpoint) 
+      - "type": (string) access scope type: PROTECTED/PUBLIC
+      - "url": (string) endpoint url
+      - "group": (string) app name
+      - "desc": (string) description of the endpoint
+      - "resCode": (string) resource code
+      - "method": (string) http method
 - cURL:
   ```sh
   curl -X GET 'http://localhost:8093/auth/resource'
@@ -621,26 +598,33 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type GnResp struct {
-  	ErrorCode string `json:"errorCode"` // error code
-  	Msg string `json:"msg"`        // message
-  	Error bool `json:"error"`      // whether the request was successful
-  	Data auth.ResourceInfoRes `json:"data"`
-  }
-
   type ResourceInfoRes struct {
-  	Resources []auth.Resource
-  	Paths []auth.Endpoint
+  	Resources []Resource
+  	Paths []Endpoint
   }
 
-  func SendRequest(rail miso.Rail) (GnResp, error) {
-  	var res miso.GnResp[GnResp]
+  type Resource struct {
+  	Name string `json:"name"`      // resource name
+  	Code string `json:"code"`      // resource code, unique identifier
+  }
+
+  type Endpoint struct {
+  	Type string `json:"type"`      // access scope type: PROTECTED/PUBLIC
+  	Url string `json:"url"`        // endpoint url
+  	Group string `json:"group"`    // app name
+  	Desc string `json:"desc"`      // description of the endpoint
+  	ResCode string `json:"resCode"` // resource code
+  	Method string `json:"method"`  // http method
+  }
+
+  func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
+  	var res miso.GnResp[ResourceInfoRes]
   	err := miso.NewDynTClient(rail, "/auth/resource", "acct").
   		Get().
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat GnResp
+  		var dat ResourceInfoRes
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -653,13 +637,6 @@
 
 - JSON Response Object In TypeScript:
   ```ts
-  export interface GnResp {
-    errorCode?: string;            // error code
-    msg?: string;                  // message
-    error?: boolean;               // whether the request was successful
-    data?: ResourceInfoRes;
-  }
-
   export interface ResourceInfoRes {
     resources?: Resource[];
     paths?: Endpoint[];
@@ -691,14 +668,9 @@
   ) {}
 
   sendRequest() {
-    this.http.get<any>(`/acct/auth/resource`)
+    this.http.get<ResourceInfoRes>(`/acct/auth/resource`)
       .subscribe({
         next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
-            return;
-          }
-          let dat: ResourceInfoRes = resp.data;
         },
         error: (err) => {
           console.log(err)

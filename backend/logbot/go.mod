@@ -5,7 +5,7 @@ go 1.22
 replace github.com/curtisnewbie/user-vault => ../user-vault
 
 require (
-	github.com/curtisnewbie/miso v0.1.15
+	github.com/curtisnewbie/miso v0.1.16-beta.3.0.20250321094052-4d8cfa210372
 	github.com/curtisnewbie/user-vault v0.0.25
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/sirupsen/logrus v1.9.0
