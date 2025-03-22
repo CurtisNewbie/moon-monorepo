@@ -44,6 +44,7 @@ export interface ListedTask {
   dirName?: string;
   createdAt?: number;
   fileCount?: number;
+  remark ?: string;
 }
 
 @Component({
@@ -82,7 +83,13 @@ export class DroneTaskComponent implements OnInit {
         }
         let dat: PageRes = resp.data;
         this.tabdata = dat.payload;
-        console.log(dat.payload);
+        if (this.tabdata) {
+          for (let t of this.tabdata) {
+            if (t.remark && t.remark.length > 300) {
+              t.remark = t.remark.substring(t.remark.length - 300);
+            }
+          }
+        }
         this.pagingController.onTotalChanged(dat.paging);
       },
       error: (err) => {
