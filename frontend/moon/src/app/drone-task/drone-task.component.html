@@ -102,7 +102,9 @@
         </ng-container>
         <ng-container matColumnDef="remark">
             <th mat-header-cell *matHeaderCellDef> Remark </th>
-            <td mat-cell *matCellDef="let u"> {{ u.remark }} </td>
+            <td mat-cell *matCellDef="let u">
+                <pre class="ms-1" style="word-wrap: break-word; white-space: pre-wrap;">{{ u.remark }}</pre>
+            </td>
         </ng-container>
         <ng-container matColumnDef="operation">
             <th mat-header-cell *matHeaderCellDef> Operation </th>

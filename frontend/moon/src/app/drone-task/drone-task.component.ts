@@ -85,8 +85,8 @@ export class DroneTaskComponent implements OnInit {
         this.tabdata = dat.payload;
         if (this.tabdata) {
           for (let t of this.tabdata) {
-            if (t.remark && t.remark.length > 300) {
-              t.remark = t.remark.substring(t.remark.length - 300);
+            if (t.remark && t.remark.length > 100) {
+              t.remark = "..." + t.remark.substring(t.remark.length - 100);
             }
           }
         }
