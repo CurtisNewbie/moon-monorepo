@@ -337,7 +337,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type BatchMoveIntoDirReq struct {
-  	Instructions []MoveIntoDirReq
+  	Instructions []MoveIntoDirReq `json:"instructions"`
   }
 
   type MoveIntoDirReq struct {
@@ -641,8 +641,8 @@
   	FileType *string `json:"fileType"`
   	ParentFile *string `json:"parentFile"`
   	Sensitive *bool `json:"sensitive"`
-  	FileKey *string
-  	OrderByName bool
+  	FileKey *string `json:"fileKey"`
+  	OrderByName bool `json:"orderByName"`
   }
 
 
@@ -954,13 +954,13 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type FetchDirTreeReq struct {
-  	FileKey string
+  	FileKey string `json:"fileKey"`
   }
 
   type DirBottomUpTreeNode struct {
-  	FileKey string
-  	Name string
-  	Child *DirBottomUpTreeNode
+  	FileKey string `json:"fileKey"`
+  	Name string `json:"name"`
+  	Child *DirBottomUpTreeNode `json:"child"`
   }
 
   func ApiFetchDirBottomUpTree(rail miso.Rail, req FetchDirTreeReq) (DirBottomUpTreeNode, error) {
@@ -1053,9 +1053,9 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DirTopDownTreeNode struct {
-  	FileKey string
-  	Name string
-  	Child []DirTopDownTreeNode
+  	FileKey string `json:"fileKey"`
+  	Name string `json:"name"`
+  	Child []DirTopDownTreeNode `json:"child"`
   }
 
   func ApiFetchDirTopDownTree(rail miso.Rail) (DirTopDownTreeNode, error) {
@@ -1140,7 +1140,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type BatchDeleteFileReq struct {
-  	FileKeys []string
+  	FileKeys []string `json:"fileKeys"`
   }
 
   func ApiBatchDeleteFile(rail miso.Rail, req BatchDeleteFileReq) error {
@@ -1317,8 +1317,8 @@
   ```go
   type UpdateFileReq struct {
   	Id int `json:"id"`
-  	Name string
-  	SensitiveMode string
+  	Name string `json:"name"`
+  	SensitiveMode string `json:"sensitiveMode"`
   }
 
   func ApiUpdateFile(rail miso.Rail, req UpdateFileReq) error {
@@ -1492,8 +1492,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UnpackZipReq struct {
-  	FileKey string
-  	ParentFileKey string
+  	FileKey string `json:"fileKey"`
+  	ParentFileKey string `json:"parentFileKey"`
   }
 
   func ApiUnpackZip(rail miso.Rail, req UnpackZipReq) error {
@@ -2439,7 +2439,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RemoveVFolderReq struct {
-  	FolderNo string
+  	FolderNo string `json:"folderNo"`
   }
 
   func ApiRemoveVFolder(rail miso.Rail, req RemoveVFolderReq) error {
@@ -2622,16 +2622,16 @@
   }
 
   type Gallery struct {
-  	Id int64
-  	GalleryNo string
-  	UserNo string
-  	Name string
-  	DirFileKey string
-  	CreateTime util.ETime
-  	CreateBy string
-  	UpdateTime util.ETime
-  	UpdateBy string
-  	IsDel bool
+  	Id int64 `json:"id"`
+  	GalleryNo string `json:"galleryNo"`
+  	UserNo string `json:"userNo"`
+  	Name string `json:"name"`
+  	DirFileKey string `json:"dirFileKey"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
+  	IsDel bool `json:"isDel"`
   }
 
   func ApiCreateGallery(rail miso.Rail, req CreateGalleryCmd) (Gallery, error) {
@@ -2935,7 +2935,7 @@
   	IsOwner bool `json:"isOwner"`
   	CreateTimeStr string `json:"createTime"`
   	UpdateTimeStr string `json:"updateTime"`
-  	DirFileKey string
+  	DirFileKey string `json:"dirFileKey"`
   }
 
   func ApiListGalleries(rail miso.Rail, req ListGalleriesCmd) (PageRes, error) {
@@ -3053,8 +3053,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type PermitGalleryAccessCmd struct {
-  	GalleryNo string
-  	Username string
+  	GalleryNo string `json:"galleryNo"`
+  	Username string `json:"username"`
   }
 
   func ApiGranteGalleryAccess(rail miso.Rail, req PermitGalleryAccessCmd) error {
@@ -3242,16 +3242,16 @@
   ```go
   type ListGrantedGalleryAccessCmd struct {
   	GalleryNo string `json:"galleryNo"`
-  	Paging miso.Paging
+  	Paging miso.Paging `json:"paging"`
   }
 
 
   type ListedGalleryAccessRes struct {
-  	Id int
-  	GalleryNo string
-  	UserNo string
-  	Username string
-  	CreateTime util.ETime
+  	Id int `json:"id"`
+  	GalleryNo string `json:"galleryNo"`
+  	UserNo string `json:"userNo"`
+  	Username string `json:"username"`
+  	CreateTime util.ETime `json:"createTime"`
   }
 
   func ApiListGalleryAccess(rail miso.Rail, req ListGrantedGalleryAccessCmd) (PageRes, error) {
@@ -3387,7 +3387,7 @@
   }
 
   type ImageInfo struct {
-  	FileKey string
+  	FileKey string `json:"fileKey"`
   	ThumbnailToken string `json:"thumbnailToken"`
   	FileTempToken string `json:"fileTempToken"`
   }
@@ -3503,7 +3503,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type TransferGalleryImageReq struct {
-  	Images []CreateGalleryImageCmd
+  	Images []CreateGalleryImageCmd `json:"images"`
   }
 
   type CreateGalleryImageCmd struct {
@@ -3617,20 +3617,20 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiListVerFileReq struct {
-  	Paging miso.Paging
-  	Name *string                   // file name
+  	Paging miso.Paging `json:"paging"`
+  	Name *string `json:"name"`     // file name
   }
 
 
   type ApiListVerFileRes struct {
-  	VerFileId string               // versioned file id
-  	Name string                    // file name
-  	FileKey string                 // file key
-  	SizeInBytes int64              // size in bytes
-  	UploadTime util.ETime          // last upload time
-  	CreateTime util.ETime          // create time of the versioned file record
-  	UpdateTime util.ETime          // Update time of the versioned file record
-  	Thumbnail string               // thumbnail token
+  	VerFileId string `json:"verFileId"` // versioned file id
+  	Name string `json:"name"`      // file name
+  	FileKey string `json:"fileKey"` // file key
+  	SizeInBytes int64 `json:"sizeInBytes"` // size in bytes
+  	UploadTime util.ETime `json:"uploadTime"` // last upload time
+  	CreateTime util.ETime `json:"createTime"` // create time of the versioned file record
+  	UpdateTime util.ETime `json:"updateTime"` // Update time of the versioned file record
+  	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
   func ApiListVersionedFile(rail miso.Rail, req ApiListVerFileReq) (PageRes, error) {
@@ -3761,17 +3761,17 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiListVerFileHistoryReq struct {
-  	Paging miso.Paging
-  	VerFileId string               // versioned file id
+  	Paging miso.Paging `json:"paging"`
+  	VerFileId string `json:"verFileId"` // versioned file id
   }
 
 
   type ApiListVerFileHistoryRes struct {
-  	Name string                    // file name
-  	FileKey string                 // file key
-  	SizeInBytes int64              // size in bytes
-  	UploadTime util.ETime          // last upload time
-  	Thumbnail string               // thumbnail token
+  	Name string `json:"name"`      // file name
+  	FileKey string `json:"fileKey"` // file key
+  	SizeInBytes int64 `json:"sizeInBytes"` // size in bytes
+  	UploadTime util.ETime `json:"uploadTime"` // last upload time
+  	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
   func ApiListVersionedFileHistory(rail miso.Rail, req ApiListVerFileHistoryReq) (PageRes, error) {
@@ -3886,11 +3886,11 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiQryVerFileAccuSizeReq struct {
-  	VerFileId string               // versioned file id
+  	VerFileId string `json:"verFileId"` // versioned file id
   }
 
   type ApiQryVerFileAccuSizeRes struct {
-  	SizeInBytes int64              // total size in bytes
+  	SizeInBytes int64 `json:"sizeInBytes"` // total size in bytes
   }
 
   func ApiQryVersionedFileAccuSize(rail miso.Rail, req ApiQryVerFileAccuSizeReq) (ApiQryVerFileAccuSizeRes, error) {
@@ -3989,7 +3989,7 @@
   }
 
   type ApiCreateVerFileRes struct {
-  	VerFileId string               // Versioned File Id
+  	VerFileId string `json:"verFileId"` // Versioned File Id
   }
 
   func ApiCreateVersionedFile(rail miso.Rail, req ApiCreateVerFileReq) (ApiCreateVerFileRes, error) {
@@ -4083,7 +4083,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiUpdateVerFileReq struct {
-  	VerFileId string               // versioned file id
+  	VerFileId string `json:"verFileId"` // versioned file id
   	Filename string `json:"filename"`
   	FakeFstoreFileId string `json:"fstoreFileId"`
   }
@@ -4171,7 +4171,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiDelVerFileReq struct {
-  	VerFileId string               // Versioned File Id
+  	VerFileId string `json:"verFileId"` // Versioned File Id
   }
 
   func ApiDelVersionedFile(rail miso.Rail, req ApiDelVerFileReq) error {
@@ -4463,8 +4463,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListBookmarksReq struct {
-  	Name *string
-  	Paging miso.Paging
+  	Name *string `json:"name"`
+  	Paging miso.Paging `json:"paging"`
   }
 
   func ApiListBookmarks(rail miso.Rail, req ListBookmarksReq) error {
@@ -4555,7 +4555,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RemoveBookmarkReq struct {
-  	Id int64
+  	Id int64 `json:"id"`
   }
 
   func ApiRemoveBookmark(rail miso.Rail, req RemoveBookmarkReq) error {
@@ -4643,8 +4643,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListBookmarksReq struct {
-  	Name *string
-  	Paging miso.Paging
+  	Name *string `json:"name"`
+  	Paging miso.Paging `json:"paging"`
   }
 
   func ApiListBlacklistedBookmarks(rail miso.Rail, req ListBookmarksReq) error {
@@ -4735,7 +4735,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RemoveBookmarkReq struct {
-  	Id int64
+  	Id int64 `json:"id"`
   }
 
   func ApiRemoveBookmarkBlacklist(rail miso.Rail, req RemoveBookmarkReq) error {
@@ -4821,11 +4821,11 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListBrowseRecordRes struct {
-  	Time util.ETime
-  	FileKey string
-  	Name string
-  	ThumbnailToken string
-  	Deleted bool
+  	Time util.ETime `json:"time"`
+  	FileKey string `json:"fileKey"`
+  	Name string `json:"name"`
+  	ThumbnailToken string `json:"thumbnailToken"`
+  	Deleted bool `json:"deleted"`
   }
 
   func ApiListBrowseHistory(rail miso.Rail) ([]ListBrowseRecordRes, error) {
@@ -4912,7 +4912,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RecordBrowseHistoryReq struct {
-  	FileKey string
+  	FileKey string `json:"fileKey"`
   }
 
   func ApiRecordBrowseHistory(rail miso.Rail, req RecordBrowseHistoryReq) error {
@@ -4994,7 +4994,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type MaintenanceStatus struct {
-  	UnderMaintenance bool
+  	UnderMaintenance bool `json:"underMaintenance"`
   }
 
   func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
@@ -5083,7 +5083,7 @@
   	Filename string `json:"filename"`
   	FakeFstoreFileId string `json:"fstoreFileId"`
   	ParentFile string `json:"parentFile"`
-  	UserNo string
+  	UserNo string `json:"userNo"`
   }
 
   func ApiSysCreateFile(rail miso.Rail, req SysCreateFileReq) (string, error) {
@@ -5252,8 +5252,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type InternalCheckFileAccessReq struct {
-  	FileKey string
-  	UserNo string
+  	FileKey string `json:"fileKey"`
+  	UserNo string `json:"userNo"`
   }
 
   func ApiInternalCheckFileAccess(rail miso.Rail, req InternalCheckFileAccessReq) error {
@@ -5342,14 +5342,14 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type InternalFetchFileInfoReq struct {
-  	FileKey string
+  	FileKey string `json:"fileKey"`
   }
 
   type InternalFetchFileInfoRes struct {
-  	Name string
-  	UploadTime util.ETime
-  	SizeInBytes int64
-  	FileType string
+  	Name string `json:"name"`
+  	UploadTime util.ETime `json:"uploadTime"`
+  	SizeInBytes int64 `json:"sizeInBytes"`
+  	FileType string `json:"fileType"`
   }
 
   func ApiInternalFetchFileInfo(rail miso.Rail, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
@@ -5445,9 +5445,9 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type SysMakeDirReq struct {
-  	ParentFile string
-  	UserNo string
-  	Name string
+  	ParentFile string `json:"parentFile"`
+  	UserNo string `json:"userNo"`
+  	Name string `json:"name"`
   }
 
   func ApiSysMakeDir(rail miso.Rail, req SysMakeDirReq) (string, error) {
@@ -5538,8 +5538,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ResourceInfoRes struct {
-  	Resources []Resource
-  	Paths []Endpoint
+  	Resources []Resource `json:"resources"`
+  	Paths []Endpoint `json:"paths"`
   }
 
   type Resource struct {

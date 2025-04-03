@@ -114,7 +114,7 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 		Eq("is_logic_deleted", 0).Scan(&maxId)
 
 	if err != nil {
-		rail.ErrorIf("find max id failed", err)
+		rail.Errorf("find max id failed, %v", err)
 		return err
 	}
 	if scanned < 1 {
