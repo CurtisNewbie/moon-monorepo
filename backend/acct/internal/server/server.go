@@ -6,6 +6,8 @@ import (
 	"github.com/curtisnewbie/acct/internal/flow"
 	"github.com/curtisnewbie/acct/internal/web"
 	"github.com/curtisnewbie/miso/miso"
+
+	_ "github.com/curtisnewbie/acct/internal/config"
 )
 
 func init() {
