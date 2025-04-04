@@ -28,11 +28,6 @@ const (
 	AttrAuthInfo           = "gk.auth.info"
 	AttrPprofAuthenticated = "gk.pprof.auth.pass"
 
-	PropTimerExclPath         = "gatekeeper.timer.path.excl"
-	PropWhitelistPathPatterns = "gatekeeper.whitelist.path.patterns"
-	PropOverwriteRemoteIp     = "gatekeeper.overwrite-remote-ip"
-	PropProxyPprofBearer      = "gatekeeper.proxy.pprof.bearer"
-
 	HeaderAuthorization = "Authorization"
 	CookieAuthorization = "Gatekeeper_Authorization"
 )
