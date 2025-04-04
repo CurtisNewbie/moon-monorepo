@@ -543,9 +543,9 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UnzipFileReq struct {
-  	FileId string                  // file_id of zip file
-  	ReplyToEventBus string         // name of the rabbitmq exchange to reply to, routing_key is '#'
-  	Extra string                   // extra information that will be passed around for the caller
+  	FileId string `json:"fileId"`  // file_id of zip file
+  	ReplyToEventBus string `json:"replyToEventBus"` // name of the rabbitmq exchange to reply to, routing_key is '#'
+  	Extra string `json:"extra"`    // extra information that will be passed around for the caller
   }
 
   func ApiUnzipFile(rail miso.Rail, req UnzipFileReq) error {
@@ -643,21 +643,21 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListBackupFileReq struct {
-  	Limit int64
-  	IdOffset int
+  	Limit int64 `json:"limit"`
+  	IdOffset int `json:"idOffset"`
   }
 
   type ListBackupFileResp struct {
-  	Files []BackupFileInf
+  	Files []BackupFileInf `json:"files"`
   }
 
   type BackupFileInf struct {
-  	Id int64
-  	FileId string
-  	Name string
-  	Status string
-  	Size int64
-  	Md5 string
+  	Id int64 `json:"id"`
+  	FileId string `json:"fileId"`
+  	Name string `json:"name"`
+  	Status string `json:"status"`
+  	Size int64 `json:"size"`
+  	Md5 string `json:"md5"`
   }
 
   func ApiBackupListFiles(rail miso.Rail, req ListBackupFileReq, authorization string) (ListBackupFileResp, error) {
@@ -1040,19 +1040,19 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type StorageInfo struct {
-  	Volumns []VolumnInfo
+  	Volumns []VolumnInfo `json:"volumns"`
   }
 
   type VolumnInfo struct {
-  	Mounted string
-  	Total uint64
-  	Used uint64
-  	Available uint64
-  	UsedPercent float64
-  	TotalText string
-  	UsedText string
-  	AvailableText string
-  	UsedPercentText string
+  	Mounted string `json:"mounted"`
+  	Total uint64 `json:"total"`
+  	Used uint64 `json:"used"`
+  	Available uint64 `json:"available"`
+  	UsedPercent float64 `json:"usedPercent"`
+  	TotalText string `json:"totalText"`
+  	UsedText string `json:"usedText"`
+  	AvailableText string `json:"availableText"`
+  	UsedPercentText string `json:"usedPercentText"`
   }
 
   func ApiFetchStorageInfo(rail miso.Rail) (StorageInfo, error) {
@@ -1148,10 +1148,10 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type StorageUsageInfo struct {
-  	Type string
-  	Path string
-  	Used uint64
-  	UsedText string
+  	Type string `json:"type"`
+  	Path string `json:"path"`
+  	Used uint64 `json:"used"`
+  	UsedText string `json:"usedText"`
   }
 
   func ApiFetchStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
@@ -1235,7 +1235,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type MaintenanceStatus struct {
-  	UnderMaintenance bool
+  	UnderMaintenance bool `json:"underMaintenance"`
   }
 
   func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
@@ -1321,8 +1321,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ResourceInfoRes struct {
-  	Resources []Resource
-  	Paths []Endpoint
+  	Resources []Resource `json:"resources"`
+  	Paths []Endpoint `json:"paths"`
   }
 
   type Resource struct {

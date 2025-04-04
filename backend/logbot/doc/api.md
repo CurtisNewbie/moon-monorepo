@@ -125,8 +125,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ResourceInfoRes struct {
-  	Resources []Resource
-  	Paths []Endpoint
+  	Resources []Resource `json:"resources"`
+  	Paths []Endpoint `json:"paths"`
   }
 
   type Resource struct {

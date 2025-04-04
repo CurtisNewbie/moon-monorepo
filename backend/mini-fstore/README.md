@@ -6,10 +6,6 @@ A mini file storage service. mini-fstore internally uses [miso](https://github.c
 
 ## Requirements
 
-- MySQL
-- Redis
-- Consul
-- RabbitMQ
 - ffmpeg
 
 ## Configuration

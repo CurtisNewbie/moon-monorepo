@@ -4,14 +4,6 @@ Bot for watching and parsing logs.
 
 > **_This project is part of a monorepo ([https://github.com/CurtisNewbie/moon-monorepo](https://github.com/CurtisNewbie/moon-monorepo))._**
 
-## Requirements
-
-- MySQL
-- Redis
-- Consul
-- RabbitMQ
-- [github.com/curtisnewbie/user-vault](https://github.com/curtisnewbie/user-vault)
-
 ## Configuration
 
 For more configuration, check [miso](https://github.com/CurtisNewbie/miso).

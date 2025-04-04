@@ -56,29 +56,29 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListCashFlowReq struct {
-  	Paging miso.Paging
-  	Direction string               // Flow Direction: IN / OUT
-  	TransTimeStart *util.ETime     // Transaction Time Range Start
-  	TransTimeEnd *util.ETime       // Transaction Time Range End
-  	TransId string                 // Transaction ID
-  	Category string                // Category Code
-  	MinAmt *money.Amt              // Minimum amount
+  	Paging miso.Paging `json:"paging"`
+  	Direction string `json:"direction"` // Flow Direction: IN / OUT
+  	TransTimeStart *util.ETime `json:"transTimeStart"` // Transaction Time Range Start
+  	TransTimeEnd *util.ETime `json:"transTimeEnd"` // Transaction Time Range End
+  	TransId string `json:"transId"` // Transaction ID
+  	Category string `json:"category"` // Category Code
+  	MinAmt *money.Amt `json:"minAmt"` // Minimum amount
   }
 
 
   type ListCashFlowRes struct {
-  	Direction string               // Flow Direction: IN / OUT
-  	TransTime util.ETime           // Transaction Time
-  	TransId string                 // Transaction ID
-  	Counterparty string            // Counterparty of the transaction
-  	PaymentMethod string           // Payment Method
-  	Amount string                  // Amount
-  	Currency string                // Currency
-  	Extra string                   // Extra Information
-  	Category string                // Category Code
-  	CategoryName string            // Category Name
-  	Remark string                  // Remark
-  	CreatedAt util.ETime           // Create Time
+  	Direction string `json:"direction"` // Flow Direction: IN / OUT
+  	TransTime util.ETime `json:"transTime"` // Transaction Time
+  	TransId string `json:"transId"` // Transaction ID
+  	Counterparty string `json:"counterparty"` // Counterparty of the transaction
+  	PaymentMethod string `json:"paymentMethod"` // Payment Method
+  	Amount string `json:"amount"`  // Amount
+  	Currency string `json:"currency"` // Currency
+  	Extra string `json:"extra"`    // Extra Information
+  	Category string `json:"category"` // Category Code
+  	CategoryName string `json:"categoryName"` // Category Name
+  	Remark string `json:"remark"`  // Remark
+  	CreatedAt util.ETime `json:"createdAt"` // Create Time
   }
 
   func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (PageRes, error) {
@@ -356,18 +356,18 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiListStatisticsReq struct {
-  	Paging miso.Paging
-  	AggType string                 // Aggregation Type.
-  	AggRange string                // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
-  	Currency string                // Currency
+  	Paging miso.Paging `json:"paging"`
+  	AggType string `json:"aggType"` // Aggregation Type.
+  	AggRange string `json:"aggRange"` // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+  	Currency string `json:"currency"` // Currency
   }
 
 
   type ApiListStatisticsRes struct {
-  	AggType string                 // Aggregation Type.
-  	AggRange string                // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
-  	AggValue string                // Aggregation Value.
-  	Currency string                // Currency
+  	AggType string `json:"aggType"` // Aggregation Type.
+  	AggRange string `json:"aggRange"` // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+  	AggValue string `json:"aggValue"` // Aggregation Value.
+  	Currency string `json:"currency"` // Currency
   }
 
   func ApiListCashflowStatistics(rail miso.Rail, req ApiListStatisticsReq) (PageRes, error) {
@@ -486,15 +486,15 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiPlotStatisticsReq struct {
-  	StartTime util.ETime           // Start time
-  	EndTime util.ETime             // End time
-  	AggType string                 // Aggregation Type.
-  	Currency string                // Currency
+  	StartTime util.ETime `json:"startTime"` // Start time
+  	EndTime util.ETime `json:"endTime"` // End time
+  	AggType string `json:"aggType"` // Aggregation Type.
+  	Currency string `json:"currency"` // Currency
   }
 
   type ApiPlotStatisticsRes struct {
-  	AggRange string                // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
-  	AggValue string                // Aggregation Value.
+  	AggRange string `json:"aggRange"` // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
+  	AggValue string `json:"aggValue"` // Aggregation Value.
   }
 
   func ApiPlotCashflowStatistics(rail miso.Rail, req ApiPlotStatisticsReq) ([]ApiPlotStatisticsRes, error) {
@@ -592,8 +592,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ResourceInfoRes struct {
-  	Resources []Resource
-  	Paths []Endpoint
+  	Resources []Resource `json:"resources"`
+  	Paths []Endpoint `json:"paths"`
   }
 
   type Resource struct {

@@ -1,6 +1,6 @@
 # user-vault
 
-> ***main branch is unstable, see tagged versions in releases***
+> **_main branch is unstable, see tagged versions in releases_**
 
 > **_This project is part of a monorepo ([https://github.com/CurtisNewbie/moon-monorepo](https://github.com/CurtisNewbie/moon-monorepo))._**
 
@@ -10,7 +10,7 @@ This project internally uses [miso](https://github.com/curtisnewbie/miso).
 
 ## Authentication Concepts
 
-A user is uniquely identified with a username and password(s). Once a user is authenticated, a JWT token is generated that can be used to prove one's identity within a time limit. Normally, some gateway services will validate each request's JWT token without the need to request user-vault service, e.g., [github.com/curtisnewbie/gatekeeper](https://github.com/curtisnewbie/gatekeeper).
+A user is uniquely identified with a username and password(s). Once a user is authenticated, a JWT token is generated that can be used to prove one's identity within a time limit. Normally, some gateway services will validate each request's JWT token without the need to request user-vault service, e.g., [gatekeeper](https://github.com/CurtisNewbie/moon-monorepo/tree/main/backend/gatekeeper).
 
 ## Authorization Concepts
 
@@ -24,16 +24,9 @@ Beckend services are expected to declare a REST endpoint `GET /auth/resource` to
 
 <img src="./doc/user-vault_polling_mechanism.png" height="250px"></img>
 
-user-vault is designed to work with a gateway service (e.g., [gatekeeper](https://github.com/curtisnewbie/gatekeeper)) as follows:
+user-vault is designed to work with a gateway service (e.g., [gatekeeper](https://github.com/CurtisNewbie/moon-monorepo/tree/main/backend/gatekeeper)) as follows:
 
 <img src="./doc/user-vault_gateway.png" height="350px"></img>
-
-## Dependencies
-
-- MySQL
-- Redis
-- RabbitMQ
-- Consul
 
 ## Prometheus Metrics
 
@@ -43,6 +36,7 @@ user-vault is designed to work with a gateway service (e.g., [gatekeeper](https:
 ## Documentation
 
 - [API Endpoints](./doc/api.md)
+- [Configuration](./doc/config.md)
 
 ## Initial Setup
 
@@ -61,5 +55,3 @@ The first user:
 -- password: 123456, generated with sha256(password + salt)
 insert into user_vault.user (username, password, salt, review_status, user_no, role_no) values ('admin', '958d51602bbfbd18b2a084ba848a827c29952bfef170c936419b0922994c0589', '123456', 'APPROVED', 'UE1049787455160320075953', 'role_super_admin');
 ```
-
-## Updates

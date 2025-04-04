@@ -390,17 +390,17 @@
 
 
   type UserInfo struct {
-  	Id int
-  	Username string
-  	RoleName string
-  	RoleNo string
-  	UserNo string
-  	ReviewStatus string
-  	IsDisabled int
-  	CreateTime util.ETime
-  	CreateBy string
-  	UpdateTime util.ETime
-  	UpdateBy string
+  	Id int `json:"id"`
+  	Username string `json:"username"`
+  	RoleName string `json:"roleName"`
+  	RoleNo string `json:"roleNo"`
+  	UserNo string `json:"userNo"`
+  	ReviewStatus string `json:"reviewStatus"`
+  	IsDisabled int `json:"isDisabled"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
   }
 
   func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (PageRes, error) {
@@ -523,7 +523,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type AdminUpdateUserReq struct {
-  	UserNo string
+  	UserNo string `json:"userNo"`
   	RoleNo string `json:"roleNo"`
   	IsDisabled int `json:"isDisabled"`
   }
@@ -701,12 +701,12 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UserInfoRes struct {
-  	Id int
-  	Username string
-  	RoleName string
-  	RoleNo string
-  	UserNo string
-  	RegisterDate string
+  	Id int `json:"id"`
+  	Username string `json:"username"`
+  	RoleName string `json:"roleName"`
+  	RoleNo string `json:"roleNo"`
+  	UserNo string `json:"userNo"`
+  	RegisterDate string `json:"registerDate"`
   }
 
   func ApiUserGetUserInfo(rail miso.Rail) (UserInfoRes, error) {
@@ -1095,7 +1095,7 @@
   	Username string `json:"username"`
   	Url string `json:"url"`
   	AccessTime util.ETime `json:"accessTime"`
-  	Success bool
+  	Success bool `json:"success"`
   }
 
   func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (PageRes, error) {
@@ -3249,10 +3249,10 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UpdatePathReq struct {
-  	Type string                    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-  	PathNo string
-  	Group string
-  	ResCode string
+  	Type string `json:"type"`      // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+  	PathNo string `json:"pathNo"`
+  	Group string `json:"group"`
+  	ResCode string `json:"resCode"`
   }
 
   func ApiAdminUpdatePath(rail miso.Rail, req UpdatePathReq) error {
@@ -3358,17 +3358,17 @@
   }
 
   type UserInfo struct {
-  	Id int
-  	Username string
-  	RoleName string
-  	RoleNo string
-  	UserNo string
-  	ReviewStatus string
-  	IsDisabled int
-  	CreateTime util.ETime
-  	CreateBy string
-  	UpdateTime util.ETime
-  	UpdateBy string
+  	Id int `json:"id"`
+  	Username string `json:"username"`
+  	RoleName string `json:"roleName"`
+  	RoleNo string `json:"roleNo"`
+  	UserNo string `json:"userNo"`
+  	ReviewStatus string `json:"reviewStatus"`
+  	IsDisabled int `json:"isDisabled"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
   }
 
   func ApiFetchUserInfo(rail miso.Rail, req FindUserReq) (UserInfo, error) {
@@ -3482,9 +3482,9 @@
   }
 
   type User struct {
-  	UserNo string
-  	Username string
-  	RoleNo string
+  	UserNo string `json:"userNo"`
+  	Username string `json:"username"`
+  	RoleNo string `json:"roleNo"`
   }
 
   func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (User, error) {
@@ -3760,21 +3760,21 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type FetchUsersWithRoleReq struct {
-  	RoleNo string
+  	RoleNo string `json:"roleNo"`
   }
 
   type UserInfo struct {
-  	Id int
-  	Username string
-  	RoleName string
-  	RoleNo string
-  	UserNo string
-  	ReviewStatus string
-  	IsDisabled int
-  	CreateTime util.ETime
-  	CreateBy string
-  	UpdateTime util.ETime
-  	UpdateBy string
+  	Id int `json:"id"`
+  	Username string `json:"username"`
+  	RoleName string `json:"roleName"`
+  	RoleNo string `json:"roleNo"`
+  	UserNo string `json:"userNo"`
+  	ReviewStatus string `json:"reviewStatus"`
+  	IsDisabled int `json:"isDisabled"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
   }
 
   func ApiFindUserWithRoleEp(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
@@ -3886,21 +3886,21 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type FetchUserWithResourceReq struct {
-  	ResourceCode string
+  	ResourceCode string `json:"resourceCode"`
   }
 
   type UserInfo struct {
-  	Id int
-  	Username string
-  	RoleName string
-  	RoleNo string
-  	UserNo string
-  	ReviewStatus string
-  	IsDisabled int
-  	CreateTime util.ETime
-  	CreateBy string
-  	UpdateTime util.ETime
-  	UpdateBy string
+  	Id int `json:"id"`
+  	Username string `json:"username"`
+  	RoleName string `json:"roleName"`
+  	RoleNo string `json:"roleNo"`
+  	UserNo string `json:"userNo"`
+  	ReviewStatus string `json:"reviewStatus"`
+  	IsDisabled int `json:"isDisabled"`
+  	CreateTime util.ETime `json:"createTime"`
+  	CreateBy string `json:"createBy"`
+  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateBy string `json:"updateBy"`
   }
 
   func ApiFindUserWithResourceEp(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
@@ -4194,12 +4194,12 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type CreatePathReq struct {
-  	Type string                    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-  	Url string
-  	Group string
-  	Method string
-  	Desc string
-  	ResCode string
+  	Type string `json:"type"`      // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
+  	Url string `json:"url"`
+  	Group string `json:"group"`
+  	Method string `json:"method"`
+  	Desc string `json:"desc"`
+  	ResCode string `json:"resCode"`
   }
 
   func ApiReportPath(rail miso.Rail, req CreatePathReq) error {
@@ -4305,19 +4305,19 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListSitePasswordReq struct {
-  	Alias string
-  	Site string
-  	Username string
-  	Paging miso.Paging
+  	Alias string `json:"alias"`
+  	Site string `json:"site"`
+  	Username string `json:"username"`
+  	Paging miso.Paging `json:"paging"`
   }
 
 
   type ListSitePasswordRes struct {
-  	RecordId string
-  	Site string
-  	Alias string
-  	Username string
-  	CreateTime util.ETime
+  	RecordId string `json:"recordId"`
+  	Site string `json:"site"`
+  	Alias string `json:"alias"`
+  	Username string `json:"username"`
+  	CreateTime util.ETime `json:"createTime"`
   }
 
   func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (PageRes, error) {
@@ -4436,11 +4436,11 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type AddSitePasswordReq struct {
-  	Site string
-  	Alias string
-  	Username string
-  	SitePassword string
-  	LoginPassword string
+  	Site string `json:"site"`
+  	Alias string `json:"alias"`
+  	Username string `json:"username"`
+  	SitePassword string `json:"sitePassword"`
+  	LoginPassword string `json:"loginPassword"`
   }
 
   func ApiAddSitePassword(rail miso.Rail, req AddSitePasswordReq) error {
@@ -4528,7 +4528,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RemoveSitePasswordRes struct {
-  	RecordId string
+  	RecordId string `json:"recordId"`
   }
 
   func ApiRemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes) error {
@@ -4615,12 +4615,12 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DecryptSitePasswordReq struct {
-  	LoginPassword string
-  	RecordId string
+  	LoginPassword string `json:"loginPassword"`
+  	RecordId string `json:"recordId"`
   }
 
   type DecryptSitePasswordRes struct {
-  	Decrypted string
+  	Decrypted string `json:"decrypted"`
   }
 
   func ApiDecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq) (DecryptSitePasswordRes, error) {
@@ -4716,11 +4716,11 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type EditSitePasswordReq struct {
-  	RecordId string
-  	Site string
-  	Alias string
-  	SitePassword string            // new site password, optional
-  	LoginPassword string           // only used when site password is provided
+  	RecordId string `json:"recordId"`
+  	Site string `json:"site"`
+  	Alias string `json:"alias"`
+  	SitePassword string `json:"sitePassword"` // new site password, optional
+  	LoginPassword string `json:"loginPassword"` // only used when site password is provided
   }
 
   func ApiEditSitePassword(rail miso.Rail, req EditSitePasswordReq) error {
@@ -4808,7 +4808,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ClearUserFailedLoginAttemptsReq struct {
-  	UserNo string
+  	UserNo string `json:"userNo"`
   }
 
   func ApiClearUserFailedLoginAttempts(rail miso.Rail, req ClearUserFailedLoginAttemptsReq) error {
@@ -4894,9 +4894,9 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type CreateNotificationReq struct {
-  	Title string
-  	Message string
-  	ReceiverUserNos []string
+  	Title string `json:"title"`
+  	Message string `json:"message"`
+  	ReceiverUserNos []string `json:"receiverUserNos"`
   }
 
   func SendCreateNotificationReq(rail miso.Rail, req CreateNotificationReq) error {
@@ -4986,8 +4986,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type QueryNotificationReq struct {
-  	Page miso.Paging
-  	Status string
+  	Page miso.Paging `json:"page"`
+  	Status string `json:"status"`
   }
 
   func SendQueryNotificationReq(rail miso.Rail, req QueryNotificationReq) error {
@@ -5146,7 +5146,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type OpenNotificationReq struct {
-  	NotifiNo string
+  	NotifiNo string `json:"notifiNo"`
   }
 
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
@@ -5230,7 +5230,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type OpenNotificationReq struct {
-  	NotifiNo string
+  	NotifiNo string `json:"notifiNo"`
   }
 
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {

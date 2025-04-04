@@ -456,7 +456,7 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 				Eq("id", req.UserId).
 				Update()
 
-			rail.ErrorIf("Failed to update user for registration review, userId: %v", err, req.UserId)
+			rail.ErrorIf(err, "Failed to update user for registration review, userId: %v", req.UserId)
 			return err
 		},
 	)
