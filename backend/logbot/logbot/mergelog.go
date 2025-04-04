@@ -9,10 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	PropMergedLogFilename = "log.merged-file-name"
-)
-
 var (
 	mergedLogger                     = logrus.New()
 	mergedLogMu                      = sync.Mutex{}

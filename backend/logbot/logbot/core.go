@@ -30,10 +30,6 @@ var (
 	logPatternCache = miso.NewLocalCache[*regexp.Regexp]()
 )
 
-func init() {
-	miso.SetDefProp("logbot.node", "default")
-}
-
 func lastPos(rail miso.Rail, app string, nodeName string) (int64, error) {
 	cmd := redis.GetRedis().Get(fmt.Sprintf("log-bot:pos:%v:%v", nodeName, app))
 	if cmd.Err() != nil {
