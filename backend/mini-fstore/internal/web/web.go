@@ -40,7 +40,7 @@ func PrepareWebServer(rail miso.Rail) error {
 		if strings.HasPrefix(url, "/backup") {
 
 			// disabled
-			if !miso.GetPropBool(config.PropEnableFstoreBackup) || miso.GetPropStr(config.PropBackupAuthSecret) == "" {
+			if !miso.GetPropBool(config.PropBackupEnabled) || miso.GetPropStr(config.PropBackupAuthSecret) == "" {
 				miso.Infof("Reject request to %v, backup endpoint disabled", url)
 				c.AbortWithStatus(404)
 				return

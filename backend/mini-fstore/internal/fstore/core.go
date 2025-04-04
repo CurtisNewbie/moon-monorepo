@@ -63,14 +63,6 @@ var (
 	serverMaintainanceTicker *miso.TickRunner = nil
 )
 
-func init() {
-	miso.SetDefProp(config.PropStorageDir, "./storage")
-	miso.SetDefProp(config.PropTrashDir, "./trash")
-	miso.SetDefProp(config.PropPDelStrategy, PdelStrategyTrash)
-	miso.SetDefProp(config.PropSanitizeStorageTaskDryRun, false)
-	miso.SetDefProp(config.PropTempDir, "/tmp")
-}
-
 type ByteRange struct {
 	zero  bool  // whether the byte range is not specified (so called, zero value)
 	Start int64 // start of byte range (inclusive)
