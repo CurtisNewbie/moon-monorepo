@@ -3,6 +3,7 @@ mode.production: true
 app.name: "gatekeeper"
 
 server:
+  host: 0.0.0.0
   port: 7070
   gracefulShutdownTimeSec: 5
   perf.enabled: false
