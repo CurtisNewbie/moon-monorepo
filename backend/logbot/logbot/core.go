@@ -286,11 +286,11 @@ func parseLogLine(rail miso.Rail, app string, line string, typ string) (LogLine,
 		return LogLine{}, fmt.Errorf("time format illegal, %v", ep)
 	}
 
-	// only save the first 1000 characters
 	msg := matches[6]
 	msgRu := []rune(msg)
-	if len(msgRu) > 1000 {
-		msg = string(msgRu[:1001])
+	limit := 65535
+	if len(msgRu) > limit {
+		msg = string(msgRu[:limit])
 	}
 
 	ll := LogLine{
