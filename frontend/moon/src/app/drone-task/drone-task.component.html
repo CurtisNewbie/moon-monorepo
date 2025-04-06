@@ -82,15 +82,16 @@
         </ng-container>
         <ng-container matColumnDef="url">
             <th mat-header-cell *matHeaderCellDef> Url </th>
-            <td mat-cell *matCellDef="let u"> {{u.url}} </td>
+            <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'ps-2 pe-2':''" style="overflow-wrap: anywhere;">
+                {{u.url}} </td>
         </ng-container>
         <ng-container matColumnDef="platform">
             <th mat-header-cell *matHeaderCellDef> Platform </th>
-            <td mat-cell *matCellDef="let u"> {{u.platform}} </td>
+            <td mat-cell *matCellDef="let u" style="overflow-wrap: break-word;"> {{u.platform}} </td>
         </ng-container>
         <ng-container matColumnDef="dirName">
             <th mat-header-cell *matHeaderCellDef> Directory </th>
-            <td mat-cell *matCellDef="let u"> {{ u.dirName }} </td>
+            <td mat-cell *matCellDef="let u" style="overflow-wrap: break-word;"> {{ u.dirName }} </td>
         </ng-container>
         <ng-container matColumnDef="fileCount">
             <th mat-header-cell *matHeaderCellDef> File Count </th>
@@ -123,11 +124,9 @@
                 </div>
             </td>
         </ng-container>
-        <tr mat-header-row
-            *matHeaderRowDef="['taskId','status','attempt','url','platform','dirName','fileCount','createdAt','remark', 'operation']">
+        <tr mat-header-row *matHeaderRowDef="headers">
         </tr>
-        <tr mat-row
-            *matRowDef="let row; columns: ['taskId','status','attempt','url','platform','dirName','fileCount','createdAt','remark','operation'];">
+        <tr mat-row *matRowDef="let row; columns: headers">
         </tr>
     </table>
 </div>

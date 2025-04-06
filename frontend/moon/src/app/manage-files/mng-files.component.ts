@@ -202,6 +202,19 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnDestroy(): void {}
 
   ngOnInit() {
+    window.addEventListener("keydown", (evt) => {
+      if (this.inFolderNo) {
+        return;
+      }
+
+      if (evt.key == "a" && evt.metaKey) {
+        evt.preventDefault();
+        for (let f of this.fileInfoList) {
+          this.bookmarkFile(f);
+        }
+      }
+    });
+
     this.route.paramMap.subscribe((params) => {
       // vfolder
       this.inFolderNo = params.get("folderNo");
@@ -604,83 +617,100 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
               },
             });
 
+            let nextIdx = -1;
+            let fetchNewList = false;
+            let fetchNewListNextPage = false;
+
+            let leftRight = (isLeft) => {
+              if (!isLeft) {
+                if (idx + 1 >= this.fileInfoList.length) {
+                  if (this.pagingController.nextPage()) {
+                    fetchNewList = true;
+                    fetchNewListNextPage = true;
+                  }
+                } else {
+                  for (let j = idx + 1; j < this.fileInfoList.length; j++) {
+                    if (isImageByName(this.fileInfoList[j].name)) {
+                      nextIdx = j;
+                      break;
+                    }
+                  }
+                  if (nextIdx == -1 && this.pagingController.nextPage()) {
+                    fetchNewList = true;
+                    fetchNewListNextPage = true;
+                  }
+                }
+              } else if (isLeft) {
+                if (idx - 1 < 0) {
+                  if (this.pagingController.prevPage()) {
+                    fetchNewList = true;
+                  }
+                } else {
+                  for (let j = idx - 1; j > -1; j--) {
+                    if (isImageByName(this.fileInfoList[j].name)) {
+                      nextIdx = j;
+                      break;
+                    }
+                  }
+                  if (nextIdx == -1 && this.pagingController.prevPage()) {
+                    fetchNewList = true;
+                  }
+                }
+              }
+              if (nextIdx > -1 || fetchNewList) {
+                dialog.afterClosed().subscribe({
+                  next: () => {
+                    if (fetchNewList) {
+                      this.fetchFileInfoList(() => {
+                        let idx = -1;
+                        if (fetchNewListNextPage) {
+                          for (let j = 0; j < this.fileInfoList.length; j++) {
+                            if (isImageByName(this.fileInfoList[j].name)) {
+                              idx = j;
+                              break;
+                            }
+                          }
+                        } else {
+                          for (
+                            let j = this.fileInfoList.length - 1;
+                            j > -1;
+                            j--
+                          ) {
+                            if (isImageByName(this.fileInfoList[j].name)) {
+                              idx = j;
+                              break;
+                            }
+                          }
+                        }
+                        if (idx > -1) {
+                          this.preview(this.fileInfoList[idx], idx);
+                        }
+                      });
+                    } else {
+                      this.preview(this.fileInfoList[nextIdx], nextIdx);
+                    }
+                  },
+                });
+                dialog.close();
+              }
+            };
+
+            dialog.componentInstance.swipeLeft.subscribe(() => {
+              leftRight(true);
+            });
+
+            dialog.componentInstance.swipeRight.subscribe(() => {
+              leftRight(false);
+            });
+
             dialog.keydownEvents().subscribe({
               next: (v: KeyboardEvent) => {
-                let nextIdx = -1;
-                let fetchNewList = false;
-                let fetchNewListNextPage = false;
-
-                if (v.code == "ArrowRight") {
-                  if (idx + 1 >= this.fileInfoList.length) {
-                    if (this.pagingController.nextPage()) {
-                      fetchNewList = true;
-                      fetchNewListNextPage = true;
-                    }
-                  } else {
-                    for (let j = idx + 1; j < this.fileInfoList.length; j++) {
-                      if (isImageByName(this.fileInfoList[j].name)) {
-                        nextIdx = j;
-                        break;
-                      }
-                    }
-                    if (nextIdx == -1 && this.pagingController.nextPage()) {
-                      fetchNewList = true;
-                      fetchNewListNextPage = true;
-                    }
-                  }
-                } else if (v.code == "ArrowLeft") {
-                  if (idx - 1 < 0) {
-                    if (this.pagingController.prevPage()) {
-                      fetchNewList = true;
-                    }
-                  } else {
-                    for (let j = idx - 1; j > -1; j--) {
-                      if (isImageByName(this.fileInfoList[j].name)) {
-                        nextIdx = j;
-                        break;
-                      }
-                    }
-                    if (nextIdx == -1 && this.pagingController.prevPage()) {
-                      fetchNewList = true;
-                    }
-                  }
+                console.log("keyboardevent ", v);
+                if (v.code != "ArrowLeft" && v.code != "ArrowRight") {
+                  return;
                 }
-                if (nextIdx > -1 || fetchNewList) {
-                  dialog.afterClosed().subscribe({
-                    next: () => {
-                      if (fetchNewList) {
-                        this.fetchFileInfoList(() => {
-                          let idx = -1;
-                          if (fetchNewListNextPage) {
-                            for (let j = 0; j < this.fileInfoList.length; j++) {
-                              if (isImageByName(this.fileInfoList[j].name)) {
-                                idx = j;
-                                break;
-                              }
-                            }
-                          } else {
-                            for (
-                              let j = this.fileInfoList.length - 1;
-                              j > -1;
-                              j--
-                            ) {
-                              if (isImageByName(this.fileInfoList[j].name)) {
-                                idx = j;
-                                break;
-                              }
-                            }
-                          }
-                          if (idx > -1) {
-                            this.preview(this.fileInfoList[idx], idx);
-                          }
-                        });
-                      } else {
-                        this.preview(this.fileInfoList[nextIdx], nextIdx);
-                      }
-                    },
-                  });
-                  dialog.close();
-                }
+                let isLeft = v.code == "ArrowLeft";
+                leftRight(isLeft);
               },
             });
           }
@@ -1113,18 +1143,5 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       .subscribe(() => {
         setTimeout(() => this.fetchFileInfoList(), 300);
       });
-  }
-
-  onDivKey(evt) {
-    if (this.inFolderNo) {
-      return;
-    }
-
-    if (evt.key == "a" && evt.metaKey) {
-      evt.preventDefault();
-      for (let f of this.fileInfoList) {
-        this.bookmarkFile(f);
-      }
-    }
   }
 }

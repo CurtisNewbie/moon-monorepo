@@ -7,6 +7,7 @@ import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
 import { Paging, PagingController } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
+import { Env } from "src/common/env-util";
 
 export interface RetryTaskReq {
   taskId?: string;
@@ -44,7 +45,7 @@ export interface ListedTask {
   dirName?: string;
   createdAt?: number;
   fileCount?: number;
-  remark ?: string;
+  remark?: string;
 }
 
 @Component({
@@ -53,6 +54,7 @@ export interface ListedTask {
   styleUrls: ["./drone-task.component.css"],
 })
 export class DroneTaskComponent implements OnInit {
+  headers: string[] = [];
   createTaskPanelShown: boolean = false;
   createTaskDirName: string = "";
   createTaskReq: CreateTaskReq = {};
@@ -64,13 +66,29 @@ export class DroneTaskComponent implements OnInit {
   pagingController: PagingController;
   tabdata: ListedTask[] = [];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.headers = this.env.isMobile()
+      ? ["status", "url", "operation"]
+      : [
+          "taskId",
+          "status",
+          "url",
+          "platform",
+          "attempt",
+          "dirName",
+          "fileCount",
+          "createdAt",
+          "remark",
+          "operation",
+        ];
+  }
 
   constructor(
     private snackBar: MatSnackBar,
     private http: HttpClient,
     public dirTree: DirTree,
-    private nav: NavigationService
+    private nav: NavigationService,
+    public env: Env
   ) {}
 
   listTasks() {
