@@ -110,14 +110,13 @@
         <ng-container matColumnDef="operation">
             <th mat-header-cell *matHeaderCellDef> Operation </th>
             <td mat-cell *matCellDef="let u">
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap m-2">
                     <ng-container *ngIf="u.dirFileKey">
-                        <button class="mat-raised-button" (click)="gotoDir(u.dirFileKey)">Goto Dir</button>
+                        <button class="mat-raised-button" (click)="gotoDir(u.dirFileKey)">Open</button>
                     </ng-container>
                     <ng-container *ngIf="u.status == 'PENDING'">
                         <button class="mat-raised-button" (click)="cancelTask(u.taskId)">Cancel</button>
                     </ng-container>
-
                     <ng-container *ngIf="u.status != 'PENDING'">
                         <button class="mat-raised-button" (click)="retryTask(u.taskId)">Retry</button>
                     </ng-container>

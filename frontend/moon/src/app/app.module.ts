@@ -25,7 +25,10 @@ import {
   MatSnackBarModule,
 } from "@angular/material/snack-bar";
 import { MatTableModule } from "@angular/material/table";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import {
+  MAT_TOOLTIP_DEFAULT_OPTIONS,
+  MatTooltipModule,
+} from "@angular/material/tooltip";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -92,8 +95,8 @@ import { ScrollingModule } from "@angular/cdk/scrolling";
 import { DirTreeNavComponent } from "./dir-tree-nav/dir-tree-nav.component";
 import { HIGHLIGHT_OPTIONS, HighlightModule } from "ngx-highlightjs";
 import { FileBookmarkDialogComponent } from "./file-bookmark-dialog/file-bookmark-dialog.component";
-import { EventPumpDashboardComponent } from './event-pump-dashboard/event-pump-dashboard.component';
-import { DroneTaskComponent } from './drone-task/drone-task.component';
+import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
+import { DroneTaskComponent } from "./drone-task/drone-task.component";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -190,6 +193,12 @@ PlotlyModule.plotlyjs = PlotlyJS;
     { provide: APP_BASE_HREF, useValue: "/" },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
+    // fix: unable to scroll on touch devices
+    // https://github.com/angular/components/issues/4892
+    {
+      provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
+      useValue: { showDelay: 250, hideDelay: 0, touchGestures: "off" },
+    },
     {
       provide: HIGHLIGHT_OPTIONS,
       useValue: {
