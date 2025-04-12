@@ -105,7 +105,7 @@ CREATE TABLE `gallery_image` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `image_no_uniq` (`image_no`),
   UNIQUE KEY `gallery_no_file_key_uk` (`gallery_no`,`file_key`),
-  KEY `gallery_no_idx` (`gallery_no`)
+  KEY `gallery_name_idx` (`gallery_no`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Gallery Image';
 
 CREATE TABLE `gallery_user_access` (

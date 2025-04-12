@@ -1,0 +1,1 @@
+ALTER TABLE vfm.gallery_image ADD KEY gallery_name_idx (gallery_no, name), DROP KEY gallery_no_idx;

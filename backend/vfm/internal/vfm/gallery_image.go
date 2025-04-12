@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
@@ -177,10 +178,16 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	}
 
 	var galleryImages []GalleryImage
-	t := tx.Raw(`select image_no, file_key from gallery_image where gallery_no = ? order by id desc limit ?, ?`,
-		cmd.GalleryNo, cmd.Paging.GetOffset(), cmd.Paging.GetLimit()).Scan(&galleryImages)
-	if t.Error != nil {
-		return nil, fmt.Errorf("select gallery_image failed, %v", t.Error)
+	_, err := dbquery.NewQuery(tx).
+		Table("gallery_image").
+		Select("image_no, file_key").
+		Eq("gallery_no", cmd.GalleryNo).
+		Order("name ASC").
+		Offset(cmd.Paging.GetOffset()).
+		Limit(cmd.Paging.GetLimit()).
+		Scan(&galleryImages)
+	if err != nil {
+		return nil, fmt.Errorf("select gallery_image failed, %v", err)
 	}
 	if galleryImages == nil {
 		galleryImages = []GalleryImage{}
