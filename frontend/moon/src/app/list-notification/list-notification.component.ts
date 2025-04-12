@@ -30,7 +30,7 @@ export interface ShowNatificationDialogData {
       >
     </div>
     <div mat-dialog-actions class="d-flex justify-content-end">
-      <button mat-button [mat-dialog-close]="true">Yes</button>
+      <button mat-button [mat-dialog-close]="true">Ok</button>
     </div>
   `,
 })
