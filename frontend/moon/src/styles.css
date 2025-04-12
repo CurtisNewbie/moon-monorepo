@@ -31,6 +31,10 @@
   color: #2687bf;
 }
 
+.status-yellow {
+  color: #d6a72e;
+}
+
 .status-red {
   color: rgb(236, 35, 35);
 }
