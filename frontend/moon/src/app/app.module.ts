@@ -71,7 +71,7 @@ import { ManageBookmarksComponent } from "./manage-bookmarks/manage-bookmarks.co
 import { GalleryAccessComponent } from "./gallery-access/gallery-access.component";
 import { ShareFileQrcodeDialogComponent } from "./share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { MatBadgeModule } from "@angular/material/badge";
-import { ListNotificationComponent } from "./list-notification/list-notification.component";
+import { ListNotificationComponent, ShowNotificationDialogComponent } from "./list-notification/list-notification.component";
 import { BookmarkBlacklistComponent } from "./bookmark-blacklist/bookmark-blacklist.component";
 import {
   VerFileHistoryComponent,
@@ -103,6 +103,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
 @NgModule({
   exports: [],
   declarations: [
+    ShowNotificationDialogComponent,
     PdfViewerComponent,
     AppComponent,
     MngFilesComponent,
@@ -187,7 +188,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     ScrollingModule,
     HighlightModule,
   ],
-  entryComponents: [ConfirmDialogComponent, GrantAccessDialogComponent],
+  entryComponents: [ConfirmDialogComponent, GrantAccessDialogComponent, ShowNotificationDialogComponent],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: APP_BASE_HREF, useValue: "/" },

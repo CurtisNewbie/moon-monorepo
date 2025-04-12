@@ -1,12 +1,48 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, Inject, OnInit } from "@angular/core";
 
 import { PagingController } from "src/common/paging";
-import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
-import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogRef,
+} from "@angular/material/dialog";
 import { PlatformNotificationService } from "../platform-notification.service";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
+
+export interface ShowNatificationDialogData {
+  title: string;
+  time: string;
+  message: string;
+}
+
+@Component({
+  selector: "show-notification-dialog-component",
+  template: `
+    <h1 mat-dialog-title>{{ data.title }}</h1>
+    <div mat-dialog-content>
+      <p>{{ data.time }}</p>
+      <pre style="text-wrap: pretty; line-break: anywhere">
+        {{ data.message }}
+      </pre
+      >
+    </div>
+    <div mat-dialog-actions class="d-flex justify-content-end">
+      <button mat-button [mat-dialog-close]="true">Yes</button>
+    </div>
+  `,
+})
+export class ShowNotificationDialogComponent {
+  constructor(
+    public dialogRef: MatDialogRef<
+      ShowNotificationDialogComponent,
+      ShowNatificationDialogData
+    >,
+    @Inject(MAT_DIALOG_DATA) public data: ShowNatificationDialogData
+  ) {}
+}
 
 export interface Notification {
   id: number;
@@ -114,14 +150,14 @@ export class ListNotificationComponent implements OnInit {
     if (n.createTime) {
       timeStr = n.createTime.toISOString().split(".")[0].replace("T", " ");
     }
-    let lines = n.message.split(`\n`);
 
-    const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
-      this.dialog.open(ConfirmDialogComponent, {
+    const dialogRef: MatDialogRef<ShowNotificationDialogComponent, boolean> =
+      this.dialog.open(ShowNotificationDialogComponent, {
         width: "900px",
         data: {
           title: n.title,
-          msg: [`Notification Time: ${timeStr}`, ...lines],
+          time: `Notification Time: ${timeStr}`,
+          message: n.message,
         },
       });
 
