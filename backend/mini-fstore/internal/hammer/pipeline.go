@@ -14,8 +14,8 @@ import (
 )
 
 func InitPipeline(rail miso.Rail) error {
-	api.GenImgThumbnailPipeline.Listen(3, ListenCompressImageEvent)
-	api.GenVidThumbnailPipeline.Listen(3, ListenGenVideoThumbnailEvent)
+	api.GenImgThumbnailPipeline.Listen(2, ListenCompressImageEvent)
+	api.GenVidThumbnailPipeline.Listen(2, ListenGenVideoThumbnailEvent)
 	return nil
 }
 
