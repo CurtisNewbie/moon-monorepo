@@ -1,9 +1,0 @@
-img {
-    object-fit: contain;
-    height: 100%;
-    width: 100%;
-}
-
-.lightbox {
-  text-align: left !important; /* default value, this is for image rotation issue */
-}

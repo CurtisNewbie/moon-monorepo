@@ -23,7 +23,7 @@
     - "transTimeEnd": (int64) Transaction Time Range End
     - "transId": (string) Transaction ID
     - "category": (string) Category Code
-    - "minAmt": (string) Minimum amount
+    - "minAmt": (*string) Minimum amount
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message

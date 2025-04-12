@@ -143,3 +143,14 @@ th {
   color: white;
   background-color: #303030;
 }
+
+/* fix lightbox rotation issue */
+.lightbox {
+  text-align: left !important;
+}
+
+/* fix lightbox image overflow issue */
+#outerContainer{
+  max-height: 85vh !important;
+  overflow: scroll !important;
+}
