@@ -66,6 +66,7 @@ func PrepareWebServer(rail miso.Rail) error {
 
 // Streaming file.
 //
+//   - misoapi-raw
 //   - misoapi-http: GET /file/stream
 //   - misoapi-scope: PUBLIC
 //   - misoapi-query-doc: key: temporary file key
@@ -91,6 +92,7 @@ func ApiTempKeyStreamFile(inb *miso.Inbound) {
 
 // Download file.
 //
+//   - misoapi-raw
 //   - misoapi-http: GET /file/raw
 //   - misoapi-scope: PUBLIC
 //   - misoapi-query-doc: key: temporary file key
@@ -291,6 +293,7 @@ func parseByteRangeHeader(rangeHeader string) fstore.ByteRange {
 
 // Download file directly without temporary key.
 //
+//   - misoapi-raw
 //   - misoapi-http: GET /file/direct
 //   - misoapi-query: fileId: actual file_id of the file record
 //   - misoapi-desc: Download files directly using file_id. This endpoint is expected to be protected and only used
@@ -354,6 +357,7 @@ func ApiBackupListFiles(inb *miso.Inbound, req fstore.ListBackupFileReq) (fstore
 
 // Download file (for backup).
 //
+//   - misoapi-raw
 //   - misoapi-http: GET /backup/file/raw
 //   - misoapi-desc: Backup tool download file
 //   - misoapi-scope: PUBLIC

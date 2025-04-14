@@ -248,6 +248,7 @@ func ApiUnpackZip(rail miso.Rail, db *gorm.DB, req UnpackZipReq, user common.Use
 
 // Generate file token in QRCode.
 //
+//   - misoapi-raw
 //   - misoapi-http: GET /open/api/file/token/qrcode
 //   - misoapi-desc: User generate qrcode image for temporary token
 //   - misoapi-query-doc: token: Generated temporary file key
