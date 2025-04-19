@@ -55,6 +55,9 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
           if (!xDown || !yDown) {
             return;
           }
+          if (evt.touches.length > 1) {
+            return;
+          }
 
           var xUp = evt.touches[0].clientX;
           var yUp = evt.touches[0].clientY;

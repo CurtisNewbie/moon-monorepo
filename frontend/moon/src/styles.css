@@ -151,6 +151,6 @@ th {
 
 /* fix lightbox image overflow issue */
 #outerContainer{
-  max-height: 80vh !important;
+  max-height: 70vh !important;
   overflow: scroll !important;
 }
