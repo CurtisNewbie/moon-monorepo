@@ -150,7 +150,20 @@ th {
 }
 
 /* fix lightbox image overflow issue */
-#outerContainer{
-  max-height: 70vh !important;
-  overflow: scroll !important;
+@media all and (max-width: 499px) {
+  #outerContainer {
+    max-height: 70svh !important;
+    overflow: scroll !important;
+  }
+}
+
+@media all and (min-width: 500px) {
+  #outerContainer {
+    max-height: 80vh !important;
+    overflow: scroll !important;
+  }
+}
+
+.lb-close {
+  display: none !important;
 }
