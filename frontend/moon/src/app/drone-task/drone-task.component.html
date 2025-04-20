@@ -90,11 +90,11 @@
         </ng-container>
         <ng-container matColumnDef="platform">
             <th mat-header-cell *matHeaderCellDef> Platform </th>
-            <td mat-cell *matCellDef="let u" style="overflow-wrap: break-word;"> {{u.platform}} </td>
+            <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'ps-2 pe-2':''" style="overflow-wrap: anywhere;"> {{u.platform}} </td>
         </ng-container>
         <ng-container matColumnDef="dirName">
             <th mat-header-cell *matHeaderCellDef> Directory </th>
-            <td mat-cell *matCellDef="let u" style="overflow-wrap: break-word;"> {{ u.dirName }} </td>
+            <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'ps-2 pe-2':''" style="overflow-wrap: anywhere;"> {{ u.dirName }} </td>
         </ng-container>
         <ng-container matColumnDef="fileCount">
             <th mat-header-cell *matHeaderCellDef> File Count </th>
@@ -115,13 +115,13 @@
             <td mat-cell *matCellDef="let u">
                 <div class="d-flex gap-2 flex-wrap m-2">
                     <ng-container *ngIf="u.dirFileKey">
-                        <button class="mat-raised-button" (click)="gotoDir(u.dirFileKey)">Open</button>
+                        <button class="mat-raised-button small-btn" (click)="gotoDir(u.dirFileKey)">Open</button>
                     </ng-container>
                     <ng-container *ngIf="u.status == 'PENDING'">
-                        <button class="mat-raised-button" (click)="cancelTask(u.taskId)">Cancel</button>
+                        <button class="mat-raised-button small-btn" (click)="cancelTask(u.taskId)">Cancel</button>
                     </ng-container>
                     <ng-container *ngIf="u.status != 'PENDING'">
-                        <button class="mat-raised-button" (click)="retryTask(u.taskId)">Retry</button>
+                        <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">Retry</button>
                     </ng-container>
                 </div>
             </td>
