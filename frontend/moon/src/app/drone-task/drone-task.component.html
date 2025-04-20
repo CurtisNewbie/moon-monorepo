@@ -86,7 +86,7 @@
         <ng-container matColumnDef="url">
             <th mat-header-cell *matHeaderCellDef> Url </th>
             <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'ps-2 pe-2':''" style="overflow-wrap: anywhere;">
-                {{u.url}} </td>
+                <a style="color: whitesmoke" href="{{u.url}}" target="_blank">{{u.url}}</a> </td>
         </ng-container>
         <ng-container matColumnDef="platform">
             <th mat-header-cell *matHeaderCellDef> Platform </th>

@@ -80,7 +80,7 @@ export class DroneTaskComponent implements OnInit {
 
   ngOnInit(): void {
     this.headers = this.env.isMobile()
-      ? ["status", "url", "operation"]
+      ? ["status", "url", "dirName", "operation"]
       : [
           "taskId",
           "status",
@@ -276,7 +276,7 @@ export class DroneTaskComponent implements OnInit {
       window.clearTimeout(this.urlTypingTimer);
     }
     this.urlTypingTimer = window.setTimeout(() => {
-      this.createTaskReq.url = this.createTaskReq.url.trim()
+      this.createTaskReq.url = this.createTaskReq.url.trim();
       this.guessUrlPlatform();
     }, 500);
   }
