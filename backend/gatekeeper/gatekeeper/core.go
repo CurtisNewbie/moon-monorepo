@@ -55,9 +55,7 @@ func prepareServer(rail miso.Rail) error {
 
 	// create proxy
 	proxy := miso.NewHttpProxy("/", ResolveServiceTarget)
-
 	proxy.AddFilter(ReqTimeLogFilter)
-	proxy.AddFilter(ProxyPprofAuthFilter)
 	proxy.AddFilter(IpFilter)
 
 	// healthcheck filter
@@ -76,17 +74,25 @@ func prepareServer(rail miso.Rail) error {
 		}
 	}
 
-	// pprof filter
-	if !miso.IsProdMode() && miso.GetPropBool(miso.PropServerPprofEnabled) {
+	// pprof filter for gatekeeper itself
+	if !miso.IsProdMode() || miso.GetPropBool(miso.PropServerPprofEnabled) {
+		bearer := ""
+		if miso.IsProdMode() {
+			bearer = miso.GetPropStr(miso.PropServerPprofAuthBearer)
+			if bearer == "" {
+				return miso.NewErrf("Configuration '%v' for pprof authentication is missing, but pprof authentication is enabled", miso.PropServerPprofAuthBearer)
+			}
+		}
 		miso.PerfLogExclPath("/debug/pprof")
 		miso.PerfLogExclPath("/debug/pprof/cmdline")
 		miso.PerfLogExclPath("/debug/pprof/profile")
 		miso.PerfLogExclPath("/debug/pprof/symbol")
 		miso.PerfLogExclPath("/debug/pprof/trace")
-		proxy.AddFilter(PProfFilter)
+		proxy.AddFilter(PProfFilter(bearer))
+		rail.Infof("Enabled pprof api for gatekeeper")
 	}
 
-	// gatekeeper filter
+	proxy.AddFilter(ProxyPprofAuthFilter)
 	proxy.AddFilter(AuthFilter)
 	proxy.AddFilter(AccessFilter)
 	proxy.AddFilter(TraceFilter)
@@ -162,27 +168,49 @@ func MetricsFilter(pc *miso.ProxyContext, next func()) {
 	next()
 }
 
-func PProfFilter(pc *miso.ProxyContext, next func()) {
+func PProfFilter(bearer string) func(pc *miso.ProxyContext, next func()) {
+	return func(pc *miso.ProxyContext, next func()) {
+		w, r := pc.Inb.Unwrap()
 
-	w, r := pc.Inb.Unwrap()
-	if r.URL.Path == "/debug/pprof/cmdline" {
-		pprof.Cmdline(w, r)
-		return
-	} else if r.URL.Path == "/debug/pprof/profile" {
-		pprof.Profile(w, r)
-		return
-	} else if r.URL.Path == "/debug/pprof/symbol" {
-		pprof.Symbol(w, r)
-		return
-	} else if r.URL.Path == "/debug/pprof/trace" {
-		pprof.Trace(w, r)
-		return
-	} else if strings.HasPrefix(r.URL.Path, "/debug/pprof") {
-		pprof.Index(w, r)
-		return
+		p := r.URL.Path
+		if v, ok := strings.CutPrefix(r.URL.Path, "/gatekeeper"); ok {
+			p = v
+		}
+		if strings.HasPrefix(p, "/debug/pprof") {
+			if bearer != "" {
+				token, ok := miso.ParseBearer(r.Header.Get("Authorization"))
+				if !ok || token != bearer {
+					miso.Debugf("Bearer authorization failed, missing bearer token or token mismatch, %v %v", r.Method, r.RequestURI)
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+			}
+
+			if p == "/debug/pprof/cmdline" {
+				pprof.Cmdline(w, r)
+				return
+			} else if p == "/debug/pprof/profile" {
+				pprof.Profile(w, r)
+				return
+			} else if p == "/debug/pprof/symbol" {
+				pprof.Symbol(w, r)
+				return
+			} else if p == "/debug/pprof/trace" {
+				pprof.Trace(w, r)
+				return
+			} else {
+				if name, found := strings.CutPrefix(p, "/debug/pprof/"); found && name != "" {
+					pprof.Handler(name).ServeHTTP(w, r)
+					return
+				}
+
+				pprof.Index(w, r)
+				return
+			}
+		}
+
+		next()
 	}
-
-	next()
 }
 
 type GatewayError struct {

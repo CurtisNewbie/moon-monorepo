@@ -7,6 +7,9 @@ server:
   port: 7070
   gracefulShutdownTimeSec: 5
   perf.enabled: false
+  pprof:
+    auth:
+      bearer: "${GATEKEEPER_PPROF_BEARER}"
 
 consul:
   enabled: true
