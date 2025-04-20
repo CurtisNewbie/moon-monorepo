@@ -96,6 +96,7 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 	userNo := user.UserNo
 	lps := NewLongPollSub(user.UserNo, w)
 	rail.Infof("User %v subscribes notifications using LongPolling, %v", userNo, lps.id)
+	defer rail.Infof("User %v unsubscribed notifications using LongPolling, %v", userNo, lps.id)
 
 	l.mu.Lock()
 	if submap, ok := l.sub[user.UserNo]; ok {
@@ -106,7 +107,6 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 	l.mu.Unlock()
 
 	l.pool.Go(func() {
-		rail = rail.NextSpan()
 		loadCount := func(alwaysClose bool) (exit bool) {
 			next, err := CachedCountNotification(rail, db, user)
 			if err == nil && next != curr {
@@ -131,6 +131,7 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 			l.mu.Lock()
 			defer l.mu.Unlock()
 
+			lps.Close()
 			delete(l.sub[user.UserNo], lps.id)
 			rail.Infof("Remove LongPollSub, response has been written, lps.id: %v, userNo: %v", lps.id, userNo)
 		}()
@@ -144,6 +145,7 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 			select {
 			case <-time.After(30 * time.Second):
 				loadCount(true) // close no matter what
+				return
 			case <-lps.notified:
 				rail.Infof("LongPolling notified, query latest unread notification count for %v, %v", lps.id, user.UserNo)
 				if loadCount(false) {
@@ -170,15 +172,14 @@ type LPSub struct {
 
 func (l *LPSub) Write(m any) error {
 	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	if l.closed {
-		l.mu.Unlock()
 		return nil
 	}
 
 	defer func() {
 		l.closed = true
-		l.mu.Unlock()
 		l.untilClosed <- struct{}{}
 	}()
 
@@ -193,12 +194,12 @@ func (l *LPSub) Write(m any) error {
 
 func (l *LPSub) Close() {
 	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	if l.closed {
 		return
 	}
 	l.closed = true
-	l.mu.Unlock()
 	l.untilClosed <- struct{}{}
 }
 
