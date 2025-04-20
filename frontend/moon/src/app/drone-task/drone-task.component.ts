@@ -113,10 +113,11 @@ export class DroneTaskComponent implements OnInit {
         }
         let dat: PageRes = resp.data;
         this.tabdata = dat.payload;
+        const maxLen = 40;
         if (this.tabdata) {
           for (let t of this.tabdata) {
-            if (t.remark && t.remark.length > 100) {
-              t.remark = "..." + t.remark.substring(t.remark.length - 100);
+            if (t.remark && t.remark.length > maxLen) {
+              t.remark = "..." + t.remark.substring(t.remark.length - maxLen);
             }
           }
         }
