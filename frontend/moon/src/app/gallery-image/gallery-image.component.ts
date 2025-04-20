@@ -97,6 +97,7 @@ export class GalleryImageComponent implements OnInit {
               });
             }
           }
+          console.log("images: ", this.images);
         },
       });
   }
