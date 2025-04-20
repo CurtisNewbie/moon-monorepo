@@ -9,6 +9,14 @@ import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 
+export interface GuessUrlPlatformRes {
+  platform?: string;
+}
+
+export interface GuessUrlPlatformReq {
+  url?: string;
+}
+
 export interface FetchLastSelectedDirRes {
   fileKey?: string;
 }
@@ -251,6 +259,48 @@ export class DroneTaskComponent implements OnInit {
           return;
         }
         this.listTasks();
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  urlTypingTimer = null;
+
+  urlKeyUp() {
+    if (this.urlTypingTimer != null) {
+      window.clearTimeout(this.urlTypingTimer);
+    }
+    this.urlTypingTimer = window.setTimeout(() => {
+      this.guessUrlPlatform();
+    }, 500);
+  }
+
+  urlKeyDown() {
+    if (this.urlTypingTimer != null) {
+      window.clearTimeout(this.urlTypingTimer);
+    }
+  }
+
+  guessUrlPlatform() {
+    if (!this.createTaskReq.url) {
+      return;
+    }
+    let req: GuessUrlPlatformReq = { url: this.createTaskReq.url };
+    this.http.post<any>(`/drone/open/api/task/guess-plafrom`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: GuessUrlPlatformRes = resp.data;
+        if (dat && dat.platform) {
+          this.createTaskReq.platform = dat.platform;
+        }
       },
       error: (err) => {
         console.log(err);

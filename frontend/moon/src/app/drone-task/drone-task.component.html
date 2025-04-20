@@ -8,7 +8,7 @@
         <div>
             <mat-form-field style="width: 100%">
                 <mat-label>URL</mat-label>
-                <input matInput [(ngModel)]="createTaskReq.url" />
+                <input matInput (keyup)="urlKeyUp()" (keydown)="urlKeyDown()" [(ngModel)]="createTaskReq.url" />
             </mat-form-field>
             <mat-form-field style="width: 100%">
                 <mat-label>Parent Directory</mat-label>
