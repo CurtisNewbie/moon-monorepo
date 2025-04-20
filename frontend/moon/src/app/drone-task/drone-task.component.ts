@@ -9,6 +9,10 @@ import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 
+export interface FetchLastSelectedDirRes {
+  fileKey?: string;
+}
+
 export interface RetryTaskReq {
   taskId?: string;
 }
@@ -169,6 +173,35 @@ export class DroneTaskComponent implements OnInit {
     this.dirTree.fetchTopDownDirTree((dat) => {
       this.dirTreeDataSource.data = [dat];
       this.dirTreeControl.dataNodes = this.dirTreeDataSource.data;
+
+      this.http.get<any>(`/drone/open/api/task/last-selected-dir`).subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          let dat: FetchLastSelectedDirRes = resp.data;
+          if (dat.fileKey) {
+            let children = this.dirTreeDataSource.data;
+            while (children.length > 0) {
+              let c = children.shift();
+              if (c.fileKey && c.fileKey == dat.fileKey) {
+                this.selectDir(c);
+                break;
+              }
+              if (c.child) {
+                children.push(...c.child);
+              }
+            }
+          }
+        },
+        error: (err) => {
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+      });
     });
   }
 
