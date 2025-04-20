@@ -276,6 +276,7 @@ export class DroneTaskComponent implements OnInit {
       window.clearTimeout(this.urlTypingTimer);
     }
     this.urlTypingTimer = window.setTimeout(() => {
+      this.createTaskReq.url = this.createTaskReq.url.trim()
       this.guessUrlPlatform();
     }, 500);
   }
