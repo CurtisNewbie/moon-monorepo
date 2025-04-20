@@ -31,7 +31,7 @@ moon monorepo - a privately hosted website developed for myself for fun :D
 - RabbitMQ
 - Consul
 - Redis
-- [github.com/CurtisNewbie/event-pump >= v0.0.15](https://github.com/CurtisNewbie/event-pump) (for listening MySQL Binlog Events).
+- [github.com/CurtisNewbie/event-pump >= v0.0.18](https://github.com/CurtisNewbie/event-pump) (for listening MySQL Binlog Events).
 
 ## Development Environment Preparation
 
