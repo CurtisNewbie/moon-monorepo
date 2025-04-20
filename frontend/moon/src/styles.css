@@ -166,7 +166,7 @@ th {
 
 @media all and (min-width: 700px) {
   #outerContainer {
-    max-height: 90vh !important;
+    max-height: 85vh !important;
     overflow: scroll !important;
   }
 }
