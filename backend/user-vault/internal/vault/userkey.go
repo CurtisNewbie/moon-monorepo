@@ -71,7 +71,7 @@ func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.
 				Where("user_no = ?", user.UserNo).
 				Where("expiration_time > ?", util.Now()).
 				Where("is_del = 0")
-			return q.WhereIf(!util.IsBlankStr(req.Name), "name LIKE ?", "%"+req.Name+"%")
+			return q.LikeIf(!util.IsBlankStr(req.Name), "name", req.Name)
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("id, secret_key, name, expiration_time, create_time").

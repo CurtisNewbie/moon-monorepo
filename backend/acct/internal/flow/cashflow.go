@@ -70,36 +70,24 @@ func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFl
 			q = q.Table(`cashflow`).
 				Where("user_no = ?", user.UserNo).
 				Where("deleted = 0")
-			if req.TransId != "" {
-				q = q.Where("trans_id = ?", req.TransId)
-			}
-			if req.Category != "" {
-				q = q.Where("category = ?", req.Category)
-			}
-			if req.TransTimeStart != nil {
-				q = q.Where("trans_time >= ?", req.TransTimeStart)
-			}
-			if req.TransTimeEnd != nil {
-				q = q.Where("trans_time <= ?", req.TransTimeEnd)
-			}
+
+			q = q.EqNotEmpty("trans_id", req.TransId).
+				EqNotEmpty("category", req.Category).
+				WhereNotNil("trans_time >= ?", req.TransTimeStart).
+				WhereNotNil("trans_time <= ?", req.TransTimeEnd)
+
 			if req.MinAmt != nil {
 				abs := req.MinAmt.Abs()
 				if abs.Cmp(money.Zero()) > 0 {
 					q = q.Where("amount >= ?", abs)
 					if req.MinAmt.Cmp(money.Zero()) < 0 {
-						if req.Direction != DirectionOut {
-							q = q.Where("direction = ?", DirectionOut)
-						}
+						q = q.WhereIf(req.Direction != DirectionOut, "direction = ?", DirectionOut)
 					} else {
-						if req.Direction != DirectionIn {
-							q = q.Where("direction = ?", DirectionIn)
-						}
+						q = q.WhereIf(req.Direction != DirectionIn, "direction = ?", DirectionIn)
 					}
 				}
 			}
-			if req.Direction != "" {
-				q = q.Where("direction = ?", req.Direction)
-			}
+			q = q.EqNotEmpty("direction = ?", req.Direction)
 			return q
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {

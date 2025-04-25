@@ -359,19 +359,19 @@ func ListUsers(rail miso.Rail, tx *gorm.DB, req ListUserReq) (miso.PageRes[api.U
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("u.*, r.name as role_name").Order("u.id DESC")
 		}).
-		WithBaseQuery(func(tx *dbquery.Query) *dbquery.Query {
-			tx = tx.Table("user u").Joins("LEFT JOIN role r USING(role_no)")
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			q = q.Table("user u").Joins("LEFT JOIN role r USING(role_no)")
 
 			if req.RoleNo != nil && *req.RoleNo != "" {
-				tx = tx.Where("u.role_no = ?", *req.RoleNo)
+				q = q.Eq("u.role_no", *req.RoleNo)
 			}
 			if req.Username != nil && *req.Username != "" {
-				tx = tx.Where("u.username LIKE ?", "%"+*req.Username+"%")
+				q = q.Like("u.username", *req.Username)
 			}
 			if req.IsDisabled != nil {
-				tx = tx.Where("u.is_disabled = ?", *req.IsDisabled)
+				q = q.Eq("u.is_disabled", *req.IsDisabled)
 			}
-			return tx.Where("u.is_del = 0")
+			return q.Where("u.is_del = 0")
 		}).
 		Scan(rail, req.Paging)
 }

@@ -82,12 +82,9 @@ type QueryNotificationReq struct {
 func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, user common.User) (miso.PageRes[ListedNotification], error) {
 	return dbquery.NewPagedQuery[ListedNotification](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
-			q = q.Table("notification")
-			q = q.Where("user_no = ?", user.UserNo)
-			if req.Status != "" {
-				q = q.Where("status = ?", req.Status)
-			}
-			return q
+			return q.Table("notification").
+				Eq("user_no", user.UserNo).
+				EqNotEmpty("status", req.Status)
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("id, notifi_no, title, message, status, create_time").

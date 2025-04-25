@@ -255,15 +255,11 @@ func ListCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiListStatisticsRe
 	return dbquery.NewPagedQuery[ApiListStatisticsRes](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.Table(`cashflow_statistics`).
-				Where(`user_no = ?`, user.UserNo).
-				Where(`agg_type = ?`, req.AggType).
+				Eq(`user_no`, user.UserNo).
+				Eq(`agg_type`, req.AggType).
+				EqNotEmpty("agg_range", req.AggRange).
+				EqNotEmpty("currency", req.Currency).
 				Order("agg_range desc, currency desc")
-			if req.AggRange != "" {
-				q = q.Where("agg_range = ?", req.AggRange)
-			}
-			if req.Currency != "" {
-				q = q.Where("currency = ?", req.Currency)
-			}
 			return q
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
