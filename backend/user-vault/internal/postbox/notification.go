@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/event-pump/client"
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -80,25 +80,22 @@ type QueryNotificationReq struct {
 }
 
 func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, user common.User) (miso.PageRes[ListedNotification], error) {
-	return mysql.NewPageQuery[ListedNotification]().
-		WithPage(req.Page).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Table("notification")
-			tx = tx.Where("user_no = ?", user.UserNo)
+	return dbquery.NewPagedQuery[ListedNotification](db).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			q = q.Table("notification")
+			q = q.Where("user_no = ?", user.UserNo)
 			if req.Status != "" {
-				tx = tx.Where("status = ?", req.Status)
+				q = q.Where("status = ?", req.Status)
 			}
-			return tx
+			return q
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Select("id, notifi_no, title, message, status, create_time").
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("id, notifi_no, title, message, status, create_time").
 				Order("id desc").
 				Limit(req.Page.GetLimit()).
 				Offset(req.Page.GetOffset())
-
-			return tx
 		}).
-		Exec(rail, db)
+		Scan(rail, req.Page)
 }
 
 func CachedCountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
@@ -128,7 +125,7 @@ func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user
 
 func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
 	var id int
-	n, err := mysql.NewQuery(db).
+	n, err := dbquery.NewQuery(db).
 		From("notification").
 		Select("id").
 		Eq("user_no", user.UserNo).

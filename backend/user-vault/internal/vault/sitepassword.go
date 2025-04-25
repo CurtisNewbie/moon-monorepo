@@ -2,7 +2,7 @@ package vault
 
 import (
 	"github.com/curtisnewbie/miso/middleware/crypto"
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -25,21 +25,18 @@ type ListSitePasswordRes struct {
 }
 
 func ListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user common.User, db *gorm.DB) (miso.PageRes[ListSitePasswordRes], error) {
-	return mysql.NewPageQuery[ListSitePasswordRes]().
-		WithPage(req.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			return mysql.NewQuery(db).
-				From("site_password").
+	return dbquery.NewPagedQuery[ListSitePasswordRes](db).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Table("site_password").
 				Eq("user_no", user.UserNo).
 				LikeIf(req.Alias != "", "alias", req.Alias).
 				LikeIf(req.Site != "", "site", req.Site).
-				LikeIf(req.Username != "", "username", req.Username).
-				DB()
+				LikeIf(req.Username != "", "username", req.Username)
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select("record_id,site,alias,username,create_time")
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("record_id,site,alias,username,create_time")
 		}).
-		Exec(rail, db)
+		Scan(rail, req.Paging)
 }
 
 type AddSitePasswordReq struct {
@@ -124,7 +121,7 @@ type BasicSitePassword struct {
 
 func loadBasicSitePassword(rail miso.Rail, db *gorm.DB, userNo string, recordId string) (BasicSitePassword, error) {
 	var bsp BasicSitePassword
-	n, err := mysql.NewQuery(db).
+	n, err := dbquery.NewQuery(db).
 		From("site_password").
 		Eq("record_id", recordId).
 		Select("password, user_no").
@@ -184,7 +181,7 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 		encryptedSitePwd = encrypted
 	}
 
-	_, err = mysql.NewQuery(db).From("site_password").
+	_, err = dbquery.NewQuery(db).From("site_password").
 		Eq("record_id", req.RecordId).
 		Set("site", req.Site).
 		Set("alias", req.Alias).

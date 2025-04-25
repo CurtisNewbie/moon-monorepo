@@ -6,7 +6,7 @@ import (
 	"time"
 
 	fstore "github.com/curtisnewbie/mini-fstore/api"
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"gorm.io/gorm"
@@ -107,7 +107,7 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 	limit := 500
 	minId := 0
 	var maxId int
-	scanned, err := mysql.NewQuery(db).
+	scanned, err := dbquery.NewQuery(db).
 		From("file_info").
 		Select("max(id)").
 		Eq("file_type", "FILE").

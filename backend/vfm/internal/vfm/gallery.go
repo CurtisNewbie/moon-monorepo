@@ -3,6 +3,7 @@ package vfm
 import (
 	"fmt"
 
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
@@ -96,18 +97,16 @@ func ListOwnedGalleryBriefs(rail miso.Rail, user common.User, tx *gorm.DB) ([]VG
 
 /* List Galleries */
 func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *gorm.DB) (miso.PageRes[VGallery], error) {
-	return mysql.NewPageQuery[VGallery]().
-		WithPage(cmd.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Table("gallery g").
+	return dbquery.NewPagedQuery[VGallery](db).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Table("gallery g").
 				Where("g.is_del = 0").
 				Where("g.user_no = ? OR EXISTS (select * from gallery_user_access ga where ga.user_no = ? AND ga.is_del = 0 AND ga.gallery_no = g.gallery_no)", user.UserNo, user.UserNo)
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Select("g.*").Order("g.update_time DESC")
-			return tx
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("g.*").Order("g.update_time DESC")
 		}).
-		ForEach(func(g VGallery) VGallery {
+		Transform(func(g VGallery) VGallery {
 			if g.UserNo == user.UserNo {
 				g.IsOwner = true
 			}
@@ -118,7 +117,7 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 			g.UpdateTimeStr = g.UpdateTime.FormatClassic()
 			return g
 		}).
-		Exec(rail, db)
+		Scan(rail, cmd.Paging)
 }
 
 func GalleryNoOfDir(dirFileKey string, tx *gorm.DB) (string, error) {

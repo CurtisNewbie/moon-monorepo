@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -195,27 +196,26 @@ type ListedBookmark struct {
 }
 
 func ListBookmarks(rail miso.Rail, tx *gorm.DB, req ListBookmarksReq, userNo string) (any, error) {
-	return mysql.NewPageQuery[ListedBookmark]().
-		WithPage(req.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
+	return dbquery.NewPagedQuery[ListedBookmark](tx).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			if req.Blacklisted {
-				tx = tx.Table("bookmark_blacklist")
+				q = q.Table("bookmark_blacklist")
 			} else {
-				tx = tx.Table("bookmark")
+				q = q.Table("bookmark")
 			}
-			tx = tx.Where("user_no = ?", userNo)
+			q = q.Where("user_no = ?", userNo)
 			if req.Name != nil && *req.Name != "" {
-				tx = tx.Where("name like ?", "%"+*req.Name+"%")
+				q = q.Where("name like ?", "%"+*req.Name+"%")
 			}
-			return tx
+			return q
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select("id, user_no, name, href, icon").
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("id, user_no, name, href, icon").
 				Order("id DESC").
 				Offset(req.Paging.GetOffset()).
 				Limit(req.Paging.GetLimit())
 		}).
-		Exec(rail, tx)
+		Scan(rail, req.Paging)
 }
 
 type RemoveBookmarkInf struct {

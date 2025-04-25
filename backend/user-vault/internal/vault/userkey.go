@@ -3,7 +3,7 @@ package vault
 import (
 	"time"
 
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -65,24 +65,19 @@ type ListedUserKey struct {
 }
 
 func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.User) (miso.PageRes[ListedUserKey], error) {
-	return mysql.NewPageQuery[ListedUserKey]().
-		WithPage(req.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Table("user_key").
+	return dbquery.NewPagedQuery[ListedUserKey](tx).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			q = q.Table("user_key").
 				Where("user_no = ?", user.UserNo).
 				Where("expiration_time > ?", util.Now()).
 				Where("is_del = 0")
-
-			if !util.IsBlankStr(req.Name) {
-				tx = tx.Where("name LIKE ?", "%"+req.Name+"%")
-			}
-			return tx
+			return q.WhereIf(!util.IsBlankStr(req.Name), "name LIKE ?", "%"+req.Name+"%")
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select("id, secret_key, name, expiration_time, create_time").
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("id, secret_key, name, expiration_time, create_time").
 				Order("id DESC")
 		}).
-		Exec(rail, tx)
+		Scan(rail, req.Paging)
 }
 
 type DeleteUserKeyReq struct {

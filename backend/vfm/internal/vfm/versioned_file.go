@@ -3,7 +3,7 @@ package vfm
 import (
 	"fmt"
 
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -177,24 +177,22 @@ type ApiListVerFileRes struct {
 }
 
 func ListVerFile(rail miso.Rail, db *gorm.DB, req ApiListVerFileReq, user common.User) (miso.PageRes[ApiListVerFileRes], error) {
-	return mysql.NewPageQuery[ApiListVerFileRes]().
-		WithPage(req.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Table(`versioned_file f`).
+	return dbquery.NewPagedQuery[ApiListVerFileRes](db).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			q = q.Table(`versioned_file f`).
 				Joins("LEFT JOIN file_info fi on f.file_key = fi.uuid").
 				Where(`f.uploader_no = ?`, user.UserNo).
 				Where(`f.deleted = 0`)
 
 			if req.Name != nil && *req.Name != "" {
-				tx = tx.Where("match(f.name) against (? IN NATURAL LANGUAGE MODE)", *req.Name)
+				q = q.Where("match(f.name) against (? IN NATURAL LANGUAGE MODE)", *req.Name)
 			}
-
-			return tx
+			return q
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select(`f.ver_file_id,f.name,f.file_key,f.size_in_bytes,f.upload_time,f.create_time,f.update_time,fi.thumbnail`)
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select(`f.ver_file_id,f.name,f.file_key,f.size_in_bytes,f.upload_time,f.create_time,f.update_time,fi.thumbnail`)
 		}).
-		ForEach(func(t ApiListVerFileRes) ApiListVerFileRes {
+		Transform(func(t ApiListVerFileRes) ApiListVerFileRes {
 			if t.Thumbnail != "" {
 				tkn, err := GetFstoreTmpToken(rail, t.Thumbnail, "")
 				if err != nil {
@@ -205,7 +203,8 @@ func ListVerFile(rail miso.Rail, db *gorm.DB, req ApiListVerFileReq, user common
 				}
 			}
 			return t
-		}).Exec(rail, db)
+		}).
+		Scan(rail, req.Paging)
 }
 
 type SaveVerFileLogReq struct {
@@ -280,18 +279,17 @@ func ListVerFileHistory(rail miso.Rail, db *gorm.DB, req ApiListVerFileHistoryRe
 		return miso.PageRes[ApiListVerFileHistoryRes]{}, err
 	}
 
-	return mysql.NewPageQuery[ApiListVerFileHistoryRes]().
-		WithPage(req.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Table(`versioned_file_log f`).
+	return dbquery.NewPagedQuery[ApiListVerFileHistoryRes](db).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			q = q.Table(`versioned_file_log f`).
 				Joins("LEFT JOIN file_info fi on f.file_key = fi.uuid").
 				Where(`f.ver_file_id = ?`, req.VerFileId)
-			return tx
+			return q
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select(`f.file_key,fi.name,fi.size_in_bytes,fi.upload_time,fi.thumbnail`).Order("f.id DESC")
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select(`f.file_key,fi.name,fi.size_in_bytes,fi.upload_time,fi.thumbnail`).Order("f.id DESC")
 		}).
-		ForEach(func(t ApiListVerFileHistoryRes) ApiListVerFileHistoryRes {
+		Transform(func(t ApiListVerFileHistoryRes) ApiListVerFileHistoryRes {
 			if t.Thumbnail != "" {
 				tkn, err := GetFstoreTmpToken(rail, t.Thumbnail, "")
 				if err != nil {
@@ -302,7 +300,8 @@ func ListVerFileHistory(rail miso.Rail, db *gorm.DB, req ApiListVerFileHistoryRe
 				}
 			}
 			return t
-		}).Exec(rail, db)
+		}).
+		Scan(rail, req.Paging)
 }
 
 func CalcVerFileAccuSize(rail miso.Rail, db *gorm.DB, req ApiQryVerFileAccuSizeReq, user common.User) (ApiQryVerFileAccuSizeRes, error) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
@@ -165,18 +165,17 @@ func ListedGrantedGalleryAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedGall
 		return miso.PageRes[ListedGalleryAccessRes]{}, miso.NewErrf("Operation not allowed")
 	}
 
-	return mysql.NewPageQuery[ListedGalleryAccessRes]().
-		WithPage(req.Paging).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select("id", "gallery_no", "user_no", "create_time").
+	return dbquery.NewPagedQuery[ListedGalleryAccessRes](tx).
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("id", "gallery_no", "user_no", "create_time").
 				Order("id DESC")
 		}).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Table("gallery_user_access").
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Table("gallery_user_access").
 				Where("gallery_no = ?", req.GalleryNo).
 				Where("is_del = 0")
 		}).
-		ForEach(func(t ListedGalleryAccessRes) ListedGalleryAccessRes {
+		Transform(func(t ListedGalleryAccessRes) ListedGalleryAccessRes {
 			u, err := vault.FindUser(rail, vault.FindUserReq{
 				UserNo: &t.UserNo,
 			})
@@ -187,7 +186,7 @@ func ListedGrantedGalleryAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedGall
 			}
 			return t
 		}).
-		Exec(rail, tx)
+		Scan(rail, req.Paging)
 }
 
 func RemoveGalleryAccess(rail miso.Rail, tx *gorm.DB, cmd RemoveGalleryAccessCmd, user common.User) error {

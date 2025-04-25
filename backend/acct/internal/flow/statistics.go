@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/money"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
@@ -251,29 +252,28 @@ func ListCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiListStatisticsRe
 		}
 	}
 
-	return mysql.NewPageQuery[ApiListStatisticsRes]().
-		WithPage(req.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Table(`cashflow_statistics`).
+	return dbquery.NewPagedQuery[ApiListStatisticsRes](db).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			q = q.Table(`cashflow_statistics`).
 				Where(`user_no = ?`, user.UserNo).
 				Where(`agg_type = ?`, req.AggType).
 				Order("agg_range desc, currency desc")
 			if req.AggRange != "" {
-				tx = tx.Where("agg_range = ?", req.AggRange)
+				q = q.Where("agg_range = ?", req.AggRange)
 			}
 			if req.Currency != "" {
-				tx = tx.Where("currency = ?", req.Currency)
+				q = q.Where("currency = ?", req.Currency)
 			}
-			return tx
+			return q
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select("agg_type, agg_range, agg_value, currency")
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("agg_type, agg_range, agg_value, currency")
 		}).
-		ForEach(func(t ApiListStatisticsRes) ApiListStatisticsRes {
+		Transform(func(t ApiListStatisticsRes) ApiListStatisticsRes {
 			t.AggValue = money.UnitFmt(t.AggValue, t.Currency)
 			return t
 		}).
-		Exec(rail, db)
+		Scan(rail, req.Paging)
 }
 
 type ApiPlotStatisticsReq struct {

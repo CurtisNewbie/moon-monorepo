@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/money"
-	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -65,57 +65,56 @@ type ListCashFlowRes struct {
 }
 
 func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
-	return mysql.NewPageQuery[ListCashFlowRes]().
-		WithPage(req.Paging).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			tx = tx.Table(`cashflow`).
+	return dbquery.NewPagedQuery[ListCashFlowRes](db).
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			q = q.Table(`cashflow`).
 				Where("user_no = ?", user.UserNo).
 				Where("deleted = 0")
 			if req.TransId != "" {
-				tx = tx.Where("trans_id = ?", req.TransId)
+				q = q.Where("trans_id = ?", req.TransId)
 			}
 			if req.Category != "" {
-				tx = tx.Where("category = ?", req.Category)
+				q = q.Where("category = ?", req.Category)
 			}
 			if req.TransTimeStart != nil {
-				tx = tx.Where("trans_time >= ?", req.TransTimeStart)
+				q = q.Where("trans_time >= ?", req.TransTimeStart)
 			}
 			if req.TransTimeEnd != nil {
-				tx = tx.Where("trans_time <= ?", req.TransTimeEnd)
+				q = q.Where("trans_time <= ?", req.TransTimeEnd)
 			}
 			if req.MinAmt != nil {
 				abs := req.MinAmt.Abs()
 				if abs.Cmp(money.Zero()) > 0 {
-					tx = tx.Where("amount >= ?", abs)
+					q = q.Where("amount >= ?", abs)
 					if req.MinAmt.Cmp(money.Zero()) < 0 {
 						if req.Direction != DirectionOut {
-							tx = tx.Where("direction = ?", DirectionOut)
+							q = q.Where("direction = ?", DirectionOut)
 						}
 					} else {
 						if req.Direction != DirectionIn {
-							tx = tx.Where("direction = ?", DirectionIn)
+							q = q.Where("direction = ?", DirectionIn)
 						}
 					}
 				}
 			}
 			if req.Direction != "" {
-				tx = tx.Where("direction = ?", req.Direction)
+				q = q.Where("direction = ?", req.Direction)
 			}
-			return tx
+			return q
 		}).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select("direction", "trans_time", "trans_id", "counterparty",
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("direction", "trans_time", "trans_id", "counterparty",
 				"amount", "currency", "extra", "category", "remark", "created_at", "payment_method").
 				Order("trans_time desc")
 		}).
-		ForEach(func(t ListCashFlowRes) ListCashFlowRes {
+		Transform(func(t ListCashFlowRes) ListCashFlowRes {
 			if v, ok := categoryConfs[t.Category]; ok {
 				t.CategoryName = v.Name
 			}
 			t.Amount = money.UnitFmt(t.Amount, t.Currency)
 			return t
 		}).
-		Exec(rail, db)
+		Scan(rail, req.Paging)
 }
 
 func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user common.User) error {

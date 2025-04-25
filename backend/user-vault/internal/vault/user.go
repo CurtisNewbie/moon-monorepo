@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/jwt"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
@@ -354,12 +355,11 @@ type ListUserReq struct {
 }
 
 func ListUsers(rail miso.Rail, tx *gorm.DB, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
-	return mysql.NewPageQuery[api.UserInfo]().
-		WithPage(req.Paging).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select("u.*, r.name as role_name").Order("u.id DESC")
+	return dbquery.NewPagedQuery[api.UserInfo](tx).
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select("u.*, r.name as role_name").Order("u.id DESC")
 		}).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
+		WithBaseQuery(func(tx *dbquery.Query) *dbquery.Query {
 			tx = tx.Table("user u").Joins("LEFT JOIN role r USING(role_no)")
 
 			if req.RoleNo != nil && *req.RoleNo != "" {
@@ -373,7 +373,7 @@ func ListUsers(rail miso.Rail, tx *gorm.DB, req ListUserReq) (miso.PageRes[api.U
 			}
 			return tx.Where("u.is_del = 0")
 		}).
-		Exec(rail, tx)
+		Scan(rail, req.Paging)
 }
 
 type AdminUpdateUserReq struct {
@@ -448,7 +448,7 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 				}
 			}
 
-			_, err := mysql.NewQuery(tx).
+			_, err := dbquery.NewQuery(tx).
 				From("user").
 				Set("review_status", req.ReviewStatus).
 				Set("is_disabled", isDisabled).

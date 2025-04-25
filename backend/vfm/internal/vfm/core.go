@@ -8,7 +8,7 @@ import (
 
 	fstore "github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/miso/encoding/json"
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -195,21 +195,20 @@ type UserVFolder struct {
 	UpdateBy   string
 }
 
-func listFilesInVFolder(rail miso.Rail, tx *gorm.DB, page miso.Paging, folderNo string, user common.User) (miso.PageRes[ListedFile], error) {
-	return mysql.NewPageQuery[ListedFile]().
-		WithPage(page).
-		WithSelectQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
+func listFilesInVFolder(rail miso.Rail, db *gorm.DB, page miso.Paging, folderNo string, user common.User) (miso.PageRes[ListedFile], error) {
+	return dbquery.NewPagedQuery[ListedFile](db).
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
 			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.thumbnail`).
 				Order("fi.id DESC")
 		}).
-		WithBaseQuery(func(tx *gorm.DB) *gorm.DB {
-			return tx.Table("file_info fi").
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
+			return q.Table("file_info fi").
 				Joins("LEFT JOIN file_vfolder fv ON (fi.uuid = fv.uuid AND fv.is_del = 0)").
 				Joins("LEFT JOIN user_vfolder uv ON (fv.folder_no = uv.folder_no AND uv.is_del = 0)").
 				Where("uv.user_no = ? AND uv.folder_no = ?", user.UserNo, folderNo).
 				Where("fi.hidden = 0")
-		}).Exec(rail, tx)
+		}).Scan(rail, page)
 }
 
 type FileKeyName struct {
@@ -305,12 +304,12 @@ func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user commo
 		req.ParentFile = new(string) // top-level file/dir
 	}
 
-	return mysql.NewPagedQuery[ListedFile](tx).
-		WithSelectQuery(func(q *mysql.Query) *mysql.Query {
+	return dbquery.NewPagedQuery[ListedFile](tx).
+		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
 			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.sensitive_mode, fi.thumbnail`)
 		}).
-		WithBaseQuery(func(q *mysql.Query) *mysql.Query {
+		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.From("file_info fi").
 				Eq("fi.uploader_no", user.UserNo).
 				Eq("fi.is_logic_deleted", DelN).
@@ -1644,7 +1643,7 @@ func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user
 
 func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeNode) (*DirBottomUpTreeNode, error) {
 	p, err := dirParentCache.Get(rail, child.FileKey, func() (*CachedDirTreeNode, error) {
-		pi, err := doFindParentDir(rail, mysql.NewQuery(db), child.FileKey)
+		pi, err := doFindParentDir(rail, dbquery.NewQuery(db), child.FileKey)
 		if err != nil {
 			return nil, err
 		}
@@ -1662,7 +1661,7 @@ func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeN
 		return nil, err
 	}
 
-	name, err := cachedFindDirName(rail, mysql.NewQuery(db), p.FileKey)
+	name, err := cachedFindDirName(rail, dbquery.NewQuery(db), p.FileKey)
 	if err != nil {
 		return nil, err
 	}
@@ -1678,7 +1677,7 @@ type ParentDir struct {
 	FileKey string
 }
 
-func doFindParentDir(c miso.Rail, q *mysql.Query, fileKey string) (*ParentDir, error) {
+func doFindParentDir(c miso.Rail, q *dbquery.Query, fileKey string) (*ParentDir, error) {
 	var pd ParentDir
 	n, err := q.Raw(`SELECT parent_file file_key FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
 		Scan(&pd)
@@ -1697,13 +1696,13 @@ func doFindParentDir(c miso.Rail, q *mysql.Query, fileKey string) (*ParentDir, e
 	return &pd, nil
 }
 
-func cachedFindDirName(rail miso.Rail, q *mysql.Query, fileKey string) (string, error) {
+func cachedFindDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, error) {
 	return dirNameCache.Get(rail, fileKey, func() (string, error) {
 		return findDirName(rail, q, fileKey)
 	})
 }
 
-func findDirName(rail miso.Rail, q *mysql.Query, fileKey string) (string, error) {
+func findDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, error) {
 	var name string
 	n, err := q.Raw(`SELECT name FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
 		Scan(&name)
@@ -1736,7 +1735,7 @@ type TopDownTreeNodeBrief struct {
 
 func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen util.Set[string]) error {
 	var cl []TopDownTreeNodeBrief
-	n, err := mysql.NewQuery(db).
+	n, err := dbquery.NewQuery(db).
 		From("file_info").
 		Select("uuid, name").
 		Eq("parent_file", root.FileKey).
@@ -1798,7 +1797,7 @@ func ValidateFileAccess(rail miso.Rail, db *gorm.DB, fileKey string, userNo stri
 
 func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
 	var res InternalFetchFileInfoRes
-	n, err := mysql.NewQuery(db).
+	n, err := dbquery.NewQuery(db).
 		Table("file_info").
 		Eq("uuid", req.FileKey).
 		Select("name,upload_time,size_in_bytes,file_type").
@@ -1833,7 +1832,7 @@ func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user com
 	}
 
 	var dirKey string
-	_, err = mysql.NewQuery(db).
+	_, err = dbquery.NewQuery(db).
 		Table("file_info").
 		Eq("parent_file", req.ParentFile).
 		Eq("name", req.Name).

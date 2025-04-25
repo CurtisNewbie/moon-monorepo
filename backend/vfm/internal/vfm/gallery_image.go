@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -428,7 +427,7 @@ func RemoveGalleryImage(rail miso.Rail, db *gorm.DB, dirFileKey string, imageFil
 	}
 	defer lock.Unlock()
 
-	_, err = mysql.NewQuery(db).
+	_, err = dbquery.NewQuery(db).
 		Exec(`DELETE FROM gallery_image WHERE gallery_no = ? AND file_key = ?`,
 			galleryNo, imageFileKey)
 	return err
