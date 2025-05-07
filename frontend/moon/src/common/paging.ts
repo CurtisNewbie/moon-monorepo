@@ -30,7 +30,7 @@ export class PagingController {
     limit: this.PAGE_LIMIT_OPTIONS[0],
     total: 0,
   };
-  pages: number[] = [1];
+  maxPage: number = 1;
 
   private paginator: MatPaginator = null;
 
@@ -71,27 +71,15 @@ export class PagingController {
   /** set the paginator controlled by this controller */
   public control(paginator: MatPaginator) {
     this.paginator = paginator;
-    if (paginator) {
-      paginator.page.subscribe((e) => this.onPageEvent(e));
-    }
   }
 
-  /** update the list of pages that it can select based on total */
   public onTotalChanged(p: Paging): void {
     this._updatePages(p.total);
   }
 
-  /** update the list of pages that it can select based on total */
   private _updatePages(total: number): void {
-    this.pages = [];
     this.paging.total = total;
-    let maxPage = Math.ceil(total / this.paging.limit);
-    for (let i = 1; i <= maxPage; i++) {
-      this.pages.push(i);
-    }
-    if (this.pages.length === 0) {
-      this.pages.push(1);
-    }
+    this.maxPage = Math.ceil(total / this.paging.limit);
   }
 
   /** set page limit */
