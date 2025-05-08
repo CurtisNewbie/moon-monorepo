@@ -104,29 +104,32 @@
                     </mat-form-field>
                 </div>
 
-                <div>
-                    <mat-form-field style="width: 300px; max-width: 80vw;">
-                        <mat-label>Name</mat-label>
-                        <input matInput type="text" id="searchFilenameInput" [(ngModel)]="searchParam.name"
-                            (keyup)="onSearchNameKeyUp($event)" #searchFilenameInput>
-                        <button *ngIf="searchParam.name" matSuffix aria-label="Clear" (click)="searchParam.name=''"
-                            class="btn-close">
-                        </button>
+                <ng-container *ngIf="!searchParam.fileKey">
+                    <div>
+                        <mat-form-field style="width: 300px; max-width: 80vw;">
+                            <mat-label>Name</mat-label>
+                            <input matInput type="text" id="searchFilenameInput" [(ngModel)]="searchParam.name"
+                                (keyup)="onSearchNameKeyUp($event)" #searchFilenameInput>
+                            <button *ngIf="searchParam.name" matSuffix aria-label="Clear" (click)="searchParam.name=''"
+                                class="btn-close">
+                            </button>
+                        </mat-form-field>
+                    </div>
+                    <mat-form-field>
+                        <mat-label>File Type</mat-label>
+                        <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
+                            <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
+                                {{option.name}}
+                            </mat-option>
+                        </mat-select>
                     </mat-form-field>
-                </div>
-                <mat-form-field>
-                    <mat-label>File Type</mat-label>
-                    <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
-                        <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
-                            {{option.name}}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
-                    [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
-                    Mode</mat-checkbox>
-                <mat-checkbox [(ngModel)]="orderByName" (ngModelChange)="fetchFileInfoList()">Order By
-                    Name</mat-checkbox>
+
+                    <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
+                        [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
+                        Mode</mat-checkbox>
+                    <mat-checkbox [(ngModel)]="orderByName" (ngModelChange)="fetchFileInfoList()">Order By
+                        Name</mat-checkbox>
+                </ng-container>
             </div>
         </div>
         <!-- search param eed -->
