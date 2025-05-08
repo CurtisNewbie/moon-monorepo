@@ -1,10 +1,10 @@
 import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
-import { PagingController } from "src/common/paging";
 import { isEnterKey } from "src/common/condition";
 import { Observable } from "rxjs";
 import { HttpClient, HttpEvent } from "@angular/common/http";
 import { ConfirmDialog } from "src/common/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 @Component({
   selector: "app-manage-bookmarks",
@@ -15,13 +15,15 @@ export class ManageBookmarksComponent implements OnInit {
   readonly isEnterKeyPressed = isEnterKey;
   readonly tabcol = ["id", "name", "operation"];
 
-  pagingController: PagingController;
   tabdat = [];
   isEnter = isEnterKey;
   file = null;
 
   searchName = null;
   showUploadPanel = false;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   @ViewChild("uploadFileInput")
   uploadFileInput: ElementRef;
@@ -33,12 +35,6 @@ export class ManageBookmarksComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {}
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
-  }
 
   fetchList() {
     this.http

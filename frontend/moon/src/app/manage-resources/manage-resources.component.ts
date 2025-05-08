@@ -1,12 +1,12 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { getExpanded, isIdEqual } from "src/animate/animate-util";
-import { PagingController } from "src/common/paging";
 import { isEnterKey } from "src/common/condition";
 import { MngResDialogComponent } from "../mng-res-dialog/mng-res-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface WRes {
   id?: number;
@@ -27,9 +27,10 @@ export class ManageResourcesComponent implements OnInit {
   newResDialog = false;
   newResName = null;
   newResCode = null;
-
   expandedElement: WRes = null;
-  pagingController: PagingController;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   readonly tabcol = this.env.isMobile()
     ? ["name", "code", "updateTime"]
@@ -87,12 +88,6 @@ export class ManageResourcesComponent implements OnInit {
           this.pagingController.onTotalChanged(r.data.paging);
         },
       });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   createNewRes() {

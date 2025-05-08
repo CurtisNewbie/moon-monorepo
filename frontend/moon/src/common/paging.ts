@@ -24,18 +24,15 @@ export class PagingConst {
  * Controller for pagination, internal properties are non-private, thus can be directly bound with directive
  */
 export class PagingController {
-  PAGE_LIMIT_OPTIONS: number[] = PagingConst.getPagingLimitOptions();
+
   paging: Paging = {
     page: 1,
-    limit: this.PAGE_LIMIT_OPTIONS[0],
+    limit: 10,
     total: 0,
   };
   maxPage: number = 1;
 
   private paginator: MatPaginator = null;
-
-  /** callback invoked when current page is changed */
-  onPageChanged: () => void = null;
 
   /** go to last page */
   public lastPage() {
@@ -88,9 +85,7 @@ export class PagingController {
   }
 
   public onPageEvent(e: PageEvent): void {
-    // console.log(e);
     this.paging.page = e.pageIndex + 1;
     this.paging.limit = e.pageSize;
-    if (this.onPageChanged) this.onPageChanged();
   }
 }

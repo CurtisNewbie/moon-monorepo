@@ -1,11 +1,11 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { getExpanded, isIdEqual } from "src/animate/animate-util";
-import { PagingController } from "src/common/paging";
 import { MngPathDialogComponent } from "../mng-path-dialog/mng-path-dialog.component";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface CreatePathReq {
   type?: string; // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
@@ -53,9 +53,10 @@ export class ManagePathsComponent implements OnInit {
   ];
   newPathReq: CreatePathReq = { type: "PROTECTED" };
   showNewPath = false;
-
   expandedElement: WPath = null;
-  pagingController: PagingController;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   readonly tabcol = [
     "id",
@@ -130,12 +131,6 @@ export class ManagePathsComponent implements OnInit {
           this.pagingController.onTotalChanged(r.data.paging);
         },
       });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   createPath() {

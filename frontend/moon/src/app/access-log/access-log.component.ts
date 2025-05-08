@@ -1,8 +1,7 @@
-import { Component, OnInit } from "@angular/core";
-import { environment } from "src/environments/environment";
-import { PagingController } from "src/common/paging";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface AccessLog {
   id: number;
@@ -30,7 +29,9 @@ export class AccessLogComponent implements OnInit {
     "url",
   ];
   accessLogList: AccessLog[] = [];
-  pagingController: PagingController;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
 
@@ -59,11 +60,5 @@ export class AccessLogComponent implements OnInit {
           console.log(err);
         },
       });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchAccessLogList();
-    this.fetchAccessLogList();
   }
 }

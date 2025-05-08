@@ -17,7 +17,6 @@ import {
   UploadFileParam,
   getFileTypeOpts,
 } from "src/common/file-info";
-import { PagingController } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { animateElementExpanding, isIdEqual } from "../../animate/animate-util";
 import { FileInfoService, TokenType } from "../file-info.service";
@@ -47,6 +46,7 @@ import { copyToClipboard } from "src/common/clipboard";
 import { Env } from "src/common/env-util";
 import { FileBookmark } from "src/common/file-bookmark";
 import { FileBookmarkDialogComponent } from "../file-bookmark-dialog/file-bookmark-dialog.component";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -95,8 +95,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   fileInfoList: FileInfo[] = [];
   /** searching param */
   searchParam: SearchFileInfoParam = {};
-  /** controller for pagination */
-  pagingController: PagingController;
   /** progress string */
   progress: string = null;
   /** currently displayed columns */
@@ -114,6 +112,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
   orderByName = false;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   /*
   -----------------------
@@ -763,12 +764,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   isFileNameInputDisabled(): boolean {
     return this.isUploading || this._isMultipleUpload();
-  }
-
-  onPagingControllerReady(pagingController: PagingController) {
-    this.pagingController = pagingController;
-    this.pagingController.onPageChanged = () => this.fetchFileInfoList();
-    this.fetchFileInfoList();
   }
 
   toggleMkdirPanel() {

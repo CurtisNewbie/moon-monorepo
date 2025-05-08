@@ -7,7 +7,7 @@ import {
   isIdEqual,
 } from "src/animate/animate-util";
 import { Gallery } from "src/common/gallery";
-import { Paging, PagingController } from "src/common/paging";
+import { Paging } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
@@ -15,6 +15,7 @@ import { Env } from "src/common/env-util";
 import { GalleryAccessComponent } from "../gallery-access/gallery-access.component";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ListGalleriesResp {
   paging: Paging;
@@ -38,10 +39,9 @@ export class GalleryComponent implements OnInit {
   ];
   readonly MOBILE_COLUMNS = ["name", "userNo"];
 
-  @ViewChild("paginator", { static: true })
-  paginator: MatPaginator;
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
-  pagingController: PagingController;
   galleries: Gallery[] = [];
   expandedElement: Gallery = null;
   newGalleryName: string = "";
@@ -149,12 +149,6 @@ export class GalleryComponent implements OnInit {
     this.navigation.navigateTo(NavType.GALLERY_IMAGE, [
       { galleryNo: galleryNo },
     ]);
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchGalleries();
-    this.fetchGalleries();
   }
 
   updateGallery(galleryNo: string, name: string) {

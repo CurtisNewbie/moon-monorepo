@@ -1,8 +1,7 @@
-import { Component, OnInit } from "@angular/core";
-import { environment } from "src/environments/environment";
-import { PagingController } from "src/common/paging";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface OperateLog {
   /** name of operation */
@@ -31,7 +30,6 @@ export interface OperateLog {
 })
 export class OperateHistoryComponent implements OnInit {
   operateLogList: OperateLog[] = [];
-  pagingController: PagingController;
   COLUMNS_TO_BE_DISPLAYED = [
     "id",
     "user",
@@ -40,6 +38,9 @@ export class OperateHistoryComponent implements OnInit {
     "operateTime",
     "operateParam",
   ];
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
 
@@ -67,11 +68,5 @@ export class OperateHistoryComponent implements OnInit {
           this.pagingController.onTotalChanged(resp.data.paging);
         },
       });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchOperateLogList();
-    this.fetchOperateLogList();
   }
 }

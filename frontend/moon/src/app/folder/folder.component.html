@@ -56,4 +56,4 @@
     </mat-list-option>
 </mat-selection-list>
 
-<app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+<app-controlled-paginator (pageChanged)="fetchFolders()"></app-controlled-paginator>

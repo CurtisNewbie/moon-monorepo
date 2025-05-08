@@ -1,13 +1,14 @@
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { HttpClient } from "@angular/common/http";
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
-import { Paging, PagingController } from "src/common/paging";
+import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface GuessUrlPlatformRes {
   platform?: string;
@@ -75,8 +76,10 @@ export class DroneTaskComponent implements OnInit {
   );
   platforms: string[] = [];
   dirTreeDataSource = new MatTreeNestedDataSource<DirTopDownTreeNode>();
-  pagingController: PagingController;
   tabdata: ListedTask[] = [];
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   ngOnInit(): void {
     this.headers = this.env.isMobile()
@@ -170,12 +173,6 @@ export class DroneTaskComponent implements OnInit {
         });
       },
     });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.listTasks();
-    this.listTasks();
   }
 
   fetchTopDownDirTree() {

@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   EventEmitter,
   OnInit,
@@ -7,35 +8,42 @@ import {
 } from "@angular/core";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { isEnterKey } from "src/common/condition";
-import { PagingController } from "src/common/paging";
+import { Paging, PagingConst, PagingController } from "src/common/paging";
 
 @Component({
   selector: "app-controlled-paginator",
   templateUrl: "./controlled-paginator.component.html",
   styleUrls: ["./controlled-paginator.component.css"],
 })
-export class ControlledPaginatorComponent implements OnInit {
+export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
+  PAGE_LIMIT_OPTIONS: number[] = PagingConst.getPagingLimitOptions();
+
   @ViewChild("paginator", { static: true })
   paginator: MatPaginator;
 
   goto: string;
   maxPage: number;
 
-  @Output("controllerReady")
-  controllerEmitter = new EventEmitter<PagingController>();
+  @Output("pageChanged")
+  pageChangedEmitter = new EventEmitter<Paging>();
 
   pagingController = new PagingController();
 
   constructor() {}
 
+  ngAfterViewInit(): void {
+    // first page
+    this.pageChangedEmitter.emit(this.pagingController.paging);
+  }
+
   ngOnInit(): void {
     this.pagingController.control(this.paginator);
-    this.controllerEmitter.emit(this.pagingController);
     this.goto = String(1);
 
     this.paginator.page.subscribe((evt) => {
       this.goto = String(evt.pageIndex + 1);
       this.pagingController.onPageEvent(evt);
+      this.pageChangedEmitter.emit(this.pagingController.paging);
     });
     this.maxPage = 1;
   }
@@ -71,5 +79,33 @@ export class ControlledPaginatorComponent implements OnInit {
       pageSize: this.paginator.pageSize,
     };
     this.paginator.page.next(event);
+  }
+
+  nextPage(): boolean {
+    return this.pagingController.nextPage();
+  }
+
+  prevPage(): boolean {
+    return this.pagingController.prevPage();
+  }
+
+  firstPage(): boolean {
+    return this.pagingController.firstPage();
+  }
+
+  atFirstPage(): boolean {
+    return this.pagingController.atFirstPage();
+  }
+
+  get paging() {
+    return this.pagingController.paging;
+  }
+
+  onTotalChanged(p: Paging): void {
+    this.pagingController.onTotalChanged(p);
+  }
+
+  setPageLimit(limit: number): void {
+    this.setPageLimit(limit);
   }
 }

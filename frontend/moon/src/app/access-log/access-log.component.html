@@ -51,6 +51,6 @@
         <tr mat-row *matRowDef="let row; columns: COLUMNS_TO_BE_DISPLAYED;"></tr>
     </table>
 
-    <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+    <app-controlled-paginator (pageChanged)="fetchAccessLogList()"></app-controlled-paginator>
 
 </div>

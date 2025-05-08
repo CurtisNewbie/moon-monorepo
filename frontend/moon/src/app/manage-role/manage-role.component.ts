@@ -1,12 +1,12 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { animateElementExpanding } from "src/animate/animate-util";
-import { PagingController } from "src/common/paging";
 import { MngRoleDialogComponent } from "../mng-role-dialog/mng-role-dialog.component";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ERole {
   id?: number;
@@ -25,16 +25,16 @@ export interface ERole {
   animations: [animateElementExpanding()],
 })
 export class ManageRoleComponent implements OnInit {
+  isEnter = isEnterKey;
   newRoleDialog = false;
   newRoleName = "";
-  pagingController: PagingController;
-
   readonly tabcol = this.env.isMobile()
     ? ["roleNo", "name", "updateTime"]
     : ["roleNo", "name", "createBy", "createTime", "updateBy", "updateTime"];
   roles: ERole[] = [];
 
-  isEnter = isEnterKey;
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     private http: HttpClient,
@@ -72,12 +72,6 @@ export class ManageRoleComponent implements OnInit {
           this.pagingController.onTotalChanged(r.data.paging);
         },
       });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   openMngRoleDialog(role: ERole) {

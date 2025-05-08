@@ -1,5 +1,4 @@
-import { Component, OnInit } from "@angular/core";
-import { PagingController } from "src/common/paging";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import {
   animateElementExpanding,
   getExpanded,
@@ -9,6 +8,7 @@ import { isEnterKey } from "src/common/condition";
 import { copyToClipboard } from "src/common/clipboard";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface UserToken {
   id: number;
@@ -42,13 +42,15 @@ export class ManageKeysComponent implements OnInit {
   ];
   expandedElement: UserToken = null;
   tokens: UserToken[] = [];
-  pagingController: PagingController;
   query = {
     name: "",
   };
   panelDisplayed: boolean = false;
   password: string = null;
   newUserKeyName: string = null;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   idEquals = isIdEqual;
   getExpandedEle = (row) => getExpanded(row, this.expandedElement);
@@ -152,11 +154,5 @@ export class ManageKeysComponent implements OnInit {
   togglePanel() {
     this.panelDisplayed = !this.panelDisplayed;
     this.password = null;
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 }

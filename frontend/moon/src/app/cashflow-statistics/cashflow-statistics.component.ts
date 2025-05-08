@@ -1,9 +1,10 @@
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { HttpClient } from "@angular/common/http";
-import { Component, OnInit } from "@angular/core";
-import { Paging, PagingController } from "src/common/paging";
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { Paging} from "src/common/paging";
 import { isEnterKey } from "src/common/condition";
 import { FormControl, FormGroup } from "@angular/forms";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ApiPlotStatisticsReq {
   startTime?: number; // Start time
@@ -151,15 +152,17 @@ export interface ApiListStatisticsRes {
     </div>
 
     <app-controlled-paginator
-      (controllerReady)="onPagingControllerReady($event)"
+      (pageChanged)="fetchList()"
     ></app-controlled-paginator>
   `,
   styles: [],
 })
 export class CashflowStatisticsComponent implements OnInit {
   tabcol = ["aggType", "aggRange", "aggValue", "currency"];
-  pagingController: PagingController;
   isEnterKey = isEnterKey;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   dat: ApiListStatisticsRes[] = [];
   plotDat: ApiPlotStatisticsRes[] = [];
@@ -200,7 +203,10 @@ export class CashflowStatisticsComponent implements OnInit {
 
   constructor(private snackBar: MatSnackBar, private http: HttpClient) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.pagingController.PAGE_LIMIT_OPTIONS = [5, 10, 30, 50];
+    this.pagingController.setPageLimit(5);
+  }
 
   fetchList() {
     this.listReq.paging = this.pagingController.paging;
@@ -237,14 +243,6 @@ export class CashflowStatisticsComponent implements OnInit {
     if (!this.pagingController.firstPage()) {
       this.fetchList();
     }
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.PAGE_LIMIT_OPTIONS = [5, 10, 30, 50];
-    this.pagingController.paging.limit = 5;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   onCurrencySelected(currency) {

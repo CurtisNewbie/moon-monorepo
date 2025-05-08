@@ -58,7 +58,7 @@
         <tr mat-row *matRowDef="let row; columns: tabcol;"></tr>
     </table>
 
-    <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+    <app-controlled-paginator (pageChanged)="listPathsBound()"></app-controlled-paginator>
 
 </div>
 

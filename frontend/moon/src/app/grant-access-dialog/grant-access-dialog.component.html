@@ -40,7 +40,7 @@
             </tr>
         </table>
 
-        <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+        <app-controlled-paginator (pageChanged)="fetchAccessGranted()"></app-controlled-paginator>
 
     </ng-container>
 </div>

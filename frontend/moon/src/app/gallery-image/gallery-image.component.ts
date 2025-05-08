@@ -1,13 +1,10 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
-import { PagingController } from "src/common/paging";
 import { ListGalleryImagesResp } from "src/common/gallery";
-import { environment } from "src/environments/environment";
 import { Resp } from "src/common/resp";
 import { NavigationService } from "../navigation.service";
 import {
-  IAlbum,
   Lightbox,
   LIGHTBOX_EVENT,
   LightboxConfig,
@@ -18,6 +15,7 @@ import { MatMenuTrigger } from "@angular/material/menu";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { Subscription } from "rxjs";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 @Component({
   selector: "app-gallery-image",
@@ -26,10 +24,12 @@ import { MatSnackBar } from "@angular/material/snack-bar";
   encapsulation: ViewEncapsulation.None,
 })
 export class GalleryImageComponent implements OnInit {
-  pagingController: PagingController;
   galleryNo: string = null;
   title = "fantahsea";
   images = [];
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   private lbxSub: Subscription;
 
@@ -60,6 +60,8 @@ export class GalleryImageComponent implements OnInit {
       let galleryNo = params.get("galleryNo");
       if (galleryNo) this.galleryNo = galleryNo;
     });
+    this.pagingController.setPageLimit(40);
+    this.pagingController.PAGE_LIMIT_OPTIONS = [20, 40, 60, 100, 500];
   }
 
   fetchImages(): void {
@@ -121,15 +123,6 @@ export class GalleryImageComponent implements OnInit {
   close(): void {
     // close lightbox programmatically
     this._lightbox.close();
-  }
-
-  onPagingControllerReady(pc: any) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchImages();
-    this.pagingController.setPageLimit(40);
-    this.pagingController.PAGE_LIMIT_OPTIONS = [20, 40, 60, 100, 500];
-
-    this.fetchImages();
   }
 
   // https://stackoverflow.com/questions/77608499/angular-material-custom-context-menu-right-click

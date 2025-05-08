@@ -1,10 +1,10 @@
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { FileAccessGranted } from "src/common/file-info";
-import { PagingController } from "src/common/paging";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface GrantAccessDialogData {
   folderNo?: string;
@@ -20,8 +20,10 @@ export class GrantAccessDialogComponent implements OnInit {
   readonly columns: string[] = ["username", "createDate", "removeButton"];
   grantedTo: string = "";
   grantedAccesses: FileAccessGranted[] = [];
-  pagingController: PagingController;
   isEnterPressed = isEnterKey;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     private http: HttpClient,
@@ -109,11 +111,5 @@ export class GrantAccessDialogComponent implements OnInit {
           this.fetchAccessGranted();
         },
       });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchAccessGranted();
-    this.fetchAccessGranted();
   }
 }

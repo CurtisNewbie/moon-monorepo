@@ -40,7 +40,7 @@
             </tr>
         </table>
 
-        <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+        <app-controlled-paginator (pageChanged)="fetchFolderAccessGranted()"></app-controlled-paginator>
 
     </ng-container>
 </div>
@@ -48,4 +48,3 @@
 <div mat-dialog-actions>
     <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Close</button>
 </div>
-

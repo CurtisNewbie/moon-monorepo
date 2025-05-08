@@ -79,6 +79,6 @@
         <tr mat-row *matRowDef="let row; columns: tabcol;" (click)="openMngResDialog(row)"></tr>
     </table>
 
-    <app-controlled-paginator (controllerReady)="onPagingControllerReady($event)"></app-controlled-paginator>
+    <app-controlled-paginator (pageChanged)="fetchList()"></app-controlled-paginator>
 
 </div>

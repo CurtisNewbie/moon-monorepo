@@ -13,7 +13,6 @@ import {
 } from "@angular/material/list";
 import { Subscription } from "rxjs";
 import { VFolder } from "src/common/folder";
-import { PagingController } from "src/common/paging";
 import { Resp } from "src/common/resp";
 import { UserInfo } from "src/common/user-info";
 import { GrantAccessDialogComponent } from "../grant-access-dialog/grant-access-dialog.component";
@@ -23,6 +22,7 @@ import { UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 @Component({
   selector: "app-folder",
@@ -32,7 +32,6 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 export class FolderComponent implements OnInit, DoCheck, OnDestroy {
   user: UserInfo;
   userSub: Subscription;
-  pagingController: PagingController;
   newFolderName: string = "";
   creatingFolder: boolean = false;
   searchParam = {
@@ -43,6 +42,9 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
   selected: VFolder[] = [];
   onEnterPressed = isEnterKey;
   isOneSelected: boolean;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   @ViewChild("folderList")
   folderList: MatSelectionList;
@@ -59,6 +61,9 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
     this.userSub = this.userService.userInfoObservable.subscribe((u) => {
       this.user = u;
     });
+    this.pagingController.PAGE_LIMIT_OPTIONS = [5, 10];
+    this.pagingController.paging.limit =
+      this.pagingController.PAGE_LIMIT_OPTIONS[0];
   }
 
   ngOnDestroy(): void {
@@ -193,14 +198,5 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
           this.newFolderName = "";
         },
       });
-  }
-
-  onPagingControllerReady(pc: PagingController) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchFolders();
-    this.pagingController.PAGE_LIMIT_OPTIONS = [5, 10];
-    this.pagingController.paging.limit =
-      this.pagingController.PAGE_LIMIT_OPTIONS[0];
-    this.fetchFolders();
   }
 }

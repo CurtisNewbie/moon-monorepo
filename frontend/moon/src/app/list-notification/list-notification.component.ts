@@ -1,6 +1,4 @@
-import { Component, Inject, OnInit } from "@angular/core";
-
-import { PagingController } from "src/common/paging";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -11,6 +9,7 @@ import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ShowNatificationDialogData {
   title: string;
@@ -66,8 +65,10 @@ export class ListNotificationComponent implements OnInit {
   query = {
     onlyInitMessage: true,
   };
-  pagingController: PagingController;
   data: Notification[] = [];
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     private http: HttpClient,
@@ -119,12 +120,6 @@ export class ListNotificationComponent implements OnInit {
     if (!this.pagingController.firstPage()) {
       this.fetchList();
     }
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   markOpened(notifiNo: string) {

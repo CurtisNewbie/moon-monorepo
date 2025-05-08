@@ -1,5 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -10,7 +10,8 @@ import { copyToClipboard } from "src/common/clipboard";
 import { isEnterKey } from "src/common/condition";
 import { ConfirmDialog } from "src/common/dialog";
 import { Env } from "src/common/env-util";
-import { Paging, PagingController } from "src/common/paging";
+import { Paging } from "src/common/paging";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface EditSitePasswordReq {
   recordId?: string;
@@ -431,7 +432,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
       </table>
 
       <app-controlled-paginator
-        (controllerReady)="onPagingControllerReady($event)"
+        (pageChanged)="fetchList()"
       ></app-controlled-paginator>
     </div>
   `,
@@ -453,9 +454,11 @@ export class SitePasswordComponent implements OnInit {
   panelDisplayed: boolean = false;
   addSitePasswordReq: AddSitePasswordReq = {};
   listSitePasswordReq: ListSitePasswordReq = {};
-  pagingController: PagingController;
   tab: ListSitePasswordRes[] = [];
   isEnter = isEnterKey;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   ngOnInit(): void {}
 
@@ -521,12 +524,6 @@ export class SitePasswordComponent implements OnInit {
     } else {
       this.fetchList();
     }
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   preview(u: ListSitePasswordRes) {

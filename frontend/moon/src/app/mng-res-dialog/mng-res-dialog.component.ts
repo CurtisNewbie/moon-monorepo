@@ -1,17 +1,16 @@
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from "@angular/material/dialog";
-import { PagingController } from "src/common/paging";
-import { environment } from "src/environments/environment";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { WPath } from "../manage-paths/manage-paths.component";
 import { WRes } from "../manage-resources/manage-resources.component";
 import { ConfirmDialog } from "src/common/dialog";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface DialogDat {
   res: WRes;
@@ -33,7 +32,9 @@ export class MngResDialogComponent implements OnInit {
     "option",
   ];
   paths: WPath[] = [];
-  pagingController: PagingController = null;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     public dialogRef: MatDialogRef<MngResDialogComponent, DialogDat>,
@@ -44,7 +45,10 @@ export class MngResDialogComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.pagingController.PAGE_LIMIT_OPTIONS = [5];
+    this.pagingController.setPageLimit(5);
+  }
 
   listPathsBound() {
     this.http
@@ -123,13 +127,5 @@ export class MngResDialogComponent implements OnInit {
           this.listPathsBound();
         });
     });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.PAGE_LIMIT_OPTIONS = [5];
-    this.pagingController.paging.limit = 5;
-    this.pagingController.onPageChanged = () => this.listPathsBound();
-    this.listPathsBound();
   }
 }

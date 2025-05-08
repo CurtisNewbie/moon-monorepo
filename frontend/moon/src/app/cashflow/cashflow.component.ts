@@ -1,10 +1,11 @@
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { HttpClient, HttpEvent } from "@angular/common/http";
-import { Component, OnInit } from "@angular/core";
-import { Paging, PagingController } from "src/common/paging";
+import { HttpClient } from "@angular/common/http";
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { Paging } from "src/common/paging";
 import { UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
 import { FormControl, FormGroup } from "@angular/forms";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ListCashFlowReq {
   paging?: Paging;
@@ -258,7 +259,7 @@ export interface ListCashFlowRes {
     </div>
 
     <app-controlled-paginator
-      (controllerReady)="onPagingControllerReady($event)"
+      (pageChanged)="fetchList()"
     ></app-controlled-paginator>
   `,
   styles: [],
@@ -278,11 +279,13 @@ export class CashflowComponent implements OnInit {
     "createdAt",
   ];
   fetchListReq: ListCashFlowReq = {};
-  pagingController: PagingController;
   showUploadPanel: boolean = false;
   file: File = null;
   importType: string;
   isEnterKeyPressed = isEnterKey;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   range = new FormGroup({
     start: new FormControl(),
@@ -377,12 +380,6 @@ export class CashflowComponent implements OnInit {
           },
         });
     }
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   showWechatImport() {

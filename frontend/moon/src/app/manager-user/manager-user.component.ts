@@ -1,11 +1,10 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import {
   animateElementExpanding,
   getExpanded,
   isIdEqual,
 } from "src/animate/animate-util";
-import { PagingController } from "src/common/paging";
 import {
   FetchUserInfoParam,
   UserInfo,
@@ -18,6 +17,7 @@ import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ClearUserFailedLoginAttemptsReq {
   userNo?: string;
@@ -55,13 +55,15 @@ export class ManagerUserComponent implements OnInit {
   addUserPanelDisplayed: boolean = false;
   expandedElement: UserInfo = null;
   searchParam: FetchUserInfoParam = {};
-  pagingController: PagingController;
   expandedIsDisabled: boolean = false;
   roleBriefs: RoleBrief[] = [];
 
   idEquals = isIdEqual;
   getExpandedEle = (row) => getExpanded(row, this.expandedElement);
   isEnter = isEnterKey;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     private dialog: MatDialog,
@@ -242,12 +244,6 @@ export class ManagerUserComponent implements OnInit {
 
   rejectRegistration(userId: number) {
     this.reviewRegistration(userId, "REJECTED");
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchUserInfoList();
-    this.fetchUserInfoList();
   }
 
   clearFailedLoginAttempts(userNo) {

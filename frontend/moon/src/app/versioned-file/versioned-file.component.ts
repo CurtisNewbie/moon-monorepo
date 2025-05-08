@@ -1,5 +1,5 @@
-import { Component, Inject, OnInit } from "@angular/core";
-import { Paging, PagingController } from "src/common/paging";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
+import { Paging } from "src/common/paging";
 import {
   canPreview,
   guessFileIconClz,
@@ -25,6 +25,7 @@ import { isEnterKey } from "src/common/condition";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ConfirmDialog } from "src/common/dialog";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ApiDelVerFileReq {
   verFileId?: string; // Versioned File Id
@@ -191,7 +192,7 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
       </table>
 
       <app-controlled-paginator
-        (controllerReady)="onPagingControllerReady($event)"
+        (pageChanged)="fetch()"
       ></app-controlled-paginator>
     </div>
 
@@ -213,7 +214,6 @@ export class VerFileHistoryComponent implements OnInit {
     "operate",
   ];
   tabdata: ApiListVerFileHistoryRes[] = [];
-  pagingController: PagingController;
   totalSizeLabel = "unknown";
 
   isEnterPressed = isEnterKey;
@@ -231,6 +231,9 @@ export class VerFileHistoryComponent implements OnInit {
     );
   };
 
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
+
   constructor(
     private http: HttpClient,
     public dialogRef: MatDialogRef<
@@ -246,15 +249,9 @@ export class VerFileHistoryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.qryTotalSize();
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
     this.pagingController.setPageLimit(5);
     this.pagingController.PAGE_LIMIT_OPTIONS = [5];
-    this.pagingController.onPageChanged = () => this.fetch();
-    this.fetch();
+    this.qryTotalSize();
   }
 
   qryTotalSize() {
@@ -508,14 +505,13 @@ export interface ApiListVerFileRes {
     </div>
 
     <app-controlled-paginator
-      (controllerReady)="onPagingControllerReady($event)"
+      (pageChanged)="fetch()"
     ></app-controlled-paginator>
   `,
   styles: [],
 })
 export class VersionedFileComponent implements OnInit {
   expandUploadPanel = false;
-  pagingController: PagingController;
   tabdat: ApiListVerFileRes[] = [];
   tabcol = ["thumbnail", "verFileId", "name", "uploadTime", "size", "operate"];
   searchName = "";
@@ -532,6 +528,9 @@ export class VersionedFileComponent implements OnInit {
   preview = (u) => {
     preview(u, this.dialog, this.nav, this.fileService, this.env.isMobile());
   };
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     private http: HttpClient,
@@ -575,12 +574,6 @@ export class VersionedFileComponent implements OnInit {
   reset() {
     this.pagingController.firstPage();
     this.searchName = "";
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetch();
-    this.fetch();
   }
 
   onFileSelected(files: File[]): void {

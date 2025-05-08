@@ -1,9 +1,9 @@
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import { isEnterKey } from "src/common/condition";
-import { PagingController } from "src/common/paging";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export type GalleryAccessGranted = {
   id: number;
@@ -25,8 +25,10 @@ export class GalleryAccessComponent implements OnInit {
   readonly columns: string[] = ["username", "createTime", "removeButton"];
   grantedTo: string = "";
   grantedAccesses: GalleryAccessGranted[] = [];
-  pagingController: PagingController;
   isEnterPressed = isEnterKey;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     private http: HttpClient,
@@ -62,13 +64,9 @@ export class GalleryAccessComponent implements OnInit {
             return;
           }
           this.snackBar.open("Access granted", "ok", { duration: 3000 });
-          this.fetchAccessGranted();
+          this.fetchFolderAccessGranted();
         },
       });
-  }
-
-  fetchAccessGranted() {
-    this.fetchFolderAccessGranted();
   }
 
   fetchFolderAccessGranted() {
@@ -111,14 +109,9 @@ export class GalleryAccessComponent implements OnInit {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
-          this.fetchAccessGranted();
+          this.fetchFolderAccessGranted();
         },
       });
   }
 
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchAccessGranted();
-    this.fetchAccessGranted();
-  }
 }

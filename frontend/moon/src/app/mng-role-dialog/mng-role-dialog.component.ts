@@ -1,10 +1,10 @@
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { PagingController } from "src/common/paging";
 import { ResBrief } from "../user.service";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialog } from "src/common/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface DialogDat {
   roleName: string;
@@ -33,10 +33,13 @@ export class MngRoleDialogComponent implements OnInit {
     "createBy",
     "operation",
   ];
-  pagingController: PagingController = null;
+
   roleRes: ListedRoleRes[] = [];
   resBriefs: ResBrief[] = [];
   addResCode: string = null;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     public dialogRef: MatDialogRef<MngRoleDialogComponent, DialogDat>,
@@ -114,12 +117,6 @@ export class MngRoleDialogComponent implements OnInit {
           }
         },
       });
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.listResources();
-    this.listResources();
   }
 
   delRes(roleRes: ListedRoleRes) {

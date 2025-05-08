@@ -1,10 +1,10 @@
-import { Component, OnInit } from "@angular/core";
-import { Paging, PagingController } from "src/common/paging";
-import { environment } from "src/environments/environment";
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { Paging } from "src/common/paging";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ListedErrorLog {
   id?: number;
@@ -38,9 +38,11 @@ export class ManageLogsComponent implements OnInit {
     : ["rtime", "app", "caller", "errMsg"];
 
   qryApp = "";
-  pagingController: PagingController;
   tabdat = [];
   isEnter = isEnterKey;
+
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
 
   constructor(
     private http: HttpClient,
@@ -53,12 +55,6 @@ export class ManageLogsComponent implements OnInit {
   reset() {
     this.qryApp = "";
     this.pagingController.firstPage();
-  }
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
   }
 
   fetchList() {

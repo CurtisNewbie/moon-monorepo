@@ -1,10 +1,9 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { isEnterKey } from "src/common/condition";
-import { PagingController } from "src/common/paging";
 import { ConfirmDialog } from "src/common/dialog";
-import { environment } from "src/environments/environment";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 @Component({
   selector: "app-bookmark-blacklist",
@@ -15,7 +14,9 @@ export class BookmarkBlacklistComponent implements OnInit {
   readonly isEnterKeyPressed = isEnterKey;
   readonly tabcol = ["id", "name", "operation"];
 
-  pagingController: PagingController;
+  @ViewChild(ControlledPaginatorComponent)
+  pagingController: ControlledPaginatorComponent;
+
   tabdat = [];
   isEnter = isEnterKey;
   file = null;
@@ -30,12 +31,6 @@ export class BookmarkBlacklistComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {}
-
-  onPagingControllerReady(pc) {
-    this.pagingController = pc;
-    this.pagingController.onPageChanged = () => this.fetchList();
-    this.fetchList();
-  }
 
   fetchList() {
     this.http
