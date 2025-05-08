@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { isEnterKey } from "src/common/condition";
-import { Paging, PagingConst, PagingController } from "src/common/paging";
+import { Paging, PagingConst } from "src/common/paging";
 
 @Component({
   selector: "app-controlled-paginator",
@@ -17,38 +17,38 @@ import { Paging, PagingConst, PagingController } from "src/common/paging";
 })
 export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   PAGE_LIMIT_OPTIONS: number[] = PagingConst.getPagingLimitOptions();
+  paging: Paging = {
+    page: 1,
+    limit: 10,
+    total: 0,
+  };
 
   @ViewChild("paginator", { static: true })
   paginator: MatPaginator;
 
-  goto: string;
-  maxPage: number;
+  goto: string = "1";
+  maxPage: number = 1;
 
   @Output("pageChanged")
   pageChangedEmitter = new EventEmitter<Paging>();
-
-  pagingController = new PagingController();
 
   constructor() {}
 
   ngAfterViewInit(): void {
     // first page
-    this.pageChangedEmitter.emit(this.pagingController.paging);
+    this.pageChangedEmitter.emit(this.paging);
   }
 
   ngOnInit(): void {
-    this.pagingController.control(this.paginator);
-    this.goto = String(1);
-
     this.paginator.page.subscribe((evt) => {
+      this.paging.page = evt.pageIndex + 1;
+      this.paging.limit = evt.pageSize;
       this.goto = String(evt.pageIndex + 1);
-      this.pagingController.onPageEvent(evt);
-      this.pageChangedEmitter.emit(this.pagingController.paging);
+      this.pageChangedEmitter.emit(this.paging);
     });
-    this.maxPage = 1;
   }
 
-  goToPage(evt) {
+  onGoToPageKeyUp(evt) {
     if (!this.goto) {
       return;
     }
@@ -62,7 +62,7 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
       n = 1;
     }
 
-    let maxPage = this.pagingController.maxPage;
+    let maxPage = this.maxPage;
     if (n > maxPage) {
       n = maxPage;
     }
@@ -71,8 +71,15 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
     if (!isEnterKey(evt)) {
       return;
     }
+    this.goToPage(n);
+  }
 
+  goToPage(n) {
     this.paginator.pageIndex = n - 1;
+    this.emitPageEvent();
+  }
+
+  emitPageEvent() {
     const event: PageEvent = {
       length: this.paginator.length,
       pageIndex: this.paginator.pageIndex,
@@ -81,31 +88,53 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
     this.paginator.page.next(event);
   }
 
+  /** go to last page */
+  lastPage() {
+    this.paginator.lastPage();
+  }
+
+  /** go to first page */
+  firstPage(): boolean {
+    if (this.atFirstPage()) {
+      return false;
+    }
+    this.paginator.firstPage();
+    return true;
+  }
+
   nextPage(): boolean {
-    return this.pagingController.nextPage();
+    let b = this.paginator.hasNextPage();
+    this.paginator.nextPage();
+    return b;
   }
 
   prevPage(): boolean {
-    return this.pagingController.prevPage();
+    let b = this.paginator.hasPreviousPage();
+    this.paginator.previousPage();
+    return b;
   }
 
-  firstPage(): boolean {
-    return this.pagingController.firstPage();
-  }
-
+  /** is at first page */
   atFirstPage(): boolean {
-    return this.pagingController.atFirstPage();
+    return this.paginator.pageIndex == 0;
   }
 
-  get paging() {
-    return this.pagingController.paging;
+  /** set the paginator controlled by this controller */
+  control(paginator: MatPaginator) {
+    this.paginator = paginator;
   }
 
   onTotalChanged(p: Paging): void {
-    this.pagingController.onTotalChanged(p);
+    this._updatePages(p.total);
   }
 
+  private _updatePages(total: number): void {
+    this.paging.total = total;
+    this.maxPage = Math.ceil(total / this.paging.limit);
+  }
+
+  /** set page limit */
   setPageLimit(limit: number): void {
-    this.setPageLimit(limit);
+    this.paging.limit = limit;
   }
 }
