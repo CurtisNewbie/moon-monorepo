@@ -152,7 +152,7 @@ th {
 /* fix lightbox image overflow issue */
 @media all and (max-width: 499px) {
   #outerContainer {
-    max-height: 70svh !important;
+    max-height: 75svh !important;
     overflow: scroll !important;
   }
 }

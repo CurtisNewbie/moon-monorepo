@@ -14,6 +14,7 @@ import {
   LIGHTBOX_EVENT,
 } from "ngx-lightbox";
 import { Subscription } from "rxjs";
+import { Env } from "src/common/env-util";
 
 export interface ImgViewerDialogData {
   name: string;
@@ -33,6 +34,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
   @Output() swipeRight = new EventEmitter<boolean>();
 
   constructor(
+    private env: Env,
     private _lightbox: Lightbox,
     private _lbConfig: LightboxConfig,
     private _lightboxEvent: LightboxEvent,
@@ -89,6 +91,43 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
           false
         );
         this.lightboxdiv.addEventListener("touchmove", handleTouchMove, false);
+
+        setTimeout(() => {
+          let imgs = this.lightboxdiv.querySelectorAll("#image");
+          console.log(imgs);
+          if (imgs) {
+            let img = imgs[0];
+            let completed = img.complete;
+            const doZoomIn = () => {
+              setTimeout(() => {
+                console.log(completed, img.clientWidth, img.clientHeight);
+                if (img.clientWidth < 250) {
+                  let zoomIn = this.lightboxdiv.querySelector(".lb-zoomIn");
+                  if (zoomIn) {
+                    let zoomInTimes = 1;
+                    if (img.clientWidth < 150) {
+                      zoomInTimes = 2;
+                    }
+                    if (!this.env.isMobile()) {
+                      zoomInTimes += 1;
+                    }
+                    for (let i = 0; i < zoomInTimes; i++) {
+                      zoomIn.click();
+                    }
+                  }
+                }
+              }, 100);
+            };
+
+            if (completed) {
+              doZoomIn();
+            } else {
+              img.addEventListener("load", function onLoad(event) {
+                doZoomIn();
+              });
+            }
+          }
+        }, 100);
       }
       return ele;
     };
