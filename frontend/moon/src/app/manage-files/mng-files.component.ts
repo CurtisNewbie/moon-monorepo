@@ -180,8 +180,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ----------------------------------
   */
 
-  @ViewChild("uploadFileInput")
+  @ViewChild("uploadFileInput", { static: true })
   uploadFileInput: ElementRef;
+
+  @ViewChild("searchFilenameInput")
+  searchFilenameInput: ElementRef;
 
   setSearchFileType = (fileType) => (this.searchParam.fileType = fileType);
 
@@ -204,6 +207,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnInit() {
     window.addEventListener("keydown", (evt) => {
       if (this.inFolderNo) {
+        return;
+      }
+
+      if (
+        this.searchFilenameInput &&
+        this.searchFilenameInput.nativeElement == document.activeElement
+      ) {
         return;
       }
 
@@ -1143,5 +1153,15 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       .subscribe(() => {
         setTimeout(() => this.fetchFileInfoList(), 300);
       });
+  }
+
+  onSearchNameKeyUp(event) {
+    this.isEnterKeyPressed(event) && this.fetchFileInfoList();
+    event.preventDefault();
+  }
+
+  onSearchFileKeyKeyUp(event) {
+    this.isEnterKeyPressed(event) && this.fetchFileInfoList();
+    event.preventDefault();
   }
 }
