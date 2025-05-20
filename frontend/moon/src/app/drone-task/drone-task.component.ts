@@ -10,6 +10,15 @@ import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
+export interface ApiDetectTitleReq {
+  url?: string;
+  platform?: string;
+}
+
+export interface ApiDetectTitleRes {
+  title?: string;
+}
+
 export interface GuessUrlPlatformRes {
   platform?: string;
 }
@@ -275,7 +284,11 @@ export class DroneTaskComponent implements OnInit {
     }
     this.urlTypingTimer = window.setTimeout(() => {
       this.createTaskReq.url = this.createTaskReq.url.trim();
-      this.guessUrlPlatform();
+      if (!this.createTaskReq.platform) {
+        this.guessUrlPlatform();
+      } else {
+        this.detectTitle();
+      }
     }, 500);
   }
 
@@ -299,6 +312,40 @@ export class DroneTaskComponent implements OnInit {
         let dat: GuessUrlPlatformRes = resp.data;
         if (dat && dat.platform) {
           this.createTaskReq.platform = dat.platform;
+          this.detectTitle();
+        }
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  detectTitle() {
+    if (
+      !this.createTaskReq.url ||
+      !this.createTaskReq.platform ||
+      this.createTaskReq.makeDirName
+    ) {
+      return;
+    }
+
+    let req: ApiDetectTitleReq = {
+      url: this.createTaskReq.url,
+      platform: this.createTaskReq.platform,
+    };
+    this.http.post<any>(`/drone/open/api/task/detect-title`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        let dat: ApiDetectTitleRes = resp.data;
+        if (!this.createTaskReq.makeDirName) {
+          this.createTaskReq.makeDirName = dat.title;
         }
       },
       error: (err) => {
