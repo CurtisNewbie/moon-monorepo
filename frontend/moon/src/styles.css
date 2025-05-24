@@ -159,14 +159,14 @@ th {
 
 @media all and (min-width: 500px) and (max-width: 699px) {
   #outerContainer {
-    max-height: 80vh !important;
+    max-height: 80svh !important;
     overflow: scroll !important;
   }
 }
 
 @media all and (min-width: 700px) {
   #outerContainer {
-    max-height: 85vh !important;
+    max-height: 85svh !important;
     overflow: scroll !important;
   }
 }

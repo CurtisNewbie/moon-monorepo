@@ -105,10 +105,10 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                   let zoomIn = this.lightboxdiv.querySelector(".lb-zoomIn");
                   if (zoomIn) {
                     let zoomInTimes = 1;
-                    if (img.clientWidth < 150) {
-                      zoomInTimes = 2;
+                    if (img.clientWidth < 200) {
+                      zoomInTimes += 2;
                     }
-                    if (!this.env.isMobile()) {
+                    if (img.clientWidth < 150) {
                       zoomInTimes += 1;
                     }
                     for (let i = 0; i < zoomInTimes; i++) {
@@ -116,7 +116,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                     }
                   }
                 }
-              }, 100);
+              }, 150);
             };
 
             if (completed) {
