@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	logPatternCache = miso.NewLocalCache[*regexp.Regexp]()
+	logPatternCache = util.NewRWMap[string, *regexp.Regexp]()
 )
 
 func lastPos(rail miso.Rail, app string, nodeName string) (int64, error) {
@@ -272,8 +272,8 @@ type LogLine struct {
 
 func parseLogLine(rail miso.Rail, app string, line string, typ string) (LogLine, error) {
 	patType := miso.GetPropStr("log.pattern." + typ)
-	pat, _ := logPatternCache.Get(patType, func(s string) (*regexp.Regexp, error) {
-		return regexp.MustCompile(s), nil
+	pat, _ := logPatternCache.GetElse(patType, func(s string) *regexp.Regexp {
+		return regexp.MustCompile(s)
 	})
 
 	matches := pat.FindStringSubmatch(line)

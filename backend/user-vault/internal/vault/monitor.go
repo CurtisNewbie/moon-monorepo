@@ -108,10 +108,10 @@ func TriggerResourcePathCollection(rail miso.Rail, m MonitoredService) {
 		sort.Slice(servers, func(i, j int) bool {
 			var irt int = math.MaxInt
 			var jrt int = math.MaxInt
-			if irts, ok := servers[i].Meta[miso.ConsulMetaRegisterTime]; ok {
+			if irts, ok := servers[i].Meta[miso.ServiceMetaRegisterTime]; ok {
 				irt = cast.ToInt(irts)
 			}
-			if jrts, ok := servers[j].Meta[miso.ConsulMetaRegisterTime]; ok {
+			if jrts, ok := servers[j].Meta[miso.ServiceMetaRegisterTime]; ok {
 				jrt = cast.ToInt(jrts)
 			}
 			if irt > jrt {

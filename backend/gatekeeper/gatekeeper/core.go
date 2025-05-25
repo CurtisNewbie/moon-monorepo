@@ -59,7 +59,7 @@ func prepareServer(rail miso.Rail) error {
 	proxy.AddFilter(IpFilter)
 
 	// healthcheck filter
-	healthcheckPath := miso.GetPropStr(miso.PropConsulHealthcheckUrl)
+	healthcheckPath := miso.GetPropStr(miso.PropHealthCheckUrl)
 	if !util.IsBlankStr(healthcheckPath) {
 		miso.PerfLogExclPath(healthcheckPath)
 		proxy.AddFilter(HealthcheckFilter)
@@ -131,7 +131,7 @@ func parseServicePath(url string) (ServicePath, error) {
 }
 
 func HealthcheckFilter(pc *miso.ProxyContext, next func()) {
-	healthcheckPath := miso.GetPropStr(miso.PropConsulHealthcheckUrl)
+	healthcheckPath := miso.GetPropStr(miso.PropHealthCheckUrl)
 
 	// check if it's a healthcheck endpoint (for consul), we don't really return anything, so it's fine to expose it
 	if pc.ProxyPath == healthcheckPath {
@@ -226,7 +226,7 @@ func (g GatewayError) Error() string {
 }
 
 func ResolveServiceTarget(rail miso.Rail, proxyPath string) (string, error) {
-	if proxyPath == miso.GetPropStr(miso.PropConsulHealthcheckUrl) {
+	if proxyPath == miso.GetPropStr(miso.PropHealthCheckUrl) {
 		return proxyPath, nil
 	}
 	if proxyPath == miso.GetPropStr(miso.PropMetricsRoute) {
