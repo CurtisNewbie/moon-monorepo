@@ -4699,6 +4699,7 @@
 - JSON Request:
     - "recordId": (string) 
     - "site": (string) 
+    - "username": (string) 
     - "alias": (string) 
     - "sitePassword": (string) new site password, optional
     - "loginPassword": (string) only used when site password is provided
@@ -4710,7 +4711,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/edit-site-password' \
     -H 'Content-Type: application/json' \
-    -d '{"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":""}'
+    -d '{"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4718,6 +4719,7 @@
   type EditSitePasswordReq struct {
   	RecordId string `json:"recordId"`
   	Site string `json:"site"`
+  	Username string `json:"username"`
   	Alias string `json:"alias"`
   	SitePassword string `json:"sitePassword"` // new site password, optional
   	LoginPassword string `json:"loginPassword"` // only used when site password is provided
@@ -4745,6 +4747,7 @@
   export interface EditSitePasswordReq {
     recordId?: string;
     site?: string;
+    username?: string;
     alias?: string;
     sitePassword?: string;         // new site password, optional
     loginPassword?: string;        // only used when site password is provided

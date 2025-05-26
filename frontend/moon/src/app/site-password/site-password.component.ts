@@ -17,6 +17,7 @@ export interface EditSitePasswordReq {
   recordId?: string;
   site?: string;
   alias?: string;
+  username?: string;
   sitePassword?: string;
   loginPassword?: string;
 }
@@ -69,6 +70,10 @@ export interface RemoveSitePasswordRes {
         <mat-form-field style="width: 100%;">
           <mat-label>Site</mat-label>
           <input matInput [(ngModel)]="editReq.site" />
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+          <mat-label>New Username (optional)</mat-label>
+          <input matInput [(ngModel)]="editReq.username" />
         </mat-form-field>
         <mat-form-field style="width: 100%;">
           <mat-label>New Site Password</mat-label>

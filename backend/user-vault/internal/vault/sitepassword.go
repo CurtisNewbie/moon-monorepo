@@ -1,6 +1,8 @@
 package vault
 
 import (
+	"strings"
+
 	"github.com/curtisnewbie/miso/middleware/crypto"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
@@ -151,6 +153,7 @@ func pad256(b []byte) []byte {
 type EditSitePasswordReq struct {
 	RecordId      string
 	Site          string
+	Username      string
 	Alias         string
 	SitePassword  string `desc:"new site password, optional"`
 	LoginPassword string `desc:"only used when site password is provided"`
@@ -186,6 +189,7 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 		Set("site", req.Site).
 		Set("alias", req.Alias).
 		Set("update_by", user.Username).
+		SetIf(strings.TrimSpace(req.Username) != "", "username", req.Username).
 		SetIf(encryptedSitePwd != "", "password", encryptedSitePwd).
 		Update()
 	if err != nil {
