@@ -17,6 +17,7 @@ export interface ApiDetectTitleReq {
 
 export interface ApiDetectTitleRes {
   title?: string;
+  platform?: string;
 }
 
 export interface GuessUrlPlatformRes {
@@ -284,7 +285,7 @@ export class DroneTaskComponent implements OnInit {
     }
     this.urlTypingTimer = window.setTimeout(() => {
       this.createTaskReq.url = this.createTaskReq.url.trim();
-      if (!this.createTaskReq.platform) {
+      if (!this.createTaskReq.platform && this.createTaskReq.makeDirName) {
         this.guessUrlPlatform();
       } else {
         this.detectTitle();
@@ -312,7 +313,6 @@ export class DroneTaskComponent implements OnInit {
         let dat: GuessUrlPlatformRes = resp.data;
         if (dat && dat.platform) {
           this.createTaskReq.platform = dat.platform;
-          this.detectTitle();
         }
       },
       error: (err) => {
@@ -325,11 +325,7 @@ export class DroneTaskComponent implements OnInit {
   }
 
   detectTitle() {
-    if (
-      !this.createTaskReq.url ||
-      !this.createTaskReq.platform ||
-      this.createTaskReq.makeDirName
-    ) {
+    if (!this.createTaskReq.url || this.createTaskReq.makeDirName) {
       return;
     }
 
@@ -346,6 +342,9 @@ export class DroneTaskComponent implements OnInit {
         let dat: ApiDetectTitleRes = resp.data;
         if (!this.createTaskReq.makeDirName) {
           this.createTaskReq.makeDirName = dat.title;
+        }
+        if (!this.createTaskReq.platform) {
+          this.createTaskReq.platform = dat.platform;
         }
       },
       error: (err) => {
