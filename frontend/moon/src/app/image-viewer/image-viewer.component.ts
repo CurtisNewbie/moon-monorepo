@@ -97,10 +97,25 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
           console.log(imgs);
           if (imgs) {
             let img = imgs[0];
-            let completed = img.complete;
-            const doZoomIn = () => {
+            const checkComplete = () => {
+              console.log(
+                "img",
+                img.complete,
+                img.clientWidth,
+                img.clientHeight
+              );
+              if (!img.complete) {
+                setTimeout(checkComplete, 100);
+                return;
+              }
+
               setTimeout(() => {
-                console.log(completed, img.clientWidth, img.clientHeight);
+              console.log(
+                "img check zoom-in",
+                img.complete,
+                img.clientWidth,
+                img.clientHeight
+              );
                 if (img.clientWidth < 250) {
                   let zoomIn = this.lightboxdiv.querySelector(".lb-zoomIn");
                   if (zoomIn) {
@@ -116,16 +131,10 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                     }
                   }
                 }
-              }, 150);
+              }, 50);
             };
 
-            if (completed) {
-              doZoomIn();
-            } else {
-              img.addEventListener("load", function onLoad(event) {
-                doZoomIn();
-              });
-            }
+            checkComplete();
           }
         }, 100);
       }
