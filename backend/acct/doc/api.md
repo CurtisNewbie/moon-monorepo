@@ -99,7 +99,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListCashFlowReq {
     paging?: Paging;
@@ -116,10 +116,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -214,7 +211,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -283,7 +280,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -388,7 +385,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiListStatisticsReq {
     paging?: Paging;
@@ -402,10 +399,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -515,7 +509,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiPlotStatisticsReq {
     startTime?: number;            // Start time
@@ -523,10 +517,7 @@
     aggType?: string;              // Aggregation Type.
     currency?: string;             // Currency
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -628,7 +619,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ResourceInfoRes {
     resources?: Resource[];

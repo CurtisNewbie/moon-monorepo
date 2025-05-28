@@ -51,7 +51,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListErrorLogReq {
     app?: string;
@@ -63,10 +63,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -161,7 +158,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ResourceInfoRes {
     resources?: Resource[];

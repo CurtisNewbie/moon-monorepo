@@ -100,7 +100,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -184,7 +184,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -270,16 +270,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface MoveIntoDirReq {
     uuid?: string;
     parentFileUuid?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -362,7 +359,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface BatchMoveIntoDirReq {
     instructions?: MoveIntoDirReq[];
@@ -372,10 +369,7 @@
     uuid?: string;
     parentFileUuid?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -454,16 +448,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface MakeDirReq {
     parentFile?: string;
     name?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -544,7 +535,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -678,7 +669,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListFileReq {
     paging?: Paging;
@@ -696,10 +687,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -802,15 +790,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface DeleteFileReq {
     uuid?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -886,15 +871,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface DeleteFileReq {
     uuid?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -981,15 +963,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface FetchDirTreeReq {
     fileKey?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1076,7 +1055,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -1160,15 +1139,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface BatchDeleteFileReq {
     fileKeys?: string[];
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1248,17 +1224,14 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreateFileReq {
     filename?: string;
     fstoreFileId?: string;
     parentFile?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1338,17 +1311,14 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface UpdateFileReq {
     id?: number;
     name?: string;
     sensitiveMode?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1425,15 +1395,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface GenerateTempTokenReq {
     fileKey?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1513,16 +1480,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface UnpackZipReq {
     fileKey?: string;
     parentFileKey?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1654,7 +1618,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -1773,7 +1737,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListVFolderReq {
     paging?: Paging;
@@ -1785,10 +1749,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1889,15 +1850,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreateVFolderReq {
     name?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -1977,16 +1935,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface AddFileToVfolderReq {
     folderNo?: string;
     fileKeys?: string[];
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2064,16 +2019,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveFileFromVfolderReq {
     folderNo?: string;
     fileKeys?: string[];
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2151,16 +2103,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ShareVfolderReq {
     folderNo?: string;
     username?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2238,16 +2187,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveGrantedFolderAccessReq {
     folderNo?: string;
     userNo?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2349,7 +2295,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListGrantedFolderAccessReq {
     paging?: Paging;
@@ -2361,10 +2307,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2459,15 +2402,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveVFolderReq {
     folderNo?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2544,7 +2484,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -2652,15 +2592,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreateGalleryCmd {
     name?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2753,16 +2690,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface UpdateGalleryCmd {
     galleryNo?: string;
     name?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2838,15 +2772,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface DeleteGalleryCmd {
     galleryNo?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -2956,7 +2887,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListGalleriesCmd {
     paging?: Paging;
@@ -2967,10 +2898,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3074,16 +3002,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface PermitGalleryAccessCmd {
     galleryNo?: string;
     username?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3161,16 +3086,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveGalleryAccessCmd {
     galleryNo?: string;
     userNo?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3272,7 +3194,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListGrantedGalleryAccessCmd {
     galleryNo?: string;
@@ -3284,10 +3206,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3410,7 +3329,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListGalleryImagesCmd {
     galleryNo?: string;
@@ -3422,10 +3341,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3529,7 +3445,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface TransferGalleryImageReq {
     images?: CreateGalleryImageCmd[];
@@ -3540,10 +3456,7 @@
     name?: string;
     fileKey?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3651,7 +3564,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiListVerFileReq {
     paging?: Paging;
@@ -3663,10 +3576,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3792,7 +3702,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiListVerFileHistoryReq {
     paging?: Paging;
@@ -3804,10 +3714,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -3911,15 +3818,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiQryVerFileAccuSizeReq {
     verFileId?: string;            // versioned file id
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4010,16 +3914,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiCreateVerFileReq {
     filename?: string;
     fstoreFileId?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4105,17 +4006,14 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiUpdateVerFileReq {
     verFileId?: string;            // versioned file id
     filename?: string;
     fstoreFileId?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4191,15 +4089,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiDelVerFileReq {
     verFileId?: string;            // Versioned File Id
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4267,7 +4162,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -4335,7 +4230,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -4403,7 +4298,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -4484,7 +4379,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListBookmarksReq {
     name?: string;
@@ -4496,10 +4391,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4575,15 +4467,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveBookmarkReq {
     id?: number;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4664,7 +4553,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListBookmarksReq {
     name?: string;
@@ -4676,10 +4565,7 @@
     page?: number;                 // page number, 1-based
     total?: number;                // total count
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4755,15 +4641,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveBookmarkReq {
     id?: number;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -4846,7 +4729,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -4932,15 +4815,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface RecordBrowseHistoryReq {
     fileKey?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -5015,7 +4895,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -5103,7 +4983,7 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface SysCreateFileReq {
     filename?: string;
@@ -5111,10 +4991,7 @@
     parentFile?: string;
     userNo?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -5191,7 +5068,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -5273,16 +5150,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface InternalCheckFileAccessReq {
     fileKey?: string;
     userNo?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -5370,15 +5244,12 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface InternalFetchFileInfoReq {
     fileKey?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -5467,17 +5338,14 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface SysMakeDirReq {
     parentFile?: string;
     userNo?: string;
     name?: string;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -5574,7 +5442,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ResourceInfoRes {
     resources?: Resource[];

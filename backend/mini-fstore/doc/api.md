@@ -168,7 +168,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -269,7 +269,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -357,7 +357,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -485,7 +485,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -565,17 +565,14 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface UnzipFileReq {
     fileId?: string;               // file_id of zip file
     replyToEventBus?: string;      // name of the rabbitmq exchange to reply to, routing_key is '#'
     extra?: string;                // extra information that will be passed around for the caller
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -679,16 +676,13 @@
   }
   ```
 
-- JSON Request Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListBackupFileReq {
     limit?: number;
     idOffset?: number;
   }
-  ```
 
-- JSON Response Object In TypeScript:
-  ```ts
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -842,7 +836,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -910,7 +904,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -977,7 +971,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -1073,7 +1067,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -1172,7 +1166,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -1256,7 +1250,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface Resp {
     errorCode?: string;            // error code
@@ -1357,7 +1351,7 @@
   }
   ```
 
-- JSON Response Object In TypeScript:
+- JSON Request / Response Object In TypeScript:
   ```ts
   export interface ResourceInfoRes {
     resources?: Resource[];
