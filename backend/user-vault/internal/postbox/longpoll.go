@@ -143,7 +143,7 @@ func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http
 
 		for {
 			select {
-			case <-time.After(30 * time.Second):
+			case <-time.After(15 * time.Second):
 				loadCount(true) // close no matter what
 				return
 			case <-lps.notified:
