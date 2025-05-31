@@ -92,6 +92,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
         );
         this.lightboxdiv.addEventListener("touchmove", handleTouchMove, false);
 
+        let checkCompleteInterval = 50;
         setTimeout(() => {
           let imgs = this.lightboxdiv.querySelectorAll("#image");
           console.log(imgs);
@@ -105,17 +106,17 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                 img.clientHeight
               );
               if (!img.complete) {
-                setTimeout(checkComplete, 100);
+                setTimeout(checkComplete, checkCompleteInterval);
                 return;
               }
 
               setTimeout(() => {
-              console.log(
-                "img check zoom-in",
-                img.complete,
-                img.clientWidth,
-                img.clientHeight
-              );
+                console.log(
+                  "img check zoom-in",
+                  img.complete,
+                  img.clientWidth,
+                  img.clientHeight
+                );
                 if (img.clientWidth < 250) {
                   let zoomIn = this.lightboxdiv.querySelector(".lb-zoomIn");
                   if (zoomIn) {
@@ -131,12 +132,12 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                     }
                   }
                 }
-              }, 50);
+              }, 150);
             };
 
             checkComplete();
           }
-        }, 100);
+        }, checkCompleteInterval);
       }
       return ele;
     };
