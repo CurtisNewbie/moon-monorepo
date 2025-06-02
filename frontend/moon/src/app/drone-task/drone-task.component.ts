@@ -81,12 +81,12 @@ export class DroneTaskComponent implements OnInit {
   createTaskPanelShown: boolean = false;
   createTaskDirName: string = "";
   createTaskReq: CreateTaskReq = {};
-  dirTreeControl = new NestedTreeControl<DirTopDownTreeNode>(
-    (node) => node.child
-  );
   platforms: string[] = [];
-  dirTreeDataSource = new MatTreeNestedDataSource<DirTopDownTreeNode>();
   tabdata: ListedTask[] = [];
+
+  dirTreeControl = this.dirTree.newDirTreeControl();
+  dirTreeDataSource = this.dirTree.newDirTreeDataSource();
+  searchDirTreeName = "";
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
@@ -198,7 +198,7 @@ export class DroneTaskComponent implements OnInit {
           }
           let dat: FetchLastSelectedDirRes = resp.data;
           if (dat.fileKey) {
-            let children = this.dirTreeDataSource.data;
+            let children = this.dirTreeDataSource.data.slice();
             while (children.length > 0) {
               let c = children.shift();
               if (c.fileKey && c.fileKey == dat.fileKey) {
@@ -354,5 +354,17 @@ export class DroneTaskComponent implements OnInit {
         });
       },
     });
+  }
+
+  onSearchDirTreeNameChanged() {
+    this.dirTreeControl.collapseAll();
+    if (!this.searchDirTreeName) {
+      return;
+    }
+    this.dirTree.searchMulti(
+      this.dirTreeControl,
+      this.dirTreeDataSource.data,
+      this.searchDirTreeName
+    );
   }
 }
