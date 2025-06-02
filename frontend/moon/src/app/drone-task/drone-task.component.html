@@ -130,7 +130,7 @@
                     <ng-container *ngIf="u.status == 'PENDING'">
                         <button class="mat-raised-button small-btn" (click)="cancelTask(u.taskId)">Cancel</button>
                     </ng-container>
-                    <ng-container *ngIf="u.status != 'PENDING'">
+                    <ng-container *ngIf="u.status != 'PENDING' && u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">Retry</button>
                     </ng-container>
                 </div>

@@ -1634,6 +1634,9 @@ func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user
 	if err != nil || fi == nil {
 		return nil, err
 	}
+	if fi.IsLogicDeleted == DelY {
+		return nil, nil
+	}
 	bottom := &DirBottomUpTreeNode{
 		FileKey: req.FileKey,
 		Name:    fi.Name,
@@ -1803,6 +1806,7 @@ func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInf
 	n, err := dbquery.NewQuery(db).
 		Table("file_info").
 		Eq("uuid", req.FileKey).
+		Eq("is_logic_deleted", DelN).
 		Select("name,upload_time,size_in_bytes,file_type").
 		Scan(&res)
 	if err != nil {
