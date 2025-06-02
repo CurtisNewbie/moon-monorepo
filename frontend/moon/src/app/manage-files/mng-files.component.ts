@@ -631,6 +631,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             let nextIdx = -1;
             let fetchNewList = false;
             let fetchNewListNextPage = false;
+            let closing = false;
 
             let leftRight = (isLeft) => {
               if (!isLeft) {
@@ -668,7 +669,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                   }
                 }
               }
-              if (nextIdx > -1 || fetchNewList) {
+              if (!closing && (nextIdx > -1 || fetchNewList)) {
+                closing = true;
                 dialog.afterClosed().subscribe({
                   next: () => {
                     if (fetchNewList) {

@@ -110,29 +110,45 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                 return;
               }
 
-              setTimeout(() => {
+              let resizeRetry = 0;
+              const resizeRetryInterval = 50;
+              const resizeMaxRetry = 10;
+              const resize = () => {
                 console.log(
                   "img check zoom-in",
                   img.complete,
+                  " width ",
                   img.clientWidth,
+                  " height ",
                   img.clientHeight
                 );
-                if (img.clientWidth < 250) {
-                  let zoomIn = this.lightboxdiv.querySelector(".lb-zoomIn");
-                  if (zoomIn) {
-                    let zoomInTimes = 1;
-                    if (img.clientWidth < 200) {
-                      zoomInTimes += 2;
-                    }
-                    if (img.clientWidth < 150) {
-                      zoomInTimes += 1;
-                    }
-                    for (let i = 0; i < zoomInTimes; i++) {
-                      zoomIn.click();
+                resizeRetry += 1;
+
+                // image rendered
+                if (img.clientWidth > 0) {
+                  // image too small, zoom in
+                  if (img.clientWidth < 250) {
+                    let zoomIn = this.lightboxdiv.querySelector(".lb-zoomIn");
+                    if (zoomIn) {
+                      let zoomInTimes = 1;
+                      if (img.clientWidth < 200) {
+                        zoomInTimes += 2;
+                      }
+                      if (img.clientWidth < 150) {
+                        zoomInTimes += 1;
+                      }
+                      for (let i = 0; i < zoomInTimes; i++) {
+                        zoomIn.click();
+                      }
                     }
                   }
+                } else if (resizeRetry < resizeMaxRetry) {
+                  // image not rendered, try again later
+                  setTimeout(resize, resizeRetryInterval);
                 }
-              }, 300);
+              };
+
+              setTimeout(resize, resizeRetryInterval);
             };
 
             checkComplete();
