@@ -77,7 +77,7 @@ func ApiInternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFile
 }
 
 type SysMakeDirReq struct {
-	ParentFile string `valid:"notEmpty"`
+	ParentFile string `valid:"trim"`
 	UserNo     string `valid:"notEmpty"`
 	Name       string `valid:"notEmpty"`
 }

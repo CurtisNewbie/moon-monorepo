@@ -1788,6 +1788,9 @@ func queryFileFstoreInfo(tx *gorm.DB, fileKeys []string) (map[string]FileFstoreI
 }
 
 func ValidateFileAccess(rail miso.Rail, db *gorm.DB, fileKey string, userNo string) error {
+	if fileKey == "" {
+		return nil // root dir
+	}
 	_, err := validateFileAccess(rail, db, fileKey, userNo)
 	if err != nil {
 		return miso.ErrNotPermitted.Wrapf(err, "failed to validate file access, userNo: %v, fileKey: %v", userNo, fileKey)
@@ -1823,16 +1826,18 @@ func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user com
 	}
 	defer dirLock.Unlock()
 
-	fi, err := findFile(rail, db, req.ParentFile)
-	if err != nil {
-		return "", ErrFileNotFound.Wrapf(err, "failed to find file, parentFile: %v", req.ParentFile)
-	}
-	if fi == nil {
-		return "", ErrFileNotFound
+	if req.ParentFile != "" {
+		fi, err := findFile(rail, db, req.ParentFile)
+		if err != nil {
+			return "", ErrFileNotFound.Wrapf(err, "failed to find file, parentFile: %v", req.ParentFile)
+		}
+		if fi == nil {
+			return "", ErrFileNotFound
+		}
 	}
 
 	var dirKey string
-	_, err = dbquery.NewQuery(db).
+	_, err := dbquery.NewQuery(db).
 		Table("file_info").
 		Eq("parent_file", req.ParentFile).
 		Eq("name", req.Name).
