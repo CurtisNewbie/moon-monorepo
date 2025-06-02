@@ -132,7 +132,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                     }
                   }
                 }
-              }, 150);
+              }, 300);
             };
 
             checkComplete();
