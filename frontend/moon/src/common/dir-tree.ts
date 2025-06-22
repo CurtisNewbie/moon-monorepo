@@ -96,6 +96,6 @@ export class DirTree {
   }
 
   matchNode(n: DirTopDownTreeNode, kw: string): boolean {
-    return n.name && n.name.toLowerCase().indexOf(kw.toLowerCase()) > -1;
+    return kw && n.name && n.name.toLowerCase().indexOf(kw.toLowerCase()) > -1;
   }
 }
