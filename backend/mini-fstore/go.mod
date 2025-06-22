@@ -3,7 +3,7 @@ module github.com/curtisnewbie/mini-fstore
 go 1.22.5
 
 require (
-	github.com/curtisnewbie/miso v0.1.26
+	github.com/curtisnewbie/miso v0.2.0-beta.3.0.20250622092607-6156402b1422
 	github.com/disintegration/gift v1.2.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
@@ -75,9 +75,12 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.14.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
+	github.com/tklauser/go-sysconf v0.3.12 // indirect
+	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/tmaxmax/go-sse v0.10.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	go.uber.org/automaxprocs v1.6.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect

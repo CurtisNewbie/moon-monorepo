@@ -5,7 +5,7 @@ go 1.22.5
 replace github.com/curtisnewbie/user-vault => ../user-vault
 
 require (
-	github.com/curtisnewbie/miso v0.1.26
+	github.com/curtisnewbie/miso v0.2.0-beta.3.0.20250622092607-6156402b1422
 	github.com/curtisnewbie/user-vault v0.0.25
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/sirupsen/logrus v1.9.0
@@ -24,6 +24,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.8.1 // indirect
 	github.com/go-co-op/gocron v1.17.0 // indirect
+	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
@@ -67,14 +68,19 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.14.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
+	github.com/tklauser/go-sysconf v0.3.12 // indirect
+	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/tmaxmax/go-sse v0.10.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	go.uber.org/automaxprocs v1.6.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect

@@ -9,6 +9,7 @@
 - [POST /open/api/v1/cashflow/plot-statistics](#post-openapiv1cashflowplot-statistics)
 - [GET /auth/resource](#get-authresource)
 - [GET /metrics](#get-metrics)
+- [GET /health](#get-health)
 
 ## POST /open/api/v1/cashflow/list
 
@@ -713,6 +714,55 @@
           "Authorization": authorization
         }
       })
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /health
+
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8093/health'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynTClient(rail, "/health", "acct").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/acct/health`)
       .subscribe({
         next: () => {
         },
