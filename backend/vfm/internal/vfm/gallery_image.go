@@ -177,7 +177,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	}
 
 	var galleryImages []GalleryImage
-	_, err := dbquery.NewQuery(tx).
+	_, err := dbquery.NewQueryRail(rail, tx).
 		Table("gallery_image").
 		Select("image_no, file_key").
 		Eq("gallery_no", cmd.GalleryNo).
@@ -427,7 +427,7 @@ func RemoveGalleryImage(rail miso.Rail, db *gorm.DB, dirFileKey string, imageFil
 	}
 	defer lock.Unlock()
 
-	_, err = dbquery.NewQuery(db).
+	_, err = dbquery.NewQueryRail(rail, db).
 		Exec(`DELETE FROM gallery_image WHERE gallery_no = ? AND file_key = ?`,
 			galleryNo, imageFileKey)
 	return err

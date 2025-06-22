@@ -5,6 +5,7 @@ import (
 
 	ep "github.com/curtisnewbie/event-pump/client"
 	fstore "github.com/curtisnewbie/mini-fstore/api"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/miso"
@@ -408,9 +409,12 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 		return err
 	}
 
-	return db.Where("gallery_no = ?", galleryNo).
-		Updates(Gallery{
+	_, err = dbquery.NewQueryRail(rail, db).
+		Where("gallery_no = ?", galleryNo).
+		SetCols(Gallery{
 			Name:     f.Name,
 			UpdateBy: "vfm",
-		}).Error
+		}).
+		Update()
+	return err
 }

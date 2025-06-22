@@ -240,14 +240,19 @@ func RemoveBookmark(rail miso.Rail, tx *gorm.DB, id int64, userNo string) error 
 			return miso.ErrNotPermitted
 		}
 
-		err := tx.Exec(`INSERT IGNORE INTO bookmark_blacklist (user_no, icon, name, href, md5) VALUES (?,?,?,?,?)`, b.UserNo, b.Icon, b.Name, b.Href, b.Md5).Error
+		_, err := dbquery.NewQueryRail(rail, tx).
+			Exec(`INSERT IGNORE INTO bookmark_blacklist (user_no, icon, name, href, md5) VALUES (?,?,?,?,?)`, b.UserNo, b.Icon, b.Name, b.Href, b.Md5)
 		if err != nil {
 			return err
 		}
-		return tx.Exec("DELETE FROM bookmark WHERE user_no = ? AND id = ?", userNo, id).Error
+		_, err = dbquery.NewQueryRail(rail, tx).
+			Exec("DELETE FROM bookmark WHERE user_no = ? AND id = ?", userNo, id)
+		return err
 	})
 }
 
 func RemoveBookmarkBlacklist(rail miso.Rail, tx *gorm.DB, id int64, userNo string) error {
-	return tx.Exec("DELETE FROM bookmark_blacklist WHERE user_no = ? AND id = ?", userNo, id).Error
+	_, err := dbquery.NewQueryRail(rail, tx).
+		Exec("DELETE FROM bookmark_blacklist WHERE user_no = ? AND id = ?", userNo, id)
+	return err
 }

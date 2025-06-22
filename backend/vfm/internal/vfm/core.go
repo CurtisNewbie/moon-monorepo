@@ -534,8 +534,9 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 			}
 
 			newSize := pf.SizeInBytes + fi.SizeInBytes
-			err := tx.Exec("UPDATE file_info SET size_in_bytes = ?, update_by = ?, update_time = ? WHERE uuid = ?",
-				newSize, user.Username, time.Now(), req.ParentFileUuid).Error
+			_, err := dbquery.NewQueryRail(rail, tx).
+				Exec("UPDATE file_info SET size_in_bytes = ?, update_by = ?, update_time = ? WHERE uuid = ?",
+					newSize, user.Username, time.Now(), req.ParentFileUuid)
 			if err != nil {
 				return fmt.Errorf("failed to updated dir's size, dir: %v, %v", req.ParentFileUuid, err)
 			}
@@ -543,9 +544,9 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 
 		}
 
-		err := tx.Exec("UPDATE file_info SET parent_file = ?, update_by = ?, update_time = ? WHERE uuid = ?",
-			req.ParentFileUuid, user.Username, time.Now(), req.Uuid).
-			Error
+		_, err := dbquery.NewQueryRail(rail, tx).
+			Exec("UPDATE file_info SET parent_file = ?, update_by = ?, update_time = ? WHERE uuid = ?",
+				req.ParentFileUuid, user.Username, time.Now(), req.Uuid)
 		if err != nil {
 			return miso.WrapErr(err)
 		}
@@ -567,9 +568,10 @@ func _saveFile(rail miso.Rail, tx *gorm.DB, f FileInfo, user common.User) error 
 	f.CreateTime = now
 	f.UploaderNo = user.UserNo
 
-	err := tx.Table("file_info").
+	_, err := dbquery.NewQueryRail(rail, tx).
+		Table("file_info").
 		Omit("id", "update_time", "update_by").
-		Create(&f).Error
+		Create(&f)
 	if err == nil {
 		rail.Infof("Saved file %+v", f)
 		return nil
@@ -591,7 +593,8 @@ func CreateVFolder(rail miso.Rail, tx *gorm.DB, r CreateVFolderReq, user common.
 	v, e := redis.RLockRun(rail, "vfolder:user:"+userNo, func() (any, error) {
 
 		var id int
-		t := tx.Table("vfolder vf").
+		_, err := dbquery.NewQueryRail(rail, tx).
+			Table("vfolder vf").
 			Select("vf.id").
 			Joins("LEFT JOIN user_vfolder uv ON (vf.folder_no = uv.folder_no)").
 			Where("uv.user_no = ? AND uv.ownership = 'OWNER'", userNo).
@@ -599,8 +602,8 @@ func CreateVFolder(rail miso.Rail, tx *gorm.DB, r CreateVFolderReq, user common.
 			Where("vf.is_del = 0 AND uv.is_del = 0").
 			Limit(1).
 			Scan(&id)
-		if t.Error != nil {
-			return "", t.Error
+		if err != nil {
+			return "", err
 		}
 		if id > 0 {
 			return "", miso.NewErrf(fmt.Sprintf("Found folder with same name ('%s')", r.Name))
@@ -614,7 +617,8 @@ func CreateVFolder(rail miso.Rail, tx *gorm.DB, r CreateVFolderReq, user common.
 
 			// for the vfolder
 			vf := VFolder{Name: r.Name, FolderNo: folderNo, CreateTime: ctime, CreateBy: user.Username}
-			if e := tx.Omit("id", "update_by", "update_time").Table("vfolder").Create(&vf).Error; e != nil {
+			if _, e := dbquery.NewQueryRail(rail, tx).
+				Omit("id", "update_by", "update_time").Table("vfolder").Create(&vf); e != nil {
 				return fmt.Errorf("failed to save VFolder, %v", e)
 			}
 
@@ -627,7 +631,8 @@ func CreateVFolder(rail miso.Rail, tx *gorm.DB, r CreateVFolderReq, user common.
 				GrantedBy:  userNo,
 				CreateTime: ctime,
 				CreateBy:   user.Username}
-			if e := tx.Omit("id", "update_by", "update_time").Table("user_vfolder").Create(&uv).Error; e != nil {
+			if _, e := dbquery.NewQueryRail(rail, tx).
+				Omit("id", "update_by", "update_time").Table("user_vfolder").Create(&uv); e != nil {
 				return fmt.Errorf("failed to save UserVFolder, %v", e)
 			}
 			return nil
@@ -644,21 +649,23 @@ func CreateVFolder(rail miso.Rail, tx *gorm.DB, r CreateVFolderReq, user common.
 	return v.(string), e
 }
 
-func ListDirs(c miso.Rail, tx *gorm.DB, user common.User) ([]ListedDir, error) {
+func ListDirs(r miso.Rail, tx *gorm.DB, user common.User) ([]ListedDir, error) {
 	var dirs []ListedDir
-	e := tx.Table("file_info").
+	_, e := dbquery.NewQueryRail(r, tx).
+		Table("file_info").
 		Select("id, uuid, name").
 		Where("uploader_no = ?", user.UserNo).
 		Where("file_type = 'DIR'").
 		Where("is_logic_deleted = 0").
 		Where("is_del = 0").
-		Scan(&dirs).Error
+		Scan(&dirs)
 	return dirs, e
 }
 
 func findVFolder(rail miso.Rail, tx *gorm.DB, folderNo string, userNo string) (VFolderWithOwnership, error) {
 	var vfo VFolderWithOwnership
-	t := tx.Table("vfolder vf").
+	n, err := dbquery.NewQueryRail(rail, tx).
+		Table("vfolder vf").
 		Select("vf.*, uv.ownership").
 		Joins("LEFT JOIN user_vfolder uv ON (vf.folder_no = uv.folder_no AND uv.is_del = 0)").
 		Where("vf.is_del = 0").
@@ -666,10 +673,10 @@ func findVFolder(rail miso.Rail, tx *gorm.DB, folderNo string, userNo string) (V
 		Where("uv.folder_no = ?", folderNo).
 		Limit(1).
 		Scan(&vfo)
-	if t.Error != nil {
-		return vfo, fmt.Errorf("failed to fetch vfolder info for current user, userNo: %v, folderNo: %v, %v", userNo, folderNo, t.Error)
+	if err != nil {
+		return vfo, fmt.Errorf("failed to fetch vfolder info for current user, userNo: %v, folderNo: %v, %v", userNo, folderNo, err)
 	}
-	if t.RowsAffected < 1 {
+	if n < 1 {
 		return vfo, fmt.Errorf("vfolder not found, userNo: %v, folderNo: %v", userNo, folderNo)
 	}
 	return vfo, nil
@@ -693,13 +700,14 @@ func ShareVFolder(rail miso.Rail, tx *gorm.DB, sharedTo vault.UserInfo, folderNo
 		}
 
 		var id int
-		e = tx.Table("user_vfolder").
+		_, e = dbquery.NewQueryRail(rail, tx).
+			Table("user_vfolder").
 			Select("id").
 			Where("folder_no = ?", folderNo).
 			Where("user_no = ?", sharedTo.UserNo).
 			Where("is_del = 0").
 			Limit(1).
-			Scan(&id).Error
+			Scan(&id)
 		if e != nil {
 			return fmt.Errorf("error occurred while querying user_vfolder, %v", e)
 		}
@@ -717,7 +725,7 @@ func ShareVFolder(rail miso.Rail, tx *gorm.DB, sharedTo vault.UserInfo, folderNo
 			CreateTime: util.Now(),
 			CreateBy:   user.Username,
 		}
-		if e := tx.Omit("id", "update_by", "update_time").Table("user_vfolder").Create(&uv).Error; e != nil {
+		if _, e := dbquery.NewQueryRail(rail, tx).Omit("id", "update_by", "update_time").Table("user_vfolder").Create(&uv); e != nil {
 			return fmt.Errorf("failed to save UserVFolder, %v", e)
 		}
 		rail.Infof("VFolder %s shared to %s by %s", folderNo, sharedTo.Username, user.Username)
@@ -751,11 +759,12 @@ func RemoveVFolderAccess(rail miso.Rail, tx *gorm.DB, req RemoveGrantedFolderAcc
 
 func ListVFolderBrief(rail miso.Rail, tx *gorm.DB, user common.User) ([]VFolderBrief, error) {
 	var vfb []VFolderBrief
-	e := tx.Select("f.folder_no, f.name").
+	_, e := dbquery.NewQueryRail(rail, tx).
+		Select("f.folder_no, f.name").
 		Table("vfolder f").
 		Joins("LEFT JOIN user_vfolder uv ON (f.folder_no = uv.folder_no AND uv.is_del = 0)").
 		Where("f.is_del = 0 AND uv.user_no = ? AND uv.ownership = 'OWNER'", user.UserNo).
-		Scan(&vfb).Error
+		Scan(&vfb)
 	return vfb, e
 }
 
@@ -800,12 +809,11 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfold
 	doAddFileToVfolder := func(rail miso.Rail, folderNo string, fk string) error {
 		var id int
 		var err error
-		err = tx.Select("id").
+		_, err = dbquery.NewQueryRail(rail, tx).Select("id").
 			Table("file_vfolder").
 			Where("folder_no = ? AND uuid = ?", folderNo, fk).
 			Where("is_del = 0").
-			Scan(&id).
-			Error
+			Scan(&id)
 		if err != nil {
 			return fmt.Errorf("failed to query file_vfolder record, %v", err)
 		}
@@ -814,7 +822,10 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfold
 		}
 
 		fvf := FileVFolder{FolderNo: folderNo, Uuid: fk, CreateTime: now, CreateBy: username}
-		if err = tx.Table("file_vfolder").Omit("id", "update_by", "update_time").Create(&fvf).Error; err != nil {
+		if _, err = dbquery.NewQueryRail(rail, tx).
+			Table("file_vfolder").
+			Omit("id", "update_by", "update_time").
+			Create(&fvf); err != nil {
 			return fmt.Errorf("failed to save file_vfolder record, %v", err)
 		}
 		rail.Infof("added file.uuid: %v to vfolder: %v by %v", fk, folderNo, username)
@@ -945,7 +956,8 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 				continue // not a file type, may be a dir
 			}
 
-			e = tx.Exec("DELETE FROM file_vfolder WHERE folder_no = ? AND uuid = ?", req.FolderNo, fk).Error
+			_, e = dbquery.NewQueryRail(rail, tx).
+				Exec("DELETE FROM file_vfolder WHERE folder_no = ? AND uuid = ?", req.FolderNo, fk)
 			if e != nil {
 				return fmt.Errorf("failed to delete file_vfolder record, %v", e)
 			}
@@ -956,7 +968,8 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 }
 
 func RemoveDeletedFileFromAllVFolder(rail miso.Rail, tx *gorm.DB, fileKey string) error {
-	err := tx.Exec(`UPDATE file_vfolder SET is_del = 1 WHERE uuid = ?`, fileKey).Error
+	_, err := dbquery.NewQueryRail(rail, tx).
+		Exec(`UPDATE file_vfolder SET is_del = 1 WHERE uuid = ?`, fileKey)
 	if err != nil {
 		return miso.WrapErrf(err, "failed to update file_vfolder, uuid: %v", fileKey)
 	}
@@ -1569,13 +1582,13 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 		}
 		listFilesInDir := func(rail miso.Rail, minId int) ([]ListedFilesInDir, error) {
 			var l []ListedFilesInDir
-			err := db.Table("file_info").
+			_, err := dbquery.NewQueryRail(rail, db).Table("file_info").
 				Select("id, uuid, file_type").
 				Where("parent_file = ?", dir.Uuid).
 				Where("id > ?", minId).
 				Order("id asc").
 				Limit(50).
-				Scan(&l).Error
+				Scan(&l)
 
 			rail.Debugf("listFilesInDir, minId: %v, dir.uuid: %v, count: %d", minId, dir.Uuid, len(l))
 			return l, err
@@ -1646,7 +1659,7 @@ func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user
 
 func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeNode) (*DirBottomUpTreeNode, error) {
 	p, err := dirParentCache.Get(rail, child.FileKey, func() (*CachedDirTreeNode, error) {
-		pi, err := doFindParentDir(rail, dbquery.NewQuery(db), child.FileKey)
+		pi, err := doFindParentDir(rail, dbquery.NewQueryRail(rail, db), child.FileKey)
 		if err != nil {
 			return nil, err
 		}
@@ -1664,7 +1677,7 @@ func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeN
 		return nil, err
 	}
 
-	name, err := cachedFindDirName(rail, dbquery.NewQuery(db), p.FileKey)
+	name, err := cachedFindDirName(rail, dbquery.NewQueryRail(rail, db), p.FileKey)
 	if err != nil {
 		return nil, err
 	}
@@ -1738,7 +1751,7 @@ type TopDownTreeNodeBrief struct {
 
 func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen util.Set[string]) error {
 	var cl []TopDownTreeNodeBrief
-	n, err := dbquery.NewQuery(db).
+	n, err := dbquery.NewQueryRail(rail, db).
 		From("file_info").
 		Select("uuid, name").
 		Eq("parent_file", root.FileKey).
@@ -1803,7 +1816,7 @@ func ValidateFileAccess(rail miso.Rail, db *gorm.DB, fileKey string, userNo stri
 
 func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
 	var res InternalFetchFileInfoRes
-	n, err := dbquery.NewQuery(db).
+	n, err := dbquery.NewQueryRail(rail, db).
 		Table("file_info").
 		Eq("uuid", req.FileKey).
 		Eq("is_logic_deleted", DelN).
@@ -1841,7 +1854,7 @@ func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user com
 	}
 
 	var dirKey string
-	_, err := dbquery.NewQuery(db).
+	_, err := dbquery.NewQueryRail(rail, db).
 		Table("file_info").
 		Eq("parent_file", req.ParentFile).
 		Eq("name", req.Name).

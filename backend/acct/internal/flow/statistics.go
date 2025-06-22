@@ -190,14 +190,11 @@ func calcCashflowSum(rail miso.Rail, db *gorm.DB, tr TimeRange, userNo string) (
 	rail.Infof("Calculating cashflow sum between %v, %v, userNo: %v", tr.Start, tr.End, userNo)
 
 	var res []CashflowSum
-	err := db.Raw(`
+	_, err := dbquery.NewQueryRail(rail, db).Raw(`
 	SELECT SUM(case when direction = 'IN' then amount else (-1 * amount) end) amount_sum, currency
 	FROM cashflow WHERE user_no = ? and trans_time between ? and ? and deleted = 0
 	GROUP BY currency
-	`,
-		userNo, tr.Start, tr.End).
-		Scan(&res).
-		Error
+	`, userNo, tr.Start, tr.End).Scan(&res)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query cashflow sum, %w", err)
 	}
@@ -207,20 +204,20 @@ func calcCashflowSum(rail miso.Rail, db *gorm.DB, tr TimeRange, userNo string) (
 func updateCashflowStat(rail miso.Rail, db *gorm.DB, stats []CashflowSum, aggType string, aggRange string, userNo string) error {
 	for _, st := range stats {
 		var id int64
-		err := db.Raw(`SELECT id FROM cashflow_statistics WHERE user_no = ? and agg_type = ? and agg_range = ? and currency = ?`,
-			userNo, aggType, aggRange, st.Currency).Scan(&id).Error
+		_, err := dbquery.NewQueryRail(rail, db).Raw(`SELECT id FROM cashflow_statistics WHERE user_no = ? and agg_type = ? and agg_range = ? and currency = ?`,
+			userNo, aggType, aggRange, st.Currency).Scan(&id)
 		if err != nil {
 			return fmt.Errorf("failed to query cashflow_statistics, %w", err)
 		}
 		if id > 0 {
-			err := db.Exec(`UPDATE cashflow_statistics SET agg_value = ? WHERE id = ?`,
-				st.AmountSum, id).Error
+			_, err := dbquery.NewQueryRail(rail, db).Exec(`UPDATE cashflow_statistics SET agg_value = ? WHERE id = ?`,
+				st.AmountSum, id)
 			if err != nil {
 				return fmt.Errorf("failed to update cashflow_statistics, id: %v, %w", id, err)
 			}
 		} else {
-			err := db.Exec(`INSERT INTO cashflow_statistics (user_no, agg_type, agg_range, currency, agg_value) VALUES (?,?,?,?,?)`,
-				userNo, aggType, aggRange, st.Currency, st.AmountSum).Error
+			_, err := dbquery.NewQueryRail(rail, db).Exec(`INSERT INTO cashflow_statistics (user_no, agg_type, agg_range, currency, agg_value) VALUES (?,?,?,?,?)`,
+				userNo, aggType, aggRange, st.Currency, st.AmountSum)
 			if err != nil {
 				return fmt.Errorf("failed to save cashflow_statistics, %w", err)
 			}
@@ -298,11 +295,12 @@ func PlotCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiPlotStatisticsRe
 		pad = "0101"
 	}
 
-	err := db.Raw(`
+	_, err := dbquery.NewQueryRail(rail, db).
+		Raw(`
 			SELECT agg_range, agg_value FROM cashflow_statistics
 			WHERE user_no = ? AND agg_type = ? AND currency = ?
 			AND str_to_date(concat(agg_range, ?), '%Y%m%d') BETWEEN ? AND ?`,
-		user.UserNo, req.AggType, req.Currency, pad, req.StartTime, req.EndTime).Scan(&res).Error
+			user.UserNo, req.AggType, req.Currency, pad, req.StartTime, req.EndTime).Scan(&res)
 	if err == nil {
 		if res == nil {
 			res = []ApiPlotStatisticsRes{}

@@ -112,15 +112,15 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 	}
 
 	var uvf UpdateVerFileInf
-	tx := db.Raw(`
+	n, err := dbquery.NewQueryRail(rail, db).Raw(`
 		SELECT file_key,uploader_no,deleted
 		FROM versioned_file
 		WHERE ver_file_id = ?
 	`, req.VerFileId).Scan(&uvf)
-	if tx.Error != nil {
-		return fmt.Errorf("failed to query versioned_file, req: %#v, %v", req, tx.Error)
+	if err != nil {
+		return fmt.Errorf("failed to query versioned_file, req: %#v, %v", req, err)
 	}
-	if tx.RowsAffected < 1 {
+	if n < 1 {
 		return miso.NewErrf("File not found", "ver_file_id not found, %v", req.VerFileId)
 	}
 	if uvf.UploaderNo != user.UserNo {
@@ -214,8 +214,9 @@ type SaveVerFileLogReq struct {
 }
 
 func SaveVerFileLog(rail miso.Rail, db *gorm.DB, req SaveVerFileLogReq) error {
-	err := db.Exec(`INSERT INTO versioned_file_log (ver_file_id, file_key, created_by) VALUES (?,?,?)`,
-		req.VerFileId, req.FileKey, req.Username).Error
+	_, err := dbquery.NewQueryRail(rail, db).
+		Exec(`INSERT INTO versioned_file_log (ver_file_id, file_key, created_by) VALUES (?,?,?)`,
+			req.VerFileId, req.FileKey, req.Username)
 	if err != nil {
 		return fmt.Errorf("failed to save versioned_file_log, %#v, %v", req, err)
 	}
@@ -234,15 +235,15 @@ func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.U
 	defer lock.Unlock()
 
 	var uvf UpdateVerFileInf
-	tx := db.Raw(`
+	n, err := dbquery.NewQueryRail(rail, db).Raw(`
 		SELECT file_key,uploader_no,deleted
 		FROM versioned_file
 		WHERE ver_file_id = ?
 	`, req.VerFileId).Scan(&uvf)
-	if tx.Error != nil {
-		return miso.UnknownErrf(tx.Error, "failed to query versioned_file, req: %#v", req)
+	if err != nil {
+		return miso.UnknownErrf(err, "failed to query versioned_file, req: %#v", req)
 	}
-	if tx.RowsAffected < 1 {
+	if n < 1 {
 		return miso.NewErrf("File not found").WithInternalMsg("ver_file_id not found, %v", req.VerFileId)
 	}
 	if uvf.UploaderNo != user.UserNo {
@@ -310,11 +311,11 @@ func CalcVerFileAccuSize(rail miso.Rail, db *gorm.DB, req ApiQryVerFileAccuSizeR
 	}
 
 	var total int64
-	err := db.Raw(`
+	_, err := dbquery.NewQueryRail(rail, db).Raw(`
 	SELECT sum(fi.size_in_bytes) FROM versioned_file_log f
 	LEFT JOIN file_info fi ON f.file_key = fi.uuid
 	WHERE f.ver_file_id = ?
-	`, req.VerFileId).Scan(&total).Error
+	`, req.VerFileId).Scan(&total)
 	if err != nil {
 		return ApiQryVerFileAccuSizeRes{}, err
 	}
@@ -323,12 +324,13 @@ func CalcVerFileAccuSize(rail miso.Rail, db *gorm.DB, req ApiQryVerFileAccuSizeR
 
 func checkVerFileAccess(rail miso.Rail, db *gorm.DB, userNo string, verFileId string) error {
 	var id int
-	t := db.Raw(`SELECT id FROM versioned_file WHERE uploader_no = ? and ver_file_id = ? and deleted = 0 LIMIT 1`,
-		userNo, verFileId).Scan(&id)
-	if t.Error != nil {
-		return t.Error
+	n, err := dbquery.NewQueryRail(rail, db).
+		Raw(`SELECT id FROM versioned_file WHERE uploader_no = ? and ver_file_id = ? and deleted = 0 LIMIT 1`,
+			userNo, verFileId).Scan(&id)
+	if err != nil {
+		return err
 	}
-	if t.RowsAffected < 1 {
+	if n < 1 {
 		return miso.NewErrf("Versioned file not found")
 	}
 	return nil

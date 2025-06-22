@@ -11,7 +11,6 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 var (
@@ -206,9 +205,10 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 		transIdSet.Add(v.TransId)
 	}
 	var existingTransId []string
-	err := db.Raw(`SELECT trans_id FROM cashflow WHERE user_no = ? AND category = ? AND trans_id IN ? AND deleted = 0`,
-		userNo, param.Category, transIdSet.CopyKeys()).
-		Scan(&existingTransId).Error
+	_, err := dbquery.NewQueryRail(rail, db).
+		Raw(`SELECT trans_id FROM cashflow WHERE user_no = ? AND category = ? AND trans_id IN ? AND deleted = 0`,
+			userNo, param.Category, transIdSet.CopyKeys()).
+		Scan(&existingTransId)
 	if err != nil {
 		return nil, err
 	}
@@ -244,13 +244,14 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 	}
 
 	rail.Infof("Cashflows (%d records) saved for %v", len(saving), param.User.Username)
-	err = db.Table("cashflow").CreateInBatches(saving, 200).Error
+	_, err = dbquery.NewQueryRail(rail, db).Table("cashflow").Create(saving)
 	if err != nil {
 		return nil, err
 	}
 
 	newUserCcy := util.MapTo(ccySet.CopyKeys(), func(ccy string) CashflowCurrency { return CashflowCurrency{UserNo: userNo, Currency: ccy} })
-	return records, db.Table("cashflow_currency").Clauses(clause.Insert{Modifier: "IGNORE"}).CreateInBatches(newUserCcy, 200).Error
+	_, err = dbquery.NewQueryRail(rail, db).Table("cashflow_currency").CreateIgnore(newUserCcy)
+	return records, err
 }
 
 func userCashflowLock(rail miso.Rail, userNo string) *redis.RLock {
@@ -259,5 +260,8 @@ func userCashflowLock(rail miso.Rail, userNo string) *redis.RLock {
 
 func ListCurrencies(rail miso.Rail, db *gorm.DB, user common.User) ([]string, error) {
 	var ccy []string
-	return ccy, db.Raw(`SELECT currency FROM cashflow_currency WHERE user_no = ?`, user.UserNo).Scan(&ccy).Error
+	_, err := dbquery.NewQueryRail(rail, db).
+		Raw(`SELECT currency FROM cashflow_currency WHERE user_no = ?`, user.UserNo).
+		Scan(&ccy)
+	return ccy, err
 }

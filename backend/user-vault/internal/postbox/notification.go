@@ -53,8 +53,9 @@ type SaveNotifiReq struct {
 
 func SaveNotification(rail miso.Rail, db *gorm.DB, req SaveNotifiReq, user common.User) error {
 	notifiNo := NotifiNo()
-	err := db.Exec(`insert into notification (user_no, notifi_no, title, message, created_by) values (?, ?, ?, ?, ?)`,
-		req.UserNo, notifiNo, req.Title, req.Message, user.Username).Error
+	_, err := dbquery.NewQueryRail(rail, db).
+		Exec(`insert into notification (user_no, notifi_no, title, message, created_by) values (?, ?, ?, ?, ?)`,
+			req.UserNo, notifiNo, req.Title, req.Message, user.Username)
 	if err != nil {
 		return fmt.Errorf("failed to save notifiication record, %+v", req)
 	}
@@ -103,11 +104,12 @@ func CachedCountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int
 
 func CountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
 	var count int
-	err := db.Table("notification").
+	_, err := dbquery.NewQueryRail(rail, db).
+		Table("notification").
 		Select("count(*)").
 		Where("user_no = ?", user.UserNo).
 		Where("status = ?", StatusInit).
-		Scan(&count).Error
+		Scan(&count)
 	return count, err
 }
 
@@ -116,13 +118,15 @@ type OpenNotificationReq struct {
 }
 
 func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
-	return db.Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE notifi_no = ? AND user_no = ?`,
-		StatusOpened, user.Username, req.NotifiNo, user.UserNo).Error
+	_, err := dbquery.NewQueryRail(rail, db).
+		Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE notifi_no = ? AND user_no = ?`,
+			StatusOpened, user.Username, req.NotifiNo, user.UserNo)
+	return err
 }
 
 func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
 	var id int
-	n, err := dbquery.NewQuery(db).
+	n, err := dbquery.NewQueryRail(rail, db).
 		From("notification").
 		Select("id").
 		Eq("user_no", user.UserNo).
@@ -135,8 +139,10 @@ func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, u
 		return miso.NewErrf("Record not found")
 	}
 
-	return db.Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE user_no = ? AND status = ? AND id <= ?`,
-		StatusOpened, user.Username, user.UserNo, StatusInit, id).Error
+	_, err = dbquery.NewQueryRail(rail, db).
+		Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE user_no = ? AND status = ? AND id <= ?`,
+			StatusOpened, user.Username, user.UserNo, StatusInit, id)
+	return err
 }
 
 func evictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {

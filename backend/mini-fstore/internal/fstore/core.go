@@ -16,6 +16,7 @@ import (
 	"github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/mini-fstore/internal/config"
 	"github.com/curtisnewbie/miso/encoding/json"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
@@ -345,13 +346,14 @@ func listPendingPhyDelFiles(rail miso.Rail, db *gorm.DB, beforeLogDelTime time.T
 	defer miso.TimeOp(rail, time.Now(), "listPendingPhyDelFiles")
 
 	var l []PendingPhyDelFile
-	tx := db.Raw("select id, file_id from file where id > ? and status = ? and log_del_time <= ? order by id asc limit 500",
-		minId, api.FileStatusLogicDel, beforeLogDelTime).
+	_, err := dbquery.NewQueryRail(rail, db).
+		Raw("select id, file_id from file where id > ? and status = ? and log_del_time <= ? order by id asc limit 500",
+			minId, api.FileStatusLogicDel, beforeLogDelTime).
 		Scan(&l)
 
-	if e := tx.Error; e != nil {
-		rail.Errorf("Failed to list LDel files, %v", e)
-		return nil, e
+	if err != nil {
+		rail.Errorf("Failed to list LDel files, %v", err)
+		return nil, err
 	}
 	return l, nil
 }
@@ -689,24 +691,26 @@ func CreateFileRec(rail miso.Rail, c CreateFile) error {
 
 func FindDuplicateFile(rail miso.Rail, db *gorm.DB, size int64, sha1 string) (string, error) {
 	var fileId string
-	t := db.Table("file").
+	_, err := dbquery.NewQueryRail(rail, db).
+		Table("file").
 		Select("file_id").
 		Where("sha1 = ?", sha1).
 		Where("status in (?, ?)", api.FileStatusNormal, api.FileStatusLogicDel).
 		Where("size = ?", size).
 		Limit(1).
 		Scan(&fileId)
-	if t.Error != nil {
-		return "", fmt.Errorf("failed to query duplicate file in db, %v", t.Error)
+	if err != nil {
+		return "", fmt.Errorf("failed to query duplicate file in db, %v", err)
 	}
 	return fileId, nil
 }
 
 func CheckFileExists(fileId string) (bool, error) {
 	var id int
-	t := mysql.GetMySQL().Raw("select id from file where file_id = ? and status = 'NORMAL'", fileId).Scan(&id)
-	if t.Error != nil {
-		return false, fmt.Errorf("failed to select file from DB, %w", t.Error)
+	_, err := dbquery.NewQuery(dbquery.GetDB()).
+		Raw("select id from file where file_id = ? and status = 'NORMAL'", fileId).Scan(&id)
+	if err != nil {
+		return false, fmt.Errorf("failed to select file from DB, %w", err)
 	}
 	return id > 0, nil
 }
@@ -800,9 +804,9 @@ func LDelFile(rail miso.Rail, db *gorm.DB, fileId string) error {
 		return ErrFileDeleted
 	}
 
-	t := db.Exec("update file set status = ?, log_del_time = ? where file_id = ?", api.FileStatusLogicDel, time.Now(), fileId)
-	if t.Error != nil {
-		return ErrUnknownError.WithInternalMsg("Failed to update file, %v", t.Error)
+	_, err := dbquery.NewQueryRail(rail, db).Exec("update file set status = ?, log_del_time = ? where file_id = ?", api.FileStatusLogicDel, time.Now(), fileId)
+	if err != nil {
+		return ErrUnknownError.WithInternalMsg("Failed to update file, %v", err)
 	}
 	return nil
 }
@@ -861,10 +865,10 @@ func PhyDelFile(rail miso.Rail, db *gorm.DB, fileId string, op PDelFileOp) error
 			return nil, ed
 		}
 
-		t := mysql.GetMySQL().
+		_, err := dbquery.NewQueryRail(rail, db).
 			Exec("update file set status = ?, phy_del_time = ? where file_id = ?", api.FileStatusPhysicDel, time.Now(), fileId)
-		if t.Error != nil {
-			return nil, ErrUnknownError.WithInternalMsg("Failed to update file, %v", t.Error)
+		if err != nil {
+			return nil, ErrUnknownError.WithInternalMsg("Failed to update file, %v", err)
 		}
 
 		return nil, nil
@@ -1149,9 +1153,9 @@ func ComputeFilesChecksum(rail miso.Rail, db *gorm.DB) error {
 	lastId := 0
 	listFiles := func(lastId int) ([]ComputingFile, error) {
 		var cfs []ComputingFile
-		err := db.Raw(`
-			SELECT id, file_id, link FROM file WHERE id > ? AND status in (?, ?) AND sha1 = "" ORDER BY id ASC LIMIT 500
-		`, lastId, api.FileStatusLogicDel, api.FileStatusNormal).Scan(&cfs).Error
+		_, err := dbquery.NewQueryRail(rail, db).
+			Raw(`SELECT id, file_id, link FROM file WHERE id > ? AND status in (?, ?) AND sha1 = "" ORDER BY id ASC LIMIT 500`,
+				lastId, api.FileStatusLogicDel, api.FileStatusNormal).Scan(&cfs)
 		if err != nil {
 			err = fmt.Errorf("failed to list files missing sha1 checksum, %v", err)
 		}
@@ -1172,7 +1176,7 @@ func ComputeFilesChecksum(rail miso.Rail, db *gorm.DB) error {
 			p := FileStoragePath(f.FileId, f.Link)
 			sha1, err := ChkSumSha1(p)
 			if err == nil && sha1 != "" {
-				if er := db.Exec(`UPDATE file set sha1 = ? WHERE id = ?`, sha1, f.Id).Error; er != nil {
+				if _, er := dbquery.NewQueryRail(rail, db).Exec(`UPDATE file set sha1 = ? WHERE id = ?`, sha1, f.Id); er != nil {
 					return fmt.Errorf("failed to update file sha1 checksum, id: %v, %v", f.Id, err)
 				} else {
 					rail.Infof("Updated sha1: %v to id: %v, fileId: %v", sha1, f.Id, f.FileId)
