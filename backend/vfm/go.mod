@@ -15,9 +15,9 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.16-0.20250301093613-7eea1e23e0c8
 	github.com/curtisnewbie/mini-fstore v0.1.18
-	github.com/curtisnewbie/miso v0.2.0-beta.4
+	github.com/curtisnewbie/miso v0.2.0-beta.4.0.20250624152819-bbb8ef911500
 	github.com/curtisnewbie/user-vault v0.0.23
-	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/redis/go-redis/v9 v9.0.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	golang.org/x/net v0.33.0
 )
@@ -26,8 +26,9 @@ require (
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.0 // indirect
-	github.com/bsm/redislock v0.0.0-20191219095057-3d76f17a9f1e // indirect
+	github.com/bsm/redislock v0.9.4 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/getkin/kin-openapi v0.131.0 // indirect
@@ -39,6 +40,7 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
+	github.com/go-redis/redis_rate/v10 v10.0.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

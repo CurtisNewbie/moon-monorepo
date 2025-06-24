@@ -1,6 +1,7 @@
 package vfm
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -166,7 +167,7 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 
 func LeaveMaintenance(rail miso.Rail) error {
 	serverMaintainanceTicker.Stop()
-	c := redis.GetRedis().Del(serverMaintainanceKey)
+	c := redis.GetRedis().Del(rail.Context(), serverMaintainanceKey)
 	if c.Err() != nil {
 		if redis.IsNil(c.Err()) {
 			return nil
@@ -178,7 +179,7 @@ func LeaveMaintenance(rail miso.Rail) error {
 }
 
 func EnterMaintenance(rail miso.Rail) (bool, error) {
-	c := redis.GetRedis().SetNX(serverMaintainanceKey, 1, time.Second*30)
+	c := redis.GetRedis().SetNX(rail.Context(), serverMaintainanceKey, 1, time.Second*30)
 	if c.Err() != nil {
 		return false, c.Err()
 	}
@@ -188,7 +189,7 @@ func EnterMaintenance(rail miso.Rail) (bool, error) {
 
 	serverMaintainanceTicker = miso.NewTickRuner(time.Second*5, func() {
 		rail := rail.NextSpan()
-		c := redis.GetRedis().SetXX(serverMaintainanceKey, 1, time.Second*30)
+		c := redis.GetRedis().SetXX(rail.Context(), serverMaintainanceKey, 1, time.Second*30)
 		if c.Err() != nil {
 			if !errors.Is(c.Err(), redis.Nil) {
 				rail.Errorf("failed to maintain redis server maintenance flag, %v", c.Err())
@@ -206,7 +207,7 @@ type MaintenanceStatus struct {
 }
 
 func CheckMaintenanceStatus() (MaintenanceStatus, error) {
-	cmd := redis.GetRedis().Exists(serverMaintainanceKey)
+	cmd := redis.GetRedis().Exists(context.Background(), serverMaintainanceKey)
 	if cmd.Err() != nil {
 		return MaintenanceStatus{}, cmd.Err()
 	}

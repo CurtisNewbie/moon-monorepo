@@ -10,7 +10,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -45,7 +45,7 @@ func (b BrowseHistory) Push(rail miso.Rail, fileKey string) error {
 	defer b.lock.Unlock()
 
 	var rbr BrowseRecord // last record
-	rcmd := b.c.LRange(b.key(), -1, -1)
+	rcmd := b.c.LRange(rail.Context(), b.key(), -1, -1)
 	if rcmd.Err() != nil {
 		if !errors.Is(rcmd.Err(), redis.Nil) {
 			return rcmd.Err()
@@ -64,7 +64,7 @@ func (b BrowseHistory) Push(rail miso.Rail, fileKey string) error {
 
 	// drop it to update the browse time
 	if rbr.FileKey == fileKey {
-		if err := b.c.RPop(b.key()).Err(); err != nil {
+		if err := b.c.RPop(rail.Context(), b.key()).Err(); err != nil {
 			return err
 		}
 	}
@@ -74,12 +74,12 @@ func (b BrowseHistory) Push(rail miso.Rail, fileKey string) error {
 	if err != nil {
 		return err
 	}
-	if err := b.c.RPush(b.key(), pushed).Err(); err != nil {
+	if err := b.c.RPush(rail.Context(), b.key(), pushed).Err(); err != nil {
 		return err
 	}
 
 	if rbr.FileKey != fileKey {
-		lcmd := b.c.LLen(b.key())
+		lcmd := b.c.LLen(rail.Context(), b.key())
 		if lcmd.Err() != nil {
 			return lcmd.Err()
 		}
@@ -89,11 +89,11 @@ func (b BrowseHistory) Push(rail miso.Rail, fileKey string) error {
 			return err
 		}
 		if cnt > b.limit {
-			return b.c.LPop(b.key()).Err()
+			return b.c.LPop(rail.Context(), b.key()).Err()
 		}
 	}
 
-	b.c.Expire(b.key(), b.ttl)
+	b.c.Expire(rail.Context(), b.key(), b.ttl)
 	return nil
 }
 
@@ -102,7 +102,7 @@ func (b BrowseHistory) key() string {
 }
 
 func (b BrowseHistory) List(rail miso.Rail) ([]BrowseRecord, error) {
-	cmd := b.c.LRange(b.key(), 0, -1)
+	cmd := b.c.LRange(rail.Context(), b.key(), 0, -1)
 	if cmd.Err() != nil {
 		return []BrowseRecord{}, cmd.Err()
 	}

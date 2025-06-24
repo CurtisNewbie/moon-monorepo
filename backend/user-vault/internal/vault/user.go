@@ -740,7 +740,7 @@ type ClearUserFailedLoginAttemptsReq struct {
 func ClearFailedLoginAttempts(rail miso.Rail, userNo string) error {
 	r := redis.GetRedis()
 	k := failedLoginAttemptRedisKey + userNo
-	if err := r.Del(k).Err(); err != nil {
+	if err := r.Del(rail.Context(), k).Err(); err != nil {
 		return err
 	}
 	rail.Infof("Reset user %v failed login attempts", userNo)
@@ -750,16 +750,16 @@ func ClearFailedLoginAttempts(rail miso.Rail, userNo string) error {
 func IncrFailedLoginAttempts(rail miso.Rail, userNo string) error {
 	r := redis.GetRedis()
 	k := failedLoginAttemptRedisKey + userNo
-	c := r.Incr(k)
+	c := r.Incr(rail.Context(), k)
 	if c.Err() != nil {
 		return c.Err()
 	}
 	rail.Infof("User %v login failed, curr failed attempts: %v", userNo, c.Val())
-	return r.Expire(k, time.Minute*15).Err()
+	return r.Expire(rail.Context(), k, time.Minute*15).Err()
 }
 
 func CheckFailedLoginAttempts(rail miso.Rail, userNo string) (bool, error) {
-	c := redis.GetRedis().Get(failedLoginAttemptRedisKey + userNo)
+	c := redis.GetRedis().Get(rail.Context(), failedLoginAttemptRedisKey+userNo)
 	if c.Err() != nil {
 		if redis.IsNil(c.Err()) {
 			return true, nil

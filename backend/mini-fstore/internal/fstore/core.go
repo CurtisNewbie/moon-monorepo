@@ -2,6 +2,7 @@ package fstore
 
 import (
 	"archive/zip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -243,7 +244,7 @@ func GenTrashPath(fileId string) string {
 }
 
 func IsInMaintenance(rail miso.Rail) (bool, error) {
-	c := redis.GetRedis().Get(serverMaintainanceKey)
+	c := redis.GetRedis().Get(rail.Context(), serverMaintainanceKey)
 	if c.Err() != nil {
 		if redis.IsNil(c.Err()) {
 			return false, nil
@@ -255,7 +256,7 @@ func IsInMaintenance(rail miso.Rail) (bool, error) {
 
 func LeaveMaintenance(rail miso.Rail) error {
 	serverMaintainanceTicker.Stop()
-	c := redis.GetRedis().Del(serverMaintainanceKey)
+	c := redis.GetRedis().Del(rail.Context(), serverMaintainanceKey)
 	if c.Err() != nil {
 		if redis.IsNil(c.Err()) {
 			return nil
@@ -267,7 +268,7 @@ func LeaveMaintenance(rail miso.Rail) error {
 }
 
 func EnterMaintenance(rail miso.Rail) (bool, error) {
-	c := redis.GetRedis().SetNX(serverMaintainanceKey, 1, time.Second*30)
+	c := redis.GetRedis().SetNX(rail.Context(), serverMaintainanceKey, 1, time.Second*30)
 	if c.Err() != nil {
 		return false, c.Err()
 	}
@@ -277,7 +278,7 @@ func EnterMaintenance(rail miso.Rail) (bool, error) {
 
 	serverMaintainanceTicker = miso.NewTickRuner(time.Second*5, func() {
 		rail := rail.NextSpan()
-		c := redis.GetRedis().SetXX(serverMaintainanceKey, 1, time.Second*30)
+		c := redis.GetRedis().SetXX(rail.Context(), serverMaintainanceKey, 1, time.Second*30)
 		if c.Err() != nil {
 			if !errors.Is(c.Err(), redis.Nil) {
 				rail.Errorf("failed to maintain redis server maintenance flag, %v", c.Err())
@@ -402,13 +403,13 @@ func RandFileKey(rail miso.Rail, name string, fileId string) (string, error) {
 	if em != nil {
 		return "", fmt.Errorf("failed to marshal to CachedFile, %v", em)
 	}
-	c := redis.GetRedis().Set("fstore:file:key:"+fk, string(sby), 30*time.Minute)
+	c := redis.GetRedis().Set(rail.Context(), "fstore:file:key:"+fk, string(sby), 30*time.Minute)
 	return fk, c.Err()
 }
 
 // Refresh file key's expiration
 func RefreshFileKeyExp(rail miso.Rail, fileKey string) error {
-	c := redis.GetRedis().Expire("fstore:file:key:"+fileKey, 30*time.Minute)
+	c := redis.GetRedis().Expire(rail.Context(), "fstore:file:key:"+fileKey, 30*time.Minute)
 	if c.Err() != nil {
 		rail.Warnf("Failed to refresh file key expiration, fileKey: %v, %v", fileKey, c.Err())
 		return fmt.Errorf("failed to refresh key expiration, %v", c.Err())
@@ -419,7 +420,7 @@ func RefreshFileKeyExp(rail miso.Rail, fileKey string) error {
 // Resolve CachedFile for the given fileKey
 func ResolveFileKey(rail miso.Rail, fileKey string) (bool, CachedFile) {
 	var cf CachedFile
-	c := redis.GetRedis().Get("fstore:file:key:" + fileKey)
+	c := redis.GetRedis().Get(rail.Context(), "fstore:file:key:"+fileKey)
 	if c.Err() != nil {
 		if errors.Is(c.Err(), redis.Nil) {
 			rail.Infof("FileKey not found, %v", fileKey)
@@ -1333,7 +1334,7 @@ type MaintenanceStatus struct {
 }
 
 func CheckMaintenanceStatus() (MaintenanceStatus, error) {
-	cmd := redis.GetRedis().Exists(serverMaintainanceKey)
+	cmd := redis.GetRedis().Exists(context.Background(), serverMaintainanceKey)
 	if cmd.Err() != nil {
 		return MaintenanceStatus{}, cmd.Err()
 	}

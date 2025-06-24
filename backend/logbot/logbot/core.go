@@ -18,7 +18,7 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	uvault "github.com/curtisnewbie/user-vault/api"
-	red "github.com/go-redis/redis"
+	red "github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -31,7 +31,7 @@ var (
 )
 
 func lastPos(rail miso.Rail, app string, nodeName string) (int64, error) {
-	cmd := redis.GetRedis().Get(fmt.Sprintf("log-bot:pos:%v:%v", nodeName, app))
+	cmd := redis.GetRedis().Get(rail.Context(), fmt.Sprintf("log-bot:pos:%v:%v", nodeName, app))
 	if cmd.Err() != nil {
 		if errors.Is(cmd.Err(), red.Nil) {
 			return 0, nil
@@ -52,7 +52,7 @@ func lastPos(rail miso.Rail, app string, nodeName string) (int64, error) {
 func recPos(rail miso.Rail, app string, nodeName string, pos int64) error {
 	rail.Debugf("app: %v, node: %v, pos: %v", app, nodeName, pos)
 	posStr := strconv.FormatInt(pos, 10)
-	cmd := redis.GetRedis().Set(fmt.Sprintf("log-bot:pos:%v:%v", nodeName, app), posStr, 0)
+	cmd := redis.GetRedis().Set(rail.Context(), fmt.Sprintf("log-bot:pos:%v:%v", nodeName, app), posStr, 0)
 	return cmd.Err()
 }
 

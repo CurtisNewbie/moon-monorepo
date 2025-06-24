@@ -142,7 +142,7 @@ func ApiUploadFile(inb *miso.Inbound) (string, error) {
 	// the fileId should be used internally within the system)
 	tempFileId := util.ERand(40)
 
-	cmd := redis.GetRedis().Set("mini-fstore:upload:fileId:"+tempFileId, fileId, 6*time.Hour)
+	cmd := redis.GetRedis().Set(rail.Context(), "mini-fstore:upload:fileId:"+tempFileId, fileId, 6*time.Hour)
 	if cmd.Err() != nil {
 		return "", fmt.Errorf("failed to cache the generated fake fileId, %v", e)
 	}
@@ -163,7 +163,7 @@ type FileInfoReq struct {
 func ApiGetFileInfo(inb *miso.Inbound, req FileInfoReq) (api.FstoreFile, error) {
 	// fake fileId for uploaded file
 	if req.UploadFileId != "" {
-		rcmd := redis.GetRedis().Get("mini-fstore:upload:fileId:" + req.UploadFileId)
+		rcmd := redis.GetRedis().Get(inb.Context(), "mini-fstore:upload:fileId:"+req.UploadFileId)
 		if rcmd.Err() != nil {
 			if redis.IsNil(rcmd.Err()) {
 				// invalid fileId, or the uploadFileId has expired

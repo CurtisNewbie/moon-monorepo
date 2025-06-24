@@ -11,7 +11,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +30,7 @@ func PrepareLongPollHandler(rail miso.Rail) error {
 }
 
 func listenUserNotificationCountChanges(r *redis.Client) error {
-	pubsub := r.Subscribe(userNotifCountChangedChannel)
+	pubsub := r.Subscribe(context.Background(), userNotifCountChangedChannel)
 	c, cancel := context.WithCancel(context.Background())
 	miso.AddShutdownHook(func() {
 		cancel()
