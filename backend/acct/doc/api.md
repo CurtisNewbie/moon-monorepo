@@ -19,7 +19,7 @@
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "direction": (string) Flow Direction: IN / OUT
+    - "direction": (string) Flow Direction: IN / OUT. Enums: ["IN","OUT",""].
     - "transTimeStart": (int64) Transaction Time Range Start
     - "transTimeEnd": (int64) Transaction Time Range End
     - "transId": (string) Transaction ID
@@ -58,7 +58,7 @@
   ```go
   type ListCashFlowReq struct {
   	Paging miso.Paging `json:"paging"`
-  	Direction string `json:"direction"` // Flow Direction: IN / OUT
+  	Direction string `json:"direction"` // Flow Direction: IN / OUT. Enums: ["IN","OUT",""].
   	TransTimeStart *util.ETime `json:"transTimeStart"` // Transaction Time Range Start
   	TransTimeEnd *util.ETime `json:"transTimeEnd"` // Transaction Time Range End
   	TransId string `json:"transId"` // Transaction ID
@@ -104,7 +104,7 @@
   ```ts
   export interface ListCashFlowReq {
     paging?: Paging;
-    direction?: string;            // Flow Direction: IN / OUT
+    direction?: string;            // Flow Direction: IN / OUT. Enums: ["IN","OUT",""].
     transTimeStart?: number;       // Transaction Time Range Start
     transTimeEnd?: number;         // Transaction Time Range End
     transId?: string;              // Transaction ID
@@ -327,7 +327,7 @@
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "aggType": (string) Aggregation Type.
+    - "aggType": (string) Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
     - "aggRange": (string) Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
     - "currency": (string) Currency
 - JSON Response:
@@ -355,7 +355,7 @@
   ```go
   type ApiListStatisticsReq struct {
   	Paging miso.Paging `json:"paging"`
-  	AggType string `json:"aggType"` // Aggregation Type.
+  	AggType string `json:"aggType"` // Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
   	AggRange string `json:"aggRange"` // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
   	Currency string `json:"currency"` // Currency
   }
@@ -390,7 +390,7 @@
   ```ts
   export interface ApiListStatisticsReq {
     paging?: Paging;
-    aggType?: string;              // Aggregation Type.
+    aggType?: string;              // Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
     aggRange?: string;             // Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
     currency?: string;             // Currency
   }
@@ -462,7 +462,7 @@
 - JSON Request:
     - "startTime": (int64) Start time
     - "endTime": (int64) End time
-    - "aggType": (string) Aggregation Type.
+    - "aggType": (string) Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
     - "currency": (string) Currency
 - JSON Response:
     - "errorCode": (string) error code
@@ -483,7 +483,7 @@
   type ApiPlotStatisticsReq struct {
   	StartTime util.ETime `json:"startTime"` // Start time
   	EndTime util.ETime `json:"endTime"` // End time
-  	AggType string `json:"aggType"` // Aggregation Type.
+  	AggType string `json:"aggType"` // Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
   	Currency string `json:"currency"` // Currency
   }
 
@@ -515,7 +515,7 @@
   export interface ApiPlotStatisticsReq {
     startTime?: number;            // Start time
     endTime?: number;              // End time
-    aggType?: string;              // Aggregation Type.
+    aggType?: string;              // Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
     currency?: string;             // Currency
   }
 

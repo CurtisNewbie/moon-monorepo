@@ -31,10 +31,10 @@ func BeforeServerBootstrap(rail miso.Rail) error {
 			return SaveErrorLog(rail, l)
 		})
 
-	miso.IPost("/log/error/list",
-		func(inb *miso.Inbound, req ListErrorLogReq) (any, error) {
+	miso.HttpPost("/log/error/list",
+		miso.AutoHandler(func(inb *miso.Inbound, req ListErrorLogReq) (any, error) {
 			return ListErrorLogs(inb.Rail(), req)
-		}).
+		})).
 		Desc("List error logs").
 		Resource(ResourceManageLogbot)
 

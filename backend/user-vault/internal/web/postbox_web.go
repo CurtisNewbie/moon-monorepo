@@ -18,29 +18,29 @@ func RegisterRoutes(rail miso.Rail) error {
 
 	miso.BaseRoute("/open/api/v1/notification").Group(
 
-		miso.IPost("/create", CreateNotificationEp).
+		miso.HttpPost("/create", miso.AutoHandler(CreateNotificationEp)).
 			Desc("Create platform notification").
 			Resource(ResourceCreateNotification),
 
-		miso.IPost("/query", QueryNotificationEp).
+		miso.HttpPost("/query", miso.AutoHandler(QueryNotificationEp)).
 			Desc("Query platform notification").
 			Resource(ResourceQueryNotification),
 
-		miso.Get("/count", CountNotificationEp).
+		miso.HttpGet("/count", miso.ResHandler(CountNotificationEp)).
 			Desc("Count received platform notification").
 			Resource(ResourceQueryNotification),
 
-		miso.IPost("/open", OpenNotificationEp).
+		miso.HttpPost("/open", miso.AutoHandler(OpenNotificationEp)).
 			Desc("Record user opened platform notification").
 			Resource(ResourceQueryNotification),
 
-		miso.IPost("/open-all", OpenAllNotificationEp).
+		miso.HttpPost("/open-all", miso.AutoHandler(OpenAllNotificationEp)).
 			Desc("Mark all notifications opened").
 			Resource(ResourceQueryNotification),
 	)
 
 	miso.BaseRoute("/open/api/v2/notification").Group(
-		miso.RawGet("/count", CountNotificationV2Ep).
+		miso.HttpGet("/count", miso.RawHandler(CountNotificationV2Ep)).
 			Desc("Count received platform notification using long polling").
 			DocQueryParam("curr", "Current count (used to implement long polling)").
 			Resource(ResourceQueryNotification),

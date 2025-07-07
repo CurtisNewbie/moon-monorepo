@@ -527,8 +527,8 @@
 
 - Description: Unzip archive, upload all the zip entries, and reply the final results back to the caller asynchronously
 - JSON Request:
-    - "fileId": (string) file_id of zip file
-    - "replyToEventBus": (string) name of the rabbitmq exchange to reply to, routing_key is '#'
+    - "fileId": (string) file_id of zip file. Required.
+    - "replyToEventBus": (string) name of the rabbitmq exchange to reply to, routing_key is '#'. Required.
     - "extra": (string) extra information that will be passed around for the caller
 - JSON Response:
     - "errorCode": (string) error code
@@ -544,8 +544,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UnzipFileReq struct {
-  	FileId string `json:"fileId"`  // file_id of zip file
-  	ReplyToEventBus string `json:"replyToEventBus"` // name of the rabbitmq exchange to reply to, routing_key is '#'
+  	FileId string `json:"fileId"`  // file_id of zip file. Required.
+  	ReplyToEventBus string `json:"replyToEventBus"` // name of the rabbitmq exchange to reply to, routing_key is '#'. Required.
   	Extra string `json:"extra"`    // extra information that will be passed around for the caller
   }
 
@@ -569,8 +569,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface UnzipFileReq {
-    fileId?: string;               // file_id of zip file
-    replyToEventBus?: string;      // name of the rabbitmq exchange to reply to, routing_key is '#'
+    fileId?: string;               // file_id of zip file. Required.
+    replyToEventBus?: string;      // name of the rabbitmq exchange to reply to, routing_key is '#'. Required.
     extra?: string;                // extra information that will be passed around for the caller
   }
 

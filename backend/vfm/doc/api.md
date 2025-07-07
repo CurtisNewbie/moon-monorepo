@@ -234,7 +234,7 @@
 - Description: User move file into directory
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "uuid": (string) 
+    - "uuid": (string) Required.
     - "parentFileUuid": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -250,7 +250,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type MoveIntoDirReq struct {
-  	Uuid string `json:"uuid"`
+  	Uuid string `json:"uuid"`      // Required.
   	ParentFileUuid string `json:"parentFileUuid"`
   }
 
@@ -274,7 +274,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface MoveIntoDirReq {
-    uuid?: string;
+    uuid?: string;                 // Required.
     parentFileUuid?: string;
   }
 
@@ -319,7 +319,7 @@
 - Bound to Resource: `"manage-files"`
 - JSON Request:
     - "instructions": ([]vfm.MoveIntoDirReq) 
-      - "uuid": (string) 
+      - "uuid": (string) Required.
       - "parentFileUuid": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -339,7 +339,7 @@
   }
 
   type MoveIntoDirReq struct {
-  	Uuid string `json:"uuid"`
+  	Uuid string `json:"uuid"`      // Required.
   	ParentFileUuid string `json:"parentFileUuid"`
   }
 
@@ -367,7 +367,7 @@
   }
 
   export interface MoveIntoDirReq {
-    uuid?: string;
+    uuid?: string;                 // Required.
     parentFileUuid?: string;
   }
 
@@ -412,7 +412,7 @@
 - Bound to Resource: `"manage-files"`
 - JSON Request:
     - "parentFile": (string) 
-    - "name": (string) 
+    - "name": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -429,7 +429,7 @@
   ```go
   type MakeDirReq struct {
   	ParentFile string `json:"parentFile"`
-  	Name string `json:"name"`
+  	Name string `json:"name"`      // Required.
   }
 
   func ApiMakeDir(rail miso.Rail, req MakeDirReq) (string, error) {
@@ -453,7 +453,7 @@
   ```ts
   export interface MakeDirReq {
     parentFile?: string;
-    name?: string;
+    name?: string;                 // Required.
   }
 
   export interface Resp {
@@ -2533,7 +2533,7 @@
 - Description: Create new gallery
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "name": (string) 
+    - "name": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2559,7 +2559,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type CreateGalleryCmd struct {
-  	Name string `json:"name"`
+  	Name string `json:"name"`      // Required.
   }
 
   type Gallery struct {
@@ -2596,7 +2596,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreateGalleryCmd {
-    name?: string;
+    name?: string;                 // Required.
   }
 
   export interface Resp {
@@ -2654,8 +2654,8 @@
 - Description: Update gallery
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "galleryNo": (string) 
-    - "name": (string) 
+    - "galleryNo": (string) Required.
+    - "name": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2670,8 +2670,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UpdateGalleryCmd struct {
-  	GalleryNo string `json:"galleryNo"`
-  	Name string `json:"name"`
+  	GalleryNo string `json:"galleryNo"` // Required.
+  	Name string `json:"name"`      // Required.
   }
 
   func ApiUpdateGallery(rail miso.Rail, req UpdateGalleryCmd) error {
@@ -2694,8 +2694,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface UpdateGalleryCmd {
-    galleryNo?: string;
-    name?: string;
+    galleryNo?: string;            // Required.
+    name?: string;                 // Required.
   }
 
   export interface Resp {
@@ -2738,7 +2738,7 @@
 - Description: Delete gallery
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "galleryNo": (string) 
+    - "galleryNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2753,7 +2753,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DeleteGalleryCmd struct {
-  	GalleryNo string `json:"galleryNo"`
+  	GalleryNo string `json:"galleryNo"` // Required.
   }
 
   func ApiDeleteGallery(rail miso.Rail, req DeleteGalleryCmd) error {
@@ -2776,7 +2776,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface DeleteGalleryCmd {
-    galleryNo?: string;
+    galleryNo?: string;            // Required.
   }
 
   export interface Resp {
@@ -2966,8 +2966,8 @@
 - Description: Grant access to the galleries
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "galleryNo": (string) 
-    - "username": (string) 
+    - "galleryNo": (string) Required.
+    - "username": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2982,8 +2982,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type PermitGalleryAccessCmd struct {
-  	GalleryNo string `json:"galleryNo"`
-  	Username string `json:"username"`
+  	GalleryNo string `json:"galleryNo"` // Required.
+  	Username string `json:"username"` // Required.
   }
 
   func ApiGranteGalleryAccess(rail miso.Rail, req PermitGalleryAccessCmd) error {
@@ -3006,8 +3006,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface PermitGalleryAccessCmd {
-    galleryNo?: string;
-    username?: string;
+    galleryNo?: string;            // Required.
+    username?: string;             // Required.
   }
 
   export interface Resp {
@@ -3050,8 +3050,8 @@
 - Description: Remove access to the galleries
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "galleryNo": (string) 
-    - "userNo": (string) 
+    - "galleryNo": (string) Required.
+    - "userNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3066,8 +3066,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RemoveGalleryAccessCmd struct {
-  	GalleryNo string `json:"galleryNo"`
-  	UserNo string `json:"userNo"`
+  	GalleryNo string `json:"galleryNo"` // Required.
+  	UserNo string `json:"userNo"`  // Required.
   }
 
   func ApiRemoveGalleryAccess(rail miso.Rail, req RemoveGalleryAccessCmd) error {
@@ -3090,8 +3090,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveGalleryAccessCmd {
-    galleryNo?: string;
-    userNo?: string;
+    galleryNo?: string;            // Required.
+    userNo?: string;               // Required.
   }
 
   export interface Resp {
@@ -3134,7 +3134,7 @@
 - Description: List granted access to the galleries
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "galleryNo": (string) 
+    - "galleryNo": (string) Required.
     - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
@@ -3164,7 +3164,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListGrantedGalleryAccessCmd struct {
-  	GalleryNo string `json:"galleryNo"`
+  	GalleryNo string `json:"galleryNo"` // Required.
   	Paging miso.Paging `json:"paging"`
   }
 
@@ -3198,7 +3198,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListGrantedGalleryAccessCmd {
-    galleryNo?: string;
+    galleryNo?: string;            // Required.
     paging?: Paging;
   }
 
@@ -3269,7 +3269,7 @@
 - Description: List images of gallery
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "galleryNo": (string) 
+    - "galleryNo": (string) Required.
     - "paging": (Paging) 
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
@@ -3297,7 +3297,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListGalleryImagesCmd struct {
-  	GalleryNo string `json:"galleryNo"`
+  	GalleryNo string `json:"galleryNo"` // Required.
   	Paging miso.Paging `json:"paging"`
   }
 
@@ -3333,7 +3333,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface ListGalleryImagesCmd {
-    galleryNo?: string;
+    galleryNo?: string;            // Required.
     paging?: Paging;
   }
 
@@ -3646,7 +3646,7 @@
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "verFileId": (string) versioned file id
+    - "verFileId": (string) versioned file id. Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3673,7 +3673,7 @@
   ```go
   type ApiListVerFileHistoryReq struct {
   	Paging miso.Paging `json:"paging"`
-  	VerFileId string `json:"verFileId"` // versioned file id
+  	VerFileId string `json:"verFileId"` // versioned file id. Required.
   }
 
 
@@ -3707,7 +3707,7 @@
   ```ts
   export interface ApiListVerFileHistoryReq {
     paging?: Paging;
-    verFileId?: string;            // versioned file id
+    verFileId?: string;            // versioned file id. Required.
   }
 
   export interface Paging {
@@ -3777,7 +3777,7 @@
 - Description: Query versioned file log accumulated size
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "verFileId": (string) versioned file id
+    - "verFileId": (string) versioned file id. Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3794,7 +3794,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiQryVerFileAccuSizeReq struct {
-  	VerFileId string `json:"verFileId"` // versioned file id
+  	VerFileId string `json:"verFileId"` // versioned file id. Required.
   }
 
   type ApiQryVerFileAccuSizeRes struct {
@@ -3822,7 +3822,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiQryVerFileAccuSizeReq {
-    verFileId?: string;            // versioned file id
+    verFileId?: string;            // versioned file id. Required.
   }
 
   export interface Resp {
@@ -3871,8 +3871,8 @@
 - Description: Create versioned file
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "filename": (string) 
-    - "fstoreFileId": (string) 
+    - "filename": (string) Required.
+    - "fstoreFileId": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3889,8 +3889,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiCreateVerFileReq struct {
-  	Filename string `json:"filename"`
-  	FakeFstoreFileId string `json:"fstoreFileId"`
+  	Filename string `json:"filename"` // Required.
+  	FakeFstoreFileId string `json:"fstoreFileId"` // Required.
   }
 
   type ApiCreateVerFileRes struct {
@@ -3918,8 +3918,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiCreateVerFileReq {
-    filename?: string;
-    fstoreFileId?: string;
+    filename?: string;             // Required.
+    fstoreFileId?: string;         // Required.
   }
 
   export interface Resp {
@@ -3968,9 +3968,9 @@
 - Description: Update versioned file
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "verFileId": (string) versioned file id
-    - "filename": (string) 
-    - "fstoreFileId": (string) 
+    - "verFileId": (string) versioned file id. Required.
+    - "filename": (string) Required.
+    - "fstoreFileId": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3985,9 +3985,9 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiUpdateVerFileReq struct {
-  	VerFileId string `json:"verFileId"` // versioned file id
-  	Filename string `json:"filename"`
-  	FakeFstoreFileId string `json:"fstoreFileId"`
+  	VerFileId string `json:"verFileId"` // versioned file id. Required.
+  	Filename string `json:"filename"` // Required.
+  	FakeFstoreFileId string `json:"fstoreFileId"` // Required.
   }
 
   func ApiUpdateVersionedFile(rail miso.Rail, req ApiUpdateVerFileReq) error {
@@ -4010,9 +4010,9 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiUpdateVerFileReq {
-    verFileId?: string;            // versioned file id
-    filename?: string;
-    fstoreFileId?: string;
+    verFileId?: string;            // versioned file id. Required.
+    filename?: string;             // Required.
+    fstoreFileId?: string;         // Required.
   }
 
   export interface Resp {
@@ -4055,7 +4055,7 @@
 - Description: Delete versioned file
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "verFileId": (string) Versioned File Id
+    - "verFileId": (string) Versioned File Id. Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -4070,7 +4070,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiDelVerFileReq struct {
-  	VerFileId string `json:"verFileId"` // Versioned File Id
+  	VerFileId string `json:"verFileId"` // Versioned File Id. Required.
   }
 
   func ApiDelVersionedFile(rail miso.Rail, req ApiDelVerFileReq) error {
@@ -4093,7 +4093,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface ApiDelVerFileReq {
-    verFileId?: string;            // Versioned File Id
+    verFileId?: string;            // Versioned File Id. Required.
   }
 
   export interface Resp {
@@ -4781,7 +4781,7 @@
 - Description: Record user browse history, only files that are directly owned by the user is recorded
 - Bound to Resource: `"manage-files"`
 - JSON Request:
-    - "fileKey": (string) 
+    - "fileKey": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -4796,7 +4796,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RecordBrowseHistoryReq struct {
-  	FileKey string `json:"fileKey"`
+  	FileKey string `json:"fileKey"` // Required.
   }
 
   func ApiRecordBrowseHistory(rail miso.Rail, req RecordBrowseHistoryReq) error {
@@ -4819,7 +4819,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface RecordBrowseHistoryReq {
-    fileKey?: string;
+    fileKey?: string;              // Required.
   }
 
   export interface Resp {
@@ -5300,8 +5300,8 @@
 - Description: Internal endpoint, System make directory.
 - JSON Request:
     - "parentFile": (string) 
-    - "userNo": (string) 
-    - "name": (string) 
+    - "userNo": (string) Required.
+    - "name": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5318,8 +5318,8 @@
   ```go
   type SysMakeDirReq struct {
   	ParentFile string `json:"parentFile"`
-  	UserNo string `json:"userNo"`
-  	Name string `json:"name"`
+  	UserNo string `json:"userNo"`  // Required.
+  	Name string `json:"name"`      // Required.
   }
 
   func ApiSysMakeDir(rail miso.Rail, req SysMakeDirReq) (string, error) {
@@ -5343,8 +5343,8 @@
   ```ts
   export interface SysMakeDirReq {
     parentFile?: string;
-    userNo?: string;
-    name?: string;
+    userNo?: string;               // Required.
+    name?: string;                 // Required.
   }
 
   export interface Resp {

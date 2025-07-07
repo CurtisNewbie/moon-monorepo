@@ -66,8 +66,8 @@
   - "x-forwarded-for": 
   - "user-agent": 
 - JSON Request:
-    - "username": (string) 
-    - "password": (string) 
+    - "username": (string) Required.
+    - "password": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -85,8 +85,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type LoginReq struct {
-  	Username string `json:"username"`
-  	Password string `json:"password"`
+  	Username string `json:"username"` // Required.
+  	Password string `json:"password"` // Required.
   }
 
   func ApiUserLogin(rail miso.Rail, req LoginReq, xForwardedFor string, userAgent string) (string, error) {
@@ -111,8 +111,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface LoginReq {
-    username?: string;
-    password?: string;
+    username?: string;             // Required.
+    password?: string;             // Required.
   }
 
   export interface Resp {
@@ -165,8 +165,8 @@
 - Description: User request registration, approval needed
 - Expected Access Scope: PUBLIC
 - JSON Request:
-    - "username": (string) 
-    - "password": (string) 
+    - "username": (string) Required.
+    - "password": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -181,8 +181,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RegisterReq struct {
-  	Username string `json:"username"`
-  	Password string `json:"password"`
+  	Username string `json:"username"` // Required.
+  	Password string `json:"password"` // Required.
   }
 
   func ApiUserRegister(rail miso.Rail, req RegisterReq) error {
@@ -205,8 +205,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface RegisterReq {
-    username?: string;
-    password?: string;
+    username?: string;             // Required.
+    password?: string;             // Required.
   }
 
   export interface Resp {
@@ -249,8 +249,8 @@
 - Description: Admin create new user
 - Bound to Resource: `"manage-users"`
 - JSON Request:
-    - "username": (string) 
-    - "password": (string) 
+    - "username": (string) Required.
+    - "password": (string) Required.
     - "roleNo": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -266,8 +266,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type AddUserParam struct {
-  	Username string `json:"username"`
-  	Password string `json:"password"`
+  	Username string `json:"username"` // Required.
+  	Password string `json:"password"` // Required.
   	RoleNo string `json:"roleNo"`
   }
 
@@ -291,8 +291,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface AddUserParam {
-    username?: string;
-    password?: string;
+    username?: string;             // Required.
+    password?: string;             // Required.
     roleNo?: string;
   }
 
@@ -495,7 +495,7 @@
 - Description: Admin update user info
 - Bound to Resource: `"manage-users"`
 - JSON Request:
-    - "userNo": (string) 
+    - "userNo": (string) Required.
     - "roleNo": (string) 
     - "isDisabled": (int) 
 - JSON Response:
@@ -512,7 +512,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type AdminUpdateUserReq struct {
-  	UserNo string `json:"userNo"`
+  	UserNo string `json:"userNo"`  // Required.
   	RoleNo string `json:"roleNo"`
   	IsDisabled int `json:"isDisabled"`
   }
@@ -537,7 +537,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface AdminUpdateUserReq {
-    userNo?: string;
+    userNo?: string;               // Required.
     roleNo?: string;
     isDisabled?: number;
   }
@@ -762,8 +762,8 @@
 - Description: User update password
 - Bound to Resource: `"basic-user"`
 - JSON Request:
-    - "prevPassword": (string) 
-    - "newPassword": (string) 
+    - "prevPassword": (string) Required.
+    - "newPassword": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -778,8 +778,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UpdatePasswordReq struct {
-  	PrevPassword string `json:"prevPassword"`
-  	NewPassword string `json:"newPassword"`
+  	PrevPassword string `json:"prevPassword"` // Required.
+  	NewPassword string `json:"newPassword"` // Required.
   }
 
   func ApiUserUpdatePassword(rail miso.Rail, req UpdatePasswordReq) error {
@@ -802,8 +802,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface UpdatePasswordReq {
-    prevPassword?: string;
-    newPassword?: string;
+    prevPassword?: string;         // Required.
+    newPassword?: string;          // Required.
   }
 
   export interface Resp {
@@ -846,7 +846,7 @@
 - Description: Exchange token
 - Expected Access Scope: PUBLIC
 - JSON Request:
-    - "token": (string) 
+    - "token": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -862,7 +862,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ExchangeTokenReq struct {
-  	Token string `json:"token"`
+  	Token string `json:"token"`    // Required.
   }
 
   func ExchangeTokenEp(rail miso.Rail, req ExchangeTokenReq) (string, error) {
@@ -885,7 +885,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface ExchangeTokenReq {
-    token?: string;
+    token?: string;                // Required.
   }
 
   export interface Resp {
@@ -1168,8 +1168,8 @@
 - Description: User generate user key
 - Bound to Resource: `"basic-user"`
 - JSON Request:
-    - "password": (string) 
-    - "keyName": (string) 
+    - "password": (string) Required.
+    - "keyName": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1184,8 +1184,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type GenUserKeyReq struct {
-  	Password string `json:"password"`
-  	KeyName string `json:"keyName"`
+  	Password string `json:"password"` // Required.
+  	KeyName string `json:"keyName"` // Required.
   }
 
   func ApiUserGenUserKey(rail miso.Rail, req GenUserKeyReq) error {
@@ -1208,8 +1208,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface GenUserKeyReq {
-    password?: string;
-    keyName?: string;
+    password?: string;             // Required.
+    keyName?: string;              // Required.
   }
 
   export interface Resp {
@@ -1468,8 +1468,8 @@
 - Description: Admin add resource
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "name": (string) 
-    - "code": (string) 
+    - "name": (string) Required. Max length: 32.
+    - "code": (string) Required. Max length: 32.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1484,8 +1484,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type CreateResReq struct {
-  	Name string `json:"name"`
-  	Code string `json:"code"`
+  	Name string `json:"name"`      // Required. Max length: 32.
+  	Code string `json:"code"`      // Required. Max length: 32.
   }
 
   func ApiAdminAddResource(rail miso.Rail, req CreateResReq) error {
@@ -1508,8 +1508,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreateResReq {
-    name?: string;
-    code?: string;
+    name?: string;                 // Required. Max length: 32.
+    code?: string;                 // Required. Max length: 32.
   }
 
   export interface Resp {
@@ -1552,7 +1552,7 @@
 - Description: Admin remove resource
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "resCode": (string) 
+    - "resCode": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1567,7 +1567,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DeleteResourceReq struct {
-  	ResCode string `json:"resCode"`
+  	ResCode string `json:"resCode"` // Required.
   }
 
   func ApiAdminRemoveResource(rail miso.Rail, req DeleteResourceReq) error {
@@ -1590,7 +1590,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface DeleteResourceReq {
-    resCode?: string;
+    resCode?: string;              // Required.
   }
 
   export interface Resp {
@@ -2031,8 +2031,8 @@
 - Description: Admin add resource to role
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "roleNo": (string) 
-    - "resCode": (string) 
+    - "roleNo": (string) Required.
+    - "resCode": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2047,8 +2047,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type AddRoleResReq struct {
-  	RoleNo string `json:"roleNo"`
-  	ResCode string `json:"resCode"`
+  	RoleNo string `json:"roleNo"`  // Required.
+  	ResCode string `json:"resCode"` // Required.
   }
 
   func ApiAdminBindRoleRes(rail miso.Rail, req AddRoleResReq) error {
@@ -2071,8 +2071,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface AddRoleResReq {
-    roleNo?: string;
-    resCode?: string;
+    roleNo?: string;               // Required.
+    resCode?: string;              // Required.
   }
 
   export interface Resp {
@@ -2115,8 +2115,8 @@
 - Description: Admin remove resource from role
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "roleNo": (string) 
-    - "resCode": (string) 
+    - "roleNo": (string) Required.
+    - "resCode": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2131,8 +2131,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RemoveRoleResReq struct {
-  	RoleNo string `json:"roleNo"`
-  	ResCode string `json:"resCode"`
+  	RoleNo string `json:"roleNo"`  // Required.
+  	ResCode string `json:"resCode"` // Required.
   }
 
   func ApiAdminUnbindRoleRes(rail miso.Rail, req RemoveRoleResReq) error {
@@ -2155,8 +2155,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveRoleResReq {
-    roleNo?: string;
-    resCode?: string;
+    roleNo?: string;               // Required.
+    resCode?: string;              // Required.
   }
 
   export interface Resp {
@@ -2199,7 +2199,7 @@
 - Description: Admin add role
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "name": (string) 
+    - "name": (string) Required. Max length: 32.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2214,7 +2214,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type AddRoleReq struct {
-  	Name string `json:"name"`
+  	Name string `json:"name"`      // Required. Max length: 32.
   }
 
   func ApiAdminAddRole(rail miso.Rail, req AddRoleReq) error {
@@ -2237,7 +2237,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface AddRoleReq {
-    name?: string;
+    name?: string;                 // Required. Max length: 32.
   }
 
   export interface Resp {
@@ -2510,7 +2510,7 @@
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "roleNo": (string) 
+    - "roleNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2537,7 +2537,7 @@
   ```go
   type ListRoleResReq struct {
   	Paging miso.Paging `json:"paging"`
-  	RoleNo string `json:"roleNo"`
+  	RoleNo string `json:"roleNo"`  // Required.
   }
 
   type ListRoleResResp struct {
@@ -2575,7 +2575,7 @@
   ```ts
   export interface ListRoleResReq {
     paging?: Paging;
-    roleNo?: string;
+    roleNo?: string;               // Required.
   }
 
   export interface Paging {
@@ -2645,7 +2645,7 @@
 - Description: Get role info
 - Expected Access Scope: PUBLIC
 - JSON Request:
-    - "roleNo": (string) 
+    - "roleNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2663,7 +2663,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RoleInfoReq struct {
-  	RoleNo string `json:"roleNo"`
+  	RoleNo string `json:"roleNo"`  // Required.
   }
 
   type RoleInfoResp struct {
@@ -2692,7 +2692,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface RoleInfoReq {
-    roleNo?: string;
+    roleNo?: string;               // Required.
   }
 
   export interface Resp {
@@ -2908,8 +2908,8 @@
 - Description: Admin bind resource to path
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "pathNo": (string) 
-    - "resCode": (string) 
+    - "pathNo": (string) Required.
+    - "resCode": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -2924,8 +2924,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type BindPathResReq struct {
-  	PathNo string `json:"pathNo"`
-  	ResCode string `json:"resCode"`
+  	PathNo string `json:"pathNo"`  // Required.
+  	ResCode string `json:"resCode"` // Required.
   }
 
   func ApiAdminBindResPath(rail miso.Rail, req BindPathResReq) error {
@@ -2948,8 +2948,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface BindPathResReq {
-    pathNo?: string;
-    resCode?: string;
+    pathNo?: string;               // Required.
+    resCode?: string;              // Required.
   }
 
   export interface Resp {
@@ -2992,8 +2992,8 @@
 - Description: Admin unbind resource and path
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "pathNo": (string) 
-    - "resCode": (string) 
+    - "pathNo": (string) Required.
+    - "resCode": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3008,8 +3008,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UnbindPathResReq struct {
-  	PathNo string `json:"pathNo"`
-  	ResCode string `json:"resCode"`
+  	PathNo string `json:"pathNo"`  // Required.
+  	ResCode string `json:"resCode"` // Required.
   }
 
   func ApiAdminUnbindResPath(rail miso.Rail, req UnbindPathResReq) error {
@@ -3032,8 +3032,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface UnbindPathResReq {
-    pathNo?: string;
-    resCode?: string;
+    pathNo?: string;               // Required.
+    resCode?: string;              // Required.
   }
 
   export interface Resp {
@@ -3076,7 +3076,7 @@
 - Description: Admin delete path
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "pathNo": (string) 
+    - "pathNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3091,7 +3091,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DeletePathReq struct {
-  	PathNo string `json:"pathNo"`
+  	PathNo string `json:"pathNo"`  // Required.
   }
 
   func ApiAdminDeletePath(rail miso.Rail, req DeletePathReq) error {
@@ -3114,7 +3114,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface DeletePathReq {
-    pathNo?: string;
+    pathNo?: string;               // Required.
   }
 
   export interface Resp {
@@ -3157,9 +3157,9 @@
 - Description: Admin update path
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-    - "pathNo": (string) 
-    - "group": (string) 
+    - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible. Enums: ["PROTECTED","PUBLIC"]. Required.
+    - "pathNo": (string) Required.
+    - "group": (string) Required. Max length: 20.
     - "resCode": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -3175,9 +3175,9 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UpdatePathReq struct {
-  	Type string `json:"type"`      // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-  	PathNo string `json:"pathNo"`
-  	Group string `json:"group"`
+  	Type string `json:"type"`      // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible. Enums: ["PROTECTED","PUBLIC"]. Required.
+  	PathNo string `json:"pathNo"`  // Required.
+  	Group string `json:"group"`    // Required. Max length: 20.
   	ResCode string `json:"resCode"`
   }
 
@@ -3201,9 +3201,9 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface UpdatePathReq {
-    type?: string;                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-    pathNo?: string;
-    group?: string;
+    type?: string;                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible. Enums: ["PROTECTED","PUBLIC"]. Required.
+    pathNo?: string;               // Required.
+    group?: string;                // Required. Max length: 20.
     resCode?: string;
   }
 
@@ -3647,7 +3647,7 @@
 
 - Description: Fetch users with the role_no
 - JSON Request:
-    - "roleNo": (string) 
+    - "roleNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3674,7 +3674,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type FetchUsersWithRoleReq struct {
-  	RoleNo string `json:"roleNo"`
+  	RoleNo string `json:"roleNo"`  // Required.
   }
 
   type UserInfo struct {
@@ -3712,7 +3712,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface FetchUsersWithRoleReq {
-    roleNo?: string;
+    roleNo?: string;               // Required.
   }
 
   export interface Resp {
@@ -3893,8 +3893,8 @@
 
 - Description: Report resource. This endpoint should be used internally by another backend service.
 - JSON Request:
-    - "name": (string) 
-    - "code": (string) 
+    - "name": (string) Required. Max length: 32.
+    - "code": (string) Required. Max length: 32.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -3909,8 +3909,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type CreateResReq struct {
-  	Name string `json:"name"`
-  	Code string `json:"code"`
+  	Name string `json:"name"`      // Required. Max length: 32.
+  	Code string `json:"code"`      // Required. Max length: 32.
   }
 
   func ApiReportResourceEp(rail miso.Rail, req CreateResReq) error {
@@ -3933,8 +3933,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreateResReq {
-    name?: string;
-    code?: string;
+    name?: string;                 // Required. Max length: 32.
+    code?: string;                 // Required. Max length: 32.
   }
 
   export interface Resp {
@@ -4076,11 +4076,11 @@
 - Description: Report endpoint info
 - Bound to Resource: `"manage-resources"`
 - JSON Request:
-    - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-    - "url": (string) 
-    - "group": (string) 
-    - "method": (string) 
-    - "desc": (string) 
+    - "type": (string) path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible. Enums: ["PROTECTED","PUBLIC"]. Required.
+    - "url": (string) Required. Max length: 128.
+    - "group": (string) Required. Max length: 20.
+    - "method": (string) Required. Max length: 10.
+    - "desc": (string) Max length: 255.
     - "resCode": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -4096,11 +4096,11 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type CreatePathReq struct {
-  	Type string `json:"type"`      // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-  	Url string `json:"url"`
-  	Group string `json:"group"`
-  	Method string `json:"method"`
-  	Desc string `json:"desc"`
+  	Type string `json:"type"`      // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible. Enums: ["PROTECTED","PUBLIC"]. Required.
+  	Url string `json:"url"`        // Required. Max length: 128.
+  	Group string `json:"group"`    // Required. Max length: 20.
+  	Method string `json:"method"`  // Required. Max length: 10.
+  	Desc string `json:"desc"`      // Max length: 255.
   	ResCode string `json:"resCode"`
   }
 
@@ -4124,11 +4124,11 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreatePathReq {
-    type?: string;                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-    url?: string;
-    group?: string;
-    method?: string;
-    desc?: string;
+    type?: string;                 // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible. Enums: ["PROTECTED","PUBLIC"]. Required.
+    url?: string;                  // Required. Max length: 128.
+    group?: string;                // Required. Max length: 20.
+    method?: string;               // Required. Max length: 10.
+    desc?: string;                 // Max length: 255.
     resCode?: string;
   }
 
@@ -4315,9 +4315,9 @@
 - JSON Request:
     - "site": (string) 
     - "alias": (string) 
-    - "username": (string) 
-    - "sitePassword": (string) 
-    - "loginPassword": (string) 
+    - "username": (string) Required.
+    - "sitePassword": (string) Required.
+    - "loginPassword": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -4334,9 +4334,9 @@
   type AddSitePasswordReq struct {
   	Site string `json:"site"`
   	Alias string `json:"alias"`
-  	Username string `json:"username"`
-  	SitePassword string `json:"sitePassword"`
-  	LoginPassword string `json:"loginPassword"`
+  	Username string `json:"username"` // Required.
+  	SitePassword string `json:"sitePassword"` // Required.
+  	LoginPassword string `json:"loginPassword"` // Required.
   }
 
   func ApiAddSitePassword(rail miso.Rail, req AddSitePasswordReq) error {
@@ -4361,9 +4361,9 @@
   export interface AddSitePasswordReq {
     site?: string;
     alias?: string;
-    username?: string;
-    sitePassword?: string;
-    loginPassword?: string;
+    username?: string;             // Required.
+    sitePassword?: string;         // Required.
+    loginPassword?: string;        // Required.
   }
 
   export interface Resp {
@@ -4406,7 +4406,7 @@
 - Description: Remove site password record
 - Bound to Resource: `"basic-user"`
 - JSON Request:
-    - "recordId": (string) 
+    - "recordId": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -4421,7 +4421,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RemoveSitePasswordRes struct {
-  	RecordId string `json:"recordId"`
+  	RecordId string `json:"recordId"` // Required.
   }
 
   func ApiRemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes) error {
@@ -4444,7 +4444,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface RemoveSitePasswordRes {
-    recordId?: string;
+    recordId?: string;             // Required.
   }
 
   export interface Resp {
@@ -4487,8 +4487,8 @@
 - Description: Decrypt site password
 - Bound to Resource: `"basic-user"`
 - JSON Request:
-    - "loginPassword": (string) 
-    - "recordId": (string) 
+    - "loginPassword": (string) Required.
+    - "recordId": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -4505,8 +4505,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DecryptSitePasswordReq struct {
-  	LoginPassword string `json:"loginPassword"`
-  	RecordId string `json:"recordId"`
+  	LoginPassword string `json:"loginPassword"` // Required.
+  	RecordId string `json:"recordId"` // Required.
   }
 
   type DecryptSitePasswordRes struct {
@@ -4534,8 +4534,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface DecryptSitePasswordReq {
-    loginPassword?: string;
-    recordId?: string;
+    loginPassword?: string;        // Required.
+    recordId?: string;             // Required.
   }
 
   export interface Resp {
@@ -4761,8 +4761,8 @@
 - Description: Create platform notification
 - Bound to Resource: `"postbox:notification:create"`
 - JSON Request:
-    - "title": (string) 
-    - "message": (string) 
+    - "title": (string) Max length: 255.
+    - "message": (string) Max length: 1000.
     - "receiverUserNos": ([]string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -4778,8 +4778,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type CreateNotificationReq struct {
-  	Title string `json:"title"`
-  	Message string `json:"message"`
+  	Title string `json:"title"`    // Max length: 255.
+  	Message string `json:"message"` // Max length: 1000.
   	ReceiverUserNos []string `json:"receiverUserNos"`
   }
 
@@ -4803,8 +4803,8 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface CreateNotificationReq {
-    title?: string;
-    message?: string;
+    title?: string;                // Max length: 255.
+    message?: string;              // Max length: 1000.
     receiverUserNos?: string[];
   }
 
@@ -5009,7 +5009,7 @@
 - Description: Record user opened platform notification
 - Bound to Resource: `"postbox:notification:query"`
 - JSON Request:
-    - "notifiNo": (string) 
+    - "notifiNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5024,7 +5024,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type OpenNotificationReq struct {
-  	NotifiNo string `json:"notifiNo"`
+  	NotifiNo string `json:"notifiNo"` // Required.
   }
 
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
@@ -5047,7 +5047,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface OpenNotificationReq {
-    notifiNo?: string;
+    notifiNo?: string;             // Required.
   }
 
   export interface Resp {
@@ -5090,7 +5090,7 @@
 - Description: Mark all notifications opened
 - Bound to Resource: `"postbox:notification:query"`
 - JSON Request:
-    - "notifiNo": (string) 
+    - "notifiNo": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5105,7 +5105,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type OpenNotificationReq struct {
-  	NotifiNo string `json:"notifiNo"`
+  	NotifiNo string `json:"notifiNo"` // Required.
   }
 
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
@@ -5128,7 +5128,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface OpenNotificationReq {
-    notifiNo?: string;
+    notifiNo?: string;             // Required.
   }
 
   export interface Resp {
@@ -5338,8 +5338,8 @@
   - RabbitMQ Exchange: `pieline.user-vault.create-notifi`
   - RabbitMQ RoutingKey: `#`
   - Event Payload:
-    - "title": (string) notification title
-    - "message": (string) notification content
+    - "title": (string) notification title. Max length: 255.
+    - "message": (string) notification content. Max length: 1000.
     - "receiverUserNos": ([]string) user_no of receivers
 
 - CreateNotifiByAccessPipeline
@@ -5348,6 +5348,6 @@
   - RabbitMQ Exchange: `pieline.user-vault.create-notifi.by-access`
   - RabbitMQ RoutingKey: `#`
   - Event Payload:
-    - "title": (string) notification title
-    - "message": (string) notification content
-    - "resCode": (string) resource code
+    - "title": (string) notification title. Max length: 255.
+    - "message": (string) notification content. Max length: 1000.
+    - "resCode": (string) resource code. Required.
