@@ -3,7 +3,7 @@ module github.com/curtisnewbie/mini-fstore
 go 1.23.0
 
 require (
-	github.com/curtisnewbie/miso v0.2.2-beta.4.0.20250707160046-5f05330d0538
+	github.com/curtisnewbie/miso v0.2.4-beta.1.0.20250711163542-dba9c6323c21
 	github.com/disintegration/gift v1.2.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/shirou/gopsutil v3.21.11+incompatible

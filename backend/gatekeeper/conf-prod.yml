@@ -5,7 +5,6 @@ app.name: "gatekeeper"
 server:
   host: 0.0.0.0
   port: 7070
-  gracefulShutdownTimeSec: 5
   perf.enabled: false
   pprof:
     auth:
@@ -13,7 +12,7 @@ server:
 
 consul:
   enabled: true
-  consulAddress: "${CONSUL_HOST}:8500"
+  consul-address: "${CONSUL_HOST}:8500"
 
 logging:
   rolling:

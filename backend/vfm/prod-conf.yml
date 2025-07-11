@@ -27,8 +27,7 @@ server:
 
 consul:
   enabled: true
-  consulAddress: consul:8500
-  healthCheckUrl: /health
+  consul-address: consul:8500
 
 rabbitmq:
   enabled: true

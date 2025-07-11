@@ -55,8 +55,6 @@
 - [POST /open/api/v1/notification/open](#post-openapiv1notificationopen)
 - [POST /open/api/v1/notification/open-all](#post-openapiv1notificationopen-all)
 - [GET /open/api/v2/notification/count](#get-openapiv2notificationcount)
-- [GET /metrics](#get-metrics)
-- [GET /health](#get-health)
 
 ## POST /open/api/user/login
 
@@ -395,14 +393,14 @@
   	UpdateBy string `json:"updateBy"`
   }
 
-  func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (miso.PageRes[UserInfo], error) {
+  	var res miso.GnResp[miso.PageRes[UserInfo]]
   	err := miso.NewDynTClient(rail, "/open/api/user/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[UserInfo]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -1075,14 +1073,14 @@
   	Success bool `json:"success"`
   }
 
-  func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
+  	var res miso.GnResp[miso.PageRes[ListedAccessLog]]
   	err := miso.NewDynTClient(rail, "/open/api/access/history", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ListedAccessLog]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -1295,14 +1293,14 @@
   	CreateTime util.ETime `json:"createTime"`
   }
 
-  func ApiUserListUserKeys(rail miso.Rail, req ListUserKeysReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiUserListUserKeys(rail miso.Rail, req ListUserKeysReq) (miso.PageRes[ListedUserKey], error) {
+  	var res miso.GnResp[miso.PageRes[ListedUserKey]]
   	err := miso.NewDynTClient(rail, "/open/api/user/key/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ListedUserKey]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -3401,20 +3399,14 @@
   	Username *string `json:"username"`
   }
 
-  type User struct {
-  	UserNo string `json:"userNo"`
-  	Username string `json:"username"`
-  	RoleNo string `json:"roleNo"`
-  }
-
-  func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (User, error) {
-  	var res miso.GnResp[User]
+  func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (miso.User, error) {
+  	var res miso.GnResp[miso.User]
   	err := miso.NewDynTClient(rail, "/internal/v1/user/info/common", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat User
+  		var dat miso.User
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -4219,14 +4211,14 @@
   	CreateTime util.ETime `json:"createTime"`
   }
 
-  func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (miso.PageRes[ListSitePasswordRes], error) {
+  	var res miso.GnResp[miso.PageRes[ListSitePasswordRes]]
   	err := miso.NewDynTClient(rail, "/open/api/password/list-site-passwords", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ListSitePasswordRes]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -5210,115 +5202,6 @@
   sendRequest() {
     let curr: any | null = null;
     this.http.get<any>(`/user-vault/open/api/v2/notification/count?curr=${curr}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /metrics
-
-- Description: Collect prometheus metrics information
-- Header Parameter:
-  - "Authorization": Basic authorization if enabled
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8089/metrics' \
-    -H 'Authorization: '
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  func SendRequest(rail miso.Rail, authorization string) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/metrics", "user-vault").
-  		AddHeader("authorization", authorization).
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  		return err
-  	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    let authorization: any | null = null;
-    this.http.get<any>(`/user-vault/metrics`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /health
-
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8089/health'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/health", "user-vault").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  		return err
-  	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<any>(`/user-vault/health`)
       .subscribe({
         next: () => {
         },

@@ -21,14 +21,12 @@ redis:
 server:
   host: "0.0.0.0"
   port: 8087
-  gracefulShutdownTimeSec: 5
   pprof:
     enabled: true
 
 consul:
   enabled: true
-  consulAddress: "${CONSUL_HOST}:8500"
-  healthCheckUrl: /health
+  consul-address: "${CONSUL_HOST}:8500"
 
 logging.rolling.file: "/usr/src/logs/${app.name}.log"
 

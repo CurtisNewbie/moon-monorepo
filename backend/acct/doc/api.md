@@ -8,8 +8,6 @@
 - [POST /open/api/v1/cashflow/list-statistics](#post-openapiv1cashflowlist-statistics)
 - [POST /open/api/v1/cashflow/plot-statistics](#post-openapiv1cashflowplot-statistics)
 - [GET /auth/resource](#get-authresource)
-- [GET /metrics](#get-metrics)
-- [GET /health](#get-health)
 
 ## POST /open/api/v1/cashflow/list
 
@@ -82,14 +80,14 @@
   	CreatedAt util.ETime `json:"createdAt"` // Create Time
   }
 
-  func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
+  	var res miso.GnResp[miso.PageRes[ListCashFlowRes]]
   	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list", "acct").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ListCashFlowRes]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -368,14 +366,14 @@
   	Currency string `json:"currency"` // Currency
   }
 
-  func ApiListCashflowStatistics(rail miso.Rail, req ApiListStatisticsReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListCashflowStatistics(rail miso.Rail, req ApiListStatisticsReq) (miso.PageRes[ApiListStatisticsRes], error) {
+  	var res miso.GnResp[miso.PageRes[ApiListStatisticsRes]]
   	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-statistics", "acct").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ApiListStatisticsRes]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -656,115 +654,6 @@
     this.http.get<ResourceInfoRes>(`/acct/auth/resource`)
       .subscribe({
         next: (resp) => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /metrics
-
-- Description: Collect prometheus metrics information
-- Header Parameter:
-  - "Authorization": Basic authorization if enabled
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8093/metrics' \
-    -H 'Authorization: '
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  func SendRequest(rail miso.Rail, authorization string) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/metrics", "acct").
-  		AddHeader("authorization", authorization).
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  		return err
-  	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    let authorization: any | null = null;
-    this.http.get<any>(`/acct/metrics`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /health
-
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8093/health'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/health", "acct").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  		return err
-  	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<any>(`/acct/health`)
-      .subscribe({
-        next: () => {
         },
         error: (err) => {
           console.log(err)

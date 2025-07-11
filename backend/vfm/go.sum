@@ -83,8 +83,8 @@ github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnht
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/curtisnewbie/event-pump v0.0.16-0.20250301093613-7eea1e23e0c8 h1:B42PJvEqC+XIqAtv8ar/kX8fLZ8IjYU/BjOlsplgaiw=
 github.com/curtisnewbie/event-pump v0.0.16-0.20250301093613-7eea1e23e0c8/go.mod h1:mL33D9xNfqrhplCklHba84eujF9YGP5sUijqxwK/WGw=
-github.com/curtisnewbie/miso v0.2.2-beta.4.0.20250707160046-5f05330d0538 h1:NZruyYONy0BNLTYEinu58/Be6iFsrwZt0VnZa3UcKsc=
-github.com/curtisnewbie/miso v0.2.2-beta.4.0.20250707160046-5f05330d0538/go.mod h1:sNlFxUvfHkJP/aE3Oj33bSxkqDVETAQNLOJ52Cke2jg=
+github.com/curtisnewbie/miso v0.2.4-beta.1.0.20250711163542-dba9c6323c21 h1:bJmi9KPWAzX00Zx+VZ0K4hILDjBH6+R6WL28gi7vRSU=
+github.com/curtisnewbie/miso v0.2.4-beta.1.0.20250711163542-dba9c6323c21/go.mod h1:sNlFxUvfHkJP/aE3Oj33bSxkqDVETAQNLOJ52Cke2jg=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

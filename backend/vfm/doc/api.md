@@ -60,8 +60,6 @@
 - [POST /internal/file/fetch-info](#post-internalfilefetch-info)
 - [POST /internal/v1/file/make-dir](#post-internalv1filemake-dir)
 - [GET /auth/resource](#get-authresource)
-- [GET /metrics](#get-metrics)
-- [GET /health](#get-health)
 
 ## GET /open/api/file/upload/duplication/preflight
 
@@ -166,16 +164,15 @@
   	Filename string `json:"fileName"`
   }
 
-  func ApiGetParentFile(rail miso.Rail, fileKey string) (ParentFileInfo, error) {
-  	var res miso.GnResp[ParentFileInfo]
+  func ApiGetParentFile(rail miso.Rail, fileKey string) (*ParentFileInfo, error) {
+  	var res miso.GnResp[*ParentFileInfo]
   	err := miso.NewDynTClient(rail, "/open/api/file/parent", "vfm").
   		AddQueryParams("fileKey", fileKey).
   		Get().
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat ParentFileInfo
-  		return dat, err
+  		return nil, err
   	}
   	dat, err := res.Res()
   	if err != nil {
@@ -652,14 +649,14 @@
   	ThumbnailToken string `json:"thumbnailToken"`
   }
 
-  func ApiListFiles(rail miso.Rail, req ListFileReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListFiles(rail miso.Rail, req ListFileReq) (miso.PageRes[ListedFile], error) {
+  	var res miso.GnResp[miso.PageRes[ListedFile]]
   	err := miso.NewDynTClient(rail, "/open/api/file/list", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ListedFile]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -946,15 +943,14 @@
   	Child *DirBottomUpTreeNode `json:"child"`
   }
 
-  func ApiFetchDirBottomUpTree(rail miso.Rail, req FetchDirTreeReq) (DirBottomUpTreeNode, error) {
-  	var res miso.GnResp[DirBottomUpTreeNode]
+  func ApiFetchDirBottomUpTree(rail miso.Rail, req FetchDirTreeReq) (*DirBottomUpTreeNode, error) {
+  	var res miso.GnResp[*DirBottomUpTreeNode]
   	err := miso.NewDynTClient(rail, "/open/api/file/dir/bottom-up-tree", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat DirBottomUpTreeNode
-  		return dat, err
+  		return nil, err
   	}
   	dat, err := res.Res()
   	if err != nil {
@@ -1035,18 +1031,17 @@
   type DirTopDownTreeNode struct {
   	FileKey string `json:"fileKey"`
   	Name string `json:"name"`
-  	Child []DirTopDownTreeNode `json:"child"`
+  	Child []*DirTopDownTreeNode `json:"child"`
   }
 
-  func ApiFetchDirTopDownTree(rail miso.Rail) (DirTopDownTreeNode, error) {
-  	var res miso.GnResp[DirTopDownTreeNode]
+  func ApiFetchDirTopDownTree(rail miso.Rail) (*DirTopDownTreeNode, error) {
+  	var res miso.GnResp[*DirTopDownTreeNode]
   	err := miso.NewDynTClient(rail, "/open/api/file/dir/top-down-tree", "vfm").
   		Get().
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat DirTopDownTreeNode
-  		return dat, err
+  		return nil, err
   	}
   	dat, err := res.Res()
   	if err != nil {
@@ -2575,15 +2570,14 @@
   	IsDel bool `json:"isDel"`
   }
 
-  func ApiCreateGallery(rail miso.Rail, req CreateGalleryCmd) (Gallery, error) {
-  	var res miso.GnResp[Gallery]
+  func ApiCreateGallery(rail miso.Rail, req CreateGalleryCmd) (*Gallery, error) {
+  	var res miso.GnResp[*Gallery]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/new", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat Gallery
-  		return dat, err
+  		return nil, err
   	}
   	dat, err := res.Res()
   	if err != nil {
@@ -2870,14 +2864,14 @@
   	DirFileKey string `json:"dirFileKey"`
   }
 
-  func ApiListGalleries(rail miso.Rail, req ListGalleriesCmd) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListGalleries(rail miso.Rail, req ListGalleriesCmd) (miso.PageRes[VGallery], error) {
+  	var res miso.GnResp[miso.PageRes[VGallery]]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/list", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[VGallery]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -3177,14 +3171,14 @@
   	CreateTime util.ETime `json:"createTime"`
   }
 
-  func ApiListGalleryAccess(rail miso.Rail, req ListGrantedGalleryAccessCmd) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListGalleryAccess(rail miso.Rail, req ListGrantedGalleryAccessCmd) (miso.PageRes[ListedGalleryAccessRes], error) {
+  	var res miso.GnResp[miso.PageRes[ListedGalleryAccessRes]]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/access/list", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ListedGalleryAccessRes]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -3312,15 +3306,14 @@
   	FileTempToken string `json:"fileTempToken"`
   }
 
-  func ApiListGalleryImages(rail miso.Rail, req ListGalleryImagesCmd) (ListGalleryImagesResp, error) {
-  	var res miso.GnResp[ListGalleryImagesResp]
+  func ApiListGalleryImages(rail miso.Rail, req ListGalleryImagesCmd) (*ListGalleryImagesResp, error) {
+  	var res miso.GnResp[*ListGalleryImagesResp]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/images", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat ListGalleryImagesResp
-  		return dat, err
+  		return nil, err
   	}
   	dat, err := res.Res()
   	if err != nil {
@@ -3547,14 +3540,14 @@
   	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
-  func ApiListVersionedFile(rail miso.Rail, req ApiListVerFileReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListVersionedFile(rail miso.Rail, req ApiListVerFileReq) (miso.PageRes[ApiListVerFileRes], error) {
+  	var res miso.GnResp[miso.PageRes[ApiListVerFileRes]]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/list", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ApiListVerFileRes]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -3685,14 +3678,14 @@
   	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
-  func ApiListVersionedFileHistory(rail miso.Rail, req ApiListVerFileHistoryReq) (PageRes, error) {
-  	var res miso.GnResp[PageRes]
+  func ApiListVersionedFileHistory(rail miso.Rail, req ApiListVerFileHistoryReq) (miso.PageRes[ApiListVerFileHistoryRes], error) {
+  	var res miso.GnResp[miso.PageRes[ApiListVerFileHistoryRes]]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/history", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat PageRes
+  		var dat miso.PageRes[ApiListVerFileHistoryRes]
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -5479,115 +5472,6 @@
     this.http.get<ResourceInfoRes>(`/vfm/auth/resource`)
       .subscribe({
         next: (resp) => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /metrics
-
-- Description: Collect prometheus metrics information
-- Header Parameter:
-  - "Authorization": Basic authorization if enabled
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8086/metrics' \
-    -H 'Authorization: '
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  func SendRequest(rail miso.Rail, authorization string) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/metrics", "vfm").
-  		AddHeader("authorization", authorization).
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  		return err
-  	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    let authorization: any | null = null;
-    this.http.get<any>(`/vfm/metrics`,
-      {
-        headers: {
-          "Authorization": authorization
-        }
-      })
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /health
-
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8086/health'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/health", "vfm").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  		return err
-  	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<any>(`/vfm/health`)
-      .subscribe({
-        next: () => {
         },
         error: (err) => {
           console.log(err)

@@ -29,7 +29,6 @@ rabbitmq:
 server:
   host: "0.0.0.0"
   port: 8084
-  gracefulShutdownTimeSec: 5
   perf:
     enabled: false
   pprof:
@@ -37,11 +36,7 @@ server:
 
 consul:
   enabled: true
-  consulAddress: "${CONSUL_HOST}:8500"
-  healthCheckUrl: /health
-  healthCheckInterval: 120s
-  healthCheckTimeout: 120s
-  healthCheckFailedDeregisterAfter: 5s
+  consul-address: "${CONSUL_HOST}:8500"
 
 logging.rolling.file: "/usr/src/logs/mini-fstore.log"
 

@@ -7,13 +7,12 @@ server: # http server
   enabled: "true"
   host: "localhost"
   port: "8093"
-  generate-endpoint-doc:
+  api-doc:
     file: "./doc/api.md"
-  gracefulShutdownTimeSec: 15
 
 consul:
   enabled: "true"
-  consulAddress: "localhost:8500"
+  consul-address: "localhost:8500"
 
 redis:
   enabled: "true"

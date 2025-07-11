@@ -30,17 +30,12 @@ rabbitmq:
 server:
   host: localhost
   port: 8084
-  gracefulShutdownTimeSec: 15
-  generate-endpoint-doc:
+  api-doc:
     file: "./doc/api.md"
 
 consul:
   enabled: true
-  consulAddress: localhost:8500
-  healthCheckUrl: /health
-  healthCheckInterval: 120s
-  healthCheckTimeout: 120s
-  healthCheckFailedDeregisterAfter: 120s
+  consul-address: localhost:8500
 
 fstore:
   storage.dir: "storage"

@@ -34,7 +34,7 @@ server:
 
 consul:
   enabled: true
-  consulAddress: "${CONSUL_HOST}:8500"
+  consul-address: "${CONSUL_HOST}:8500"
 
 logging.rolling.file: "/usr/src/logs/${app.name}.log"
 
