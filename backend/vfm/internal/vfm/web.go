@@ -26,7 +26,7 @@ const (
 var (
 	ErrUnknown      = miso.NewErrf("Unknown error, please try again")
 	ErrUploadFailed = miso.NewErrf("Upload failed, please try again")
-	ErrFileNotFound = miso.Errf("File not found")
+	ErrFileNotFound = miso.NewErrfCode("FILE_NOT_FOUND", "File not found")
 )
 
 func RegisterHttpRoutes(rail miso.Rail) error {
