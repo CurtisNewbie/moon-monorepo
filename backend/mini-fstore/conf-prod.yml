@@ -9,6 +9,7 @@ mysql:
   database: "mini_fstore"
   host: "${MYSQL_HOST}"
   port: 3306
+  log-sql: true
 
 redis:
   enabled: true
