@@ -62,7 +62,7 @@ func newLongPolling() *LongPolling {
 
 type LongPolling struct {
 	mu   sync.RWMutex
-	pool *util.AsyncPool
+	pool util.AsyncPoolItf
 	sub  map[string]map[string]*LPSub
 }
 

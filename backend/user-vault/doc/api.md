@@ -87,6 +87,7 @@
   	Password string `json:"password"` // Required.
   }
 
+  // User Login using password, a JWT token is generated and returned
   func ApiUserLogin(rail miso.Rail, req LoginReq, xForwardedFor string, userAgent string) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/user/login", "user-vault").
@@ -183,6 +184,7 @@
   	Password string `json:"password"` // Required.
   }
 
+  // User request registration, approval needed
   func ApiUserRegister(rail miso.Rail, req RegisterReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/register/request", "user-vault").
@@ -269,6 +271,7 @@
   	RoleNo string `json:"roleNo"`
   }
 
+  // Admin create new user
   func ApiAdminAddUser(rail miso.Rail, req AddUserParam) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/add", "user-vault").
@@ -393,6 +396,7 @@
   	UpdateBy string `json:"updateBy"`
   }
 
+  // Admin list users
   func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (miso.PageRes[UserInfo], error) {
   	var res miso.GnResp[miso.PageRes[UserInfo]]
   	err := miso.NewDynTClient(rail, "/open/api/user/list", "user-vault").
@@ -515,6 +519,7 @@
   	IsDisabled int `json:"isDisabled"`
   }
 
+  // Admin update user info
   func ApiAdminUpdateUser(rail miso.Rail, req AdminUpdateUserReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/info/update", "user-vault").
@@ -600,6 +605,7 @@
   	ReviewStatus string `json:"reviewStatus"`
   }
 
+  // Admin review user registration
   func ApiAdminReviewUser(rail miso.Rail, req AdminReviewUserReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/registration/review", "user-vault").
@@ -690,6 +696,7 @@
   	RegisterDate string `json:"registerDate"`
   }
 
+  // User get user info
   func ApiUserGetUserInfo(rail miso.Rail) (UserInfoRes, error) {
   	var res miso.GnResp[UserInfoRes]
   	err := miso.NewDynTClient(rail, "/open/api/user/info", "user-vault").
@@ -780,6 +787,7 @@
   	NewPassword string `json:"newPassword"` // Required.
   }
 
+  // User update password
   func ApiUserUpdatePassword(rail miso.Rail, req UpdatePasswordReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/password/update", "user-vault").
@@ -863,6 +871,7 @@
   	Token string `json:"token"`    // Required.
   }
 
+  // Exchange token
   func ExchangeTokenEp(rail miso.Rail, req ExchangeTokenReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/token/exchange", "user-vault").
@@ -956,6 +965,7 @@
   	RegisterDate string `json:"registerDate"`
   }
 
+  // Get user info by token. This endpoint is expected to be accessible publicly
   func ApiGetTokenUserInfo(rail miso.Rail, token string) (UserInfoBrief, error) {
   	var res miso.GnResp[UserInfoBrief]
   	err := miso.NewDynTClient(rail, "/open/api/token/user", "user-vault").
@@ -1073,6 +1083,7 @@
   	Success bool `json:"success"`
   }
 
+  // User list access logs
   func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
   	var res miso.GnResp[miso.PageRes[ListedAccessLog]]
   	err := miso.NewDynTClient(rail, "/open/api/access/history", "user-vault").
@@ -1186,6 +1197,7 @@
   	KeyName string `json:"keyName"` // Required.
   }
 
+  // User generate user key
   func ApiUserGenUserKey(rail miso.Rail, req GenUserKeyReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/key/generate", "user-vault").
@@ -1293,6 +1305,7 @@
   	CreateTime util.ETime `json:"createTime"`
   }
 
+  // User list user keys
   func ApiUserListUserKeys(rail miso.Rail, req ListUserKeysReq) (miso.PageRes[ListedUserKey], error) {
   	var res miso.GnResp[miso.PageRes[ListedUserKey]]
   	err := miso.NewDynTClient(rail, "/open/api/user/key/list", "user-vault").
@@ -1403,6 +1416,7 @@
   	UserKeyId int `json:"userKeyId"`
   }
 
+  // User delete user key
   func ApiUserDeleteUserKey(rail miso.Rail, req DeleteUserKeyReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/key/delete", "user-vault").
@@ -1486,6 +1500,7 @@
   	Code string `json:"code"`      // Required. Max length: 32.
   }
 
+  // Admin add resource
   func ApiAdminAddResource(rail miso.Rail, req CreateResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/resource/add", "user-vault").
@@ -1568,6 +1583,7 @@
   	ResCode string `json:"resCode"` // Required.
   }
 
+  // Admin remove resource
   func ApiAdminRemoveResource(rail miso.Rail, req DeleteResourceReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/resource/remove", "user-vault").
@@ -1651,6 +1667,7 @@
   	Name string `json:"name"`
   }
 
+  // List all resource candidates for role
   func ApiListResCandidates(rail miso.Rail, roleNo string) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
   	err := miso.NewDynTClient(rail, "/open/api/resource/brief/candidates", "user-vault").
@@ -1768,6 +1785,7 @@
   	UpdateBy string `json:"updateBy"`
   }
 
+  // Admin list resources
   func ApiAdminListRes(rail miso.Rail, req ListResReq) (ListResResp, error) {
   	var res miso.GnResp[ListResResp]
   	err := miso.NewDynTClient(rail, "/open/api/resource/list", "user-vault").
@@ -1879,6 +1897,7 @@
   	Name string `json:"name"`
   }
 
+  // List resources that are accessible to current user
   func ApiListUserAccessibleRes(rail miso.Rail) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
   	err := miso.NewDynTClient(rail, "/open/api/resource/brief/user", "user-vault").
@@ -1963,6 +1982,7 @@
   	Name string `json:"name"`
   }
 
+  // List all resource brief info
   func ApiListAllResBrief(rail miso.Rail) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
   	err := miso.NewDynTClient(rail, "/open/api/resource/brief/all", "user-vault").
@@ -2049,6 +2069,7 @@
   	ResCode string `json:"resCode"` // Required.
   }
 
+  // Admin add resource to role
   func ApiAdminBindRoleRes(rail miso.Rail, req AddRoleResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/role/resource/add", "user-vault").
@@ -2133,6 +2154,7 @@
   	ResCode string `json:"resCode"` // Required.
   }
 
+  // Admin remove resource from role
   func ApiAdminUnbindRoleRes(rail miso.Rail, req RemoveRoleResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/role/resource/remove", "user-vault").
@@ -2215,6 +2237,7 @@
   	Name string `json:"name"`      // Required. Max length: 32.
   }
 
+  // Admin add role
   func ApiAdminAddRole(rail miso.Rail, req AddRoleReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/role/add", "user-vault").
@@ -2327,6 +2350,7 @@
   	UpdateBy string `json:"updateBy"`
   }
 
+  // Admin list roles
   func ApiAdminListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
   	var res miso.GnResp[ListRoleResp]
   	err := miso.NewDynTClient(rail, "/open/api/role/list", "user-vault").
@@ -2438,6 +2462,7 @@
   	Name string `json:"name"`
   }
 
+  // Admin list role brief info
   func ApiAdminListRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
   	var res miso.GnResp[[]RoleBrief]
   	err := miso.NewDynTClient(rail, "/open/api/role/brief/all", "user-vault").
@@ -2551,6 +2576,7 @@
   	CreateBy string `json:"createBy"`
   }
 
+  // Admin list resources of role
   func ApiAdminListRoleRes(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
   	var res miso.GnResp[ListRoleResResp]
   	err := miso.NewDynTClient(rail, "/open/api/role/resource/list", "user-vault").
@@ -2669,6 +2695,7 @@
   	Name string `json:"name"`
   }
 
+  // Get role info
   func ApiGetRoleInfo(rail miso.Rail, req RoleInfoReq) (RoleInfoResp, error) {
   	var res miso.GnResp[RoleInfoResp]
   	err := miso.NewDynTClient(rail, "/open/api/role/info", "user-vault").
@@ -2805,6 +2832,7 @@
   	UpdateBy string `json:"updateBy"`
   }
 
+  // Admin list paths
   func ApiAdminListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
   	var res miso.GnResp[ListPathResp]
   	err := miso.NewDynTClient(rail, "/open/api/path/list", "user-vault").
@@ -2926,6 +2954,7 @@
   	ResCode string `json:"resCode"` // Required.
   }
 
+  // Admin bind resource to path
   func ApiAdminBindResPath(rail miso.Rail, req BindPathResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/resource/bind", "user-vault").
@@ -3010,6 +3039,7 @@
   	ResCode string `json:"resCode"` // Required.
   }
 
+  // Admin unbind resource and path
   func ApiAdminUnbindResPath(rail miso.Rail, req UnbindPathResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/resource/unbind", "user-vault").
@@ -3092,6 +3122,7 @@
   	PathNo string `json:"pathNo"`  // Required.
   }
 
+  // Admin delete path
   func ApiAdminDeletePath(rail miso.Rail, req DeletePathReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/delete", "user-vault").
@@ -3179,6 +3210,7 @@
   	ResCode string `json:"resCode"`
   }
 
+  // Admin update path
   func ApiAdminUpdatePath(rail miso.Rail, req UpdatePathReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/path/update", "user-vault").
@@ -3292,6 +3324,7 @@
   	UpdateBy string `json:"updateBy"`
   }
 
+  // Fetch user info
   func ApiFetchUserInfo(rail miso.Rail, req FindUserReq) (UserInfo, error) {
   	var res miso.GnResp[UserInfo]
   	err := miso.NewDynTClient(rail, "/remote/user/info", "user-vault").
@@ -3399,6 +3432,7 @@
   	Username *string `json:"username"`
   }
 
+  // System fetch user info as common.User
   func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (miso.User, error) {
   	var res miso.GnResp[miso.User]
   	err := miso.NewDynTClient(rail, "/internal/v1/user/info/common", "user-vault").
@@ -3485,6 +3519,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Fetch id of user with the username
   func ApiFetchUserIdByName(rail miso.Rail, username string) (int, error) {
   	var res miso.GnResp[int]
   	err := miso.NewDynTClient(rail, "/remote/user/id", "user-vault").
@@ -3570,6 +3605,7 @@
   	UserNoToUsername map[string]string `json:"userNoToUsername"`
   }
 
+  // Fetch usernames of users with the userNos
   func ApiFetchUsernamesByNosEp(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes, error) {
   	var res miso.GnResp[FetchUsernamesRes]
   	err := miso.NewDynTClient(rail, "/remote/user/userno/username", "user-vault").
@@ -3602,7 +3638,7 @@
   }
 
   export interface FetchUsernamesRes {
-    userNoToUsername?: map[string]string;
+    userNoToUsername?: Map<string,string>;
   }
   ```
 
@@ -3683,6 +3719,7 @@
   	UpdateBy string `json:"updateBy"`
   }
 
+  // Fetch users with the role_no
   func ApiFindUserWithRoleEp(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
   	var res miso.GnResp[[]UserInfo]
   	err := miso.NewDynTClient(rail, "/remote/user/list/with-role", "user-vault").
@@ -3806,6 +3843,7 @@
   	UpdateBy string `json:"updateBy"`
   }
 
+  // Fetch users that have access to the resource
   func ApiFindUserWithResourceEp(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
   	var res miso.GnResp[[]UserInfo]
   	err := miso.NewDynTClient(rail, "/remote/user/list/with-resource", "user-vault").
@@ -3905,6 +3943,7 @@
   	Code string `json:"code"`      // Required. Max length: 32.
   }
 
+  // Report resource. This endpoint should be used internally by another backend service.
   func ApiReportResourceEp(rail miso.Rail, req CreateResReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/remote/resource/add", "user-vault").
@@ -3996,6 +4035,7 @@
   	Valid bool `json:"valid"`
   }
 
+  // Validate resource access
   func ApiCheckResourceAccessEp(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
   	var res miso.GnResp[CheckResAccessResp]
   	err := miso.NewDynTClient(rail, "/remote/path/resource/access-test", "user-vault").
@@ -4096,6 +4136,7 @@
   	ResCode string `json:"resCode"`
   }
 
+  // Report endpoint info
   func ApiReportPath(rail miso.Rail, req CreatePathReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/remote/path/add", "user-vault").
@@ -4211,6 +4252,7 @@
   	CreateTime util.ETime `json:"createTime"`
   }
 
+  // List site password records
   func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (miso.PageRes[ListSitePasswordRes], error) {
   	var res miso.GnResp[miso.PageRes[ListSitePasswordRes]]
   	err := miso.NewDynTClient(rail, "/open/api/password/list-site-passwords", "user-vault").
@@ -4331,6 +4373,7 @@
   	LoginPassword string `json:"loginPassword"` // Required.
   }
 
+  // Add site password record
   func ApiAddSitePassword(rail miso.Rail, req AddSitePasswordReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/password/add-site-password", "user-vault").
@@ -4416,6 +4459,7 @@
   	RecordId string `json:"recordId"` // Required.
   }
 
+  // Remove site password record
   func ApiRemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/password/remove-site-password", "user-vault").
@@ -4505,6 +4549,7 @@
   	Decrypted string `json:"decrypted"`
   }
 
+  // Decrypt site password
   func ApiDecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq) (DecryptSitePasswordRes, error) {
   	var res miso.GnResp[DecryptSitePasswordRes]
   	err := miso.NewDynTClient(rail, "/open/api/password/decrypt-site-password", "user-vault").
@@ -4604,6 +4649,7 @@
   	LoginPassword string `json:"loginPassword"` // only used when site password is provided
   }
 
+  // Edit site password
   func ApiEditSitePassword(rail miso.Rail, req EditSitePasswordReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/password/edit-site-password", "user-vault").
@@ -4690,6 +4736,7 @@
   	UserNo string `json:"userNo"`
   }
 
+  // Admin clear user's failed login attempts
   func ApiClearUserFailedLoginAttempts(rail miso.Rail, req ClearUserFailedLoginAttemptsReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/user/clear-failed-login-attempts", "user-vault").
@@ -4775,6 +4822,7 @@
   	ReceiverUserNos []string `json:"receiverUserNos"`
   }
 
+  // Create platform notification
   func SendCreateNotificationReq(rail miso.Rail, req CreateNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/create", "user-vault").
@@ -4863,6 +4911,7 @@
   	Status string `json:"status"`
   }
 
+  // Query platform notification
   func SendQueryNotificationReq(rail miso.Rail, req QueryNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/query", "user-vault").
@@ -4943,6 +4992,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Count received platform notification
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/count", "user-vault").
@@ -5019,6 +5069,7 @@
   	NotifiNo string `json:"notifiNo"` // Required.
   }
 
+  // Record user opened platform notification
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/open", "user-vault").
@@ -5100,6 +5151,7 @@
   	NotifiNo string `json:"notifiNo"` // Required.
   }
 
+  // Mark all notifications opened
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v1/notification/open-all", "user-vault").
@@ -5171,6 +5223,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Count received platform notification using long polling
   func SendRequest(rail miso.Rail, curr string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/v2/notification/count", "user-vault").

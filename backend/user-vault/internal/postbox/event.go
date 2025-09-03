@@ -33,7 +33,7 @@ func InitPipeline(rail miso.Rail) error {
 			return nil
 		}
 
-		users, err := UserWithResCache.Get(rail, evt.ResCode, func() ([]api.UserInfo, error) {
+		users, err := UserWithResCache.GetValElse(rail, evt.ResCode, func() ([]api.UserInfo, error) {
 			users, err := vault.FindUserWithRes(rail, mysql.GetMySQL(), api.FetchUserWithResourceReq{ResourceCode: evt.ResCode})
 			if err != nil {
 				rail.Errorf("failed to FindUserWithRes, %v", err)

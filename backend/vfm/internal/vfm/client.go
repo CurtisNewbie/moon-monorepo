@@ -16,12 +16,13 @@ var (
 )
 
 func CachedFindUser(rail miso.Rail, userNo string) (vault.UserInfo, error) {
-	return userIdInfoCache.Get(rail, userNo, func() (vault.UserInfo, error) {
+	v, _, err := userIdInfoCache.GetElse(rail, userNo, func() (util.Opt[vault.UserInfo], error) {
 		fui, errFind := vault.FindUser(rail, vault.FindUserReq{
 			UserNo: &userNo,
 		})
-		return fui, errFind
+		return util.OptWith(fui), errFind
 	})
+	return v, err
 }
 
 func GetFstoreTmpToken(rail miso.Rail, fileId string, filename string) (string, error) {

@@ -5,7 +5,7 @@ go 1.23.0
 replace github.com/curtisnewbie/user-vault => ../user-vault
 
 require (
-	github.com/curtisnewbie/miso v0.2.4-beta.1.0.20250711163542-dba9c6323c21
+	github.com/curtisnewbie/miso v0.2.13-0.20250903143352-668c3170049b
 	github.com/curtisnewbie/user-vault v0.0.0
 	github.com/spf13/cast v1.6.0
 )
@@ -54,6 +54,8 @@ require (
 	github.com/natefinch/lumberjack v2.0.0+incompatible // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
+	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/panjf2000/ants v1.3.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
@@ -78,10 +80,12 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
+	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

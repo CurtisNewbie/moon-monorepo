@@ -97,9 +97,10 @@ func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, us
 }
 
 func CachedCountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
-	return userNotifCountCache.Get(rail, user.UserNo, func() (int, error) {
+	v, err := userNotifCountCache.GetValElse(rail, user.UserNo, func() (int, error) {
 		return CountNotification(rail, db, user)
 	})
+	return v, err
 }
 
 func CountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {

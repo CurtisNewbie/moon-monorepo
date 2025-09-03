@@ -80,6 +80,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Preflight check for duplicate file uploads
   func ApiPreflightCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string) (bool, error) {
   	var res miso.GnResp[bool]
   	err := miso.NewDynTClient(rail, "/open/api/file/upload/duplication/preflight", "vfm").
@@ -164,6 +165,7 @@
   	Filename string `json:"fileName"`
   }
 
+  // User fetch parent file info
   func ApiGetParentFile(rail miso.Rail, fileKey string) (*ParentFileInfo, error) {
   	var res miso.GnResp[*ParentFileInfo]
   	err := miso.NewDynTClient(rail, "/open/api/file/parent", "vfm").
@@ -251,6 +253,7 @@
   	ParentFileUuid string `json:"parentFileUuid"`
   }
 
+  // User move file into directory
   func ApiMoveFileToDir(rail miso.Rail, req MoveIntoDirReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/move-to-dir", "vfm").
@@ -326,7 +329,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/batch-move-to-dir' \
     -H 'Content-Type: application/json' \
-    -d '{"instructions":{"parentFileUuid":"","uuid":""}}'
+    -d '{"instructions":[]}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -340,6 +343,7 @@
   	ParentFileUuid string `json:"parentFileUuid"`
   }
 
+  // User move files into directory
   func ApiBatchMoveFileToDir(rail miso.Rail, req BatchMoveIntoDirReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/batch-move-to-dir", "vfm").
@@ -429,6 +433,7 @@
   	Name string `json:"name"`      // Required.
   }
 
+  // User make directory
   func ApiMakeDir(rail miso.Rail, req MakeDirReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/file/make-dir", "vfm").
@@ -515,6 +520,7 @@
   	Name string `json:"name"`
   }
 
+  // User list directories
   func ApiListDir(rail miso.Rail) ([]ListedDir, error) {
   	var res miso.GnResp[[]ListedDir]
   	err := miso.NewDynTClient(rail, "/open/api/file/dir/list", "vfm").
@@ -649,6 +655,7 @@
   	ThumbnailToken string `json:"thumbnailToken"`
   }
 
+  // User list files
   func ApiListFiles(rail miso.Rail, req ListFileReq) (miso.PageRes[ListedFile], error) {
   	var res miso.GnResp[miso.PageRes[ListedFile]]
   	err := miso.NewDynTClient(rail, "/open/api/file/list", "vfm").
@@ -771,6 +778,7 @@
   	Uuid string `json:"uuid"`
   }
 
+  // User delete file
   func ApiDeleteFiles(rail miso.Rail, req DeleteFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/delete", "vfm").
@@ -852,6 +860,7 @@
   	Uuid string `json:"uuid"`
   }
 
+  // User delete truncate directory recursively
   func ApiTruncateDir(rail miso.Rail, req DeleteFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/dir/truncate", "vfm").
@@ -943,6 +952,7 @@
   	Child *DirBottomUpTreeNode `json:"child"`
   }
 
+  // Fetch directory tree bottom up.
   func ApiFetchDirBottomUpTree(rail miso.Rail, req FetchDirTreeReq) (*DirBottomUpTreeNode, error) {
   	var res miso.GnResp[*DirBottomUpTreeNode]
   	err := miso.NewDynTClient(rail, "/open/api/file/dir/bottom-up-tree", "vfm").
@@ -1034,6 +1044,7 @@
   	Child []*DirTopDownTreeNode `json:"child"`
   }
 
+  // Fetch directory tree top down.
   func ApiFetchDirTopDownTree(rail miso.Rail) (*DirTopDownTreeNode, error) {
   	var res miso.GnResp[*DirTopDownTreeNode]
   	err := miso.NewDynTClient(rail, "/open/api/file/dir/top-down-tree", "vfm").
@@ -1118,6 +1129,7 @@
   	FileKeys []string `json:"fileKeys"`
   }
 
+  // User delete file in batch
   func ApiBatchDeleteFile(rail miso.Rail, req BatchDeleteFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/delete/batch", "vfm").
@@ -1203,6 +1215,7 @@
   	ParentFile string `json:"parentFile"`
   }
 
+  // User create file
   func ApiCreateFile(rail miso.Rail, req CreateFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/create", "vfm").
@@ -1290,6 +1303,7 @@
   	SensitiveMode string `json:"sensitiveMode"`
   }
 
+  // User update file
   func ApiUpdateFile(rail miso.Rail, req UpdateFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/info/update", "vfm").
@@ -1374,6 +1388,7 @@
   	FileKey string `json:"fileKey"`
   }
 
+  // User generate temporary token
   func ApiGenFileTkn(rail miso.Rail, req GenerateTempTokenReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/file/token/generate", "vfm").
@@ -1459,6 +1474,7 @@
   	ParentFileKey string `json:"parentFileKey"`
   }
 
+  // User unpack zip
   func ApiUnpackZip(rail miso.Rail, req UnpackZipReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/unpack", "vfm").
@@ -1531,6 +1547,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // User generate qrcode image for temporary token
   func ApiGenFileTknQRCode(rail miso.Rail, token string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/file/token/qrcode", "vfm").
@@ -1596,6 +1613,7 @@
   	Name string `json:"name"`
   }
 
+  // User list virtual folder briefs
   func ApiListVFolderBrief(rail miso.Rail) ([]VFolderBrief, error) {
   	var res miso.GnResp[[]VFolderBrief]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/brief/owned", "vfm").
@@ -1715,6 +1733,7 @@
   	Ownership string `json:"ownership"`
   }
 
+  // User list virtual folders
   func ApiListVFolders(rail miso.Rail, req ListVFolderReq) (ListVFolderRes, error) {
   	var res miso.GnResp[ListVFolderRes]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/list", "vfm").
@@ -1829,6 +1848,7 @@
   	Name string `json:"name"`
   }
 
+  // User create virtual folder
   func ApiCreateVFolder(rail miso.Rail, req CreateVFolderReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/create", "vfm").
@@ -1914,6 +1934,7 @@
   	FileKeys []string `json:"fileKeys"`
   }
 
+  // User add file to virtual folder
   func ApiVFolderAddFile(rail miso.Rail, req AddFileToVfolderReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/file/add", "vfm").
@@ -1998,6 +2019,7 @@
   	FileKeys []string `json:"fileKeys"`
   }
 
+  // User remove file from virtual folder
   func ApiVFolderRemoveFile(rail miso.Rail, req RemoveFileFromVfolderReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/file/remove", "vfm").
@@ -2082,6 +2104,7 @@
   	Username string `json:"username"`
   }
 
+  // Share access to virtual folder
   func ApiShareVFolder(rail miso.Rail, req ShareVfolderReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/share", "vfm").
@@ -2166,6 +2189,7 @@
   	UserNo string `json:"userNo"`
   }
 
+  // Remove granted access to virtual folder
   func ApiRemoveVFolderAccess(rail miso.Rail, req RemoveGrantedFolderAccessReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/access/remove", "vfm").
@@ -2273,6 +2297,7 @@
   	CreateTime util.ETime `json:"createTime"`
   }
 
+  // List granted access to virtual folder
   func ApiListVFolderAccess(rail miso.Rail, req ListGrantedFolderAccessReq) (ListGrantedFolderAccessRes, error) {
   	var res miso.GnResp[ListGrantedFolderAccessRes]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/granted/list", "vfm").
@@ -2381,6 +2406,7 @@
   	FolderNo string `json:"folderNo"`
   }
 
+  // Remove virtual folder
   func ApiRemoveVFolder(rail miso.Rail, req RemoveVFolderReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/vfolder/remove", "vfm").
@@ -2462,6 +2488,7 @@
   	Name string `json:"name"`
   }
 
+  // List owned gallery brief info
   func ApiListGalleryBriefs(rail miso.Rail) ([]VGalleryBrief, error) {
   	var res miso.GnResp[[]VGalleryBrief]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/brief/owned", "vfm").
@@ -2570,6 +2597,7 @@
   	IsDel bool `json:"isDel"`
   }
 
+  // Create new gallery
   func ApiCreateGallery(rail miso.Rail, req CreateGalleryCmd) (*Gallery, error) {
   	var res miso.GnResp[*Gallery]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/new", "vfm").
@@ -2668,6 +2696,7 @@
   	Name string `json:"name"`      // Required.
   }
 
+  // Update gallery
   func ApiUpdateGallery(rail miso.Rail, req UpdateGalleryCmd) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/update", "vfm").
@@ -2750,6 +2779,7 @@
   	GalleryNo string `json:"galleryNo"` // Required.
   }
 
+  // Delete gallery
   func ApiDeleteGallery(rail miso.Rail, req DeleteGalleryCmd) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/delete", "vfm").
@@ -2864,6 +2894,7 @@
   	DirFileKey string `json:"dirFileKey"`
   }
 
+  // List galleries
   func ApiListGalleries(rail miso.Rail, req ListGalleriesCmd) (miso.PageRes[VGallery], error) {
   	var res miso.GnResp[miso.PageRes[VGallery]]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/list", "vfm").
@@ -2980,6 +3011,7 @@
   	Username string `json:"username"` // Required.
   }
 
+  // Grant access to the galleries
   func ApiGranteGalleryAccess(rail miso.Rail, req PermitGalleryAccessCmd) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/access/grant", "vfm").
@@ -3064,6 +3096,7 @@
   	UserNo string `json:"userNo"`  // Required.
   }
 
+  // Remove access to the galleries
   func ApiRemoveGalleryAccess(rail miso.Rail, req RemoveGalleryAccessCmd) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/access/remove", "vfm").
@@ -3171,6 +3204,7 @@
   	CreateTime util.ETime `json:"createTime"`
   }
 
+  // List granted access to the galleries
   func ApiListGalleryAccess(rail miso.Rail, req ListGrantedGalleryAccessCmd) (miso.PageRes[ListedGalleryAccessRes], error) {
   	var res miso.GnResp[miso.PageRes[ListedGalleryAccessRes]]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/access/list", "vfm").
@@ -3306,6 +3340,7 @@
   	FileTempToken string `json:"fileTempToken"`
   }
 
+  // List images of gallery
   func ApiListGalleryImages(rail miso.Rail, req ListGalleryImagesCmd) (*ListGalleryImagesResp, error) {
   	var res miso.GnResp[*ListGalleryImagesResp]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/images", "vfm").
@@ -3407,7 +3442,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/image/transfer' \
     -H 'Content-Type: application/json' \
-    -d '{"images":{"fileKey":"","galleryNo":"","name":""}}'
+    -d '{"images":[]}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3422,6 +3457,7 @@
   	FileKey string `json:"fileKey"`
   }
 
+  // Host selected images on gallery
   func ApiTransferGalleryImage(rail miso.Rail, req TransferGalleryImageReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/gallery/image/transfer", "vfm").
@@ -3540,6 +3576,7 @@
   	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
+  // List versioned files
   func ApiListVersionedFile(rail miso.Rail, req ApiListVerFileReq) (miso.PageRes[ApiListVerFileRes], error) {
   	var res miso.GnResp[miso.PageRes[ApiListVerFileRes]]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/list", "vfm").
@@ -3678,6 +3715,7 @@
   	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
+  // List versioned file history
   func ApiListVersionedFileHistory(rail miso.Rail, req ApiListVerFileHistoryReq) (miso.PageRes[ApiListVerFileHistoryRes], error) {
   	var res miso.GnResp[miso.PageRes[ApiListVerFileHistoryRes]]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/history", "vfm").
@@ -3794,6 +3832,7 @@
   	SizeInBytes int64 `json:"sizeInBytes"` // total size in bytes
   }
 
+  // Query versioned file log accumulated size
   func ApiQryVersionedFileAccuSize(rail miso.Rail, req ApiQryVerFileAccuSizeReq) (ApiQryVerFileAccuSizeRes, error) {
   	var res miso.GnResp[ApiQryVerFileAccuSizeRes]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/accumulated-size", "vfm").
@@ -3890,6 +3929,7 @@
   	VerFileId string `json:"verFileId"` // Versioned File Id
   }
 
+  // Create versioned file
   func ApiCreateVersionedFile(rail miso.Rail, req ApiCreateVerFileReq) (ApiCreateVerFileRes, error) {
   	var res miso.GnResp[ApiCreateVerFileRes]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/create", "vfm").
@@ -3983,6 +4023,7 @@
   	FakeFstoreFileId string `json:"fstoreFileId"` // Required.
   }
 
+  // Update versioned file
   func ApiUpdateVersionedFile(rail miso.Rail, req ApiUpdateVerFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/update", "vfm").
@@ -4066,6 +4107,7 @@
   	VerFileId string `json:"verFileId"` // Versioned File Id. Required.
   }
 
+  // Delete versioned file
   func ApiDelVersionedFile(rail miso.Rail, req ApiDelVerFileReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/open/api/versioned-file/delete", "vfm").
@@ -4139,6 +4181,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Compensate thumbnail generation
   func ApiCompensateThumbnail(rail miso.Rail) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/compensate/thumbnail", "vfm").
@@ -4207,6 +4250,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Regenerate video thumbnails
   func ApiRegenerateVideoThumbnail(rail miso.Rail) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/compensate/regenerate-video-thumbnails", "vfm").
@@ -4275,6 +4319,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Upload bookmark file
   func ApiUploadBookmarkFile(rail miso.Rail) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/bookmark/file/upload", "vfm").
@@ -4356,6 +4401,7 @@
   	Paging miso.Paging `json:"paging"`
   }
 
+  // List bookmarks
   func ApiListBookmarks(rail miso.Rail, req ListBookmarksReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/bookmark/list", "vfm").
@@ -4444,6 +4490,7 @@
   	Id int64 `json:"id"`
   }
 
+  // Remove bookmark
   func ApiRemoveBookmark(rail miso.Rail, req RemoveBookmarkReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/bookmark/remove", "vfm").
@@ -4530,6 +4577,7 @@
   	Paging miso.Paging `json:"paging"`
   }
 
+  // List bookmark blacklist
   func ApiListBlacklistedBookmarks(rail miso.Rail, req ListBookmarksReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/bookmark/blacklist/list", "vfm").
@@ -4618,6 +4666,7 @@
   	Id int64 `json:"id"`
   }
 
+  // Remove bookmark blacklist
   func ApiRemoveBookmarkBlacklist(rail miso.Rail, req RemoveBookmarkReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/bookmark/blacklist/remove", "vfm").
@@ -4705,6 +4754,7 @@
   	Deleted bool `json:"deleted"`
   }
 
+  // List user browse history
   func ApiListBrowseHistory(rail miso.Rail) ([]ListBrowseRecordRes, error) {
   	var res miso.GnResp[[]ListBrowseRecordRes]
   	err := miso.NewDynTClient(rail, "/history/list-browse-history", "vfm").
@@ -4792,6 +4842,7 @@
   	FileKey string `json:"fileKey"` // Required.
   }
 
+  // Record user browse history, only files that are directly owned by the user is recorded
   func ApiRecordBrowseHistory(rail miso.Rail, req RecordBrowseHistoryReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/history/record-browse-history", "vfm").
@@ -4871,6 +4922,7 @@
   	UnderMaintenance bool `json:"underMaintenance"`
   }
 
+  // Check server maintenance status
   func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
   	var res miso.GnResp[MaintenanceStatus]
   	err := miso.NewDynTClient(rail, "/maintenance/status", "vfm").
@@ -4960,6 +5012,7 @@
   	UserNo string `json:"userNo"`
   }
 
+  // Internal endpoint, System create file
   func ApiSysCreateFile(rail miso.Rail, req SysCreateFileReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/internal/v1/file/create", "vfm").
@@ -5042,6 +5095,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  // Internal endpoint, Preflight check for duplicate file uploads
   func ApiInternalCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string, userNo string) (bool, error) {
   	var res miso.GnResp[bool]
   	err := miso.NewDynTClient(rail, "/internal/file/upload/duplication/preflight", "vfm").
@@ -5127,6 +5181,7 @@
   	UserNo string `json:"userNo"`
   }
 
+  // Internal endpoint, Check if user has access to the file
   func ApiInternalCheckFileAccess(rail miso.Rail, req InternalCheckFileAccessReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynTClient(rail, "/internal/file/check-access", "vfm").
@@ -5220,6 +5275,7 @@
   	FileType string `json:"fileType"`
   }
 
+  // Internal endpoint. Fetch file info.
   func ApiInternalFetchFileInfo(rail miso.Rail, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
   	var res miso.GnResp[InternalFetchFileInfoRes]
   	err := miso.NewDynTClient(rail, "/internal/file/fetch-info", "vfm").
@@ -5315,6 +5371,7 @@
   	Name string `json:"name"`      // Required.
   }
 
+  // Internal endpoint, System make directory.
   func ApiSysMakeDir(rail miso.Rail, req SysMakeDirReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynTClient(rail, "/internal/v1/file/make-dir", "vfm").
@@ -5418,6 +5475,7 @@
   	Method string `json:"method"`  // http method
   }
 
+  // Expose resource and endpoint information to other backend service for authorization.
   func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
   	var res miso.GnResp[ResourceInfoRes]
   	err := miso.NewDynTClient(rail, "/auth/resource", "vfm").

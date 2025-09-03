@@ -372,7 +372,7 @@ func NewPDelFileOp(strategy string) PDelFileOp {
 }
 
 func FastCheckFileExists(rail miso.Rail, fileId string) error {
-	exists, err := fileIdExistCache.Get(rail, fileId, func() (string, error) {
+	exists, err := fileIdExistCache.GetValElse(rail, fileId, func() (string, error) {
 		exists, err := CheckFileExists(fileId)
 		if err != nil {
 			return "", err
@@ -386,7 +386,7 @@ func FastCheckFileExists(rail miso.Rail, fileId string) error {
 		return err
 	}
 	if exists != "Y" {
-		return ErrFileNotFound
+		return ErrFileNotFound.New()
 	}
 	return nil
 }

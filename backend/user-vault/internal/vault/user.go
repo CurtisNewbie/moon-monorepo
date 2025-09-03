@@ -505,7 +505,7 @@ func FetchUserBrief(rail miso.Rail, tx *gorm.DB, username string) (UserInfoBrief
 
 func LoadUserBriefThrCache(rail miso.Rail, tx *gorm.DB, username string) (UserDetail, error) {
 	rail.Debugf("LoadUserBriefThrCache, username: %v", username)
-	return userInfoCache.Get(rail, username, func() (UserDetail, error) {
+	return userInfoCache.GetValElse(rail, username, func() (UserDetail, error) {
 		rail.Debugf("LoadUserInfoBrief, username: %v", username)
 		return LoadUserInfoBrief(rail, mysql.GetMySQL(), username)
 	})

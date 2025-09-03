@@ -394,15 +394,16 @@ func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 	return e
 }
 
-func GetRoleInfo(ec miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) {
-	resp, err := roleInfoCache.Get(ec, req.RoleNo, func() (api.RoleInfoResp, error) {
+func GetRoleInfo(rail miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) {
+	resp, err := roleInfoCache.GetValElse(rail, req.RoleNo, func() (api.RoleInfoResp, error) {
 		var resp api.RoleInfoResp
-		tx := mysql.GetMySQL().Raw("select role_no, name from role where role_no = ?", req.RoleNo).Scan(&resp)
-		if tx.Error != nil {
-			return resp, tx.Error
+		n, err := dbquery.NewQueryRail(rail, mysql.GetMySQL()).
+			Raw("select role_no, name from role where role_no = ?", req.RoleNo).
+			Scan(&resp)
+		if err != nil {
+			return resp, err
 		}
-
-		if tx.RowsAffected < 1 {
+		if n < 1 {
 			return resp, miso.NewErrf("Role not found").WithCode(ErrCodeRoleNotFound)
 		}
 		return resp, nil
@@ -780,9 +781,12 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 	}
 
 	if roleNo == "" {
-		public, err := publicAccessCache.Get(rail, "", nil)
+		public, ok, err := publicAccessCache.Get(rail, "")
 		if err != nil {
 			rail.Warnf("Failed to load PublicAccessCache, %v", err)
+			return forbidden, nil
+		}
+		if !ok {
 			return forbidden, nil
 		}
 		for _, p := range public {
@@ -795,9 +799,12 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 		return forbidden, nil
 	}
 
-	rr, err := roleAccessCache.Get(rail, roleNo, nil)
+	rr, ok, err := roleAccessCache.Get(rail, roleNo)
 	if err != nil {
 		rail.Warnf("Failed to find RoleAccess for %v from cache, %v", roleNo, err)
+		return forbidden, nil
+	}
+	if !ok {
 		return forbidden, nil
 	}
 

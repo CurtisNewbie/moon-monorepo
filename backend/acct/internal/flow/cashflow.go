@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	importPool    *util.AsyncPool = util.NewIOAsyncPool()
+	importPool    util.AsyncPoolItf = util.NewIOAsyncPool()
 	categoryConfs map[string]CategoryConf
 )
 

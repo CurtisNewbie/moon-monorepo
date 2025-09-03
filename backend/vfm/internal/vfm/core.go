@@ -1658,23 +1658,20 @@ func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user
 }
 
 func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeNode) (*DirBottomUpTreeNode, error) {
-	p, err := dirParentCache.Get(rail, child.FileKey, func() (*CachedDirTreeNode, error) {
+	p, ok, err := dirParentCache.GetElse(rail, child.FileKey, func() (util.Opt[*CachedDirTreeNode], error) {
 		pi, err := doFindParentDir(rail, dbquery.NewQueryRail(rail, db), child.FileKey)
-		if err != nil {
-			return nil, err
+		if err != nil || pi == nil {
+			return util.EmptyOpt[*CachedDirTreeNode](), err
 		}
-		if pi == nil {
-			return nil, miso.NoneErr
-		}
-		return &CachedDirTreeNode{
+		return util.OptWith(&CachedDirTreeNode{
 			FileKey: pi.FileKey,
-		}, nil
+		}), nil
 	})
 	if err != nil {
-		if miso.IsNoneErr(err) {
-			return child, nil
-		}
 		return nil, err
+	}
+	if !ok {
+		return child, nil
 	}
 
 	name, err := cachedFindDirName(rail, dbquery.NewQueryRail(rail, db), p.FileKey)
@@ -1713,9 +1710,11 @@ func doFindParentDir(c miso.Rail, q *dbquery.Query, fileKey string) (*ParentDir,
 }
 
 func cachedFindDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, error) {
-	return dirNameCache.Get(rail, fileKey, func() (string, error) {
-		return findDirName(rail, q, fileKey)
+	v, _, err := dirNameCache.GetElse(rail, fileKey, func() (util.Opt[string], error) {
+		v, err := findDirName(rail, q, fileKey)
+		return util.OptWith(v), err
 	})
+	return v, err
 }
 
 func findDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, error) {
@@ -1732,7 +1731,7 @@ func findDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, erro
 }
 
 func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTopDownTreeNode, error) {
-	return userDirTreeCache.Get(rail, user.UserNo, func() (*DirTopDownTreeNode, error) {
+	v, _, err := userDirTreeCache.GetElse(rail, user.UserNo, func() (util.Opt[*DirTopDownTreeNode], error) {
 		root := &DirTopDownTreeNode{
 			FileKey: "",
 			Name:    "",
@@ -1740,8 +1739,9 @@ func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTop
 		}
 		seen := util.NewSet[string]()
 		seen.Add(root.FileKey)
-		return root, dfsDirTree(rail, db, root, user, seen)
+		return util.OptWith(root), dfsDirTree(rail, db, root, user, seen)
 	})
+	return v, err
 }
 
 type TopDownTreeNodeBrief struct {
