@@ -64,7 +64,7 @@ func GenImageThumbnail(rail miso.Rail, evt api.ImgThumbnailTriggerEvent) (string
 		rail.Infof("GenImageThumbnail, evt: %#v, took %v", evt, dur)
 	}()
 
-	origin, err := fstore.FindFile(mysql.GetMySQL(), evt.FileId)
+	origin, err := fstore.FindFile(rail, mysql.GetMySQL(), evt.FileId)
 	if err != nil {
 		return "", fmt.Errorf("failed to find fstore file info: %v, %v", evt.FileId, err)
 	}
@@ -103,7 +103,7 @@ func GenVideoThumbnail(rail miso.Rail, evt api.VidThumbnailTriggerEvent) (string
 		rail.Infof("GenVideoThumbnail, evt: %#v, took %v", evt, dur)
 	}()
 
-	origin, err := fstore.FindFile(mysql.GetMySQL(), evt.FileId)
+	origin, err := fstore.FindFile(rail, mysql.GetMySQL(), evt.FileId)
 	if err != nil {
 		return "", fmt.Errorf("failed to find fstore file info: %v, %v", evt.FileId, err)
 	}

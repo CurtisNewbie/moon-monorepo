@@ -291,19 +291,19 @@ func DeleteResource(rail miso.Rail, req DeleteResourceReq) error {
 	return err
 }
 
-func ListResourceCandidatesForRole(ec miso.Rail, roleNo string) ([]ResBrief, error) {
+func ListResourceCandidatesForRole(rail miso.Rail, roleNo string) ([]ResBrief, error) {
 	if roleNo == "" {
 		return []ResBrief{}, nil
 	}
 
 	var res []ResBrief
-	tx := mysql.GetMySQL().
+	_, err := dbquery.NewQueryRail(rail, mysql.GetMySQL()).
 		Select("r.name, r.code").
 		Table("resource r").
 		Where("NOT EXISTS (SELECT * FROM role_resource WHERE role_no = ? and res_code = r.code)", roleNo).
 		Scan(&res)
-	if tx.Error != nil {
-		return nil, tx.Error
+	if err != nil {
+		return nil, err
 	}
 	if res == nil {
 		res = []ResBrief{}
@@ -311,21 +311,21 @@ func ListResourceCandidatesForRole(ec miso.Rail, roleNo string) ([]ResBrief, err
 	return res, nil
 }
 
-func ListAllResBriefsOfRole(ec miso.Rail, roleNo string) ([]ResBrief, error) {
+func ListAllResBriefsOfRole(rail miso.Rail, roleNo string) ([]ResBrief, error) {
 	var res []ResBrief
 
 	if isDefAdmin(roleNo) {
-		return ListAllResBriefs(ec)
+		return ListAllResBriefs(rail)
 	}
 
-	tx := mysql.GetMySQL().
+	_, err := dbquery.NewQueryRail(rail, mysql.GetMySQL()).
 		Select(`r.name, r.code`).
 		Table(`role_resource rr`).
 		Joins(`LEFT JOIN resource r ON r.code = rr.res_code`).
 		Where(`rr.role_no = ?`, roleNo).
 		Scan(&res)
-	if tx.Error != nil {
-		return nil, tx.Error
+	if err != nil {
+		return nil, err
 	}
 	if res == nil {
 		res = []ResBrief{}
@@ -335,9 +335,9 @@ func ListAllResBriefsOfRole(ec miso.Rail, roleNo string) ([]ResBrief, error) {
 
 func ListAllResBriefs(rail miso.Rail) ([]ResBrief, error) {
 	var res []ResBrief
-	tx := mysql.GetMySQL().Raw("select name, code from resource").Scan(&res)
-	if tx.Error != nil {
-		return nil, tx.Error
+	_, err := dbquery.NewQueryRail(rail, mysql.GetMySQL()).Raw("select name, code from resource").Scan(&res)
+	if err != nil {
+		return nil, err
 	}
 	if res == nil {
 		res = []ResBrief{}
@@ -345,22 +345,24 @@ func ListAllResBriefs(rail miso.Rail) ([]ResBrief, error) {
 	return res, nil
 }
 
-func ListResources(ec miso.Rail, req ListResReq) (ListResResp, error) {
+func ListResources(rail miso.Rail, req ListResReq) (ListResResp, error) {
 	var resources []WRes
-	tx := mysql.GetMySQL().
+	_, err := dbquery.NewQueryRail(rail, mysql.GetMySQL()).
 		Raw("select * from resource order by id desc limit ?, ?", req.Paging.GetOffset(), req.Paging.GetLimit()).
 		Scan(&resources)
-	if tx.Error != nil {
-		return ListResResp{}, tx.Error
+	if err != nil {
+		return ListResResp{}, err
 	}
 	if resources == nil {
 		resources = []WRes{}
 	}
 
 	var count int
-	tx = mysql.GetMySQL().Raw("select count(*) from resource").Scan(&count)
-	if tx.Error != nil {
-		return ListResResp{}, tx.Error
+	_, err = dbquery.NewQueryRail(rail, mysql.GetMySQL()).
+		Raw("select count(*) from resource").
+		Scan(&count)
+	if err != nil {
+		return ListResResp{}, err
 	}
 
 	return ListResResp{Paging: miso.RespPage(req.Paging, count), Payload: resources}, nil
@@ -372,7 +374,6 @@ func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 			_, err := dbquery.NewQueryRail(rail, tx).
 				Exec(`UPDATE path SET pgroup = ?, ptype = ? WHERE path_no = ?`,
 					req.Group, req.Type, req.PathNo)
-
 			if err != nil {
 				return miso.ErrUnknownError.Wrap(err)
 			}
@@ -388,7 +389,7 @@ func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 					Exec(`INSERT INTO path_resource (path_no, res_code) VALUES (?, ?)`, req.PathNo, req.ResCode)
 				return err
 			}
-			return miso.ErrUnknownError.Wrap(tx.Error)
+			return nil
 		})
 	})
 	return e
@@ -417,9 +418,11 @@ func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user common.User
 
 	_, e := lockResourceGlobal(rail, func() (any, error) {
 		var id int
-		tx := mysql.GetMySQL().Raw(`select id from resource where code = ? limit 1`, req.Code).Scan(&id)
-		if tx.Error != nil {
-			return nil, tx.Error
+		_, err := dbquery.NewQueryRail(rail, mysql.GetMySQL()).
+			Raw(`select id from resource where code = ? limit 1`, req.Code).
+			Scan(&id)
+		if err != nil {
+			return nil, err
 		}
 
 		if id > 0 {
@@ -434,11 +437,11 @@ func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user common.User
 			UpdateBy: user.Username,
 		}
 
-		tx = mysql.GetMySQL().
+		_, err = dbquery.NewQueryRail(rail, mysql.GetMySQL()).
 			Table("resource").
 			Omit("Id", "CreateTime", "UpdateTime").
 			Create(&res)
-		return nil, tx.Error
+		return nil, err
 	})
 	return e
 }
@@ -657,9 +660,11 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 		return lockResourceGlobal(rail, func() (any, error) {
 			// check if resource exist
 			var resId int
-			tx := mysql.GetMySQL().Raw(`select id from resource where code = ?`, req.ResCode).Scan(&resId)
-			if tx.Error != nil {
-				return false, tx.Error
+			_, err := dbquery.NewQueryRail(rail, mysql.GetMySQL()).
+				Raw(`select id from resource where code = ?`, req.ResCode).
+				Scan(&resId)
+			if err != nil {
+				return false, err
 			}
 			if resId < 1 {
 				return false, miso.NewErrf("Resource not found")
@@ -667,9 +672,11 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 
 			// check if role-resource relation exists
 			var id int
-			tx = mysql.GetMySQL().Raw(`select id from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode).Scan(&id)
-			if tx.Error != nil {
-				return false, tx.Error
+			_, err = dbquery.NewQueryRail(rail, mysql.GetMySQL()).
+				Raw(`select id from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode).
+				Scan(&id)
+			if err != nil {
+				return false, err
 			}
 			if id > 0 { // relation exists already
 				return false, nil

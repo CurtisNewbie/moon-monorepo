@@ -3,6 +3,7 @@ package fstore
 import (
 	"github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/mini-fstore/internal/config"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/miso"
 	"gorm.io/gorm"
 )
@@ -31,14 +32,13 @@ type ListBackupFileResp struct {
 
 func ListBackupFiles(rail miso.Rail, tx *gorm.DB, req ListBackupFileReq) (ListBackupFileResp, error) {
 	var files []BackupFileInf
-	err := tx.
+	_, err := dbquery.NewQueryRail(rail, tx).
 		Table("file").
 		Select("id, file_id, name, status, size, md5").
 		Where("id > ?", req.IdOffset).
 		Order("id ASC").
 		Limit(int(req.Limit)).
-		Scan(&files).
-		Error
+		Scan(&files)
 	if err != nil {
 		return ListBackupFileResp{}, ErrUnknownError.WithInternalMsg("Failed to list back up files, req %+v, %v", req, err)
 	}

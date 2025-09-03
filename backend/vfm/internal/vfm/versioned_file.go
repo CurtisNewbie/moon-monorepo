@@ -57,10 +57,10 @@ func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user co
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Exec(`
+		_, err := dbquery.NewQueryRail(rail, tx).Exec(`
 			INSERT INTO versioned_file (ver_file_id,file_key,name,size_in_bytes,uploader_no,uploader_name,upload_time,created_by)
 			VALUES (?,?,?,?,?,?,?,?)
-		`, verFileId, f.Uuid, f.Name, f.SizeInBytes, f.UploaderNo, f.UploaderName, util.Now(), user.Username).Error
+		`, verFileId, f.Uuid, f.Name, f.SizeInBytes, f.UploaderNo, f.UploaderName, util.Now(), user.Username)
 		if err != nil {
 			return fmt.Errorf("failed to insert versioned_file, req: #%v, %w", req, err)
 		}
@@ -140,7 +140,7 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 			return err
 		}
 
-		err = tx.Exec(`
+		_, err = dbquery.NewQueryRail(rail, tx).Exec(`
 			UPDATE versioned_file
 			SET file_key = ?,
 				name = ?,
@@ -148,7 +148,7 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 				upload_time = ?,
 				updated_by = ?
 			WHERE ver_file_id = ?
-		`, f.Uuid, f.Name, f.SizeInBytes, util.Now(), user.Username, req.VerFileId).Error
+		`, f.Uuid, f.Name, f.SizeInBytes, util.Now(), user.Username, req.VerFileId)
 		if err != nil {
 			return fmt.Errorf("failed to update versioned_file, req: #%v, %w", req, err)
 		}
@@ -254,15 +254,17 @@ func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.U
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Exec(`UPDATE versioned_file SET deleted = 1, updated_by = ?, delete_time = ? WHERE ver_file_id = ?`,
-			user.Username, util.Now(), req.VerFileId).Error
+		_, err := dbquery.NewQueryRail(rail, tx).
+			Exec(`UPDATE versioned_file SET deleted = 1, updated_by = ?, delete_time = ? WHERE ver_file_id = ?`,
+				user.Username, util.Now(), req.VerFileId)
 		if err != nil {
 			return fmt.Errorf("failed to mark versioend_file deleted, %v, %w", req.VerFileId, err)
 		}
 
 		var fks []string
-		if err := tx.Raw(`SELECT vf.file_key FROM versioned_file_log vf WHERE vf.ver_file_id = ?`, req.VerFileId).
-			Scan(&fks).Error; err != nil {
+		if _, err := dbquery.NewQueryRail(rail, tx).
+			Raw(`SELECT vf.file_key FROM versioned_file_log vf WHERE vf.ver_file_id = ?`, req.VerFileId).
+			Scan(&fks); err != nil {
 			return fmt.Errorf("failed to query versioend_file_log, %v, %w", req.VerFileId, err)
 		}
 

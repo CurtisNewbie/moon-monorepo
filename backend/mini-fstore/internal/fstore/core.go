@@ -727,11 +727,13 @@ func CheckAllNormalFiles(fileIds []string) (bool, error) {
 }
 
 // Find File
-func FindFile(db *gorm.DB, fileId string) (File, error) {
+func FindFile(rail miso.Rail, db *gorm.DB, fileId string) (File, error) {
 	var f File
-	t := db.Raw("select * from file where file_id = ?", fileId).Scan(&f)
-	if t.Error != nil {
-		return f, fmt.Errorf("failed to select file from DB, %w", t.Error)
+	_, err := dbquery.NewQueryRail(rail, db).
+		Raw("select * from file where file_id = ?", fileId).
+		Scan(&f)
+	if err != nil {
+		return f, fmt.Errorf("failed to select file from DB, %w", err)
 	}
 	return f, nil
 }
@@ -792,7 +794,7 @@ func LDelFile(rail miso.Rail, db *gorm.DB, fileId string) error {
 	}
 	defer lock.Unlock()
 
-	f, er := FindFile(db, fileId)
+	f, er := FindFile(rail, db, fileId)
 	if er != nil {
 		return ErrUnknownError.WithInternalMsg("FindFile failed, %v", er)
 	}
@@ -835,7 +837,7 @@ func PhyDelFile(rail miso.Rail, db *gorm.DB, fileId string, op PDelFileOp) error
 
 	_, e := redis.RLockRun(rail, FileLockKey(fileId), func() (any, error) {
 
-		f, er := FindFile(db, fileId)
+		f, er := FindFile(rail, db, fileId)
 		if er != nil {
 			return nil, ErrUnknownError.WithInternalMsg("FindFile failed, %v", er)
 		}
@@ -919,7 +921,7 @@ func SanitizeStorage(rail miso.Rail) error {
 		}
 
 		// check if the file is in database
-		f, e := FindFile(mysql.GetMySQL(), fileId)
+		f, e := FindFile(rail, mysql.GetMySQL(), fileId)
 		if e != nil {
 			return fmt.Errorf("failed to find file from db, %v", e)
 		}
@@ -952,7 +954,7 @@ func SanitizeStorage(rail miso.Rail) error {
 //
 // Unzipping is asynchrounous, the unzipped files are saved in mini-fstore, and the final result is replied to the specified event bus.
 func TriggerUnzipFilePipeline(rail miso.Rail, db *gorm.DB, req api.UnzipFileReq) error {
-	f, e := FindFile(db, req.FileId)
+	f, e := FindFile(rail, db, req.FileId)
 	if e != nil {
 		return ErrFileNotFound
 	}
@@ -976,7 +978,7 @@ func UnzipFile(rail miso.Rail, db *gorm.DB, evt UnzipFileEvent) ([]SavedZipEntry
 	defer miso.TimeOp(rail, time.Now(), fmt.Sprintf("Unzip file %v", evt.FileId))
 
 	rail.Infof("About to unpack zip file, fileId: %v", evt.FileId)
-	f, e := FindFile(db, evt.FileId)
+	f, e := FindFile(rail, db, evt.FileId)
 	if e != nil {
 		rail.Infof("file is not found, %v", evt.FileId)
 		return nil, nil

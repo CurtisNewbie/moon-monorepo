@@ -179,7 +179,7 @@ func ApiGetFileInfo(inb *miso.Inbound, req FileInfoReq) (api.FstoreFile, error) 
 		return api.FstoreFile{}, fstore.ErrFileNotFound
 	}
 
-	f, ef := fstore.FindFile(mysql.GetMySQL(), req.FileId)
+	f, ef := fstore.FindFile(inb.Rail(), mysql.GetMySQL(), req.FileId)
 	if ef != nil {
 		return api.FstoreFile{}, ef
 	}
