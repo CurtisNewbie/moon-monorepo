@@ -1,13 +1,13 @@
 package vfm
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -95,42 +95,32 @@ func findGalleryAccess(rail miso.Rail, tx *gorm.DB, userNo string, galleryNo str
 	// check if the user has access to the gallery
 	var userAccess *GalleryUserAccess = &GalleryUserAccess{}
 
-	tx = tx.Raw(`
+	ok, err := dbquery.NewQueryRail(rail, tx).Raw(`
 		SELECT * FROM gallery_user_access
 		WHERE gallery_no = ?
-		AND user_no = ? AND is_del = 0`, galleryNo, userNo).Scan(&userAccess)
+		AND user_no = ? AND is_del = 0`, galleryNo, userNo).ScanAny(&userAccess)
 
-	if e := tx.Error; e != nil || tx.RowsAffected < 1 {
-		if e != nil {
-			return nil, fmt.Errorf("failed to find gallery_user_access, %v", e)
-		}
+	if err != nil {
+		return nil, miso.WrapErrf(err, "failed to find gallery_user_access")
+	}
+	if !ok {
 		return nil, nil
 	}
-
 	return userAccess, nil
 }
 
 // Insert a new gallery_user_access record
 func createUserAccess(rail miso.Rail, tx *gorm.DB, userNo string, galleryNo string, createdBy string) error {
-	tx = tx.Exec(`INSERT INTO gallery_user_access (gallery_no, user_no, create_by) VALUES (?, ?, ?)`, galleryNo, userNo, createdBy)
-	if e := tx.Error; e != nil {
-		return e
-	}
-
-	return nil
+	return dbquery.NewQueryRail(rail, tx).
+		ExecAny(`INSERT INTO gallery_user_access (gallery_no, user_no, create_by) VALUES (?, ?, ?)`, galleryNo, userNo, createdBy)
 }
 
 // Update is_del of the record
 func updateUserAccessIsDelFlag(rail miso.Rail, tx *gorm.DB, cmd *UpdateGUAIsDelCmd) error {
-	tx = tx.Exec(`
-	UPDATE gallery_user_access SET is_del = ?, update_by = ?
-	WHERE gallery_no = ? AND user_no = ? AND is_del = ?`, cmd.IsDelTo, cmd.UpdateBy, cmd.GalleryNo, cmd.UserNo, cmd.IsDelFrom)
-
-	if e := tx.Error; e != nil {
-		return e
-	}
-
-	return nil
+	err := dbquery.NewQueryRail(rail, tx).
+		ExecAny(`UPDATE gallery_user_access SET is_del = ?, update_by = ? WHERE gallery_no = ? AND user_no = ? AND is_del = ?`,
+			cmd.IsDelTo, cmd.UpdateBy, cmd.GalleryNo, cmd.UserNo, cmd.IsDelFrom)
+	return err
 }
 
 type RemoveGalleryAccessCmd struct {
@@ -195,13 +185,14 @@ func RemoveGalleryAccess(rail miso.Rail, tx *gorm.DB, cmd RemoveGalleryAccessCmd
 		return e
 	}
 	if gallery.UserNo != user.UserNo {
-		return miso.NewErrf("Operation not allowed")
+		return errs.ErrNotPermitted.New()
 	}
 
-	e = tx.Exec(`UPDATE gallery_user_access SET is_del = 1, update_by = ? WHERE gallery_no = ? AND user_no = ?`,
-		user.Username, cmd.GalleryNo, cmd.UserNo).Error
+	e = dbquery.NewQueryRail(rail, tx).
+		ExecAny(`UPDATE gallery_user_access SET is_del = 1, update_by = ? WHERE gallery_no = ? AND user_no = ?`,
+			user.Username, cmd.GalleryNo, cmd.UserNo)
 	if e != nil {
-		return fmt.Errorf("failed to update gallery_user_access, galleryNo: %v, userNo: %v, %v", cmd.GalleryNo, cmd.UserNo, e)
+		return errs.WrapErrf(e, "failed to update gallery_user_access, galleryNo: %v, userNo: %v, %v", cmd.GalleryNo, cmd.UserNo)
 	}
 	rail.Infof("Gallery %v user access to %v is removed by %v", cmd.GalleryNo, cmd.UserNo, user.Username)
 	return nil
@@ -219,14 +210,14 @@ func GrantGalleryAccessToUser(rail miso.Rail, tx *gorm.DB, cmd PermitGalleryAcce
 	if toUser, err = vault.FindUser(rail, vault.FindUserReq{
 		Username: &cmd.Username,
 	}); err != nil {
-		return miso.NewErrf("Failed to find user").WithInternalMsg("failed to find user, username: %v, %v", cmd.Username, err)
+		return errs.NewErrf("Failed to find user").WithInternalMsg("failed to find user, username: %v, %v", cmd.Username, err)
 	}
 	if toUser.Id < 1 {
-		return miso.NewErrf("User not found")
+		return errs.NewErrf("User not found")
 	}
 
 	if gallery.UserNo != user.UserNo {
-		return miso.NewErrf("You are not allowed to grant access to this gallery")
+		return errs.NewErrf("You are not allowed to grant access to this gallery")
 	}
 
 	return CreateGalleryAccess(rail, tx, toUser.UserNo, cmd.GalleryNo, user.Username)
