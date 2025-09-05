@@ -1658,14 +1658,14 @@ func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user
 }
 
 func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeNode) (*DirBottomUpTreeNode, error) {
-	p, ok, err := dirParentCache.GetElse(rail, child.FileKey, func() (util.Opt[*CachedDirTreeNode], error) {
+	p, ok, err := dirParentCache.GetElse(rail, child.FileKey, func() (*CachedDirTreeNode, bool, error) {
 		pi, err := doFindParentDir(rail, dbquery.NewQueryRail(rail, db), child.FileKey)
 		if err != nil || pi == nil {
-			return util.EmptyOpt[*CachedDirTreeNode](), err
+			return nil, false, err
 		}
-		return util.OptWith(&CachedDirTreeNode{
+		return &CachedDirTreeNode{
 			FileKey: pi.FileKey,
-		}), nil
+		}, true, nil
 	})
 	if err != nil {
 		return nil, err
@@ -1710,9 +1710,9 @@ func doFindParentDir(c miso.Rail, q *dbquery.Query, fileKey string) (*ParentDir,
 }
 
 func cachedFindDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, error) {
-	v, _, err := dirNameCache.GetElse(rail, fileKey, func() (util.Opt[string], error) {
+	v, err := dirNameCache.GetValElse(rail, fileKey, func() (string, error) {
 		v, err := findDirName(rail, q, fileKey)
-		return util.OptWith(v), err
+		return v, err
 	})
 	return v, err
 }
@@ -1731,7 +1731,7 @@ func findDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, erro
 }
 
 func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTopDownTreeNode, error) {
-	v, _, err := userDirTreeCache.GetElse(rail, user.UserNo, func() (util.Opt[*DirTopDownTreeNode], error) {
+	v, err := userDirTreeCache.GetValElse(rail, user.UserNo, func() (*DirTopDownTreeNode, error) {
 		root := &DirTopDownTreeNode{
 			FileKey: "",
 			Name:    "",
@@ -1739,7 +1739,7 @@ func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTop
 		}
 		seen := util.NewSet[string]()
 		seen.Add(root.FileKey)
-		return util.OptWith(root), dfsDirTree(rail, db, root, user, seen)
+		return root, dfsDirTree(rail, db, root, user, seen)
 	})
 	return v, err
 }
