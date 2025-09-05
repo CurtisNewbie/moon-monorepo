@@ -13,6 +13,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/slutil"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -216,14 +218,15 @@ type FileKeyName struct {
 	Uuid string
 }
 
-func queryFilenames(tx *gorm.DB, fileKeys []string) (map[string]string, error) {
+func queryFilenames(rail miso.Rail, db *gorm.DB, fileKeys []string) (map[string]string, error) {
 	var rec []FileKeyName
-	e := tx.Select("uuid, name").
+	_, err := dbquery.NewQueryRail(rail, db).
+		Select("uuid, name").
 		Table("file_info").
 		Where("uuid IN ?", fileKeys).
-		Scan(&rec).Error
-	if e != nil {
-		return nil, e
+		Scan(&rec)
+	if err != nil {
+		return nil, err
 	}
 	return util.StrMap[FileKeyName](rec,
 			func(r FileKeyName) string { return r.Uuid },
@@ -246,14 +249,14 @@ func (q ListFileReq) IsEmpty() bool {
 	return (q.ParentFile == nil || *q.ParentFile == "") && (q.Filename == nil || *q.Filename == "") && (q.FileKey == nil || *q.FileKey == "")
 }
 
-func ListFiles(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
+func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
 	var res miso.PageRes[ListedFile]
 	var e error
 
 	if req.FolderNo != nil && *req.FolderNo != "" {
-		res, e = listFilesInVFolder(rail, tx, req.Page, *req.FolderNo, user)
+		res, e = listFilesInVFolder(rail, db, req.Page, *req.FolderNo, user)
 	} else {
-		res, e = listFilesSelective(rail, tx, req, user)
+		res, e = listFilesSelective(rail, db, req, user)
 	}
 	if e != nil {
 		return res, e
@@ -267,7 +270,7 @@ func ListFiles(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (
 	}
 
 	if !parentFileKeys.IsEmpty() {
-		keyName, e := queryFilenames(tx, parentFileKeys.CopyKeys())
+		keyName, e := queryFilenames(rail, db, parentFileKeys.CopyKeys())
 		if e != nil {
 			return res, e
 		}
@@ -297,14 +300,14 @@ func ListFiles(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (
 	return res, e
 }
 
-func listFilesSelective(rail miso.Rail, tx *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
+func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
 
 	//  If parentFile is empty, and filename are not queried, then we only return the top level file or dir.
 	if req.IsEmpty() {
 		req.ParentFile = new(string) // top-level file/dir
 	}
 
-	return dbquery.NewPagedQuery[ListedFile](tx).
+	return dbquery.NewPagedQuery[ListedFile](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
 			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.sensitive_mode, fi.thumbnail`)
@@ -354,10 +357,9 @@ type PreflightCheckReq struct {
 	ParentFileKey string `form:"parentFileKey"`
 }
 
-func FileExists(c miso.Rail, tx *gorm.DB, req PreflightCheckReq, userNo string) (bool, error) {
-	var id int
-	t := tx.Table("file_info").
-		Select("id").
+func FileExists(rail miso.Rail, db *gorm.DB, req PreflightCheckReq, userNo string) (bool, error) {
+	ok, err := dbquery.NewQueryRail(rail, db).
+		Table("file_info").
 		Where("parent_file = ?", req.ParentFileKey).
 		Where("name = ?", req.Filename).
 		Where("uploader_no = ?", userNo).
@@ -365,49 +367,44 @@ func FileExists(c miso.Rail, tx *gorm.DB, req PreflightCheckReq, userNo string) 
 		Where("is_logic_deleted = ?", DelN).
 		Where("is_del = ?", false).
 		Limit(1).
-		Scan(&id)
-
-	if t.Error != nil {
-		return false, fmt.Errorf("failed to match file, %v", t.Error)
-	}
-
-	return id > 0, nil
+		HasAny()
+	return ok, err
 }
 
-func findFile(rail miso.Rail, tx *gorm.DB, fileKey string) (*FileInfo, error) {
+func findFile(rail miso.Rail, db *gorm.DB, fileKey string) (FileInfo, bool, error) {
 	var f FileInfo
-	t := tx.Raw("SELECT * FROM file_info WHERE uuid = ? AND is_del = 0", fileKey).
-		Scan(&f)
-	if t.Error != nil {
-		return nil, t.Error
+	ok, err := dbquery.NewQueryRail(rail, db).
+		Table("file_info").
+		Eq("uuid", fileKey).
+		Eq("is_del", 0).
+		ScanAny(&f)
+	if err != nil {
+		return f, false, err
 	}
-	if t.RowsAffected < 1 {
-		return nil, nil
-	}
-	return &f, t.Error
+	return f, ok, nil
 }
 
-func findFileById(rail miso.Rail, tx *gorm.DB, id int) (FileInfo, error) {
+func findFileById(rail miso.Rail, tx *gorm.DB, id int) (FileInfo, bool, error) {
 	var f FileInfo
-
-	t := tx.Raw("SELECT * FROM file_info WHERE id = ? AND is_del = 0", id).
-		Scan(&f)
-	if t.Error != nil {
-		return f, t.Error
+	ok, err := dbquery.NewQueryRail(rail, tx).
+		Raw("SELECT * FROM file_info WHERE id = ? AND is_del = 0", id).
+		ScanAny(&f)
+	if err != nil {
+		return f, false, err
 	}
-	return f, nil
+	return f, ok, nil
 }
 
 type FetchParentFileReq struct {
 	FileKey string `form:"fileKey"`
 }
 
-func FindParentFile(c miso.Rail, tx *gorm.DB, req FetchParentFileReq, user common.User) (ParentFileInfo, error) {
-	f, e := findFile(c, tx, req.FileKey)
+func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user common.User) (ParentFileInfo, error) {
+	f, ok, e := findFile(c, db, req.FileKey)
 	if e != nil {
 		return ParentFileInfo{}, e
 	}
-	if f == nil {
+	if !ok {
 		return ParentFileInfo{}, miso.NewErrf("File not found")
 	}
 
@@ -420,11 +417,11 @@ func FindParentFile(c miso.Rail, tx *gorm.DB, req FetchParentFileReq, user commo
 		return ParentFileInfo{Zero: true}, nil
 	}
 
-	pf, e := findFile(c, tx, f.ParentFile)
+	pf, ok, e := findFile(c, db, f.ParentFile)
 	if e != nil {
 		return ParentFileInfo{}, e
 	}
-	if pf == nil {
+	if !ok {
 		return ParentFileInfo{}, miso.NewErrf("File not found", fmt.Sprintf("ParentFile %v not found", f.ParentFile))
 	}
 
@@ -475,12 +472,12 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 	}
 	defer flock.Unlock()
 
-	fi, err := findFile(rail, db, req.Uuid)
+	fi, ok, err := findFile(rail, db, req.Uuid)
 	if err != nil {
-		return miso.NewErrf("File not found").WithInternalMsg("failed to find file, uuid: %v, %v", req.Uuid, err)
+		return ErrFileNotFound.Wrapf(err, "failed to find file, uuid: %v", req.Uuid)
 	}
-	if fi == nil {
-		return miso.NewErrf("File not found")
+	if !ok {
+		return ErrFileNotFound.New()
 	}
 	if fi.ParentFile == req.ParentFileUuid {
 		return nil
@@ -496,7 +493,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 		}
 		for tree != nil {
 			if tree.FileKey == req.Uuid {
-				return miso.NewErrf("Found cycle between directories, invalid operation")
+				return errs.NewErrf("Found cycle between directories, invalid operation")
 			}
 			tree = tree.Child
 		}
@@ -512,25 +509,25 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 			}
 			defer pflock.Unlock()
 
-			pf, e := findFile(rail, tx, req.ParentFileUuid)
+			pf, ok, e := findFile(rail, tx, req.ParentFileUuid)
 			if e != nil {
-				return fmt.Errorf("failed to find parentFile, %v", e)
+				return errs.WrapErrf(e, "failed to find parentFile")
 			}
-			if pf == nil {
-				return fmt.Errorf("perentFile not found, parentFileKey: %v", req.ParentFileUuid)
+			if !ok {
+				return errs.NewErrf("perentFile not found, parentFileKey: %v", req.ParentFileUuid)
 			}
 			rail.Debugf("parentFile: %+v", pf)
 
 			if pf.UploaderNo != user.UserNo {
-				return miso.NewErrf("You are not the owner of this directory")
+				return errs.NewErrf("You are not the owner of this directory")
 			}
 
 			if pf.FileType != FileTypeDir {
-				return miso.NewErrf("Target file is not a directory")
+				return errs.NewErrf("Target file is not a directory")
 			}
 
 			if pf.IsLogicDeleted != DelN {
-				return miso.NewErrf("Target file deleted")
+				return errs.NewErrf("Target file deleted")
 			}
 
 			newSize := pf.SizeInBytes + fi.SizeInBytes
@@ -538,7 +535,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 				Exec("UPDATE file_info SET size_in_bytes = ?, update_by = ?, update_time = ? WHERE uuid = ?",
 					newSize, user.Username, time.Now(), req.ParentFileUuid)
 			if err != nil {
-				return fmt.Errorf("failed to updated dir's size, dir: %v, %v", req.ParentFileUuid, err)
+				return errs.WrapErrf(err, "failed to updated dir's size, dir: %v", req.ParentFileUuid)
 			}
 			rail.Infof("updated dir %v size to %v", req.ParentFileUuid, newSize)
 
@@ -547,16 +544,13 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 		_, err := dbquery.NewQueryRail(rail, tx).
 			Exec("UPDATE file_info SET parent_file = ?, update_by = ?, update_time = ? WHERE uuid = ?",
 				req.ParentFileUuid, user.Username, time.Now(), req.Uuid)
-		if err != nil {
-			return miso.WrapErr(err)
-		}
-		return nil
+		return err
 	})
 
 	return err
 }
 
-func _saveFile(rail miso.Rail, tx *gorm.DB, f FileInfo, user common.User) error {
+func _saveFile(rail miso.Rail, db *gorm.DB, f FileInfo, user common.User) error {
 	uname := user.Username
 	now := util.Now()
 
@@ -568,10 +562,10 @@ func _saveFile(rail miso.Rail, tx *gorm.DB, f FileInfo, user common.User) error 
 	f.CreateTime = now
 	f.UploaderNo = user.UserNo
 
-	_, err := dbquery.NewQueryRail(rail, tx).
+	err := dbquery.NewQueryRail(rail, db).
 		Table("file_info").
 		Omit("id", "update_time", "update_by").
-		Create(&f)
+		CreateAny(&f)
 	if err == nil {
 		rail.Infof("Saved file %+v", f)
 		return nil
@@ -587,39 +581,35 @@ type CreateVFolderReq struct {
 	Name string `json:"name"`
 }
 
-func CreateVFolder(rail miso.Rail, tx *gorm.DB, r CreateVFolderReq, user common.User) (string, error) {
+func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.User) (string, error) {
 	userNo := user.UserNo
 
-	v, e := redis.RLockRun(rail, "vfolder:user:"+userNo, func() (any, error) {
+	return redis.RLockRun(rail, "vfolder:user:"+userNo, func() (string, error) {
 
-		var id int
-		_, err := dbquery.NewQueryRail(rail, tx).
+		ok, err := dbquery.NewQueryRail(rail, db).
 			Table("vfolder vf").
-			Select("vf.id").
 			Joins("LEFT JOIN user_vfolder uv ON (vf.folder_no = uv.folder_no)").
 			Where("uv.user_no = ? AND uv.ownership = 'OWNER'", userNo).
 			Where("vf.name = ?", r.Name).
 			Where("vf.is_del = 0 AND uv.is_del = 0").
 			Limit(1).
-			Scan(&id)
+			HasAny()
 		if err != nil {
 			return "", err
 		}
-		if id > 0 {
-			return "", miso.NewErrf(fmt.Sprintf("Found folder with same name ('%s')", r.Name))
+		if ok {
+			return "", miso.NewErrf("Found folder with same name ('%s')", r.Name)
 		}
 
 		folderNo := util.GenIdP("VFLD")
-
-		e := tx.Transaction(func(tx *gorm.DB) error {
-
+		e := db.Transaction(func(tx *gorm.DB) error {
 			ctime := util.Now()
 
 			// for the vfolder
 			vf := VFolder{Name: r.Name, FolderNo: folderNo, CreateTime: ctime, CreateBy: user.Username}
 			if _, e := dbquery.NewQueryRail(rail, tx).
 				Omit("id", "update_by", "update_time").Table("vfolder").Create(&vf); e != nil {
-				return fmt.Errorf("failed to save VFolder, %v", e)
+				return errs.WrapErrf(e, "failed to save VFolder")
 			}
 
 			// for the user - vfolder relation
@@ -631,27 +621,23 @@ func CreateVFolder(rail miso.Rail, tx *gorm.DB, r CreateVFolderReq, user common.
 				GrantedBy:  userNo,
 				CreateTime: ctime,
 				CreateBy:   user.Username}
-			if _, e := dbquery.NewQueryRail(rail, tx).
-				Omit("id", "update_by", "update_time").Table("user_vfolder").Create(&uv); e != nil {
-				return fmt.Errorf("failed to save UserVFolder, %v", e)
+
+			err := dbquery.NewQueryRail(rail, tx).
+				Omit("id", "update_by", "update_time").
+				Table("user_vfolder").
+				CreateAny(&uv)
+			if err != nil {
+				return errs.WrapErrf(err, "failed to save UserVFolder")
 			}
 			return nil
 		})
-		if e != nil {
-			return "", e
-		}
-
-		return folderNo, nil
+		return folderNo, e
 	})
-	if e != nil {
-		return "", e
-	}
-	return v.(string), e
 }
 
-func ListDirs(r miso.Rail, tx *gorm.DB, user common.User) ([]ListedDir, error) {
+func ListDirs(r miso.Rail, db *gorm.DB, user common.User) ([]ListedDir, error) {
 	var dirs []ListedDir
-	_, e := dbquery.NewQueryRail(r, tx).
+	_, e := dbquery.NewQueryRail(r, db).
 		Table("file_info").
 		Select("id, uuid, name").
 		Where("uploader_no = ?", user.UserNo).
@@ -662,9 +648,9 @@ func ListDirs(r miso.Rail, tx *gorm.DB, user common.User) ([]ListedDir, error) {
 	return dirs, e
 }
 
-func findVFolder(rail miso.Rail, tx *gorm.DB, folderNo string, userNo string) (VFolderWithOwnership, error) {
+func findVFolder(rail miso.Rail, db *gorm.DB, folderNo string, userNo string) (VFolderWithOwnership, error) {
 	var vfo VFolderWithOwnership
-	n, err := dbquery.NewQueryRail(rail, tx).
+	ok, err := dbquery.NewQueryRail(rail, db).
 		Table("vfolder vf").
 		Select("vf.*, uv.ownership").
 		Joins("LEFT JOIN user_vfolder uv ON (vf.folder_no = uv.folder_no AND uv.is_del = 0)").
@@ -672,12 +658,12 @@ func findVFolder(rail miso.Rail, tx *gorm.DB, folderNo string, userNo string) (V
 		Where("uv.user_no = ?", userNo).
 		Where("uv.folder_no = ?", folderNo).
 		Limit(1).
-		Scan(&vfo)
+		ScanAny(&vfo)
 	if err != nil {
-		return vfo, fmt.Errorf("failed to fetch vfolder info for current user, userNo: %v, folderNo: %v, %v", userNo, folderNo, err)
+		return vfo, errs.WrapErrf(err, "failed to fetch vfolder info for current user, userNo: %v, folderNo: %v", userNo, folderNo)
 	}
-	if n < 1 {
-		return vfo, fmt.Errorf("vfolder not found, userNo: %v, folderNo: %v", userNo, folderNo)
+	if !ok {
+		return vfo, errs.NewErrf("vfolder not found, userNo: %v, folderNo: %v", userNo, folderNo)
 	}
 	return vfo, nil
 }
@@ -686,32 +672,30 @@ func _lockFolderExec(c miso.Rail, folderNo string, r redis.Runnable) error {
 	return redis.RLockExec(c, "vfolder:"+folderNo, r)
 }
 
-func ShareVFolder(rail miso.Rail, tx *gorm.DB, sharedTo vault.UserInfo, folderNo string, user common.User) error {
+func ShareVFolder(rail miso.Rail, db *gorm.DB, sharedTo vault.UserInfo, folderNo string, user common.User) error {
 	if user.UserNo == sharedTo.UserNo {
 		return nil
 	}
 	return _lockFolderExec(rail, folderNo, func() error {
-		vfo, e := findVFolder(rail, tx, folderNo, user.UserNo)
-		if e != nil {
-			return e
+		vfo, err := findVFolder(rail, db, folderNo, user.UserNo)
+		if err != nil {
+			return err
 		}
 		if !vfo.IsOwner() {
 			return miso.NewErrf("Operation not permitted")
 		}
 
-		var id int
-		_, e = dbquery.NewQueryRail(rail, tx).
+		ok, err := dbquery.NewQueryRail(rail, db).
 			Table("user_vfolder").
-			Select("id").
 			Where("folder_no = ?", folderNo).
 			Where("user_no = ?", sharedTo.UserNo).
 			Where("is_del = 0").
 			Limit(1).
-			Scan(&id)
-		if e != nil {
-			return fmt.Errorf("error occurred while querying user_vfolder, %v", e)
+			HasAny()
+		if err != nil {
+			return fmt.Errorf("error occurred while querying user_vfolder, %v", err)
 		}
-		if id > 0 {
+		if ok {
 			rail.Infof("VFolder is shared already, folderNo: %s, sharedTo: %s", folderNo, sharedTo.Username)
 			return nil
 		}
@@ -725,8 +709,9 @@ func ShareVFolder(rail miso.Rail, tx *gorm.DB, sharedTo vault.UserInfo, folderNo
 			CreateTime: util.Now(),
 			CreateBy:   user.Username,
 		}
-		if _, e := dbquery.NewQueryRail(rail, tx).Omit("id", "update_by", "update_time").Table("user_vfolder").Create(&uv); e != nil {
-			return fmt.Errorf("failed to save UserVFolder, %v", e)
+		err = dbquery.NewQueryRail(rail, db).Omit("id", "update_by", "update_time").Table("user_vfolder").CreateAny(&uv)
+		if err != nil {
+			return errs.WrapErrf(err, "failed to save UserVFolder")
 		}
 		rail.Infof("VFolder %s shared to %s by %s", folderNo, sharedTo.Username, user.Username)
 		return nil
@@ -738,34 +723,34 @@ type RemoveGrantedFolderAccessReq struct {
 	UserNo   string `json:"userNo"`
 }
 
-func RemoveVFolderAccess(rail miso.Rail, tx *gorm.DB, req RemoveGrantedFolderAccessReq, user common.User) error {
+func RemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAccessReq, user common.User) error {
 	if user.UserNo == req.UserNo {
 		return nil
 	}
 	return _lockFolderExec(rail, req.FolderNo, func() error {
-		vfo, e := findVFolder(rail, tx, req.FolderNo, user.UserNo)
+		vfo, e := findVFolder(rail, db, req.FolderNo, user.UserNo)
 		if e != nil {
 			return e
 		}
 		if !vfo.IsOwner() {
 			return miso.NewErrf("Operation not permitted")
 		}
-		return tx.
+		_, err := dbquery.NewQueryRail(rail, db).
 			Exec("UPDATE user_vfolder SET is_del = 1, update_by = ? WHERE folder_no = ? AND user_no = ? AND ownership = 'GRANTED'",
-				user.Username, req.FolderNo, req.UserNo).
-			Error
+				user.Username, req.FolderNo, req.UserNo)
+		return err
 	})
 }
 
 func ListVFolderBrief(rail miso.Rail, tx *gorm.DB, user common.User) ([]VFolderBrief, error) {
 	var vfb []VFolderBrief
-	_, e := dbquery.NewQueryRail(rail, tx).
+	err := dbquery.NewQueryRail(rail, tx).
 		Select("f.folder_no, f.name").
 		Table("vfolder f").
 		Joins("LEFT JOIN user_vfolder uv ON (f.folder_no = uv.folder_no AND uv.is_del = 0)").
 		Where("f.is_del = 0 AND uv.user_no = ? AND uv.ownership = 'OWNER'", user.UserNo).
-		Scan(&vfb)
-	return vfb, e
+		ScanVal(&vfb)
+	return vfb, err
 }
 
 type AddFileToVfolderReq struct {
@@ -778,7 +763,7 @@ func NewVFolderLock(rail miso.Rail, folderNo string) *redis.RLock {
 	return redis.NewRLock(rail, "vfolder:"+folderNo)
 }
 
-func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfolderEvent) error {
+func HandleAddFileToVFolderEvent(rail miso.Rail, db *gorm.DB, evt AddFileToVfolderEvent) error {
 	lock := NewVFolderLock(rail, evt.FolderNo)
 	if err := lock.Lock(); err != nil {
 		return err
@@ -787,46 +772,40 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfold
 
 	var vfo VFolderWithOwnership
 	var e error
-	if vfo, e = findVFolder(rail, tx, evt.FolderNo, evt.UserNo); e != nil {
-		return fmt.Errorf("failed to findVFolder, folderNo: %v, userNo: %v, %v", evt.FolderNo, evt.UserNo, e)
+	if vfo, e = findVFolder(rail, db, evt.FolderNo, evt.UserNo); e != nil {
+		return errs.WrapErrf(e, "failed to findVFolder, folderNo: %v, userNo: %v", evt.FolderNo, evt.UserNo)
 	}
 	if !vfo.IsOwner() {
-		return miso.NewErrf("Operation not permitted")
+		return errs.ErrNotPermitted.New()
 	}
 
-	distinct := util.NewSet[string]()
-	for _, fk := range evt.FileKeys {
-		distinct.Add(fk)
-	}
-
-	filtered := util.Distinct(evt.FileKeys)
-	if len(filtered) < 1 {
+	distinct := util.NewSet[string](evt.FileKeys...)
+	if distinct.IsEmpty() {
 		return nil
 	}
 
 	now := util.Now()
 	username := evt.Username
 	doAddFileToVfolder := func(rail miso.Rail, folderNo string, fk string) error {
-		var id int
 		var err error
-		_, err = dbquery.NewQueryRail(rail, tx).Select("id").
+		ok, err := dbquery.NewQueryRail(rail, db).
 			Table("file_vfolder").
 			Where("folder_no = ? AND uuid = ?", folderNo, fk).
 			Where("is_del = 0").
-			Scan(&id)
+			HasAny()
 		if err != nil {
-			return fmt.Errorf("failed to query file_vfolder record, %v", err)
+			return errs.WrapErrf(err, "failed to query file_vfolder record")
 		}
-		if id > 0 {
+		if ok {
 			return nil
 		}
 
 		fvf := FileVFolder{FolderNo: folderNo, Uuid: fk, CreateTime: now, CreateBy: username}
-		if _, err = dbquery.NewQueryRail(rail, tx).
+		if _, err = dbquery.NewQueryRail(rail, db).
 			Table("file_vfolder").
 			Omit("id", "update_by", "update_time").
 			Create(&fvf); err != nil {
-			return fmt.Errorf("failed to save file_vfolder record, %v", err)
+			return errs.WrapErrf(err, "failed to save file_vfolder record")
 		}
 		rail.Infof("added file.uuid: %v to vfolder: %v by %v", fk, folderNo, username)
 		return nil
@@ -837,20 +816,19 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfold
 	for fk := range distinct.Keys {
 		var e error
 
-		f, e := findFile(rail, tx, fk)
+		f, ok, e := findFile(rail, db, fk)
 		if e != nil {
 			return e
 		}
-
-		if f == nil || f.UploaderNo != evt.UserNo {
+		if !ok || f.UploaderNo != evt.UserNo {
 			continue
 		}
 		if f.FileType != FileTypeFile {
-			dirs = append(dirs, *f)
+			dirs = append(dirs, f)
 			continue
 		}
 		if e = doAddFileToVfolder(rail, evt.FolderNo, fk); e != nil {
-			return fmt.Errorf("failed to doAddFileToVfolder, file.uuid: %v, %v", fk, e)
+			return errs.WrapErrf(e, "failed to doAddFileToVfolder, file.uuid: %v", fk)
 		}
 	}
 
@@ -861,12 +839,12 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfold
 		var page int = 1
 
 		for {
-			if filesInDir, err = ListFilesInDir(rail, tx, ListFilesInDirReq{
+			if filesInDir, err = ListFilesInDir(rail, db, ListFilesInDirReq{
 				FileKey: dir.Uuid,
 				Limit:   500,
 				Page:    page,
 			}); err != nil {
-				return fmt.Errorf("failed to list files in dir, dir.uuid: %v, %v", dir.Uuid, err)
+				return errs.WrapErrf(err, "failed to list files in dir, dir.uuid: %v", dir.Uuid)
 			}
 
 			if len(filesInDir) < 1 {
@@ -878,7 +856,7 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfold
 					continue
 				}
 				if err = doAddFileToVfolder(rail, evt.FolderNo, fk); err != nil {
-					return fmt.Errorf("failed to doAddFileToVfolder, file.uuid: %v, %v", fk, e)
+					return errs.WrapErrf(e, "failed to doAddFileToVfolder, file.uuid: %v", fk)
 				}
 			}
 			page += 1
@@ -887,18 +865,18 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, tx *gorm.DB, evt AddFileToVfold
 	return nil
 }
 
-func AddFileToVFolder(rail miso.Rail, tx *gorm.DB, req AddFileToVfolderReq, user common.User) error {
+func AddFileToVFolder(rail miso.Rail, db *gorm.DB, req AddFileToVfolderReq, user common.User) error {
 
 	if len(req.FileKeys) < 1 {
 		return nil
 	}
 
-	vfo, e := findVFolder(rail, tx, req.FolderNo, user.UserNo)
+	vfo, e := findVFolder(rail, db, req.FolderNo, user.UserNo)
 	if e != nil {
 		return e
 	}
 	if !vfo.IsOwner() {
-		return miso.NewErrf("Operation not permitted")
+		return miso.ErrNotPermitted.New()
 	}
 
 	evt := AddFileToVfolderEvent{
@@ -910,7 +888,7 @@ func AddFileToVFolder(rail miso.Rail, tx *gorm.DB, req AddFileToVfolderReq, user
 
 	err := AddFileToVFolderPipeline.Send(rail, evt)
 	if err != nil {
-		return fmt.Errorf("failed to publish AddFileToVfolderEvent, %+v, %v", evt, err)
+		return errs.WrapErrf(err, "failed to publish AddFileToVfolderEvent, %+v", evt)
 	}
 	return nil
 }
@@ -932,20 +910,20 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 			return e
 		}
 		if !vfo.IsOwner() {
-			return miso.NewErrf("Operation not permitted")
+			return errs.ErrNotPermitted.New()
 		}
 
-		filtered := util.Distinct(req.FileKeys)
+		filtered := slutil.Distinct(req.FileKeys)
 		if len(filtered) < 1 {
 			return nil
 		}
 
 		for _, fk := range filtered {
-			f, e := findFile(rail, tx, fk)
-			if e != nil {
-				return e
+			f, ok, err := findFile(rail, tx, fk)
+			if err != nil {
+				return err
 			}
-			if f == nil {
+			if !ok {
 				continue // file not found
 			}
 
@@ -956,10 +934,9 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 				continue // not a file type, may be a dir
 			}
 
-			_, e = dbquery.NewQueryRail(rail, tx).
-				Exec("DELETE FROM file_vfolder WHERE folder_no = ? AND uuid = ?", req.FolderNo, fk)
-			if e != nil {
-				return fmt.Errorf("failed to delete file_vfolder record, %v", e)
+			if _, err = dbquery.NewQueryRail(rail, tx).
+				Exec("DELETE FROM file_vfolder WHERE folder_no = ? AND uuid = ?", req.FolderNo, fk); err != nil {
+				return errs.WrapErrf(err, "failed to delete file_vfolder record")
 			}
 		}
 
@@ -971,7 +948,7 @@ func RemoveDeletedFileFromAllVFolder(rail miso.Rail, tx *gorm.DB, fileKey string
 	_, err := dbquery.NewQueryRail(rail, tx).
 		Exec(`UPDATE file_vfolder SET is_del = 1 WHERE uuid = ?`, fileKey)
 	if err != nil {
-		return miso.WrapErrf(err, "failed to update file_vfolder, uuid: %v", fileKey)
+		return errs.WrapErrf(err, "failed to update file_vfolder, uuid: %v", fileKey)
 	}
 	rail.Infof("Removed file %v from all vfolders", fileKey)
 	return nil
@@ -983,36 +960,35 @@ type ListVFolderReq struct {
 }
 
 func ListVFolders(rail miso.Rail, tx *gorm.DB, req ListVFolderReq, user common.User) (ListVFolderRes, error) {
-	t := newListVFoldersQuery(rail, tx, req, user.UserNo).
+	var lvf []ListedVFolder
+	err := newListVFoldersQuery(rail, tx, req, user.UserNo).
 		Select("f.id, f.create_time, f.create_by, f.update_time, f.update_by, f.folder_no, f.name, uv.ownership").
 		Order("f.id DESC").
 		Offset(req.Page.GetOffset()).
-		Limit(req.Page.GetLimit())
-
-	var lvf []ListedVFolder
-	if e := t.Scan(&lvf).Error; e != nil {
-		return ListVFolderRes{}, fmt.Errorf("failed to query vfolder, req: %+v, %v", req, e)
+		Limit(req.Page.GetLimit()).
+		ScanVal(&lvf)
+	if err != nil {
+		return ListVFolderRes{}, errs.WrapErrf(err, "failed to query vfolder, req: %+v", req)
 	}
 
 	var total int
 	e := newListVFoldersQuery(rail, tx, req, user.UserNo).
 		Select("COUNT(*)").
-		Scan(&total).Error
+		ScanVal(&total)
 	if e != nil {
-		return ListVFolderRes{}, fmt.Errorf("failed to count vfolder, req: %+v, %v", req, e)
+		return ListVFolderRes{}, errs.WrapErrf(e, "failed to count vfolder, req: %+v", req)
 	}
 
 	return ListVFolderRes{Page: miso.RespPage(req.Page, total), Payload: lvf}, nil
 }
 
-func newListVFoldersQuery(rail miso.Rail, tx *gorm.DB, req ListVFolderReq, userNo string) *gorm.DB {
-	t := tx.Table("vfolder f").
+func newListVFoldersQuery(rail miso.Rail, db *gorm.DB, req ListVFolderReq, userNo string) *dbquery.Query {
+	t := dbquery.NewQueryRail(rail, db).
+		Table("vfolder f").
 		Joins("LEFT JOIN user_vfolder uv ON (f.folder_no = uv.folder_no AND uv.is_del = 0)").
-		Where("f.is_del = 0 AND uv.user_no = ?", userNo)
+		Where("f.is_del = 0 AND uv.user_no = ?", userNo).
+		LikeIf(req.Name != "", "f.name", req.Name)
 
-	if req.Name != "" {
-		t = t.Where("f.name like ?", "%"+req.Name+"%")
-	}
 	return t
 }
 
@@ -1039,36 +1015,37 @@ type ListedFolderAccess struct {
 
 func ListGrantedFolderAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedFolderAccessReq, user common.User) (ListGrantedFolderAccessRes, error) {
 	folderNo := req.FolderNo
-	vfo, e := findVFolder(rail, tx, folderNo, user.UserNo)
-	if e != nil {
-		return ListGrantedFolderAccessRes{}, e
+	vfo, err := findVFolder(rail, tx, folderNo, user.UserNo)
+	if err != nil {
+		return ListGrantedFolderAccessRes{}, err
 	}
 	if !vfo.IsOwner() {
-		return ListGrantedFolderAccessRes{}, miso.NewErrf("Operation not permitted")
+		return ListGrantedFolderAccessRes{}, errs.ErrNotPermitted.New()
 	}
 
 	var l []ListedFolderAccess
-	e = newListGrantedFolderAccessQuery(rail, tx, req).
-		Select("user_no", "create_time", "username").
+	err = newListGrantedFolderAccessQuery(rail, tx, req).
+		SelectCols(ListedFolderAccess{}).
 		Offset(req.Page.GetOffset()).
 		Limit(req.Page.GetLimit()).
-		Scan(&l).Error
-	if e != nil {
-		return ListGrantedFolderAccessRes{}, fmt.Errorf("failed to list granted folder access, req: %+v, %v", req, e)
+		ScanVal(&l)
+	if err != nil {
+		return ListGrantedFolderAccessRes{}, errs.WrapErrf(err, "failed to list granted folder access, req: %+v", req)
 	}
 
 	var total int
-	e = newListGrantedFolderAccessQuery(rail, tx, req).
-		Select("count(*)").
-		Scan(&total).Error
-	if e != nil {
-		return ListGrantedFolderAccessRes{}, fmt.Errorf("failed to count granted folder access, req: %+v, %v", req, e)
+	err = newListGrantedFolderAccessQuery(rail, tx, req).
+		Select("COUNT(*)").
+		ScanVal(&total)
+	if err != nil {
+		return ListGrantedFolderAccessRes{}, errs.WrapErrf(err, "failed to count granted folder access, req: %+v", req)
 	}
 	return ListGrantedFolderAccessRes{Payload: l, Page: miso.RespPage(req.Page, total)}, nil
 }
 
-func newListGrantedFolderAccessQuery(rail miso.Rail, tx *gorm.DB, r ListGrantedFolderAccessReq) *gorm.DB {
-	return tx.Table("user_vfolder").
+func newListGrantedFolderAccessQuery(rail miso.Rail, tx *gorm.DB, r ListGrantedFolderAccessReq) *dbquery.Query {
+	return dbquery.NewQueryRail(rail, tx).
+		Table("user_vfolder").
 		Where("folder_no = ? AND ownership = 'GRANTED' AND is_del = 0", r.FolderNo)
 }
 
@@ -1079,30 +1056,30 @@ type UpdateFileReq struct {
 }
 
 func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user common.User) error {
-	f, e := findFileById(rail, tx, r.Id)
+	f, ok, e := findFileById(rail, tx, r.Id)
 	if e != nil {
 		return e
 	}
-	if f.IsZero() {
-		return miso.NewErrf("File not found")
+	if !ok {
+		return ErrFileNotFound.New()
 	}
 
 	// dir is only visible to the uploader for now
 	if f.UploaderNo != user.UserNo {
-		return miso.NewErrf("Not permitted")
+		return errs.ErrNotPermitted.New()
 	}
 
 	r.Name = strings.TrimSpace(r.Name)
 	if r.Name == "" {
-		return miso.NewErrf("Name can't be empty")
+		return errs.NewErrf("Name can't be empty")
 	}
 	if r.SensitiveMode != "Y" && r.SensitiveMode != "N" {
 		r.SensitiveMode = "N"
 	}
 
-	err := tx.Exec("UPDATE file_info SET name = ?, sensitive_mode = ?, update_by = ? WHERE id = ? AND is_logic_deleted = 0 AND is_del = 0",
-		r.Name, r.SensitiveMode, user.Username, r.Id).Error
-
+	_, err := dbquery.NewQueryRail(rail, tx).
+		Exec("UPDATE file_info SET name = ?, sensitive_mode = ?, update_by = ? WHERE id = ? AND is_logic_deleted = 0 AND is_del = 0",
+			r.Name, r.SensitiveMode, user.Username, r.Id)
 	return err
 }
 
@@ -1118,13 +1095,13 @@ func CreateFile(rail miso.Rail, tx *gorm.DB, r CreateFileReq, user common.User) 
 		UploadFileId: r.FakeFstoreFileId,
 	})
 	if e != nil {
-		if errors.Is(e, fstore.ErrFileNotFound) || errors.Is(e, fstore.ErrFileDeleted) {
+		if errs.IsAny(e, fstore.ErrFileNotFound, fstore.ErrFileDeleted) {
 			return "", miso.NewErrf("File not found or deleted")
 		}
-		return "", fmt.Errorf("failed to fetch file info from fstore, %v", e)
+		return "", errs.WrapErrf(e, "failed to fetch file info from fstore")
 	}
 	if fsf.Status != fstore.FileStatusNormal {
-		return "", miso.NewErrf("File is deleted")
+		return "", ErrFileDeleted.New()
 	}
 
 	return SaveFileRecord(rail, tx, SaveFileReq{
@@ -1203,58 +1180,57 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 	}
 	defer lock.Unlock()
 
-	f, e := findFile(rail, tx, req.Uuid)
+	f, ok, e := findFile(rail, tx, req.Uuid)
 	if e != nil {
 		return fmt.Errorf("unable to find file, uuid: %v, %v", req.Uuid, e)
 	}
 
-	if f == nil {
-		return miso.NewErrf("File not found")
+	if !ok {
+		return ErrFileNotFound.New()
 	}
 
 	if f.UploaderNo != user.UserNo {
-		return miso.NewErrf("Not permitted")
+		return errs.ErrNotPermitted.New()
 	}
 
 	if f.IsLogicDeleted == DelY {
 		return nil // deleted already
 	}
 
-	if condition != nil && !condition(*f) {
+	if condition != nil && !condition(f) {
 		return nil // skip
 	}
 
 	if f.FileType == FileTypeDir { // if it's dir make sure it's empty
-		var anyId int
-		e := tx.Select("id").
+		ok, e := dbquery.NewQueryRail(rail, tx).
 			Table("file_info").
 			Where("parent_file = ? AND is_logic_deleted = 0 AND is_del = 0", req.Uuid).
 			Limit(1).
-			Scan(&anyId).Error
+			HasAny()
 		if e != nil {
 			return fmt.Errorf("failed to count files in dir, uuid: %v, %v", req.Uuid, e)
 		}
-		if anyId > 0 {
+		if ok {
 			return miso.NewErrf("Directory is not empty, unable to delete it")
 		}
 	}
 
 	if f.FstoreFileId != "" {
 		if err := fstore.DeleteFile(rail, f.FstoreFileId); err != nil && !errors.Is(err, fstore.ErrFileDeleted) {
-			return fmt.Errorf("failed to delete fstore file, fileId: %v, %v", f.FstoreFileId, err)
+			return errs.WrapErrf(err, "failed to delete fstore file, fileId: %v", f.FstoreFileId)
 		}
 	}
 
 	if f.Thumbnail != "" {
 		if err := fstore.DeleteFile(rail, f.Thumbnail); err != nil && !errors.Is(err, fstore.ErrFileDeleted) {
-			return fmt.Errorf("failed to delete fstore file (thumbnail), fileId: %v, %v", f.Thumbnail, err)
+			return errs.WrapErrf(err, "failed to delete fstore file (thumbnail), fileId: %v", f.Thumbnail)
 		}
 	}
 
-	err := tx.Exec(`
+	_, err := dbquery.NewQueryRail(rail, tx).Exec(`
 		UPDATE file_info
 		SET is_logic_deleted = 1, logic_delete_time = NOW()
-		WHERE id = ? AND is_logic_deleted = 0`, f.Id).Error
+		WHERE id = ? AND is_logic_deleted = 0`, f.Id)
 	if err == nil {
 		rail.Infof("Deleted file %v", f.Uuid)
 	}
@@ -1264,20 +1240,20 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 func validateFileAccess(rail miso.Rail, tx *gorm.DB, fileKey string, userNo string) (FileDownloadInfo, error) {
 	var f FileDownloadInfo
 
-	t := tx.
+	ok, err := dbquery.NewQueryRail(rail, tx).
 		Select("fi.id 'file_id', fi.fstore_file_id, fi.name, fi.is_logic_deleted, fi.file_type, fi.uploader_no").
 		Table("file_info fi").
 		Where("fi.uuid = ? AND fi.is_del = 0", fileKey).
 		Limit(1).
-		Scan(&f)
-	if t.Error != nil {
-		return f, t.Error
+		ScanAny(&f)
+	if err != nil {
+		return f, err
 	}
-	if t.RowsAffected < 1 {
-		return f, miso.NewErrf("File not found")
+	if !ok {
+		return f, ErrFileNotFound.New()
 	}
 	if f.Deleted() {
-		return f, miso.NewErrf("File deleted")
+		return f, ErrFileDeleted.New()
 	}
 
 	// is uploader of the file
@@ -1286,22 +1262,22 @@ func validateFileAccess(rail miso.Rail, tx *gorm.DB, fileKey string, userNo stri
 	// user may have access to the vfolder, which contains the file
 	if !permitted {
 		var uvid int
-		e := tx.
+		ok, e := dbquery.NewQueryRail(rail, tx).
 			Select("ifnull(uv.id, 0) as id").
 			Table("file_info fi").
 			Joins("LEFT JOIN file_vfolder fv ON (fi.uuid = fv.uuid AND fv.is_del = 0)").
 			Joins("LEFT JOIN user_vfolder uv ON (uv.user_no = ? AND uv.folder_no = fv.folder_no AND uv.is_del = 0)", userNo).
 			Where("fi.id = ?", f.FileId).
 			Limit(1).
-			Scan(&uvid).Error
+			ScanAny(&uvid)
 		if e != nil {
-			return f, fmt.Errorf("failed to query user folder relation for file, id: %v, %v", f.FileId, e)
+			return f, errs.WrapErrf(e, "failed to query user folder relation for file, id: %v", f.FileId)
 		}
-		permitted = uvid > 0 // granted access to a folder that contains this file
+		permitted = ok // granted access to a folder that contains this file
 	}
 
 	if !permitted {
-		return f, miso.NewErrf("You are not permitted to access this file")
+		return f, errs.NewErrf("You are not permitted to access this file")
 	}
 
 	return f, nil
@@ -1314,15 +1290,15 @@ type GenerateTempTokenReq struct {
 func GenTempToken(rail miso.Rail, tx *gorm.DB, r GenerateTempTokenReq, user common.User) (string, error) {
 	f, err := validateFileAccess(rail, tx, r.FileKey, user.UserNo)
 	if err != nil {
-		return "", fmt.Errorf("failed to validate file access, user: %+v, %w", user, err)
+		return "", errs.WrapErrf(err, "failed to validate file access, user: %+v", user)
 	}
 	if !f.IsFile() {
-		return "", miso.NewErrf("Downloading a directory is not supported")
+		return "", errs.NewErrf("Downloading a directory is not supported")
 	}
 
 	if f.FstoreFileId == "" {
 		rail.Errorf("File %v doesn't have mini-fstore file_id", r.FileKey)
-		return "", miso.NewErrf("File cannot be downloaded, please contact system administrator")
+		return "", errs.NewErrf("File cannot be downloaded, please contact system administrator")
 	}
 
 	return GetFstoreTmpToken(rail, f.FstoreFileId, f.Name)
@@ -1343,14 +1319,15 @@ func ListFilesInDir(rail miso.Rail, tx *gorm.DB, req ListFilesInDirReq) ([]strin
 	}
 
 	var fileKeys []string
-	e := tx.Table("file_info").
+	e := dbquery.NewQueryRail(rail, tx).
+		Table("file_info").
 		Select("uuid").
 		Where("parent_file = ?", req.FileKey).
 		Where("file_type = 'FILE'").
 		Where("is_del = 0").
 		Offset((req.Page - 1) * req.Limit).
 		Limit(req.Limit).
-		Scan(&fileKeys).Error
+		ScanVal(&fileKeys)
 	return fileKeys, e
 }
 
@@ -1374,12 +1351,12 @@ type FileInfoResp struct {
 
 func FetchFileInfoInternal(rail miso.Rail, tx *gorm.DB, req FetchFileInfoReq) (FileInfoResp, error) {
 	var fir FileInfoResp
-	f, e := findFile(rail, tx, req.FileKey)
+	f, ok, e := findFile(rail, tx, req.FileKey)
 	if e != nil {
 		return fir, e
 	}
-	if f == nil {
-		return fir, miso.NewErrf("File not found")
+	if !ok {
+		return fir, ErrFileNotFound.New()
 	}
 
 	fir.Name = f.Name
@@ -1402,22 +1379,21 @@ type ValidateFileOwnerReq struct {
 }
 
 func ValidateFileOwner(rail miso.Rail, tx *gorm.DB, q ValidateFileOwnerReq) (bool, error) {
-	var id int
-	e := tx.Select("id").
+	ok, e := dbquery.NewQueryRail(rail, tx).
+		Select("id").
 		Table("file_info").
 		Where("uuid = ?", q.FileKey).
 		Where("uploader_no = ?", q.UserNo).
 		Where("is_logic_deleted = 0").
-		Limit(1).
-		Scan(&id).Error
-	return id > 0, e
+		HasAny()
+	return ok, e
 }
 
 type RemoveVFolderReq struct {
 	FolderNo string
 }
 
-func RemoveVFolder(rail miso.Rail, tx *gorm.DB, user common.User, req RemoveVFolderReq) error {
+func RemoveVFolder(rail miso.Rail, db *gorm.DB, user common.User, req RemoveVFolderReq) error {
 	lock := NewVFolderLock(rail, req.FolderNo)
 	if err := lock.Lock(); err != nil {
 		return err
@@ -1426,24 +1402,25 @@ func RemoveVFolder(rail miso.Rail, tx *gorm.DB, user common.User, req RemoveVFol
 
 	var vfo VFolderWithOwnership
 	var e error
-	if vfo, e = findVFolder(rail, tx, req.FolderNo, user.UserNo); e != nil {
-		return fmt.Errorf("failed to findVFolder, folderNo: %v, userNo: %v, %v", req.FolderNo, user.UserNo, e)
+	if vfo, e = findVFolder(rail, db, req.FolderNo, user.UserNo); e != nil {
+		return errs.WrapErrf(e, "failed to findVFolder, folderNo: %v, userNo: %v", req.FolderNo, user.UserNo)
 	}
 	if !vfo.IsOwner() {
-		return miso.NewErrf("Operation not permitted")
+		return errs.ErrNotPermitted.New()
 	}
-	if err := tx.Transaction(func(tx *gorm.DB) error {
-		err := tx.Exec(`UPDATE vfolder SET is_del = 1, update_by = ? WHERE folder_no = ?`, user.Username, req.FolderNo).Error
+
+	if err := dbquery.RunTransaction(rail, db, func(qry func() *dbquery.Query) error {
+		_, err := qry().Exec(`UPDATE vfolder SET is_del = 1, update_by = ? WHERE folder_no = ?`, user.Username, req.FolderNo)
 		if err != nil {
-			return fmt.Errorf("failed to update vfolder, folderNo: %v, %v", req.FolderNo, err)
+			return errs.WrapErrf(err, "failed to update vfolder, folderNo: %v", req.FolderNo)
 		}
-		err = tx.Exec(`UPDATE user_vfolder SET is_del = 1, update_by = ? WHERE folder_no = ?`, user.Username, req.FolderNo).Error
+		_, err = qry().Exec(`UPDATE user_vfolder SET is_del = 1, update_by = ? WHERE folder_no = ?`, user.Username, req.FolderNo)
 		if err != nil {
-			return fmt.Errorf("failed to update user_vfolder, folderNo: %v, %v", req.FolderNo, err)
+			return errs.WrapErrf(err, "failed to update user_vfolder, folderNo: %v", req.FolderNo)
 		}
-		err = tx.Exec(`UPDATE file_vfolder SET is_del = 1, update_by = ? WHERE folder_no = ?`, user.Username, req.FolderNo).Error
+		_, err = qry().Exec(`UPDATE file_vfolder SET is_del = 1, update_by = ? WHERE folder_no = ?`, user.Username, req.FolderNo)
 		if err != nil {
-			return fmt.Errorf("failed to update file_vfolder, folderNo: %v, %v", req.FolderNo, err)
+			return errs.WrapErrf(err, "failed to update file_vfolder, folderNo: %v", req.FolderNo)
 		}
 		return nil
 	}); err != nil {
@@ -1473,16 +1450,16 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 	}
 	defer flock.Unlock()
 
-	fi, err := findFile(rail, db, req.FileKey)
+	fi, ok, err := findFile(rail, db, req.FileKey)
 	if err != nil {
-		return miso.NewErrf("File not found").WithInternalMsg("failed to find file, uuid: %v, %v", req.FileKey, err)
+		return ErrFileNotFound.Wrapf(err, "failed to find file, uuid: %v", req.FileKey)
 	}
-	if fi == nil {
-		return miso.NewErrf("File not found")
+	if !ok {
+		return ErrFileNotFound.New()
 	}
 
 	if fi.IsLogicDeleted == DelY {
-		return miso.NewErrf("File is deleted")
+		return ErrFileDeleted.New()
 	}
 
 	if !strings.HasSuffix(strings.ToLower(fi.Name), ".zip") {
@@ -1494,7 +1471,7 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 		ParentFile: req.ParentFileKey,
 	}, user)
 	if err != nil {
-		return fmt.Errorf("failed to make directory before unpacking zip, %w", err)
+		return errs.WrapErrf(err, "failed to make directory before unpacking zip")
 	}
 
 	extra, err := json.WriteJson(UnpackZipExtra{
@@ -1504,7 +1481,7 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 		Username:      user.Username,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to write json as extra, %w", err)
+		return errs.WrapErrf(err, "failed to write json as extra")
 	}
 
 	err = fstore.TriggerFileUnzip(rail, fstore.UnzipFileReq{
@@ -1513,7 +1490,7 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 		Extra:           string(extra),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to TriggerFileUnZip, %w", err)
+		return errs.WrapErrf(err, "failed to TriggerFileUnZip")
 	}
 	return nil
 }
@@ -1548,17 +1525,17 @@ func HandleZipUnpackResult(rail miso.Rail, db *gorm.DB, evt fstore.UnzipFileRepl
 func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.User, async bool) error {
 	rail.Infof("Truncating dir %v", req.Uuid)
 
-	dir, e := findFile(rail, db, req.Uuid)
+	dir, ok, e := findFile(rail, db, req.Uuid)
 	if e != nil {
-		return fmt.Errorf("unable to find file, uuid: %v, %v", req.Uuid, e)
+		return errs.WrapErrf(e, "unable to find file, uuid: %v", req.Uuid)
 	}
 
-	if dir == nil {
-		return miso.NewErrf("File not found")
+	if !ok {
+		return ErrFileNotFound.New()
 	}
 
 	if dir.UploaderNo != user.UserNo {
-		return miso.NewErrf("Not permitted")
+		return errs.ErrNotPermitted.New()
 	}
 
 	if dir.IsLogicDeleted == DelY {
@@ -1566,7 +1543,7 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 	}
 
 	if dir.FileType != FileTypeDir {
-		return miso.NewErrf("Not a directory")
+		return errs.NewErrf("Not a directory")
 	}
 
 	type ListedFilesInDir struct {
@@ -1582,13 +1559,14 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 		}
 		listFilesInDir := func(rail miso.Rail, minId int) ([]ListedFilesInDir, error) {
 			var l []ListedFilesInDir
-			_, err := dbquery.NewQueryRail(rail, db).Table("file_info").
+			err := dbquery.NewQueryRail(rail, db).
+				Table("file_info").
 				Select("id, uuid, file_type").
 				Where("parent_file = ?", dir.Uuid).
 				Where("id > ?", minId).
 				Order("id asc").
 				Limit(50).
-				Scan(&l)
+				ScanVal(&l)
 
 			rail.Debugf("listFilesInDir, minId: %v, dir.uuid: %v, count: %d", minId, dir.Uuid, len(l))
 			return l, err
@@ -1643,8 +1621,8 @@ func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user
 	if util.IsBlankStr(req.FileKey) {
 		return nil, nil
 	}
-	fi, err := findFile(rail, db, req.FileKey)
-	if err != nil || fi == nil {
+	fi, ok, err := findFile(rail, db, req.FileKey)
+	if err != nil || !ok {
 		return nil, err
 	}
 	if fi.IsLogicDeleted == DelY {
@@ -1692,12 +1670,12 @@ type ParentDir struct {
 
 func doFindParentDir(c miso.Rail, q *dbquery.Query, fileKey string) (*ParentDir, error) {
 	var pd ParentDir
-	n, err := q.Raw(`SELECT parent_file file_key FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
-		Scan(&pd)
+	ok, err := q.Raw(`SELECT parent_file file_key FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
+		ScanAny(&pd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find parent dir, %v", err)
 	}
-	if n < 1 {
+	if !ok {
 		return nil, nil
 	}
 
@@ -1711,21 +1689,17 @@ func doFindParentDir(c miso.Rail, q *dbquery.Query, fileKey string) (*ParentDir,
 
 func cachedFindDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, error) {
 	v, err := dirNameCache.GetValElse(rail, fileKey, func() (string, error) {
-		v, err := findDirName(rail, q, fileKey)
-		return v, err
+		return findDirName(rail, q, fileKey)
 	})
 	return v, err
 }
 
 func findDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, error) {
 	var name string
-	n, err := q.Raw(`SELECT name FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
-		Scan(&name)
+	err := q.Raw(`SELECT name FROM file_info WHERE uuid = ? AND is_del = 0 AND is_logic_deleted = 0 LIMIT 1`, fileKey).
+		ScanVal(&name)
 	if err != nil {
-		return "", fmt.Errorf("failed to find dir name, %v", err)
-	}
-	if n < 1 {
-		return "", nil
+		return "", errs.WrapErrf(err, "failed to find dir name")
 	}
 	return name, nil
 }
@@ -1752,7 +1726,7 @@ type TopDownTreeNodeBrief struct {
 func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen util.Set[string]) error {
 	var cl []TopDownTreeNodeBrief
 	n, err := dbquery.NewQueryRail(rail, db).
-		From("file_info").
+		Table("file_info").
 		Select("uuid, name").
 		Eq("parent_file", root.FileKey).
 		Eq("uploader_no", user.UserNo).
@@ -1788,12 +1762,13 @@ type FileFstoreInfo struct {
 	IsLogicDeleted bool
 }
 
-func queryFileFstoreInfo(tx *gorm.DB, fileKeys []string) (map[string]FileFstoreInfo, error) {
+func queryFileFstoreInfo(rail miso.Rail, tx *gorm.DB, fileKeys []string) (map[string]FileFstoreInfo, error) {
 	var rec []FileFstoreInfo
-	e := tx.Select("uuid, name", "fstore_file_id", "thumbnail", "is_logic_deleted").
+	e := dbquery.NewQueryRail(rail, tx).
+		Select("uuid, name", "fstore_file_id", "thumbnail", "is_logic_deleted").
 		Table("file_info").
 		Where("uuid IN ?", fileKeys).
-		Scan(&rec).Error
+		ScanVal(&rec)
 	if e != nil {
 		return nil, e
 	}
@@ -1844,12 +1819,12 @@ func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user com
 	defer dirLock.Unlock()
 
 	if req.ParentFile != "" {
-		fi, err := findFile(rail, db, req.ParentFile)
+		_, ok, err := findFile(rail, db, req.ParentFile)
 		if err != nil {
 			return "", ErrFileNotFound.Wrapf(err, "failed to find file, parentFile: %v", req.ParentFile)
 		}
-		if fi == nil {
-			return "", ErrFileNotFound
+		if !ok {
+			return "", ErrFileNotFound.New()
 		}
 	}
 

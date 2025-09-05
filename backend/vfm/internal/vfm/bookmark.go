@@ -19,6 +19,8 @@ import (
 )
 
 const (
+	TableBookmark = "bookmark"
+
 	TagA        = "a" // bookmark file <A>
 	AttrHref    = "href"
 	AttrAddDate = "add_date"
@@ -226,27 +228,33 @@ type RemoveBookmarkInf struct {
 	Md5    string
 }
 
-func RemoveBookmark(rail miso.Rail, tx *gorm.DB, id int64, userNo string) error {
-	return tx.Transaction(func(tx *gorm.DB) error {
-		var b RemoveBookmarkInf
-		tx = tx.Raw(`SELECT * FROM bookmark WHERE id = ?`, id).Scan(&b)
-		if tx.Error != nil {
-			return tx.Error
-		}
-		if tx.RowsAffected < 1 {
-			return miso.NewErrf("Bookmark not found")
-		}
-		if b.UserNo != userNo {
-			return miso.ErrNotPermitted
-		}
+func RemoveBookmark(rail miso.Rail, db *gorm.DB, id int64, userNo string) error {
+	return dbquery.RunTransaction(rail, db, func(qry func() *dbquery.Query) error {
 
-		_, err := dbquery.NewQueryRail(rail, tx).
-			Exec(`INSERT IGNORE INTO bookmark_blacklist (user_no, icon, name, href, md5) VALUES (?,?,?,?,?)`, b.UserNo, b.Icon, b.Name, b.Href, b.Md5)
+		var b RemoveBookmarkInf
+		n, err := qry().
+			Table("bookmark").
+			Eq("id", id).
+			SelectCols(b).
+			Scan(&b)
 		if err != nil {
 			return err
 		}
-		_, err = dbquery.NewQueryRail(rail, tx).
-			Exec("DELETE FROM bookmark WHERE user_no = ? AND id = ?", userNo, id)
+		if n < 1 {
+			return miso.NewErrf("Bookmark not found")
+		}
+		if b.UserNo != userNo {
+			return miso.ErrNotPermitted.New()
+		}
+
+		_, err = qry().
+			Table(TableBookmark).
+			CreateIgnore(b)
+		if err != nil {
+			return err
+		}
+
+		_, err = qry().Exec("DELETE FROM bookmark WHERE user_no = ? AND id = ?", userNo, id)
 		return err
 	})
 }

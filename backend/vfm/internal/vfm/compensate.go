@@ -26,7 +26,7 @@ type FileProcInf struct {
 	FstoreFileId string
 }
 
-func CompensateThumbnail(rail miso.Rail, tx *gorm.DB) error {
+func CompensateThumbnail(rail miso.Rail, db *gorm.DB) error {
 	ok, err := EnterMaintenance(rail)
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func CompensateThumbnail(rail miso.Rail, tx *gorm.DB) error {
 
 	for {
 		var files []FileProcInf
-		t := tx.
+		n, err := dbquery.NewQueryRail(rail, db).
 			Raw(`SELECT id, name, uuid, fstore_file_id
 			FROM file_info
 			WHERE id > ?
@@ -54,10 +54,10 @@ func CompensateThumbnail(rail miso.Rail, tx *gorm.DB) error {
 			ORDER BY id ASC
 			LIMIT ?`, minId, limit).
 			Scan(&files)
-		if t.Error != nil {
-			return t.Error
+		if err != nil {
+			return err
 		}
-		if t.RowsAffected < 1 || len(files) < 1 {
+		if n < 1 {
 			return nil // the end
 		}
 
@@ -109,7 +109,7 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 	minId := 0
 	var maxId int
 	scanned, err := dbquery.NewQueryRail(rail, db).
-		From("file_info").
+		Table("file_info").
 		Select("max(id)").
 		Eq("file_type", "FILE").
 		Eq("is_logic_deleted", 0).Scan(&maxId)

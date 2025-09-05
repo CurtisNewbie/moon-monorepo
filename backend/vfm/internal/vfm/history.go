@@ -144,7 +144,7 @@ func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBro
 		return []ListBrowseRecordRes{}, nil
 	}
 	keys := util.FastDistinct(util.MapTo(l, func(br BrowseRecord) string { return br.FileKey }))
-	ffi, err := queryFileFstoreInfo(db, keys)
+	ffi, err := queryFileFstoreInfo(rail, db, keys)
 	if err != nil {
 		return []ListBrowseRecordRes{}, err
 	}
@@ -179,11 +179,11 @@ type RecordBrowseHistoryReq struct {
 }
 
 func RecordBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User, req RecordBrowseHistoryReq) error {
-	f, err := findFile(rail, db, req.FileKey)
+	f, ok, err := findFile(rail, db, req.FileKey)
 	if err != nil {
 		return err
 	}
-	if f == nil {
+	if !ok {
 		return ErrUnknown.WithInternalMsg("File is not found, %v", req.FileKey)
 	}
 

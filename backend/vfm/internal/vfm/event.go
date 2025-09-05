@@ -1,14 +1,13 @@
 package vfm
 
 import (
-	"fmt"
-
 	ep "github.com/curtisnewbie/event-pump/client"
 	fstore "github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
 
@@ -66,11 +65,11 @@ func OnFileSaved(rail miso.Rail, evt ep.StreamEvent) error {
 	}
 	defer lock.Unlock()
 
-	f, err := findFile(rail, mysql.GetMySQL(), uuid)
+	f, ok, err := findFile(rail, mysql.GetMySQL(), uuid)
 	if err != nil {
 		return err
 	}
-	if f == nil {
+	if !ok {
 		rail.Infof("file is deleted, %v", uuid)
 		return nil // file already deleted
 	}
@@ -95,7 +94,7 @@ func OnFileSaved(rail miso.Rail, evt ep.StreamEvent) error {
 	if isImage(f.Name) {
 		evt := fstore.ImgThumbnailTriggerEvent{Identifier: f.Uuid, FileId: f.FstoreFileId, ReplyTo: CompressImgNotifyEventBus}
 		if err := fstore.GenImgThumbnailPipeline.Send(rail, evt); err != nil {
-			return fmt.Errorf("failed to send %#v, uuid: %v, %v", evt, f.Uuid, err)
+			return errs.WrapErrf(err, "failed to send %#v, uuid: %v", evt, f.Uuid)
 		}
 		return nil
 	}
@@ -107,7 +106,7 @@ func OnFileSaved(rail miso.Rail, evt ep.StreamEvent) error {
 			ReplyTo:    GenVideoThumbnailNotifyEventBus,
 		}
 		if err := fstore.GenVidThumbnailPipeline.Send(rail, evt); err != nil {
-			return fmt.Errorf("failed to send %#v, uuid: %v, %v", evt, f.Uuid, err)
+			return errs.WrapErrf(err, "failed to send %#v, uuid: %v", evt, f.Uuid)
 		}
 		return nil
 	}
@@ -134,12 +133,12 @@ func OnThumbnailGenerated(rail miso.Rail, tx *gorm.DB, identifier string, fileId
 	}
 	defer lock.Unlock()
 
-	f, e := findFile(rail, tx, fileKey)
+	f, ok, e := findFile(rail, tx, fileKey)
 	if e != nil {
 		rail.Errorf("Unable to find file, uuid: %v, %v", fileKey, e)
 		return nil
 	}
-	if f == nil {
+	if !ok {
 		rail.Errorf("File not found, uuid: %v", fileKey)
 		return nil
 	}
@@ -190,11 +189,11 @@ func OnThumbnailUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 	}
 	defer lock.Unlock()
 
-	f, err := findFile(rail, mysql.GetMySQL(), uuid)
+	f, ok, err := findFile(rail, mysql.GetMySQL(), uuid)
 	if err != nil {
 		return err
 	}
-	if f == nil || f.FileType != FileTypeFile {
+	if !ok || f.FileType != FileTypeFile {
 		return nil
 	}
 
@@ -205,11 +204,11 @@ func OnThumbnailUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 		return nil
 	}
 
-	pf, err := findFile(rail, mysql.GetMySQL(), f.ParentFile)
+	pf, ok, err := findFile(rail, mysql.GetMySQL(), f.ParentFile)
 	if err != nil {
 		return err
 	}
-	if pf == nil {
+	if !ok {
 		rail.Infof("parent file not found, %v", f.ParentFile)
 		return nil
 	}
@@ -256,7 +255,7 @@ func OnFileDeleted(rail miso.Rail, evt ep.StreamEvent) error {
 	rail.Infof("File logically deleted, %v", uuid)
 
 	if e := OnNotifyFileDeletedEvent(rail, NotifyFileDeletedEvent{FileKey: uuid}); e != nil {
-		return fmt.Errorf("failed to send NotifyFileDeletedEvent, uuid: %v, %v", uuid, e)
+		return errs.WrapErrf(e, "failed to send NotifyFileDeletedEvent, uuid: %v", uuid)
 	}
 	return nil
 }
@@ -307,10 +306,11 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 	rail.Infof("Filed %v is moved from %v to %v", fileKey, parentFile.Before, parentFile.After)
 
 	db := mysql.GetMySQL()
-	f, err := findFile(rail, db, fileKey)
+	f, ok, err := findFile(rail, db, fileKey)
 	if err != nil {
 		return err
 	}
+	fileFound := ok
 
 	// reload user's dir tree cache
 	err = userDirTreeCache.Del(rail, f.UploaderNo)
@@ -338,16 +338,16 @@ func OnFileMoved(rail miso.Rail, evt ep.StreamEvent) error {
 		}
 		defer lock.Unlock()
 
-		if f == nil || f.FileType != FileTypeFile ||
+		if !fileFound || f.FileType != FileTypeFile ||
 			f.Thumbnail == "" || !isImage(f.Name) {
 			return nil
 		}
 
-		pf, err := findFile(rail, db, parentFile.After)
+		pf, ok, err := findFile(rail, db, parentFile.After)
 		if err != nil {
 			return err
 		}
-		if pf == nil {
+		if !ok {
 			rail.Infof("parent file not found, %v", f.ParentFile)
 			return nil
 		}
@@ -379,7 +379,7 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 	}
 
 	db := mysql.GetMySQL()
-	f, err := findFile(rail, db, fileKey)
+	f, ok, err := findFile(rail, db, fileKey)
 	if err != nil {
 		return err
 	}
@@ -398,7 +398,7 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 		rail.Infof("Reloaded directory name cache, %v", f.Uuid)
 	}
 
-	if f.FileType != FileTypeDir {
+	if !ok || f.FileType != FileTypeDir {
 		return nil
 	}
 
