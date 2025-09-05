@@ -11,4 +11,3 @@ vfm stands for virtual file manager. vfm doesn't manage the actual file storage,
 - [Configuration](./doc/config.md)
 - [HTTP API Doc](./doc/api.md)
 - [Thumbnail Generation](./doc/thumbnail.md)
-- [Updates](./doc/updates.md)
