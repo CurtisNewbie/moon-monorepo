@@ -47,6 +47,7 @@ import { Env } from "src/common/env-util";
 import { FileBookmark } from "src/common/file-bookmark";
 import { FileBookmarkDialogComponent } from "../file-bookmark-dialog/file-bookmark-dialog.component";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { Paging } from "src/common/paging";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -251,12 +252,23 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       }
 
       if (this.pagingController) {
-        if (!this.pagingController.atFirstPage()) {
-          this.pagingController.firstPage(); // this also triggers fetchFileInfoList
-          // console.log("ngOnInit.firstPage", time())
+        let page = -1;
+        if (this.inDirFileKey) {
+          let p = sessionStorage.getItem(`mng-files.dir.${this.inDirFileKey}`);
+          if (p) {
+            page = parseInt(p, 10);
+          }
+        }
+        if (page > -1) {
+          this.pagingController.goToPage(page);
         } else {
-          this.fetchFileInfoList();
-          // console.log("ngOnInit.fetchFileInfoList", time())
+          if (!this.pagingController.atFirstPage()) {
+            this.pagingController.firstPage(); // this also triggers fetchFileInfoList
+            // console.log("ngOnInit.firstPage", time())
+          } else {
+            this.fetchFileInfoList();
+            // console.log("ngOnInit.fetchFileInfoList", time())
+          }
         }
       }
     });
@@ -1160,5 +1172,15 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   onSearchFileKeyKeyUp(event) {
     this.isEnterKeyPressed(event) && this.fetchFileInfoList();
     event.preventDefault();
+  }
+
+  pageChanged(evt: Paging) {
+    if (this.inDirFileKey) {
+      sessionStorage.setItem(
+        `mng-files.dir.${this.inDirFileKey}`,
+        evt.page.toString()
+      );
+    }
+    this.fetchFileInfoList();
   }
 }
