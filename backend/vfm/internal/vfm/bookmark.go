@@ -15,7 +15,6 @@ import (
 	"github.com/curtisnewbie/miso/util"
 	"golang.org/x/net/html"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -159,8 +158,13 @@ func SaveBookmarks(rail miso.Rail, tx *gorm.DB, bookmarkFile NetscapeBookmarkFil
 		md5 := BookmarkMd5(bm)
 
 		var id int
-		t := tx.Raw(`SELECT id FROM bookmark_blacklist WHERE user_no = ? and md5 = ?`, user.UserNo, md5).Scan(&id)
-		if t.RowsAffected > 0 {
+		n, err := dbquery.NewQuery(rail, tx).
+			Raw(`SELECT id FROM bookmark_blacklist WHERE user_no = ? and md5 = ?`, user.UserNo, md5).
+			Scan(&id)
+		if err != nil {
+			return err
+		}
+		if n > 0 {
 			rail.Infof("bookmark in blacklist, ignored, userNo: %s, md5: %s, name: %s", user.UserNo, md5, bm.Name)
 			continue
 		}
@@ -175,7 +179,9 @@ func SaveBookmarks(rail miso.Rail, tx *gorm.DB, bookmarkFile NetscapeBookmarkFil
 	}
 	// rail.Debugf("bookmarks: %+v", bookmarks)
 
-	err := tx.Table("bookmark").Clauses(clause.Insert{Modifier: "IGNORE"}).CreateInBatches(bookmarks, 100).Error
+	err := dbquery.NewQuery(rail, tx).
+		Table("bookmark").
+		CreateIgnoreAny(bookmarks)
 	if err != nil {
 		return fmt.Errorf("failed to insert bookmark, %v", err)
 	}

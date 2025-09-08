@@ -154,8 +154,7 @@ func OnThumbnailGenerated(rail miso.Rail, tx *gorm.DB, identifier string, fileId
 		rail.Infof("Deleted previous thumbnail for %v, %v", fileKey, fileId)
 	}
 
-	err := tx.Exec("UPDATE file_info SET thumbnail = ? WHERE uuid = ?", fileId, fileKey).
-		Error
+	err := dbquery.ExecSQL(rail, tx, "UPDATE file_info SET thumbnail = ? WHERE uuid = ?", fileId, fileKey)
 	if err == nil {
 		rail.Infof("Updated file's thumbnail to %v, fileKey: %v", fileId, fileKey)
 	}
@@ -404,12 +403,13 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 
 	rail.Infof("Directory name changed, updating directory's gallery name, fileKey: %v", fileKey)
 
-	galleryNo, err := GalleryNoOfDir(fileKey, db)
+	galleryNo, err := GalleryNoOfDir(rail, fileKey, db)
 	if err != nil || galleryNo == "" {
 		return err
 	}
 
 	_, err = dbquery.NewQueryRail(rail, db).
+		Table("gallery").
 		Where("gallery_no = ?", galleryNo).
 		SetCols(Gallery{
 			Name:     f.Name,

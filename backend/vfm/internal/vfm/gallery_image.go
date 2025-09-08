@@ -414,7 +414,7 @@ func NewGalleryFileLock(rail miso.Rail, galleryNo string, fileKey string) *redis
 }
 
 func RemoveGalleryImage(rail miso.Rail, db *gorm.DB, dirFileKey string, imageFileKey string) error {
-	galleryNo, err := GalleryNoOfDir(dirFileKey, db)
+	galleryNo, err := GalleryNoOfDir(rail, dirFileKey, db)
 	if err != nil {
 		return err
 	}

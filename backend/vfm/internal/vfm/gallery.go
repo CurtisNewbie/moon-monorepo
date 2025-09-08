@@ -82,11 +82,11 @@ type VGallery struct {
 // List owned gallery briefs
 func ListOwnedGalleryBriefs(rail miso.Rail, user common.User, tx *gorm.DB) ([]VGalleryBrief, error) {
 	var briefs []VGalleryBrief
-	t := tx.Raw(`select gallery_no, name from gallery where user_no = ? AND is_del = 0`, user.UserNo).
-		Scan(&briefs)
-
-	if e := t.Error; e != nil {
-		return nil, e
+	err := dbquery.NewQuery(rail, tx).
+		Raw(`select gallery_no, name from gallery where user_no = ? AND is_del = 0`, user.UserNo).
+		ScanVal(&briefs)
+	if err != nil {
+		return nil, err
 	}
 	if briefs == nil {
 		briefs = []VGalleryBrief{}
@@ -120,29 +120,30 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 		Scan(rail, cmd.Paging)
 }
 
-func GalleryNoOfDir(dirFileKey string, tx *gorm.DB) (string, error) {
+func GalleryNoOfDir(rail miso.Rail, dirFileKey string, tx *gorm.DB) (string, error) {
 	var gallery Gallery
-	tx = tx.Raw(`SELECT g.gallery_no from gallery g WHERE g.dir_file_key = ? and g.is_del = 0 limit 1`, dirFileKey).
-		Scan(&gallery)
-
-	if e := tx.Error; e != nil {
-		return "", tx.Error
+	err := dbquery.NewQuery(rail, tx).
+		Raw(`SELECT g.gallery_no from gallery g WHERE g.dir_file_key = ? and g.is_del = 0 limit 1`, dirFileKey).
+		ScanVal(&gallery)
+	if err != nil {
+		return "", err
 	}
 
 	return gallery.GalleryNo, nil
 }
 
 // Check if the name is already used by current user
-func IsGalleryNameUsed(name string, userNo string, tx *gorm.DB) (bool, error) {
+func IsGalleryNameUsed(rail miso.Rail, name string, userNo string, tx *gorm.DB) (bool, error) {
 	var gallery Gallery
-	t := tx.Raw(`SELECT g.id from gallery g WHERE g.user_no = ? and g.name = ? AND g.is_del = 0`, userNo, name).
+	n, err := dbquery.NewQuery(rail, tx).
+		Raw(`SELECT g.id from gallery g WHERE g.user_no = ? and g.name = ? AND g.is_del = 0`, userNo, name).
 		Scan(&gallery)
 
-	if e := t.Error; e != nil {
-		return false, t.Error
+	if err != nil {
+		return false, err
 	}
 
-	return t.RowsAffected > 0, nil
+	return n > 0, nil
 }
 
 // Create a new Gallery for dir
@@ -150,7 +151,7 @@ func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, tx *gorm.DB
 
 	return redis.RLockRun(rail, "fantahsea:gallery:create:"+cmd.UserNo,
 		func() (string, error) {
-			galleryNo, err := GalleryNoOfDir(cmd.DirFileKey, tx)
+			galleryNo, err := GalleryNoOfDir(rail, cmd.DirFileKey, tx)
 			if err != nil {
 				return "", err
 			}
@@ -169,8 +170,7 @@ func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, tx *gorm.DB
 						UpdateBy:   cmd.Username,
 						IsDel:      false,
 					}
-					result := tx.Omit("CreateTime", "UpdateTime").Create(gallery)
-					return result.Error
+					return dbquery.NewQuery(rail, tx).Omit("CreateTime", "UpdateTime").CreateAny(gallery)
 				})
 				if err != nil {
 					return galleryNo, err
@@ -186,7 +186,7 @@ func CreateGallery(rail miso.Rail, cmd CreateGalleryCmd, user common.User, tx *g
 
 	gal, er := redis.RLockRun(rail, "fantahsea:gallery:create:"+user.UserNo, func() (*Gallery, error) {
 
-		if isUsed, err := IsGalleryNameUsed(cmd.Name, user.UserNo, tx); isUsed || err != nil {
+		if isUsed, err := IsGalleryNameUsed(rail, cmd.Name, user.UserNo, tx); isUsed || err != nil {
 			if err != nil {
 				return nil, err
 			}
@@ -202,8 +202,8 @@ func CreateGallery(rail miso.Rail, cmd CreateGalleryCmd, user common.User, tx *g
 			UpdateBy:  user.Username,
 			IsDel:     false,
 		}
-		result := tx.Omit("CreateTime", "UpdateTime").Create(gallery)
-		return gallery, result.Error
+		err := dbquery.NewQuery(rail, tx).Omit("CreateTime", "UpdateTime").CreateAny(gallery)
+		return gallery, err
 	})
 
 	if er != nil {
@@ -227,14 +227,17 @@ func UpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, user common.User, tx *g
 		return miso.NewErrf("You are not allowed to update this gallery")
 	}
 
-	t := tx.Where("gallery_no = ?", galleryNo).
-		Updates(Gallery{
+	err := dbquery.NewQuery(rail, tx).
+		Table("gallery").
+		Where("gallery_no = ?", galleryNo).
+		SetCols(Gallery{
 			Name:     cmd.Name,
 			UpdateBy: user.Username,
-		})
+		}).
+		UpdateAny()
 
-	if e := t.Error; e != nil {
-		rail.Warnf("Failed to update gallery, gallery_no: %v, e: %v", galleryNo, t.Error)
+	if err != nil {
+		rail.Warnf("Failed to update gallery, gallery_no: %v, e: %v", galleryNo, err)
 		return miso.NewErrf("Failed to update gallery, please try again later")
 	}
 
@@ -244,15 +247,15 @@ func UpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, user common.User, tx *g
 /* Find Gallery's creator by gallery_no */
 func FindGalleryCreator(rail miso.Rail, galleryNo string, tx *gorm.DB) (*string, error) {
 	var gallery Gallery
-	t := tx.Raw(`
+	n, err := dbquery.NewQuery(rail, tx).Raw(`
 		SELECT g.user_no from gallery g
 		WHERE g.gallery_no = ?
 		AND g.is_del = 0`, galleryNo).Scan(&gallery)
 
-	if e := t.Error; e != nil || t.RowsAffected < 1 {
-		if e != nil {
-			rail.Warnf("failed to find gallery %v, %v", galleryNo, t.Error)
-			return nil, t.Error
+	if err != nil || n < 1 {
+		if err != nil {
+			rail.Warnf("failed to find gallery %v, %v", galleryNo, err)
+			return nil, err
 		}
 		rail.Warnf("Could not find gallery %v", galleryNo)
 		return nil, miso.NewErrf("Gallery doesn't exist")
@@ -263,12 +266,13 @@ func FindGalleryCreator(rail miso.Rail, galleryNo string, tx *gorm.DB) (*string,
 /* Find Gallery by gallery_no */
 func FindGallery(rail miso.Rail, tx *gorm.DB, galleryNo string) (*Gallery, error) {
 	var gallery Gallery
-	t := tx.Raw(`SELECT g.* from gallery g WHERE g.gallery_no = ? AND g.is_del = 0`, galleryNo).
+	n, err := dbquery.NewQuery(rail, tx).
+		Raw(`SELECT g.* from gallery g WHERE g.gallery_no = ? AND g.is_del = 0`, galleryNo).
 		Scan(&gallery)
 
-	if e := t.Error; e != nil || t.RowsAffected < 1 {
-		if e != nil {
-			return nil, fmt.Errorf("failed to find gallery, %v", t.Error)
+	if err != nil || n < 1 {
+		if err != nil {
+			return nil, fmt.Errorf("failed to find gallery, %v", err)
 		}
 		return nil, miso.NewErrf("Gallery doesn't exist")
 	}
@@ -285,25 +289,18 @@ func DeleteGallery(rail miso.Rail, tx *gorm.DB, cmd DeleteGalleryCmd, user commo
 		return miso.NewErrf("You are not allowed to delete this gallery")
 	}
 
-	t := tx.Exec(`UPDATE gallery g SET g.is_del = 1 WHERE gallery_no = ? AND g.is_del = 0`, galleryNo)
-	if e := t.Error; e != nil {
-		return t.Error
-	}
-
-	return nil
+	return dbquery.ExecSQL(rail, tx, `UPDATE gallery g SET g.is_del = 1 WHERE gallery_no = ? AND g.is_del = 0`, galleryNo)
 }
 
 // Check if the gallery exists
 func GalleryExists(rail miso.Rail, tx *gorm.DB, galleryNo string) (bool, error) {
 	var gallery Gallery
-	tx = tx.Raw(`SELECT g.id from gallery g WHERE g.gallery_no = ? AND g.is_del = 0`, galleryNo).
+
+	n, err := dbquery.NewQuery(rail, tx).Raw(`SELECT g.id from gallery g WHERE g.gallery_no = ? AND g.is_del = 0`, galleryNo).
 		Scan(&gallery)
 
-	if e := tx.Error; e != nil || tx.RowsAffected < 1 {
-		if e != nil {
-			return false, tx.Error
-		}
-		return false, nil
+	if err != nil || n < 1 {
+		return false, err
 	}
 
 	return true, nil
