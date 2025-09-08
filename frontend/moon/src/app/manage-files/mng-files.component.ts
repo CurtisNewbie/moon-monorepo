@@ -112,7 +112,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
-  orderByName = false;
+  orderByName = true;
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
