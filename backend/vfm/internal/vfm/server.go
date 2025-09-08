@@ -1,15 +1,10 @@
 package vfm
 
 import (
-	"embed"
 	"os"
 
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-)
-
-var (
-	SchemaFs embed.FS
 )
 
 func PrepareServer() {
