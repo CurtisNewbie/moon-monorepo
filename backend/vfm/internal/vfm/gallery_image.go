@@ -103,8 +103,8 @@ func DeleteGalleryImage(rail miso.Rail, tx *gorm.DB, fileKey string) error {
 }
 
 // Create a gallery image record
-func CreateGalleryImage(rail miso.Rail, cmd CreateGalleryImageCmd, userNo string, username string, tx *gorm.DB) error {
-	creator, err := FindGalleryCreator(rail, cmd.GalleryNo, tx)
+func CreateGalleryImage(rail miso.Rail, cmd CreateGalleryImageCmd, userNo string, username string, db *gorm.DB) error {
+	creator, err := FindGalleryCreator(rail, cmd.GalleryNo, db)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func CreateGalleryImage(rail miso.Rail, cmd CreateGalleryImageCmd, userNo string
 	}
 	defer lock.Unlock()
 
-	if isCreated, e := isImgCreatedAlready(rail, tx, cmd.GalleryNo, cmd.FileKey); isCreated || e != nil {
+	if isCreated, e := isImgCreatedAlready(rail, db, cmd.GalleryNo, cmd.FileKey); isCreated || e != nil {
 		if e != nil {
 			return e
 		}
@@ -128,14 +128,14 @@ func CreateGalleryImage(rail miso.Rail, cmd CreateGalleryImageCmd, userNo string
 	}
 
 	imageNo := util.GenNoL("IMG", 25)
-	return tx.Transaction(func(tx *gorm.DB) error {
-		if err := dbquery.NewQueryRail(rail, tx).
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := dbquery.NewQuery(rail, tx).
 			ExecAny(`insert into gallery_image (gallery_no, image_no, name, file_key, create_by) values (?, ?, ?, ?, ?)`,
 				cmd.GalleryNo, imageNo, cmd.Name, cmd.FileKey, username); err != nil {
 			return err
 		}
 
-		return dbquery.NewQueryRail(rail, tx).
+		return dbquery.NewQuery(rail, tx).
 			ExecAny(`UPDATE gallery SET update_time = ? WHERE gallery_no = ?`, util.Now(), cmd.GalleryNo)
 	})
 }

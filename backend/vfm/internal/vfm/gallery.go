@@ -147,11 +147,11 @@ func IsGalleryNameUsed(rail miso.Rail, name string, userNo string, tx *gorm.DB) 
 }
 
 // Create a new Gallery for dir
-func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, tx *gorm.DB) (string, error) {
+func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, db *gorm.DB) (string, error) {
 
 	return redis.RLockRun(rail, "fantahsea:gallery:create:"+cmd.UserNo,
 		func() (string, error) {
-			galleryNo, err := GalleryNoOfDir(rail, cmd.DirFileKey, tx)
+			galleryNo, err := GalleryNoOfDir(rail, cmd.DirFileKey, db)
 			if err != nil {
 				return "", err
 			}
@@ -160,7 +160,7 @@ func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, tx *gorm.DB
 				galleryNo = util.GenNoL("GAL", 25)
 				rail.Infof("Creating gallery (%s) for directory %s (%s)", galleryNo, cmd.DirName, cmd.DirFileKey)
 
-				err := tx.Transaction(func(tx *gorm.DB) error {
+				err := db.Transaction(func(tx *gorm.DB) error {
 					gallery := &Gallery{
 						GalleryNo:  galleryNo,
 						Name:       cmd.DirName,
