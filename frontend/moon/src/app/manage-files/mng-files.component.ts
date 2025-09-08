@@ -304,7 +304,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   // Go to dir, i.e., list files under the directory
   goToDir(fileKey) {
-    this.orderByName = false;
     this.expandUploadPanel = false;
     this.curr = null;
     this.resetSearchParam(false, false);
