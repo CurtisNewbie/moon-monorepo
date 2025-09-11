@@ -120,7 +120,7 @@ func ListNotes(rail miso.Rail, db *gorm.DB, req ListNoteReq, user common.User) (
 			return q.Table(TableNote).
 				Eq("user_no", user.UserNo).
 				Eq("deleted", false).
-				WhereIf(req.Keywords != "", "title LIKE ? OR content LIKE ?", "%"+req.Keywords+"%") // TODO: replace like with match()
+				WhereIf(req.Keywords != "", "MATCH (title, content) AGAINST (? IN NATURAL LANGUAGE MODE)", req.Keywords)
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.SelectCols(Note{})

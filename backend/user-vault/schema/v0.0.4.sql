@@ -11,6 +11,7 @@ CREATE TABLE note (
     `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'record deleted',
     PRIMARY KEY (`id`),
     KEY user_no_idx (user_no, deleted),
-    KEY record_id_idx (record_id, deleted)
+    KEY record_id_idx (record_id, deleted),
+    FULLTEXT `title_content_idx` (title, content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='notes';
 
