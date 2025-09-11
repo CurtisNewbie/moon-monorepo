@@ -23,8 +23,8 @@ func NewNoteLock(rail miso.Rail, recordId string) *redis.RLock {
 }
 
 type SaveNoteReq struct {
-	Title   string
-	Content string
+	Title   string `valid:"trim,notEmpty"`
+	Content string `valid:"trim,notEmpty"`
 }
 
 func DBSaveNote(rail miso.Rail, db *gorm.DB, snr SaveNoteReq, user common.User) error {
@@ -46,9 +46,9 @@ func DBSaveNote(rail miso.Rail, db *gorm.DB, snr SaveNoteReq, user common.User) 
 }
 
 type UpdateNoteReq struct {
-	RecordId string
-	Title    string
-	Content  string
+	RecordId string `valid:"notEmpty"`
+	Title    string `valid:"trim,notEmpty`
+	Content  string `valid:"trim,notEmpty`
 }
 
 func DBUpdateNote(rail miso.Rail, db *gorm.DB, unr UpdateNoteReq, user common.User) error {

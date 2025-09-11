@@ -49,6 +49,10 @@
 - [POST /open/api/password/decrypt-site-password](#post-openapipassworddecrypt-site-password)
 - [POST /open/api/password/edit-site-password](#post-openapipasswordedit-site-password)
 - [POST /open/api/user/clear-failed-login-attempts](#post-openapiuserclear-failed-login-attempts)
+- [POST /open/api/note/list-notes](#post-openapinotelist-notes)
+- [POST /open/api/note/save-note](#post-openapinotesave-note)
+- [POST /open/api/note/update-note](#post-openapinoteupdate-note)
+- [POST /open/api/note/delete-note](#post-openapinotedelete-note)
 - [POST /open/api/v1/notification/create](#post-openapiv1notificationcreate)
 - [POST /open/api/v1/notification/query](#post-openapiv1notificationquery)
 - [GET /open/api/v1/notification/count](#get-openapiv1notificationcount)
@@ -4780,6 +4784,394 @@
   clearUserFailedLoginAttempts() {
     let req: ClearUserFailedLoginAttemptsReq | null = null;
     this.http.post<any>(`/user-vault/open/api/user/clear-failed-login-attempts`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/note/list-notes
+
+- Description: List User Notes
+- Bound to Resource: `"basic-user"`
+- JSON Request:
+    - "keywords": (string) 
+    - "paging": (Paging) 
+      - "limit": (int) page limit
+      - "page": (int) page number, 1-based
+      - "total": (int) total count
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/vault.Note]) response data
+      - "paging": (Paging) pagination parameters
+        - "limit": (int) page limit
+        - "page": (int) page number, 1-based
+        - "total": (int) total count
+      - "payload": ([]vault.Note) payload values in current page
+        - "recordId": (string) 
+        - "title": (string) 
+        - "content": (string) 
+        - "userNo": (string) 
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/open/api/note/list-notes' \
+    -H 'Content-Type: application/json' \
+    -d '{"keywords":"","paging":{"limit":0,"page":0,"total":0}}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type ListNoteReq struct {
+  	Keywords string `json:"keywords"`
+  	Paging miso.Paging `json:"paging"`
+  }
+
+
+  type Note struct {
+  	RecordId string `json:"recordId"`
+  	Title string `json:"title"`
+  	Content string `json:"content"`
+  	UserNo string `json:"userNo"`
+  }
+
+  // List User Notes
+  func ApiListNotes(rail miso.Rail, req ListNoteReq) (miso.PageRes[Note], error) {
+  	var res miso.GnResp[miso.PageRes[Note]]
+  	err := miso.NewDynTClient(rail, "/open/api/note/list-notes", "user-vault").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		var dat miso.PageRes[Note]
+  		return dat, err
+  	}
+  	dat, err := res.Res()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return dat, err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface ListNoteReq {
+    keywords?: string;
+    paging?: Paging;
+  }
+
+  export interface Paging {
+    limit?: number;                // page limit
+    page?: number;                 // page number, 1-based
+    total?: number;                // total count
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: PageRes;
+  }
+
+  export interface PageRes {
+    paging?: Paging;
+    payload?: Note[];
+  }
+
+  export interface Paging {
+    limit?: number;                // page limit
+    page?: number;                 // page number, 1-based
+    total?: number;                // total count
+  }
+
+  export interface Note {
+    recordId?: string;
+    title?: string;
+    content?: string;
+    userNo?: string;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  listNotes() {
+    let req: ListNoteReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/note/list-notes`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: PageRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/note/save-note
+
+- Description: User Save Note
+- Bound to Resource: `"basic-user"`
+- JSON Request:
+    - "title": (string) Required.
+    - "content": (string) Required.
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/open/api/note/save-note' \
+    -H 'Content-Type: application/json' \
+    -d '{"content":"","title":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type SaveNoteReq struct {
+  	Title string `json:"title"`    // Required.
+  	Content string `json:"content"` // Required.
+  }
+
+  // User Save Note
+  func ApiSaveNote(rail miso.Rail, req SaveNoteReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynTClient(rail, "/open/api/note/save-note", "user-vault").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface SaveNoteReq {
+    title?: string;                // Required.
+    content?: string;              // Required.
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  saveNote() {
+    let req: SaveNoteReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/note/save-note`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/note/update-note
+
+- Description: User Update Note
+- Bound to Resource: `"basic-user"`
+- JSON Request:
+    - "recordId": (string) Required.
+    - "title": (string) 
+    - "content": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/open/api/note/update-note' \
+    -H 'Content-Type: application/json' \
+    -d '{"content":"","recordId":"","title":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type UpdateNoteReq struct {
+  	RecordId string `json:"recordId"` // Required.
+  	Title string `json:"title"`
+  	Content string `json:"content"`
+  }
+
+  // User Update Note
+  func ApiUpdateNote(rail miso.Rail, req UpdateNoteReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynTClient(rail, "/open/api/note/update-note", "user-vault").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface UpdateNoteReq {
+    recordId?: string;             // Required.
+    title?: string;
+    content?: string;
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  updateNote() {
+    let req: UpdateNoteReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/note/update-note`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/note/delete-note
+
+- Description: User Delete Note
+- Bound to Resource: `"basic-user"`
+- JSON Request:
+    - "recordId": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/open/api/note/delete-note' \
+    -H 'Content-Type: application/json' \
+    -d '{"recordId":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type ApiDeleteNoteReq struct {
+  	RecordId string `json:"recordId"`
+  }
+
+  // User Delete Note
+  func ApiDeleteNote(rail miso.Rail, req ApiDeleteNoteReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynTClient(rail, "/open/api/note/delete-note", "user-vault").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface ApiDeleteNoteReq {
+    recordId?: string;
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  deleteNote() {
+    let req: ApiDeleteNoteReq | null = null;
+    this.http.post<any>(`/user-vault/open/api/note/delete-note`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

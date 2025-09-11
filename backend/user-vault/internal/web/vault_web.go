@@ -498,3 +498,40 @@ func ApiEditSitePassword(rail miso.Rail, req vault.EditSitePasswordReq, user com
 func ApiClearUserFailedLoginAttempts(rail miso.Rail, req vault.ClearUserFailedLoginAttemptsReq) error {
 	return vault.ClearFailedLoginAttempts(rail, req.UserNo)
 }
+
+// List User Notes
+//
+//   - misoapi-http: POST /open/api/note/list-notes
+//   - misoapi-resource: ref(ResourceBasicUser)
+//   - misoapi-ngtable
+func ApiListNotes(rail miso.Rail, db *gorm.DB, req vault.ListNoteReq, user common.User) (miso.PageRes[vault.Note], error) {
+	return vault.ListNotes(rail, db, req, user)
+}
+
+// User Save Note
+//
+//   - misoapi-http: POST /open/api/note/save-note
+//   - misoapi-resource: ref(ResourceBasicUser)
+func ApiSaveNote(rail miso.Rail, db *gorm.DB, req vault.SaveNoteReq, user common.User) error {
+	return vault.DBSaveNote(rail, db, req, user)
+}
+
+// User Update Note
+//
+//   - misoapi-http: POST /open/api/note/update-note
+//   - misoapi-resource: ref(ResourceBasicUser)
+func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req vault.UpdateNoteReq, user common.User) error {
+	return vault.UpdateNote(rail, db, req, user)
+}
+
+type ApiDeleteNoteReq struct {
+	RecordId string
+}
+
+// User Delete Note
+//
+//   - misoapi-http: POST /open/api/note/delete-note
+//   - misoapi-resource: ref(ResourceBasicUser)
+func ApiDeleteNote(rail miso.Rail, db *gorm.DB, req ApiDeleteNoteReq, user common.User) error {
+	return vault.DeleteNote(rail, db, req.RecordId, user)
+}
