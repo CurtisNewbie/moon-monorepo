@@ -398,7 +398,7 @@ func AdminUpdateUser(rail miso.Rail, tx *gorm.DB, req AdminUpdateUserReq, operat
 		}
 	}
 
-	_, err := dbquery.NewQueryRail(rail, tx).Exec(
+	_, err := dbquery.NewQuery(rail, tx).Exec(
 		`UPDATE user SET is_disabled = ?, update_by = ?, role_no = ? WHERE user_no = ?`,
 		req.IsDisabled, operator.Username, req.RoleNo, req.UserNo,
 	)
@@ -453,7 +453,7 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 				}
 			}
 
-			_, err := dbquery.NewQueryRail(rail, tx).Table(
+			_, err := dbquery.NewQuery(rail, tx).Table(
 				"user").
 				Set("review_status", req.ReviewStatus).
 				Set("is_disabled", isDisabled).
@@ -568,7 +568,7 @@ func UpdatePassword(rail miso.Rail, tx *gorm.DB, username string, req UpdatePass
 		return errs.NewErrf("Password incorrect")
 	}
 
-	_, err = dbquery.NewQueryRail(rail, tx).
+	_, err = dbquery.NewQuery(rail, tx).
 		Exec("update user set password = ? where username = ?", encodePasswordSalt(req.NewPassword, u.Salt), username)
 	if err != nil {
 		return errs.NewErrf("Failed to update password, please try again laster").
@@ -716,7 +716,7 @@ func ItnFindNameOfUserNo(rail miso.Rail, tx *gorm.DB, req api.FetchNameByUserNoR
 
 func ItnFindUsersWithRole(rail miso.Rail, db *gorm.DB, req api.FetchUsersWithRoleReq) ([]api.UserInfo, error) {
 	var users []api.UserInfo
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Table("user").
 		Where("role_no = ?", req.RoleNo).
 		Scan(&users)
@@ -728,7 +728,7 @@ func ItnFindUsersWithRole(rail miso.Rail, db *gorm.DB, req api.FetchUsersWithRol
 
 func FindUserWithRes(rail miso.Rail, db *gorm.DB, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
 	var users []api.UserInfo
-	_, err := dbquery.NewQueryRail(rail, db).Raw(`
+	_, err := dbquery.NewQuery(rail, db).Raw(`
 		select u.*, r.name role_name from user u
 		left join role r on u.role_no = r.role_no
 		left join role_resource rr on r.role_no = rr.role_no

@@ -34,7 +34,7 @@ type SaveAccessLogParam struct {
 }
 
 func SaveAccessLogEvent(rail miso.Rail, tx *gorm.DB, p SaveAccessLogParam) error {
-	_, err := dbquery.NewQueryRail(rail, tx).Table("access_log").Create(&p)
+	_, err := dbquery.NewQuery(rail, tx).Table("access_log").Create(&p)
 	return err
 }
 

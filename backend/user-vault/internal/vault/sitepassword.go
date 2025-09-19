@@ -67,7 +67,7 @@ func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, d
 	}
 
 	recordId := util.GenIdP("sitepw_")
-	_, err = dbquery.NewQueryRail(rail, db).Exec(`
+	_, err = dbquery.NewQuery(rail, db).Exec(`
 		INSERT INTO site_password (record_id, site, alias, username, password, user_no, create_by)
 		values (?,?,?,?,?,?,?)
 	`, recordId, req.Site, req.Alias, req.Username, encrypted, user.UserNo, user.Username)
@@ -83,7 +83,7 @@ func RemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes, user common.U
 	if err != nil {
 		return err
 	}
-	_, err = dbquery.NewQueryRail(rail, db).Exec("DELETE FROM site_password where record_id = ?", req.RecordId)
+	_, err = dbquery.NewQuery(rail, db).Exec("DELETE FROM site_password where record_id = ?", req.RecordId)
 	return err
 }
 
@@ -126,7 +126,7 @@ type BasicSitePassword struct {
 
 func loadBasicSitePassword(rail miso.Rail, db *gorm.DB, userNo string, recordId string) (BasicSitePassword, error) {
 	var bsp BasicSitePassword
-	n, err := dbquery.NewQueryRail(rail, db).
+	n, err := dbquery.NewQuery(rail, db).
 		Table("site_password").
 		Eq("record_id", recordId).
 		Select("password, user_no").
@@ -187,7 +187,7 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 		encryptedSitePwd = encrypted
 	}
 
-	_, err = dbquery.NewQueryRail(rail, db).Table("site_password").
+	_, err = dbquery.NewQuery(rail, db).Table("site_password").
 		Eq("record_id", req.RecordId).
 		Set("site", req.Site).
 		Set("alias", req.Alias).

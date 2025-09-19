@@ -55,7 +55,7 @@ type SaveNotifiReq struct {
 
 func SaveNotification(rail miso.Rail, db *gorm.DB, req SaveNotifiReq, user common.User) error {
 	notifiNo := NotifiNo()
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Exec(`insert into notification (user_no, notifi_no, title, message, created_by) values (?, ?, ?, ?, ?)`,
 			req.UserNo, notifiNo, req.Title, req.Message, user.Username)
 	if err != nil {
@@ -107,7 +107,7 @@ func CachedCountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int
 
 func CountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
 	var count int
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Table("notification").
 		Select("count(*)").
 		Where("user_no = ?", user.UserNo).
@@ -121,7 +121,7 @@ type OpenNotificationReq struct {
 }
 
 func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE notifi_no = ? AND user_no = ?`,
 			StatusOpened, user.Username, req.NotifiNo, user.UserNo)
 	return err
@@ -129,7 +129,7 @@ func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user
 
 func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
 	var id int
-	n, err := dbquery.NewQueryRail(rail, db).Table(
+	n, err := dbquery.NewQuery(rail, db).Table(
 		"notification").
 		Select("id").
 		Eq("user_no", user.UserNo).
@@ -142,7 +142,7 @@ func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, u
 		return errs.NewErrf("Record not found")
 	}
 
-	_, err = dbquery.NewQueryRail(rail, db).
+	_, err = dbquery.NewQuery(rail, db).
 		Exec(`UPDATE notification SET status = ?, updated_by = ? WHERE user_no = ? AND status = ? AND id <= ?`,
 			StatusOpened, user.Username, user.UserNo, StatusInit, id)
 	return err

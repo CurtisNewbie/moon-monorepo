@@ -87,7 +87,7 @@ type DeleteUserKeyReq struct {
 }
 
 func DeleteUserKey(rail miso.Rail, tx *gorm.DB, req DeleteUserKeyReq, userNo string) error {
-	_, err := dbquery.NewQueryRail(rail, tx).
+	_, err := dbquery.NewQuery(rail, tx).
 		Exec(`UPDATE user_key SET is_del = 1 WHERE user_no = ? AND id = ? AND is_del = 0`, userNo, req.UserKeyId)
 	return err
 }
