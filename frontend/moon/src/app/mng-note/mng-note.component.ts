@@ -106,7 +106,7 @@ export class MngNoteComponent implements OnInit {
       .open(EditNoteDialogComponent, {
         width: "800px",
         data: {
-          note: row,
+          note: { ...row },
         },
       })
       .afterClosed()
