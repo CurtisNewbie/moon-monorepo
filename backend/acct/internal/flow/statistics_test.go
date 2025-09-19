@@ -10,6 +10,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/slutil"
 )
 
 func TestReqValidate(t *testing.T) {
@@ -107,7 +108,7 @@ func TestOnCashflowChanged(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = OnCashflowChanged(rail, util.MapTo(tranTimes, func(et util.ETime) CashflowChange { return CashflowChange{et} }), userNo)
+	err = OnCashflowChanged(rail, slutil.MapTo(tranTimes, func(et util.ETime) CashflowChange { return CashflowChange{et} }), userNo)
 	if err != nil {
 		t.Fatal(err)
 	}

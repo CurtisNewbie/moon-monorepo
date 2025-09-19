@@ -10,16 +10,18 @@ import (
 	"github.com/curtisnewbie/miso/middleware/jwt"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/hash"
+	"github.com/curtisnewbie/miso/util/strutil"
 	uvault "github.com/curtisnewbie/user-vault/api"
 	"github.com/spf13/cast"
 )
 
 var (
-	errPathNotFound = miso.NewErrf("Path not found")
+	errPathNotFound = errs.NewErrf("Path not found")
 
 	timerHisto    = miso.NewPromHisto("gatekeeper_all_request_duration")
-	timerExclPath = util.NewSet[string]()
+	timerExclPath = hash.NewSet[string]()
 
 	whitelistPatterns []string
 )
@@ -60,14 +62,14 @@ func prepareServer(rail miso.Rail) error {
 
 	// healthcheck filter
 	healthcheckPath := miso.GetPropStr(miso.PropHealthCheckUrl)
-	if !util.IsBlankStr(healthcheckPath) {
+	if !strutil.IsBlankStr(healthcheckPath) {
 		miso.PerfLogExclPath(healthcheckPath)
 		proxy.AddFilter(HealthcheckFilter)
 	}
 
 	// metrics filter
 	metricsEndpoint := miso.GetPropStr(miso.PropMetricsRoute)
-	if !util.IsBlankStr(metricsEndpoint) {
+	if !strutil.IsBlankStr(metricsEndpoint) {
 		miso.PerfLogExclPath(metricsEndpoint)
 		if miso.GetPropBool(miso.PropMetricsEnabled) {
 			proxy.AddFilter(MetricsFilter)
@@ -80,7 +82,7 @@ func prepareServer(rail miso.Rail) error {
 		if miso.IsProdMode() {
 			bearer = miso.GetPropStr(miso.PropServerPprofAuthBearer)
 			if bearer == "" {
-				return miso.NewErrf("Configuration '%v' for pprof authentication is missing, but pprof authentication is enabled", miso.PropServerPprofAuthBearer)
+				return errs.NewErrf("Configuration '%v' for pprof authentication is missing, but pprof authentication is enabled", miso.PropServerPprofAuthBearer)
 			}
 		}
 		miso.PerfLogExclPath("/debug/pprof")
@@ -333,7 +335,7 @@ func AccessFilter(pc *miso.ProxyContext, next func()) {
 
 	inWhitelist := false
 	for _, pat := range whitelistPatterns {
-		if ok := util.MatchPath(pat, r.URL.Path); ok {
+		if ok := strutil.MatchPath(pat, r.URL.Path); ok {
 			inWhitelist = true
 			break
 		}

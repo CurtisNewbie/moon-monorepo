@@ -10,6 +10,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
 
@@ -32,7 +33,7 @@ func CompensateThumbnail(rail miso.Rail, db *gorm.DB) error {
 		return err
 	}
 	if !ok {
-		return miso.NewErrf("Server is already in maintenance")
+		return errs.NewErrf("Server is already in maintenance")
 	}
 	defer LeaveMaintenance(rail)
 
@@ -99,7 +100,7 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 		return err
 	}
 	if !ok {
-		return miso.NewErrf("Server is already in maintenance")
+		return errs.NewErrf("Server is already in maintenance")
 	}
 	defer LeaveMaintenance(rail)
 

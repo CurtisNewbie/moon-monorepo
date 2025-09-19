@@ -1,9 +1,9 @@
 module github.com/curtisnewbie/mini-fstore
 
-go 1.23.0
+go 1.24.4
 
 require (
-	github.com/curtisnewbie/miso v0.2.14
+	github.com/curtisnewbie/miso v0.3.1-0.20250919061847-336dbf957d95
 	github.com/disintegration/gift v1.2.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/shirou/gopsutil v3.21.11+incompatible

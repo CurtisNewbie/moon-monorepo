@@ -36,7 +36,7 @@
   // Media streaming using temporary file key, the file_key's ttl is extended with each subsequent request. This endpoint is expected to be accessible publicly without authorization, since a temporary file_key is generated and used.
   func ApiTempKeyStreamFile(rail miso.Rail, key string) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/file/stream", "fstore").
+  	err := miso.NewDynClient(rail, "/file/stream", "fstore").
   		AddQueryParams("key", key).
   		Get().
   		Json(&res)
@@ -92,7 +92,7 @@
   // Download file using temporary file key. This endpoint is expected to be accessible publicly without authorization, since a temporary file_key is generated and used.
   func ApiTempKeyDownloadFile(rail miso.Rail, key string) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/file/raw", "fstore").
+  	err := miso.NewDynClient(rail, "/file/raw", "fstore").
   		AddQueryParams("key", key).
   		Get().
   		Json(&res)
@@ -154,7 +154,7 @@
   // Upload file. A temporary file_id is returned, which should be used to exchange the real file_id
   func ApiUploadFile(rail miso.Rail, filename string) (string, error) {
   	var res miso.GnResp[string]
-  	err := miso.NewDynTClient(rail, "/file", "fstore").
+  	err := miso.NewDynClient(rail, "/file", "fstore").
   		AddHeader("filename", filename).
   		Put(nil).
   		Json(&res)
@@ -246,15 +246,15 @@
   	Status string `json:"status"`  // status, 'NORMAL', 'LOG_DEL' (logically deleted), 'PHY_DEL' (physically deleted)
   	Size int64 `json:"size"`       // file size in bytes
   	Md5 string `json:"md5"`        // MD5 checksum
-  	UplTime util.ETime `json:"uplTime"` // upload time
-  	LogDelTime *util.ETime `json:"logDelTime"` // logically deleted at
-  	PhyDelTime *util.ETime `json:"phyDelTime"` // physically deleted at
+  	UplTime util.Time `json:"uplTime"` // upload time
+  	LogDelTime *util.Time `json:"logDelTime"` // logically deleted at
+  	PhyDelTime *util.Time `json:"phyDelTime"` // physically deleted at
   }
 
   // Fetch file info
   func ApiGetFileInfo(rail miso.Rail, fileId string, uploadFileId string) (FstoreFile, error) {
   	var res miso.GnResp[FstoreFile]
-  	err := miso.NewDynTClient(rail, "/file/info", "fstore").
+  	err := miso.NewDynClient(rail, "/file/info", "fstore").
   		AddQueryParams("fileId", fileId).
   		AddQueryParams("uploadFileId", uploadFileId).
   		Get().
@@ -344,7 +344,7 @@
   // Generate temporary file key for downloading and streaming. This endpoint is expected to be called internally by another backend service that validates the ownership of the file properly.
   func ApiGenFileKey(rail miso.Rail, fileId string, filename string) (string, error) {
   	var res miso.GnResp[string]
-  	err := miso.NewDynTClient(rail, "/file/key", "fstore").
+  	err := miso.NewDynClient(rail, "/file/key", "fstore").
   		AddQueryParams("fileId", fileId).
   		AddQueryParams("filename", filename).
   		Get().
@@ -416,7 +416,7 @@
   // Download files directly using file_id. This endpoint is expected to be protected and only used internally by another backend service. Users can eaily steal others file_id and attempt to download the file, so it's better not be exposed to the end users.
   func ApiDirectDownloadFile(rail miso.Rail, fileId string) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/file/direct", "fstore").
+  	err := miso.NewDynClient(rail, "/file/direct", "fstore").
   		AddQueryParams("fileId", fileId).
   		Get().
   		Json(&res)
@@ -475,7 +475,7 @@
   // Mark file as deleted.
   func ApiDeleteFile(rail miso.Rail, fileId string) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/file", "fstore").
+  	err := miso.NewDynClient(rail, "/file", "fstore").
   		AddQueryParams("fileId", fileId).
   		Delete().
   		Json(&res)
@@ -557,7 +557,7 @@
   // Unzip archive, upload all the zip entries, and reply the final results back to the caller asynchronously
   func ApiUnzipFile(rail miso.Rail, req UnzipFileReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/file/unzip", "fstore").
+  	err := miso.NewDynClient(rail, "/file/unzip", "fstore").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -667,7 +667,7 @@
   // Backup tool list files
   func ApiBackupListFiles(rail miso.Rail, req ListBackupFileReq, authorization string) (ListBackupFileResp, error) {
   	var res miso.GnResp[ListBackupFileResp]
-  	err := miso.NewDynTClient(rail, "/backup/file/list", "fstore").
+  	err := miso.NewDynClient(rail, "/backup/file/list", "fstore").
   		AddHeader("authorization", authorization).
   		PostJson(req).
   		Json(&res)
@@ -766,7 +766,7 @@
   // Backup tool download file
   func ApiBackupDownFile(rail miso.Rail, fileId string, authorization string) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/backup/file/raw", "fstore").
+  	err := miso.NewDynClient(rail, "/backup/file/raw", "fstore").
   		AddQueryParams("fileId", fileId).
   		AddHeader("authorization", authorization).
   		Get().
@@ -831,7 +831,7 @@
   // Remove files that are logically deleted and not linked (symbolically)
   func ApiRemoveDeletedFiles(rail miso.Rail) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/maintenance/remove-deleted", "fstore").
+  	err := miso.NewDynClient(rail, "/maintenance/remove-deleted", "fstore").
   		Post(nil).
   		Json(&res)
   	if err != nil {
@@ -900,7 +900,7 @@
   // Sanitize storage, remove files in storage directory that don't exist in database
   func ApiSanitizeStorage(rail miso.Rail) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/maintenance/sanitize-storage", "fstore").
+  	err := miso.NewDynClient(rail, "/maintenance/sanitize-storage", "fstore").
   		Post(nil).
   		Json(&res)
   	if err != nil {
@@ -968,7 +968,7 @@
   // Compute files' checksum if absent
   func ApiComputeChecksum(rail miso.Rail) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/maintenance/compute-checksum", "fstore").
+  	err := miso.NewDynClient(rail, "/maintenance/compute-checksum", "fstore").
   		Post(nil).
   		Json(&res)
   	if err != nil {
@@ -1064,7 +1064,7 @@
   // Fetch storage info
   func ApiFetchStorageInfo(rail miso.Rail) (StorageInfo, error) {
   	var res miso.GnResp[StorageInfo]
-  	err := miso.NewDynTClient(rail, "/storage/info", "fstore").
+  	err := miso.NewDynClient(rail, "/storage/info", "fstore").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -1164,7 +1164,7 @@
   // Fetch storage usage info
   func ApiFetchStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
   	var res miso.GnResp[[]StorageUsageInfo]
-  	err := miso.NewDynTClient(rail, "/storage/usage-info", "fstore").
+  	err := miso.NewDynClient(rail, "/storage/usage-info", "fstore").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -1249,7 +1249,7 @@
   // Check server maintenance status
   func ApiFetchMaintenanceStatus(rail miso.Rail) (MaintenanceStatus, error) {
   	var res miso.GnResp[MaintenanceStatus]
-  	err := miso.NewDynTClient(rail, "/maintenance/status", "fstore").
+  	err := miso.NewDynClient(rail, "/maintenance/status", "fstore").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -1351,7 +1351,7 @@
   // Expose resource and endpoint information to other backend service for authorization.
   func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
   	var res miso.GnResp[ResourceInfoRes]
-  	err := miso.NewDynTClient(rail, "/auth/resource", "fstore").
+  	err := miso.NewDynClient(rail, "/auth/resource", "fstore").
   		Get().
   		Json(&res)
   	if err != nil {

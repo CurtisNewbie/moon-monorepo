@@ -13,6 +13,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/strutil"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"github.com/sirupsen/logrus"
 )
@@ -257,7 +258,7 @@ func TestCreateFile(t *testing.T) {
 	buf := bytes.NewBuffer(file)
 
 	var r miso.GnResp[string]
-	err = miso.NewDynTClient(c, "/file", "fstore").
+	err = miso.NewDynClient(c, "/file", "fstore").
 		AddHeader("filename", "README.md").
 		Put(buf).
 		Json(&r)
@@ -367,9 +368,9 @@ func TestFetchDirTreeTopDown(t *testing.T) {
 			l.Remove(front)
 			n := front.Value.(*DirTopDownTreeNode)
 			if n.FileKey == "" {
-				t.Logf("%v /", util.Tabs(d))
+				t.Logf("%v /", strutil.Tabs(d))
 			} else {
-				t.Logf("%v /%v", util.Tabs(d), n.Name)
+				t.Logf("%v /%v", strutil.Tabs(d), n.Name)
 			}
 			for i := range n.Child {
 				c := n.Child[i]

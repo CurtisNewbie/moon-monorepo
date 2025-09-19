@@ -57,8 +57,8 @@
   type ListCashFlowReq struct {
   	Paging miso.Paging `json:"paging"`
   	Direction string `json:"direction"` // Flow Direction: IN / OUT. Enums: ["IN","OUT",""].
-  	TransTimeStart *util.ETime `json:"transTimeStart"` // Transaction Time Range Start
-  	TransTimeEnd *util.ETime `json:"transTimeEnd"` // Transaction Time Range End
+  	TransTimeStart *util.Time `json:"transTimeStart"` // Transaction Time Range Start
+  	TransTimeEnd *util.Time `json:"transTimeEnd"` // Transaction Time Range End
   	TransId string `json:"transId"` // Transaction ID
   	Category string `json:"category"` // Category Code
   	MinAmt *money.Amt `json:"minAmt"` // Minimum amount
@@ -67,7 +67,7 @@
 
   type ListCashFlowRes struct {
   	Direction string `json:"direction"` // Flow Direction: IN / OUT
-  	TransTime util.ETime `json:"transTime"` // Transaction Time
+  	TransTime util.Time `json:"transTime"` // Transaction Time
   	TransId string `json:"transId"` // Transaction ID
   	Counterparty string `json:"counterparty"` // Counterparty of the transaction
   	PaymentMethod string `json:"paymentMethod"` // Payment Method
@@ -77,12 +77,12 @@
   	Category string `json:"category"` // Category Code
   	CategoryName string `json:"categoryName"` // Category Name
   	Remark string `json:"remark"`  // Remark
-  	CreatedAt util.ETime `json:"createdAt"` // Create Time
+  	CreatedAt util.Time `json:"createdAt"` // Create Time
   }
 
   func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
   	var res miso.GnResp[miso.PageRes[ListCashFlowRes]]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list", "acct").
+  	err := miso.NewDynClient(rail, "/open/api/v1/cashflow/list", "acct").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -195,7 +195,7 @@
   ```go
   func ApiImportWechatCashflows(rail miso.Rail) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/import/wechat", "acct").
+  	err := miso.NewDynClient(rail, "/open/api/v1/cashflow/import/wechat", "acct").
   		Post(nil).
   		Json(&res)
   	if err != nil {
@@ -263,7 +263,7 @@
   ```go
   func ApiListCurrency(rail miso.Rail) ([]string, error) {
   	var res miso.GnResp[[]string]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-currency", "acct").
+  	err := miso.NewDynClient(rail, "/open/api/v1/cashflow/list-currency", "acct").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -368,7 +368,7 @@
 
   func ApiListCashflowStatistics(rail miso.Rail, req ApiListStatisticsReq) (miso.PageRes[ApiListStatisticsRes], error) {
   	var res miso.GnResp[miso.PageRes[ApiListStatisticsRes]]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/list-statistics", "acct").
+  	err := miso.NewDynClient(rail, "/open/api/v1/cashflow/list-statistics", "acct").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -479,8 +479,8 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiPlotStatisticsReq struct {
-  	StartTime util.ETime `json:"startTime"` // Start time
-  	EndTime util.ETime `json:"endTime"` // End time
+  	StartTime util.Time `json:"startTime"` // Start time
+  	EndTime util.Time `json:"endTime"` // End time
   	AggType string `json:"aggType"` // Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
   	Currency string `json:"currency"` // Currency
   }
@@ -492,7 +492,7 @@
 
   func ApiPlotCashflowStatistics(rail miso.Rail, req ApiPlotStatisticsReq) ([]ApiPlotStatisticsRes, error) {
   	var res miso.GnResp[[]ApiPlotStatisticsRes]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/cashflow/plot-statistics", "acct").
+  	err := miso.NewDynClient(rail, "/open/api/v1/cashflow/plot-statistics", "acct").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -603,7 +603,7 @@
   // Expose resource and endpoint information to other backend service for authorization.
   func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
   	var res miso.GnResp[ResourceInfoRes]
-  	err := miso.NewDynTClient(rail, "/auth/resource", "acct").
+  	err := miso.NewDynClient(rail, "/auth/resource", "acct").
   		Get().
   		Json(&res)
   	if err != nil {

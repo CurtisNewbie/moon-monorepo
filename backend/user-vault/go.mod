@@ -2,8 +2,6 @@ module github.com/curtisnewbie/user-vault
 
 go 1.24.4
 
-toolchain go1.24.7
-
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.0
 	github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451

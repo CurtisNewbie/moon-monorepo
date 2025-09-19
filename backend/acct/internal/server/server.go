@@ -19,7 +19,7 @@ func init() {
 
 func BootstrapServer() {
 	miso.PreServerBootstrap(PreServerBootstrap)
-	miso.PostServerBootstrapped(PostServerBootstrap)
+	miso.PostServerBootstrap(PostServerBootstrap)
 	miso.BootstrapServer(os.Args)
 }
 

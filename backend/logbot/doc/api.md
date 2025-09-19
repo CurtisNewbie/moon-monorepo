@@ -36,7 +36,7 @@
   // List error logs
   func SendListErrorLogReq(rail miso.Rail, req ListErrorLogReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/log/error/list", "logbot").
+  	err := miso.NewDynClient(rail, "/log/error/list", "logbot").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -143,7 +143,7 @@
   // Expose resource and endpoint information to other backend service for authorization.
   func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
   	var res miso.GnResp[ResourceInfoRes]
-  	err := miso.NewDynTClient(rail, "/auth/resource", "logbot").
+  	err := miso.NewDynClient(rail, "/auth/resource", "logbot").
   		Get().
   		Json(&res)
   	if err != nil {

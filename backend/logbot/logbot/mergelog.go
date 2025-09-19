@@ -6,13 +6,14 @@ import (
 
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/heap"
 	"github.com/sirupsen/logrus"
 )
 
 var (
 	mergedLogger                     = logrus.New()
 	mergedLogMu                      = sync.Mutex{}
-	mergedLogs   *util.Heap[LogLine] = util.NewHeap(1024, func(iv, jv LogLine) bool {
+	mergedLogs   *heap.Heap[LogLine] = heap.New(1024, func(iv, jv LogLine) bool {
 		return iv.Time.Before(jv.Time)
 	})
 	mergedLogFlushTicker = miso.NewTickRuner(1*time.Second, flushMergedLogs)

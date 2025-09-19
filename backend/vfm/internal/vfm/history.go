@@ -10,6 +10,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/slutil"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -143,13 +144,13 @@ func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBro
 	if len(l) < 1 {
 		return []ListBrowseRecordRes{}, nil
 	}
-	keys := util.FastDistinct(util.MapTo(l, func(br BrowseRecord) string { return br.FileKey }))
+	keys := slutil.FastDistinct(slutil.MapTo(l, func(br BrowseRecord) string { return br.FileKey }))
 	ffi, err := queryFileFstoreInfo(rail, db, keys)
 	if err != nil {
 		return []ListBrowseRecordRes{}, err
 	}
 
-	res := util.MapTo(l, func(br BrowseRecord) ListBrowseRecordRes {
+	res := slutil.MapTo(l, func(br BrowseRecord) ListBrowseRecordRes {
 		r := ListBrowseRecordRes{
 			Time:    br.Time,
 			FileKey: br.FileKey,

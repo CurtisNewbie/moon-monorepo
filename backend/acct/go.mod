@@ -1,9 +1,9 @@
 module github.com/curtisnewbie/acct
 
-go 1.23.0
+go 1.24.4
 
 require (
-	github.com/curtisnewbie/miso v0.2.14
+	github.com/curtisnewbie/miso v0.3.1-0.20250919061847-336dbf957d95
 	gorm.io/gorm v1.23.8
 )
 

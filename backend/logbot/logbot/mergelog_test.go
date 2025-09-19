@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/heap"
 )
 
 func TestETimeHeap(t *testing.T) {
 	start := util.Now()
-	h := util.NewHeap[util.ETime](50, func(iv, jv util.ETime) bool {
+	h := heap.New[util.ETime](50, func(iv, jv util.ETime) bool {
 		return iv.Before(jv)
 	})
 

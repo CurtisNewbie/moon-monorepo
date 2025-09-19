@@ -9,6 +9,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
 
@@ -190,7 +191,7 @@ func CreateGallery(rail miso.Rail, cmd CreateGalleryCmd, user common.User, tx *g
 			if err != nil {
 				return nil, err
 			}
-			return nil, miso.NewErrf("You already have a gallery with the same name, please change and try again")
+			return nil, errs.NewErrf("You already have a gallery with the same name, please change and try again")
 		}
 
 		galleryNo := util.GenNoL("GAL", 25)
@@ -224,7 +225,7 @@ func UpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, user common.User, tx *g
 
 	// only owner can update the gallery
 	if user.UserNo != gallery.UserNo {
-		return miso.NewErrf("You are not allowed to update this gallery")
+		return errs.NewErrf("You are not allowed to update this gallery")
 	}
 
 	err := dbquery.NewQuery(rail, tx).
@@ -238,7 +239,7 @@ func UpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, user common.User, tx *g
 
 	if err != nil {
 		rail.Warnf("Failed to update gallery, gallery_no: %v, e: %v", galleryNo, err)
-		return miso.NewErrf("Failed to update gallery, please try again later")
+		return errs.NewErrf("Failed to update gallery, please try again later")
 	}
 
 	return nil
@@ -258,7 +259,7 @@ func FindGalleryCreator(rail miso.Rail, galleryNo string, tx *gorm.DB) (*string,
 			return nil, err
 		}
 		rail.Warnf("Could not find gallery %v", galleryNo)
-		return nil, miso.NewErrf("Gallery doesn't exist")
+		return nil, errs.NewErrf("Gallery doesn't exist")
 	}
 	return &gallery.UserNo, nil
 }
@@ -274,7 +275,7 @@ func FindGallery(rail miso.Rail, tx *gorm.DB, galleryNo string) (*Gallery, error
 		if err != nil {
 			return nil, fmt.Errorf("failed to find gallery, %v", err)
 		}
-		return nil, miso.NewErrf("Gallery doesn't exist")
+		return nil, errs.NewErrf("Gallery doesn't exist")
 	}
 	return &gallery, nil
 }
@@ -286,7 +287,7 @@ func DeleteGallery(rail miso.Rail, tx *gorm.DB, cmd DeleteGalleryCmd, user commo
 		if err != nil {
 			return err
 		}
-		return miso.NewErrf("You are not allowed to delete this gallery")
+		return errs.NewErrf("You are not allowed to delete this gallery")
 	}
 
 	return dbquery.ExecSQL(rail, tx, `UPDATE gallery g SET g.is_del = 1 WHERE gallery_no = ? AND g.is_del = 0`, galleryNo)

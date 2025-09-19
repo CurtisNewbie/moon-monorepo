@@ -14,6 +14,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/hash"
 	"gorm.io/gorm"
 )
 
@@ -51,18 +53,18 @@ type ApiCalcCashflowStatsReq struct {
 func ParseAggRangeTime(aggType string, aggRange string) (util.ETime, error) {
 	pat, ok := RangeFormatMap[aggType]
 	if !ok {
-		return util.ETime{}, miso.NewErrf("Invalid AggType")
+		return util.ETime{}, errs.NewErrf("Invalid AggType")
 	}
 
 	t, err := time.ParseInLocation(pat, aggRange, time.Local)
 	if err != nil {
-		return util.ETime{}, miso.NewErrf("Invalid AppRange '%s' for %s aggregate type", aggRange, aggType).
+		return util.ETime{}, errs.NewErrf("Invalid AppRange '%s' for %s aggregate type", aggRange, aggType).
 			WithInternalMsg("%v", err)
 	}
 	if aggType == AggTypeWeekly {
 		wd := t.Weekday()
 		if wd != time.Sunday {
-			return util.ETime{}, miso.NewErrf("Invalid aggRange '%v' for aggType: %v, should be Sunday", aggRange, aggType)
+			return util.ETime{}, errs.NewErrf("Invalid aggRange '%v' for aggType: %v, should be Sunday", aggRange, aggType)
 		}
 	}
 	return util.ToETime(t), err
@@ -77,11 +79,11 @@ func OnCashflowChanged(rail miso.Rail, changes []CashflowChange, userNo string) 
 		return nil
 	}
 
-	aggMap := map[string]util.Set[string]{}
+	aggMap := map[string]hash.Set[string]{}
 	mapAddAgg := func(typ, val string) {
 		prev, ok := aggMap[typ]
 		if !ok {
-			v := util.NewSet[string]()
+			v := hash.NewSet[string]()
 			aggMap[typ] = v
 			prev = v
 		}
@@ -305,7 +307,7 @@ func PlotCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiPlotStatisticsRe
 		if res == nil {
 			res = []ApiPlotStatisticsRes{}
 		}
-		set := util.NewSet[string]()
+		set := hash.NewSet[string]()
 		for _, r := range res {
 			set.Add(r.AggRange)
 		}

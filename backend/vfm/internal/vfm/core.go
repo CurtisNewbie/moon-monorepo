@@ -14,7 +14,9 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/hash"
 	"github.com/curtisnewbie/miso/util/slutil"
+	"github.com/curtisnewbie/miso/util/strutil"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -31,8 +33,8 @@ const (
 )
 
 var (
-	_imageSuffix = util.NewSet[string]()
-	_videoSuffix = util.NewSet[string]()
+	_imageSuffix = hash.NewSet[string]()
+	_videoSuffix = hash.NewSet[string]()
 
 	dirParentCache   = redis.NewRCache[*CachedDirTreeNode]("vfm:dir:parent", redis.RCacheConfig{Exp: 1 * time.Hour})
 	dirNameCache     = redis.NewRCache[string]("vfm:dir:name", redis.RCacheConfig{Exp: 1 * time.Hour})
@@ -228,7 +230,7 @@ func queryFilenames(rail miso.Rail, db *gorm.DB, fileKeys []string) (map[string]
 	if err != nil {
 		return nil, err
 	}
-	return util.StrMap[FileKeyName](rec,
+	return hash.StrMap[FileKeyName](rec,
 			func(r FileKeyName) string { return r.Uuid },
 			func(r FileKeyName) string { return r.Name }),
 		nil
@@ -262,7 +264,7 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user common.User) (
 		return res, e
 	}
 
-	parentFileKeys := util.NewSet[string]()
+	parentFileKeys := hash.NewSet[string]()
 	for _, f := range res.Payload {
 		if f.ParentFile != "" {
 			parentFileKeys.Add(f.ParentFile)
@@ -405,12 +407,12 @@ func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user commo
 		return ParentFileInfo{}, e
 	}
 	if !ok {
-		return ParentFileInfo{}, miso.NewErrf("File not found")
+		return ParentFileInfo{}, errs.NewErrf("File not found")
 	}
 
 	// dir is only visible to the uploader for now
 	if f.UploaderNo != user.UserNo {
-		return ParentFileInfo{}, miso.NewErrf("Not permitted")
+		return ParentFileInfo{}, errs.NewErrf("Not permitted")
 	}
 
 	if f.ParentFile == "" {
@@ -422,7 +424,7 @@ func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user commo
 		return ParentFileInfo{}, e
 	}
 	if !ok {
-		return ParentFileInfo{}, miso.NewErrf("File not found", fmt.Sprintf("ParentFile %v not found", f.ParentFile))
+		return ParentFileInfo{}, errs.NewErrf("File not found", fmt.Sprintf("ParentFile %v not found", f.ParentFile))
 	}
 
 	return ParentFileInfo{FileKey: pf.Uuid, Filename: pf.Name, Zero: false}, nil
@@ -468,7 +470,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 	// lock the file
 	flock := fileLock(rail, req.Uuid)
 	if err := flock.Lock(); err != nil {
-		return miso.WrapErr(err)
+		return errs.WrapErr(err)
 	}
 	defer flock.Unlock()
 
@@ -570,7 +572,7 @@ func _saveFile(rail miso.Rail, db *gorm.DB, f FileInfo, user common.User) error 
 		rail.Infof("Saved file %+v", f)
 		return nil
 	}
-	return miso.WrapErr(err)
+	return errs.WrapErr(err)
 }
 
 func fileLock(rail miso.Rail, fileKey string) *redis.RLock {
@@ -598,7 +600,7 @@ func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.
 			return "", err
 		}
 		if ok {
-			return "", miso.NewErrf("Found folder with same name ('%s')", r.Name)
+			return "", errs.NewErrf("Found folder with same name ('%s')", r.Name)
 		}
 
 		folderNo := util.GenIdP("VFLD")
@@ -682,7 +684,7 @@ func ShareVFolder(rail miso.Rail, db *gorm.DB, sharedTo vault.UserInfo, folderNo
 			return err
 		}
 		if !vfo.IsOwner() {
-			return miso.NewErrf("Operation not permitted")
+			return errs.NewErrf("Operation not permitted")
 		}
 
 		ok, err := dbquery.NewQueryRail(rail, db).
@@ -733,7 +735,7 @@ func RemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAcc
 			return e
 		}
 		if !vfo.IsOwner() {
-			return miso.NewErrf("Operation not permitted")
+			return errs.NewErrf("Operation not permitted")
 		}
 		_, err := dbquery.NewQueryRail(rail, db).
 			Exec("UPDATE user_vfolder SET is_del = 1, update_by = ? WHERE folder_no = ? AND user_no = ? AND ownership = 'GRANTED'",
@@ -779,7 +781,7 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, db *gorm.DB, evt AddFileToVfold
 		return errs.ErrNotPermitted.New()
 	}
 
-	distinct := util.NewSet[string](evt.FileKeys...)
+	distinct := hash.NewSet[string](evt.FileKeys...)
 	if distinct.IsEmpty() {
 		return nil
 	}
@@ -1096,7 +1098,7 @@ func CreateFile(rail miso.Rail, tx *gorm.DB, r CreateFileReq, user common.User) 
 	})
 	if e != nil {
 		if errs.IsAny(e, fstore.ErrFileNotFound, fstore.ErrFileDeleted) {
-			return "", miso.NewErrf("File not found or deleted")
+			return "", errs.NewErrf("File not found or deleted")
 		}
 		return "", errs.WrapErrf(e, "failed to fetch file info from fstore")
 	}
@@ -1211,7 +1213,7 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 			return fmt.Errorf("failed to count files in dir, uuid: %v, %v", req.Uuid, e)
 		}
 		if ok {
-			return miso.NewErrf("Directory is not empty, unable to delete it")
+			return errs.NewErrf("Directory is not empty, unable to delete it")
 		}
 	}
 
@@ -1463,7 +1465,7 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) 
 	}
 
 	if !strings.HasSuffix(strings.ToLower(fi.Name), ".zip") {
-		return miso.NewErrf("File is not a zip")
+		return errs.NewErrf("File is not a zip")
 	}
 
 	dir, err := MakeDir(rail, db, MakeDirReq{
@@ -1618,7 +1620,7 @@ type CachedDirTreeNode struct {
 }
 
 func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirBottomUpTreeNode, error) {
-	if util.IsBlankStr(req.FileKey) {
+	if strutil.IsBlankStr(req.FileKey) {
 		return nil, nil
 	}
 	fi, ok, err := findFile(rail, db, req.FileKey)
@@ -1711,7 +1713,7 @@ func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTop
 			Name:    "",
 			Child:   []*DirTopDownTreeNode{},
 		}
-		seen := util.NewSet[string]()
+		seen := hash.NewSet[string]()
 		seen.Add(root.FileKey)
 		return root, dfsDirTree(rail, db, root, user, seen)
 	})
@@ -1723,7 +1725,7 @@ type TopDownTreeNodeBrief struct {
 	Name string
 }
 
-func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen util.Set[string]) error {
+func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen hash.Set[string]) error {
 	var cl []TopDownTreeNodeBrief
 	n, err := dbquery.NewQueryRail(rail, db).
 		Table("file_info").
@@ -1772,7 +1774,7 @@ func queryFileFstoreInfo(rail miso.Rail, tx *gorm.DB, fileKeys []string) (map[st
 	if e != nil {
 		return nil, e
 	}
-	return util.StrMap[FileFstoreInfo](rec,
+	return hash.StrMap[FileFstoreInfo](rec,
 			func(r FileFstoreInfo) string { return r.Uuid },
 			func(r FileFstoreInfo) FileFstoreInfo { return r }),
 		nil

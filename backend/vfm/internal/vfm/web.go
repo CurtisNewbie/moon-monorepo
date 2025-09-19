@@ -12,6 +12,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/strutil"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"github.com/skip2/go-qrcode"
 	"gorm.io/gorm"
@@ -24,10 +26,10 @@ const (
 )
 
 var (
-	ErrUnknown      = miso.NewErrf("Unknown error, please try again")
-	ErrUploadFailed = miso.NewErrf("Upload failed, please try again")
-	ErrFileNotFound = miso.NewErrfCode("FILE_NOT_FOUND", "File not found")
-	ErrFileDeleted  = miso.NewErrfCode("FILE_DELETED", "File deleted")
+	ErrUnknown      = errs.NewErrf("Unknown error, please try again")
+	ErrUploadFailed = errs.NewErrf("Upload failed, please try again")
+	ErrFileNotFound = errs.NewErrfCode("FILE_NOT_FOUND", "File not found")
+	ErrFileDeleted  = errs.NewErrfCode("FILE_DELETED", "File deleted")
 )
 
 func RegisterHttpRoutes(rail miso.Rail) error {
@@ -57,7 +59,7 @@ func ApiPreflightCheckDuplicate(rail miso.Rail, db *gorm.DB, req PreflightCheckR
 //   - misoapi-resource: ref(ResManageFiles)
 func ApiGetParentFile(rail miso.Rail, db *gorm.DB, req FetchParentFileReq, user common.User) (*ParentFileInfo, error) {
 	if req.FileKey == "" {
-		return nil, miso.NewErrf("fileKey is required")
+		return nil, errs.NewErrf("fileKey is required")
 	}
 	pf, e := FindParentFile(rail, db, req, user)
 	if e != nil {
@@ -258,7 +260,7 @@ func ApiGenFileTknQRCode(inb *miso.Inbound) {
 	w, r := inb.Unwrap()
 	rail := inb.Rail()
 	token := r.URL.Query().Get("token")
-	if util.IsBlankStr(token) {
+	if strutil.IsBlankStr(token) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -336,7 +338,7 @@ func ApiShareVFolder(rail miso.Rail, db *gorm.DB, req ShareVfolderReq, user comm
 	sharedTo, e := vault.FindUser(rail, vault.FindUserReq{Username: &req.Username})
 	if e != nil {
 		rail.Warnf("Unable to find user, sharedTo: %s, %v", req.Username, e)
-		return nil, miso.NewErrf("Failed to find user")
+		return nil, errs.NewErrf("Failed to find user")
 	}
 	return nil, ShareVFolder(rail, db, sharedTo, req.FolderNo, user)
 }
@@ -575,13 +577,13 @@ func ApiUploadBookmarkFile(inb *miso.Inbound, user common.User) (any, error) {
 	lock := redis.NewRLock(rail, "docindexer:bookmark:"+user.UserNo)
 	if err := lock.Lock(); err != nil {
 		rail.Errorf("failed to lock for bookmark upload, user: %v, %v", user.Username, err)
-		return nil, miso.NewErrf("Please try again later")
+		return nil, errs.NewErrf("Please try again later")
 	}
 	defer lock.Unlock()
 
 	if err := ProcessUploadedBookmarkFile(rail, path, user); err != nil {
 		rail.Errorf("ProcessUploadedBookmarkFile failed, user: %v, path: %v, %v", user.Username, path, err)
-		return nil, miso.NewErrf("Failed to parse bookmark file")
+		return nil, errs.NewErrf("Failed to parse bookmark file")
 	}
 
 	return nil, nil

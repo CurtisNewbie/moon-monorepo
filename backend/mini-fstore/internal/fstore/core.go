@@ -22,6 +22,10 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/pair"
+	"github.com/curtisnewbie/miso/util/slutil"
+	"github.com/curtisnewbie/miso/util/strutil"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
@@ -45,13 +49,13 @@ const (
 )
 
 var (
-	ErrServerMaintenance = miso.NewErrf("Server in maintenance, please try again later").WithCode("SERVER_MAINTENANCE")
-	ErrFileNotFound      = miso.NewErrf("File is not found").WithCode(api.FileNotFound)
-	ErrFileDeleted       = miso.NewErrf("File has been deleted already").WithCode(api.FileDeleted)
-	ErrUnknownError      = miso.NewErrf("Unknown error").WithCode(api.UnknownError)
-	ErrFileIdRequired    = miso.NewErrf("fileId is required").WithCode(api.InvalidRequest)
-	ErrFilenameRequired  = miso.NewErrf("filename is required").WithCode(api.InvalidRequest)
-	ErrNotZipFile        = miso.NewErrf("Not a zip file").WithCode(api.IllegalFormat)
+	ErrServerMaintenance = errs.NewErrf("Server in maintenance, please try again later").WithCode("SERVER_MAINTENANCE")
+	ErrFileNotFound      = errs.NewErrf("File is not found").WithCode(api.FileNotFound)
+	ErrFileDeleted       = errs.NewErrf("File has been deleted already").WithCode(api.FileDeleted)
+	ErrUnknownError      = errs.NewErrf("Unknown error").WithCode(api.UnknownError)
+	ErrFileIdRequired    = errs.NewErrf("fileId is required").WithCode(api.InvalidRequest)
+	ErrFilenameRequired  = errs.NewErrf("filename is required").WithCode(api.InvalidRequest)
+	ErrNotZipFile        = errs.NewErrf("Not a zip file").WithCode(api.IllegalFormat)
 
 	fileIdExistCache = redis.NewRCache[string]("fstore:fileid:exist:v1:",
 		redis.RCacheConfig{
@@ -307,7 +311,7 @@ func RemoveDeletedFiles(rail miso.Rail, db *gorm.DB) error {
 		return err
 	}
 	if !ok {
-		return miso.NewErrf("Server is already in maintenance")
+		return errs.NewErrf("Server is already in maintenance")
 	}
 	defer LeaveMaintenance(rail)
 
@@ -717,7 +721,7 @@ func CheckFileExists(fileId string) (bool, error) {
 }
 
 func CheckAllNormalFiles(fileIds []string) (bool, error) {
-	fileIds = util.Distinct(fileIds)
+	fileIds = slutil.Distinct(fileIds)
 	var cnt int
 	t := mysql.GetMySQL().Raw("select count(id) from file where file_id in ? and status = 'NORMAL'", fileIds).Scan(&cnt)
 	if t.Error != nil {
@@ -890,7 +894,7 @@ func SanitizeStorage(rail miso.Rail) error {
 		return err
 	}
 	if !ok {
-		return miso.NewErrf("Server is already in maintenance")
+		return errs.NewErrf("Server is already in maintenance")
 	}
 	defer LeaveMaintenance(rail)
 
@@ -1141,7 +1145,7 @@ func ComputeFilesChecksum(rail miso.Rail, db *gorm.DB) error {
 		return err
 	}
 	if !ok {
-		return miso.NewErrf("Server is already in maintenance")
+		return errs.NewErrf("Server is already in maintenance")
 	}
 	defer LeaveMaintenance(rail)
 
@@ -1248,13 +1252,13 @@ func LoadStorageInfo() StorageInfo {
 
 func readableBytes(d uint64) string {
 	if d > GbUnit {
-		return util.FmtFloat(float64(d)/float64(GbUnit), 0, 2) + " gb"
+		return strutil.FmtFloat(float64(d)/float64(GbUnit), 0, 2) + " gb"
 	}
 	if d > MbUnit {
-		return util.FmtFloat(float64(d)/float64(MbUnit), 0, 2) + " mb"
+		return strutil.FmtFloat(float64(d)/float64(MbUnit), 0, 2) + " mb"
 	}
 	if d > KbUnit {
-		return util.FmtFloat(float64(d)/float64(KbUnit), 0, 2) + " kb"
+		return strutil.FmtFloat(float64(d)/float64(KbUnit), 0, 2) + " kb"
 	}
 	return cast.ToString(d) + " bytes"
 }
@@ -1276,7 +1280,7 @@ func LoadStorageUsageInfoCached(rail miso.Rail) ([]StorageUsageInfo, error) {
 		return sui, true
 	})
 	if !ok {
-		return nil, miso.NewErrf("Load storage usage failed")
+		return nil, errs.NewErrf("Load storage usage failed")
 	}
 	return v, nil
 }
@@ -1284,7 +1288,7 @@ func LoadStorageUsageInfoCached(rail miso.Rail) ([]StorageUsageInfo, error) {
 func LoadStorageUsageInfo(rail miso.Rail) ([]StorageUsageInfo, error) {
 	rail.Info("Walking through storage directory for usage info")
 	sui := make([]StorageUsageInfo, 0, 2)
-	props := []util.StrPair{
+	props := []pair.Pair[string, any]{
 		{Left: "Trash Directory", Right: config.PropTrashDir},
 		{Left: "Storage Directory", Right: config.PropStorageDir},
 		{Left: "Temporary Directory", Right: config.PropTempDir},

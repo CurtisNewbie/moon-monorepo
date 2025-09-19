@@ -13,6 +13,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
 	"golang.org/x/net/html"
 	"gorm.io/gorm"
 )
@@ -247,7 +248,7 @@ func RemoveBookmark(rail miso.Rail, db *gorm.DB, id int64, userNo string) error 
 			return err
 		}
 		if n < 1 {
-			return miso.NewErrf("Bookmark not found")
+			return errs.NewErrf("Bookmark not found")
 		}
 		if b.UserNo != userNo {
 			return miso.ErrNotPermitted.New()

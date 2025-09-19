@@ -17,6 +17,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/hash"
 	uvault "github.com/curtisnewbie/user-vault/api"
 	red "github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -27,7 +28,7 @@ const (
 )
 
 var (
-	logPatternCache = util.NewRWMap[string, *regexp.Regexp]()
+	logPatternCache = hash.NewRWMap[string, *regexp.Regexp]()
 )
 
 func lastPos(rail miso.Rail, app string, nodeName string) (int64, error) {

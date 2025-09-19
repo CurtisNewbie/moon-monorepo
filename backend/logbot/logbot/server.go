@@ -40,9 +40,9 @@ func BeforeServerBootstrap(rail miso.Rail) error {
 
 	if IsRmErrorLogTaskEnabled() {
 		task.ScheduleDistributedTask(miso.Job{
-			Cron:            "0 0/1 * * ?",
-			CronWithSeconds: false,
-			Name:            "RemoveErrorLogTask",
+			Cron: "0 0/1 * * ?",
+
+			Name: "RemoveErrorLogTask",
 			Run: func(ec miso.Rail) error {
 				gap := 7 * 24 * time.Hour // seven days ago
 				return RemoveErrorLogsBefore(ec, time.Now().Add(-gap))

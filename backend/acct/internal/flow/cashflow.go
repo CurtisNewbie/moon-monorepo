@@ -10,6 +10,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/hash"
+	"github.com/curtisnewbie/miso/util/slutil"
 	"gorm.io/gorm"
 )
 
@@ -137,7 +139,7 @@ func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user co
 				rail.Errorf("failed to save wechat cashflows for %v, %v", user.Username, err)
 			}
 
-			changes := util.MapTo(saved, func(nc NewCashflow) CashflowChange { return CashflowChange{TransTime: nc.TransTime} })
+			changes := slutil.MapTo(saved, func(nc NewCashflow) CashflowChange { return CashflowChange{TransTime: nc.TransTime} })
 			if err := OnCashflowChanged(rail, changes, user.UserNo); err != nil {
 				rail.Errorf("Failed to update cashflow statistics for cashflow import, userNo: %v, %v", user.UserNo, err)
 			}
@@ -200,7 +202,7 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 	now := util.Now()
 
 	// find those that already exist and skip them
-	transIdSet := util.NewSet[string]()
+	transIdSet := hash.NewSet[string]()
 	for _, v := range records {
 		transIdSet.Add(v.TransId)
 	}
@@ -216,12 +218,12 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 		rail.Debugf("Transaction %v (%v) for user %v already exists, ignored", ti, param.Category, userNo)
 		transIdSet.Del(ti)
 	}
-	records = util.Filter(records, func(p NewCashflow) bool { return transIdSet.Has(p.TransId) })
+	records = slutil.Filter(records, func(p NewCashflow) bool { return transIdSet.Has(p.TransId) })
 	if len(records) < 1 {
 		return nil, nil
 	}
 
-	ccySet := util.NewSet[string]()
+	ccySet := hash.NewSet[string]()
 	saving := make([]SavingCashflow, 0, len(records))
 	for _, v := range records {
 		transIdSet.Add(v.TransId)
@@ -249,7 +251,7 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 		return nil, err
 	}
 
-	newUserCcy := util.MapTo(ccySet.CopyKeys(), func(ccy string) CashflowCurrency { return CashflowCurrency{UserNo: userNo, Currency: ccy} })
+	newUserCcy := slutil.MapTo(ccySet.CopyKeys(), func(ccy string) CashflowCurrency { return CashflowCurrency{UserNo: userNo, Currency: ccy} })
 	_, err = dbquery.NewQueryRail(rail, db).Table("cashflow_currency").CreateIgnore(newUserCcy)
 	return records, err
 }

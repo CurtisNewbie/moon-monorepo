@@ -101,7 +101,7 @@ func findGalleryAccess(rail miso.Rail, tx *gorm.DB, userNo string, galleryNo str
 		AND user_no = ? AND is_del = 0`, galleryNo, userNo).ScanAny(&userAccess)
 
 	if err != nil {
-		return nil, miso.WrapErrf(err, "failed to find gallery_user_access")
+		return nil, errs.WrapErrf(err, "failed to find gallery_user_access")
 	}
 	if !ok {
 		return nil, nil
@@ -152,7 +152,7 @@ func ListedGrantedGalleryAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedGall
 		return miso.PageRes[ListedGalleryAccessRes]{}, e
 	}
 	if gallery.UserNo != user.UserNo {
-		return miso.PageRes[ListedGalleryAccessRes]{}, miso.NewErrf("Operation not allowed")
+		return miso.PageRes[ListedGalleryAccessRes]{}, errs.NewErrf("Operation not allowed")
 	}
 
 	return dbquery.NewPagedQuery[ListedGalleryAccessRes](tx).

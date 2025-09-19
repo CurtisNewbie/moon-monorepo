@@ -5,11 +5,12 @@ import (
 	"github.com/curtisnewbie/mini-fstore/internal/config"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
 
 var (
-	ErrInvalidAuth = miso.NewErrf("Invalid authorization").WithCode(api.InvalidAuthorization)
+	ErrInvalidAuth = errs.NewErrf("Invalid authorization").WithCode(api.InvalidAuthorization)
 )
 
 type BackupFileInf struct {
