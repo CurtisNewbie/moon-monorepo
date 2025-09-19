@@ -16,3 +16,6 @@ CREATE TABLE user_vault.note (
     FULLTEXT `title_content_idx` (title, content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='notes';
 
+alter table user_vault.user add column `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
+  change column `create_by` `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
+  change column `update_by` `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by';

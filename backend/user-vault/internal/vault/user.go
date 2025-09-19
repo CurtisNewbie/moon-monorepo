@@ -58,9 +58,9 @@ type User struct {
 	RoleName     string
 	IsDisabled   int
 	CreateTime   util.ETime
-	CreateBy     string
+	CreateBy     string `gorm:"column:created_by"`
 	UpdateTime   util.ETime
-	UpdateBy     string
+	UpdateBy     string `gorm:"column:updated_by"`
 	IsDel        bool
 }
 
@@ -283,10 +283,9 @@ type CreateUserParam struct {
 	Password     string
 	RoleNo       string
 	ReviewStatus string
-	Operator     string
 }
 
-func NewUser(rail miso.Rail, tx *gorm.DB, req CreateUserParam) error {
+func NewUser(rail miso.Rail, db *gorm.DB, req CreateUserParam) error {
 	if req.RoleNo != "" {
 		_, err := GetRoleInfo(rail, api.RoleInfoReq{RoleNo: req.RoleNo})
 		if err != nil {
@@ -306,7 +305,7 @@ func NewUser(rail miso.Rail, tx *gorm.DB, req CreateUserParam) error {
 		return errs.NewErrf("Username and password must be different")
 	}
 
-	if _, err := loadUser(rail, tx, req.Username); err == nil {
+	if _, err := loadUser(rail, db, req.Username); err == nil {
 		return errs.NewErrf("User is already registered")
 	}
 
@@ -314,22 +313,19 @@ func NewUser(rail miso.Rail, tx *gorm.DB, req CreateUserParam) error {
 	user.UserNo = util.GenIdP("UE")
 	user.Username = req.Username
 	user.RoleNo = req.RoleNo
-	user.CreateBy = req.Operator
-	user.CreateTime = util.Now()
 	user.IsDisabled = api.UserNormal
 	user.ReviewStatus = req.ReviewStatus
 
-	if err := tx.Table("user").Create(&user).Error; err != nil {
-		rail.Errorf("failed to add new user '%v', %v", req.Username, err)
+	if err := dbquery.NewQuery(rail, db).Table("user").CreateAny(&user); err != nil {
+		rail.Errorf("Failed to add new user '%v', %v", req.Username, err)
 		return err
 	}
 
-	rail.Infof("New user '%v' with roleNo: %v is added by %v", req.Username, req.RoleNo, req.Operator)
+	rail.Infof("New user '%v' with roleNo: %v is created", req.Username, req.RoleNo)
 	return nil
 }
 
 type NewUserParam struct {
-	Id           int
 	UserNo       string
 	Username     string
 	Password     string
@@ -337,11 +333,6 @@ type NewUserParam struct {
 	ReviewStatus string
 	RoleNo       string
 	IsDisabled   int
-	CreateTime   util.ETime
-	CreateBy     string
-	UpdateTime   util.ETime
-	UpdateBy     string
-	IsDel        bool
 }
 
 func prepUserCred(pwd string) NewUserParam {

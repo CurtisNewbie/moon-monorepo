@@ -1,5 +1,6 @@
 create database if not exists user_vault;
 
+-- TODO update ddl
 CREATE TABLE `user` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `username` varchar(50) NOT NULL COMMENT 'username',

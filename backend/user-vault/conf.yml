@@ -62,3 +62,5 @@ client:
     event-pump:
       host: "localhost"
       port: "8088"
+
+logging.rolling.file: "./logs/${app.name}.log"
