@@ -1,4 +1,4 @@
-CREATE TABLE note (
+CREATE TABLE user_vault.note (
     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
     `record_id` varchar(40) NOT NULL DEFAULT '' COMMENT 'record_id',
     `title` text NULL DEFAULT NULL COMMENT 'title',
