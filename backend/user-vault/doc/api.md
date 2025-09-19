@@ -4976,7 +4976,7 @@
 - Bound to Resource: `"basic-user"`
 - JSON Request:
     - "title": (string) Required.
-    - "content": (string) Required.
+    - "content": (string) 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -4992,7 +4992,7 @@
   ```go
   type SaveNoteReq struct {
   	Title string `json:"title"`    // Required.
-  	Content string `json:"content"` // Required.
+  	Content string `json:"content"`
   }
 
   // User Save Note
@@ -5017,7 +5017,7 @@
   ```ts
   export interface SaveNoteReq {
     title?: string;                // Required.
-    content?: string;              // Required.
+    content?: string;
   }
 
   export interface Resp {
@@ -5061,7 +5061,7 @@
 - Bound to Resource: `"basic-user"`
 - JSON Request:
     - "recordId": (string) Required.
-    - "title": (string) 
+    - "title": (string) Required.
     - "content": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -5078,7 +5078,7 @@
   ```go
   type UpdateNoteReq struct {
   	RecordId string `json:"recordId"` // Required.
-  	Title string `json:"title"`
+  	Title string `json:"title"`    // Required.
   	Content string `json:"content"`
   }
 
@@ -5104,7 +5104,7 @@
   ```ts
   export interface UpdateNoteReq {
     recordId?: string;             // Required.
-    title?: string;
+    title?: string;                // Required.
     content?: string;
   }
 
