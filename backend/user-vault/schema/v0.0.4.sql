@@ -4,6 +4,7 @@ CREATE TABLE user_vault.note (
     `title` text NULL DEFAULT NULL COMMENT 'title',
     `content` mediumtext NULL DEFAULT NULL COMMENT 'content' ,
     `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
+    `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
     `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
     `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
     `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated at',
