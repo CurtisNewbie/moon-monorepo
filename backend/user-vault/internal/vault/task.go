@@ -7,8 +7,8 @@ import (
 
 func ScheduleTasks(rail miso.Rail) error {
 	err := task.ScheduleDistributedTask(miso.Job{
-		Cron:                   "*/30 * * * *",
-		CronWithSeconds:        false,
+		Cron: "*/30 * * * *",
+
 		Name:                   "LoadRoleAccessCacheTask",
 		TriggeredOnBoostrapped: true,
 		Run:                    BatchLoadRoleAccessCache,
@@ -17,8 +17,8 @@ func ScheduleTasks(rail miso.Rail) error {
 		return err
 	}
 	err = task.ScheduleDistributedTask(miso.Job{
-		Cron:                   "*/30 * * * *",
-		CronWithSeconds:        false,
+		Cron: "*/30 * * * *",
+
 		Name:                   "LoadPublicAccessCacheTask",
 		TriggeredOnBoostrapped: true,
 		Run:                    LoadPublicAccessCache,

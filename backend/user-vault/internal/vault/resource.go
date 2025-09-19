@@ -15,6 +15,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/slutil"
 	"github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -405,7 +407,7 @@ func GetRoleInfo(rail miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) 
 			return resp, err
 		}
 		if n < 1 {
-			return resp, miso.NewErrf("Role not found").WithCode(ErrCodeRoleNotFound)
+			return resp, errs.NewErrf("Role not found").WithCode(ErrCodeRoleNotFound)
 		}
 		return resp, nil
 	})
@@ -552,7 +554,7 @@ func BindPathRes(rail miso.Rail, req BindPathResReq) error {
 			}
 			if resId < 1 {
 				rail.Errorf("Resource %v not found", req.ResCode)
-				return miso.NewErrf("Resource not found")
+				return errs.NewErrf("Resource not found")
 			}
 
 			// check if the path is already bound to current resource
@@ -667,7 +669,7 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 				return false, err
 			}
 			if resId < 1 {
-				return false, miso.NewErrf("Resource not found")
+				return false, errs.NewErrf("Resource not found")
 			}
 
 			// check if role-resource relation exists
@@ -987,7 +989,7 @@ func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 		paths = append(paths, public...)
 	}
 
-	var pai []PathAccessInfo = util.MapTo[ExtendedPathRes, PathAccessInfo](paths,
+	var pai []PathAccessInfo = slutil.MapTo[ExtendedPathRes, PathAccessInfo](paths,
 		func(t ExtendedPathRes) PathAccessInfo {
 			return PathAccessInfo{
 				ResCode: t.ResCode,
@@ -1019,7 +1021,7 @@ func LoadPublicAccessCache(rail miso.Rail) error {
 		return nil
 	}
 
-	var pai []PathAccessInfo = util.MapTo[ExtendedPathRes, PathAccessInfo](public,
+	var pai []PathAccessInfo = slutil.MapTo[ExtendedPathRes, PathAccessInfo](public,
 		func(t ExtendedPathRes) PathAccessInfo {
 			return PathAccessInfo{
 				ResCode: t.ResCode,
@@ -1043,7 +1045,7 @@ func lockRoleAccessCache(ec miso.Rail, runnable redis.LRunnable[any]) (any, erro
 
 func RegisterInternalPathResourcesOnBootstrapped(res []auth.Resource) {
 
-	miso.PostServerBootstrapped(func(rail miso.Rail) error {
+	miso.PostServerBootstrap(func(rail miso.Rail) error {
 
 		user := common.NilUser()
 

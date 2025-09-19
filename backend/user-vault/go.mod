@@ -1,11 +1,13 @@
 module github.com/curtisnewbie/user-vault
 
-go 1.23.0
+go 1.24.4
+
+toolchain go1.24.7
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.0
-	github.com/curtisnewbie/event-pump v0.0.16-0.20250301093613-7eea1e23e0c8
-	github.com/curtisnewbie/miso v0.2.17-0.20250911155514-89778f71fdb4
+	github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451
+	github.com/curtisnewbie/miso v0.3.1-0.20250919061847-336dbf957d95
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.6.0

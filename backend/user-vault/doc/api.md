@@ -94,7 +94,7 @@
   // User Login using password, a JWT token is generated and returned
   func ApiUserLogin(rail miso.Rail, req LoginReq, xForwardedFor string, userAgent string) (string, error) {
   	var res miso.GnResp[string]
-  	err := miso.NewDynTClient(rail, "/open/api/user/login", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/login", "user-vault").
   		AddHeader("xForwardedFor", xForwardedFor).
   		AddHeader("userAgent", userAgent).
   		PostJson(req).
@@ -191,7 +191,7 @@
   // User request registration, approval needed
   func ApiUserRegister(rail miso.Rail, req RegisterReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/register/request", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/register/request", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -278,7 +278,7 @@
   // Admin create new user
   func ApiAdminAddUser(rail miso.Rail, req AddUserParam) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/add", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/add", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -394,16 +394,16 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateTime util.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
   // Admin list users
   func ApiAdminListUsers(rail miso.Rail, req ListUserReq) (miso.PageRes[UserInfo], error) {
   	var res miso.GnResp[miso.PageRes[UserInfo]]
-  	err := miso.NewDynTClient(rail, "/open/api/user/list", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -526,7 +526,7 @@
   // Admin update user info
   func ApiAdminUpdateUser(rail miso.Rail, req AdminUpdateUserReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/info/update", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/info/update", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -612,7 +612,7 @@
   // Admin review user registration
   func ApiAdminReviewUser(rail miso.Rail, req AdminReviewUserReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/registration/review", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/registration/review", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -703,7 +703,7 @@
   // User get user info
   func ApiUserGetUserInfo(rail miso.Rail) (UserInfoRes, error) {
   	var res miso.GnResp[UserInfoRes]
-  	err := miso.NewDynTClient(rail, "/open/api/user/info", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/info", "user-vault").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -794,7 +794,7 @@
   // User update password
   func ApiUserUpdatePassword(rail miso.Rail, req UpdatePasswordReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/password/update", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/password/update", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -878,7 +878,7 @@
   // Exchange token
   func ExchangeTokenEp(rail miso.Rail, req ExchangeTokenReq) (string, error) {
   	var res miso.GnResp[string]
-  	err := miso.NewDynTClient(rail, "/open/api/token/exchange", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/token/exchange", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -972,7 +972,7 @@
   // Get user info by token. This endpoint is expected to be accessible publicly
   func ApiGetTokenUserInfo(rail miso.Rail, token string) (UserInfoBrief, error) {
   	var res miso.GnResp[UserInfoBrief]
-  	err := miso.NewDynTClient(rail, "/open/api/token/user", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/token/user", "user-vault").
   		AddQueryParams("token", token).
   		Get().
   		Json(&res)
@@ -1083,14 +1083,14 @@
   	IpAddress string `json:"ipAddress"`
   	Username string `json:"username"`
   	Url string `json:"url"`
-  	AccessTime util.ETime `json:"accessTime"`
+  	AccessTime util.Time `json:"accessTime"`
   	Success bool `json:"success"`
   }
 
   // User list access logs
   func ApiUserListAccessHistory(rail miso.Rail, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
   	var res miso.GnResp[miso.PageRes[ListedAccessLog]]
-  	err := miso.NewDynTClient(rail, "/open/api/access/history", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/access/history", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -1204,7 +1204,7 @@
   // User generate user key
   func ApiUserGenUserKey(rail miso.Rail, req GenUserKeyReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/key/generate", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/key/generate", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -1305,14 +1305,14 @@
   	Id int `json:"id"`
   	SecretKey string `json:"secretKey"`
   	Name string `json:"name"`
-  	ExpirationTime util.ETime `json:"expirationTime"`
-  	CreateTime util.ETime `json:"createTime"`
+  	ExpirationTime util.Time `json:"expirationTime"`
+  	CreateTime util.Time `json:"createTime"`
   }
 
   // User list user keys
   func ApiUserListUserKeys(rail miso.Rail, req ListUserKeysReq) (miso.PageRes[ListedUserKey], error) {
   	var res miso.GnResp[miso.PageRes[ListedUserKey]]
-  	err := miso.NewDynTClient(rail, "/open/api/user/key/list", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/key/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -1423,7 +1423,7 @@
   // User delete user key
   func ApiUserDeleteUserKey(rail miso.Rail, req DeleteUserKeyReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/key/delete", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/key/delete", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -1507,7 +1507,7 @@
   // Admin add resource
   func ApiAdminAddResource(rail miso.Rail, req CreateResReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/resource/add", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/resource/add", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -1590,7 +1590,7 @@
   // Admin remove resource
   func ApiAdminRemoveResource(rail miso.Rail, req DeleteResourceReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/resource/remove", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/resource/remove", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -1674,7 +1674,7 @@
   // List all resource candidates for role
   func ApiListResCandidates(rail miso.Rail, roleNo string) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
-  	err := miso.NewDynTClient(rail, "/open/api/resource/brief/candidates", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/resource/brief/candidates", "user-vault").
   		AddQueryParams("roleNo", roleNo).
   		Get().
   		Json(&res)
@@ -1783,16 +1783,16 @@
   	Id int `json:"id"`
   	Code string `json:"code"`
   	Name string `json:"name"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateTime util.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
   // Admin list resources
   func ApiAdminListRes(rail miso.Rail, req ListResReq) (ListResResp, error) {
   	var res miso.GnResp[ListResResp]
-  	err := miso.NewDynTClient(rail, "/open/api/resource/list", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/resource/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -1904,7 +1904,7 @@
   // List resources that are accessible to current user
   func ApiListUserAccessibleRes(rail miso.Rail) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
-  	err := miso.NewDynTClient(rail, "/open/api/resource/brief/user", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/resource/brief/user", "user-vault").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -1989,7 +1989,7 @@
   // List all resource brief info
   func ApiListAllResBrief(rail miso.Rail) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
-  	err := miso.NewDynTClient(rail, "/open/api/resource/brief/all", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/resource/brief/all", "user-vault").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -2076,7 +2076,7 @@
   // Admin add resource to role
   func ApiAdminBindRoleRes(rail miso.Rail, req AddRoleResReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/role/resource/add", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/role/resource/add", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -2161,7 +2161,7 @@
   // Admin remove resource from role
   func ApiAdminUnbindRoleRes(rail miso.Rail, req RemoveRoleResReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/role/resource/remove", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/role/resource/remove", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -2244,7 +2244,7 @@
   // Admin add role
   func ApiAdminAddRole(rail miso.Rail, req AddRoleReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/role/add", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/role/add", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -2348,16 +2348,16 @@
   	Id int `json:"id"`
   	RoleNo string `json:"roleNo"`
   	Name string `json:"name"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateTime util.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
   // Admin list roles
   func ApiAdminListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
   	var res miso.GnResp[ListRoleResp]
-  	err := miso.NewDynTClient(rail, "/open/api/role/list", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/role/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -2469,7 +2469,7 @@
   // Admin list role brief info
   func ApiAdminListRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
   	var res miso.GnResp[[]RoleBrief]
-  	err := miso.NewDynTClient(rail, "/open/api/role/brief/all", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/role/brief/all", "user-vault").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -2576,14 +2576,14 @@
   	Id int `json:"id"`
   	ResCode string `json:"resCode"`
   	ResName string `json:"resName"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
   }
 
   // Admin list resources of role
   func ApiAdminListRoleRes(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
   	var res miso.GnResp[ListRoleResResp]
-  	err := miso.NewDynTClient(rail, "/open/api/role/resource/list", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/role/resource/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -2702,7 +2702,7 @@
   // Get role info
   func ApiGetRoleInfo(rail miso.Rail, req RoleInfoReq) (RoleInfoResp, error) {
   	var res miso.GnResp[RoleInfoResp]
-  	err := miso.NewDynTClient(rail, "/open/api/role/info", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/role/info", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -2830,16 +2830,16 @@
   	Desc string `json:"desc"`
   	Url string `json:"url"`
   	Ptype string `json:"ptype"`    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateTime util.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
   // Admin list paths
   func ApiAdminListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
   	var res miso.GnResp[ListPathResp]
-  	err := miso.NewDynTClient(rail, "/open/api/path/list", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/path/list", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -2961,7 +2961,7 @@
   // Admin bind resource to path
   func ApiAdminBindResPath(rail miso.Rail, req BindPathResReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/path/resource/bind", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/path/resource/bind", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3046,7 +3046,7 @@
   // Admin unbind resource and path
   func ApiAdminUnbindResPath(rail miso.Rail, req UnbindPathResReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/path/resource/unbind", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/path/resource/unbind", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3129,7 +3129,7 @@
   // Admin delete path
   func ApiAdminDeletePath(rail miso.Rail, req DeletePathReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/path/delete", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/path/delete", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3217,7 +3217,7 @@
   // Admin update path
   func ApiAdminUpdatePath(rail miso.Rail, req UpdatePathReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/path/update", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/path/update", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3322,16 +3322,16 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateTime util.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
   // Fetch user info
   func ApiFetchUserInfo(rail miso.Rail, req FindUserReq) (UserInfo, error) {
   	var res miso.GnResp[UserInfo]
-  	err := miso.NewDynTClient(rail, "/remote/user/info", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/user/info", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3439,7 +3439,7 @@
   // System fetch user info as common.User
   func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (miso.User, error) {
   	var res miso.GnResp[miso.User]
-  	err := miso.NewDynTClient(rail, "/internal/v1/user/info/common", "user-vault").
+  	err := miso.NewDynClient(rail, "/internal/v1/user/info/common", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3526,7 +3526,7 @@
   // Fetch id of user with the username
   func ApiFetchUserIdByName(rail miso.Rail, username string) (int, error) {
   	var res miso.GnResp[int]
-  	err := miso.NewDynTClient(rail, "/remote/user/id", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/user/id", "user-vault").
   		AddQueryParams("username", username).
   		Get().
   		Json(&res)
@@ -3612,7 +3612,7 @@
   // Fetch usernames of users with the userNos
   func ApiFetchUsernamesByNosEp(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes, error) {
   	var res miso.GnResp[FetchUsernamesRes]
-  	err := miso.NewDynTClient(rail, "/remote/user/userno/username", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/user/userno/username", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3717,16 +3717,16 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateTime util.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
   // Fetch users with the role_no
   func ApiFindUserWithRoleEp(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
   	var res miso.GnResp[[]UserInfo]
-  	err := miso.NewDynTClient(rail, "/remote/user/list/with-role", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/user/list/with-role", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3841,16 +3841,16 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.ETime `json:"updateTime"`
+  	UpdateTime util.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
   // Fetch users that have access to the resource
   func ApiFindUserWithResourceEp(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
   	var res miso.GnResp[[]UserInfo]
-  	err := miso.NewDynTClient(rail, "/remote/user/list/with-resource", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/user/list/with-resource", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -3950,7 +3950,7 @@
   // Report resource. This endpoint should be used internally by another backend service.
   func ApiReportResourceEp(rail miso.Rail, req CreateResReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/remote/resource/add", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/resource/add", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4042,7 +4042,7 @@
   // Validate resource access
   func ApiCheckResourceAccessEp(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
   	var res miso.GnResp[CheckResAccessResp]
-  	err := miso.NewDynTClient(rail, "/remote/path/resource/access-test", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/path/resource/access-test", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4143,7 +4143,7 @@
   // Report endpoint info
   func ApiReportPath(rail miso.Rail, req CreatePathReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/remote/path/add", "user-vault").
+  	err := miso.NewDynClient(rail, "/remote/path/add", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4253,13 +4253,13 @@
   	Site string `json:"site"`
   	Alias string `json:"alias"`
   	Username string `json:"username"`
-  	CreateTime util.ETime `json:"createTime"`
+  	CreateTime util.Time `json:"createTime"`
   }
 
   // List site password records
   func ApiListSitePasswords(rail miso.Rail, req ListSitePasswordReq) (miso.PageRes[ListSitePasswordRes], error) {
   	var res miso.GnResp[miso.PageRes[ListSitePasswordRes]]
-  	err := miso.NewDynTClient(rail, "/open/api/password/list-site-passwords", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/password/list-site-passwords", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4380,7 +4380,7 @@
   // Add site password record
   func ApiAddSitePassword(rail miso.Rail, req AddSitePasswordReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/password/add-site-password", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/password/add-site-password", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4466,7 +4466,7 @@
   // Remove site password record
   func ApiRemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/password/remove-site-password", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/password/remove-site-password", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4556,7 +4556,7 @@
   // Decrypt site password
   func ApiDecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq) (DecryptSitePasswordRes, error) {
   	var res miso.GnResp[DecryptSitePasswordRes]
-  	err := miso.NewDynTClient(rail, "/open/api/password/decrypt-site-password", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/password/decrypt-site-password", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4656,7 +4656,7 @@
   // Edit site password
   func ApiEditSitePassword(rail miso.Rail, req EditSitePasswordReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/password/edit-site-password", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/password/edit-site-password", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4743,7 +4743,7 @@
   // Admin clear user's failed login attempts
   func ApiClearUserFailedLoginAttempts(rail miso.Rail, req ClearUserFailedLoginAttemptsReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/user/clear-failed-login-attempts", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/user/clear-failed-login-attempts", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4823,6 +4823,8 @@
         - "title": (string) 
         - "content": (string) 
         - "userNo": (string) 
+        - "createdAt": (int64) 
+        - "updatedAt": (int64) 
 - cURL:
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/list-notes' \
@@ -4843,12 +4845,14 @@
   	Title string `json:"title"`
   	Content string `json:"content"`
   	UserNo string `json:"userNo"`
+  	CreatedAt util.Time `json:"createdAt"`
+  	UpdatedAt util.Time `json:"updatedAt"`
   }
 
   // List User Notes
   func ApiListNotes(rail miso.Rail, req ListNoteReq) (miso.PageRes[Note], error) {
   	var res miso.GnResp[miso.PageRes[Note]]
-  	err := miso.NewDynTClient(rail, "/open/api/note/list-notes", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/note/list-notes", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -4900,6 +4904,8 @@
     title?: string;
     content?: string;
     userNo?: string;
+    createdAt?: number;
+    updatedAt?: number;
   }
   ```
 
@@ -4932,6 +4938,38 @@
   }
   ```
 
+- Angular NgTable Demo:
+  ```html
+  <table mat-table [dataSource]="tabdata" class="mb-4" style="width: 100%;">
+  	<ng-container matColumnDef="recordId">
+  		<th mat-header-cell *matHeaderCellDef> RecordId </th>
+  		<td mat-cell *matCellDef="let u"> {{u.recordId}} </td>
+  	</ng-container>
+  	<ng-container matColumnDef="title">
+  		<th mat-header-cell *matHeaderCellDef> Title </th>
+  		<td mat-cell *matCellDef="let u"> {{u.title}} </td>
+  	</ng-container>
+  	<ng-container matColumnDef="content">
+  		<th mat-header-cell *matHeaderCellDef> Content </th>
+  		<td mat-cell *matCellDef="let u"> {{u.content}} </td>
+  	</ng-container>
+  	<ng-container matColumnDef="userNo">
+  		<th mat-header-cell *matHeaderCellDef> UserNo </th>
+  		<td mat-cell *matCellDef="let u"> {{u.userNo}} </td>
+  	</ng-container>
+  	<ng-container matColumnDef="createdAt">
+  		<th mat-header-cell *matHeaderCellDef> CreatedAt </th>
+  		<td mat-cell *matCellDef="let u"> {{u.createdAt}} </td>
+  	</ng-container>
+  	<ng-container matColumnDef="updatedAt">
+  		<th mat-header-cell *matHeaderCellDef> UpdatedAt </th>
+  		<td mat-cell *matCellDef="let u"> {{u.updatedAt}} </td>
+  	</ng-container>
+  	<tr mat-row *matRowDef="let row; columns: ['recordId','title','content','userNo','createdAt','updatedAt'];"></tr>
+  	<tr mat-header-row *matHeaderRowDef="['recordId','title','content','userNo','createdAt','updatedAt']"></tr>
+  </table>
+  ```
+
 ## POST /open/api/note/save-note
 
 - Description: User Save Note
@@ -4960,7 +4998,7 @@
   // User Save Note
   func ApiSaveNote(rail miso.Rail, req SaveNoteReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/note/save-note", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/note/save-note", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -5047,7 +5085,7 @@
   // User Update Note
   func ApiUpdateNote(rail miso.Rail, req UpdateNoteReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/note/update-note", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/note/update-note", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -5131,7 +5169,7 @@
   // User Delete Note
   func ApiDeleteNote(rail miso.Rail, req ApiDeleteNoteReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/note/delete-note", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/note/delete-note", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -5217,7 +5255,7 @@
   // Create platform notification
   func SendCreateNotificationReq(rail miso.Rail, req CreateNotificationReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/notification/create", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/v1/notification/create", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -5306,7 +5344,7 @@
   // Query platform notification
   func SendQueryNotificationReq(rail miso.Rail, req QueryNotificationReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/notification/query", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/v1/notification/query", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -5387,7 +5425,7 @@
   // Count received platform notification
   func SendRequest(rail miso.Rail) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/notification/count", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/v1/notification/count", "user-vault").
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5464,7 +5502,7 @@
   // Record user opened platform notification
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/notification/open", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/v1/notification/open", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -5546,7 +5584,7 @@
   // Mark all notifications opened
   func SendOpenNotificationReq(rail miso.Rail, req OpenNotificationReq) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/v1/notification/open-all", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/v1/notification/open-all", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
@@ -5618,7 +5656,7 @@
   // Count received platform notification using long polling
   func SendRequest(rail miso.Rail, curr string) error {
   	var res miso.GnResp[any]
-  	err := miso.NewDynTClient(rail, "/open/api/v2/notification/count", "user-vault").
+  	err := miso.NewDynClient(rail, "/open/api/v2/notification/count", "user-vault").
   		AddQueryParams("curr", curr).
   		Get().
   		Json(&res)

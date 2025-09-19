@@ -48,7 +48,7 @@ type QueryResourcePathRes struct {
 
 func QueryResourcePath(rail miso.Rail, server miso.Server, service string, path string) (QueryResourcePathRes, error) {
 	var resp miso.GnResp[QueryResourcePathRes]
-	err := miso.NewTClient(rail, server.BuildUrl(path)).
+	err := miso.NewClient(rail, server.BuildUrl(path)).
 		Require2xx().
 		Get().
 		Json(&resp)

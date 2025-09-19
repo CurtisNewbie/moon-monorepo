@@ -32,6 +32,7 @@ import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.componen
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
 import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
 import { DroneTaskComponent } from "./drone-task/drone-task.component";
+import { MngNoteComponent } from "./mng-note/mng-note.component";
 
 const routes: Routes = [
   {
@@ -161,6 +162,10 @@ const routes: Routes = [
   {
     path: "drone-task",
     component: DroneTaskComponent,
+  },
+  {
+    path: "note",
+    component: MngNoteComponent,
   },
   { path: "**", redirectTo: "/" + NavType.USER_DETAILS },
 ];

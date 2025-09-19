@@ -10,6 +10,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/slutil"
 	"github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -29,7 +31,7 @@ func CreateNotification(rail miso.Rail, db *gorm.DB, req api.CreateNotificationR
 	}
 
 	// check whether the userNos are leegal
-	req.ReceiverUserNos = util.Distinct(req.ReceiverUserNos)
+	req.ReceiverUserNos = slutil.Distinct(req.ReceiverUserNos)
 
 	for _, u := range req.ReceiverUserNos {
 		sr := SaveNotifiReq{
@@ -127,8 +129,8 @@ func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user
 
 func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
 	var id int
-	n, err := dbquery.NewQueryRail(rail, db).
-		From("notification").
+	n, err := dbquery.NewQueryRail(rail, db).Table(
+		"notification").
 		Select("id").
 		Eq("user_no", user.UserNo).
 		Eq("notifi_no", req.NotifiNo).
@@ -137,7 +139,7 @@ func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, u
 		return err
 	}
 	if n < 1 {
-		return miso.NewErrf("Record not found")
+		return errs.NewErrf("Record not found")
 	}
 
 	_, err = dbquery.NewQueryRail(rail, db).

@@ -5,6 +5,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/idutil"
 	"gorm.io/gorm"
@@ -85,10 +86,12 @@ func DBDeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user common.User
 }
 
 type Note struct {
-	RecordId string
-	Title    string
-	Content  string
-	UserNo   string
+	RecordId  string
+	Title     string
+	Content   string
+	UserNo    string
+	CreatedAt util.ETime
+	UpdatedAt util.ETime
 }
 
 func FindNote(rail miso.Rail, db *gorm.DB, recordId string, userNo string) (Note, error) {

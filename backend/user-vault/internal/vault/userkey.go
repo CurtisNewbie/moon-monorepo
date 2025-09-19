@@ -7,6 +7,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/strutil"
 	"gorm.io/gorm"
 )
 
@@ -36,7 +38,7 @@ func GenUserKey(rail miso.Rail, tx *gorm.DB, req GenUserKeyReq, username string)
 	}
 
 	if !checkPassword(user.Password, user.Salt, req.Password) {
-		return miso.NewErrf("Password incorrect, unable to generate user secret key")
+		return errs.NewErrf("Password incorrect, unable to generate user secret key")
 	}
 
 	key := util.RandStr(userKeyLen)
@@ -71,7 +73,7 @@ func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.
 				Where("user_no = ?", user.UserNo).
 				Where("expiration_time > ?", util.Now()).
 				Where("is_del = 0")
-			return q.LikeIf(!util.IsBlankStr(req.Name), "name", req.Name)
+			return q.LikeIf(!strutil.IsBlankStr(req.Name), "name", req.Name)
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("id, secret_key, name, expiration_time, create_time").

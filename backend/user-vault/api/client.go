@@ -14,7 +14,7 @@ const (
 
 func FindUser(rail miso.Rail, req FindUserReq) (UserInfo, error) {
 	var r miso.GnResp[UserInfo]
-	err := miso.NewDynTClient(rail, "/remote/user/info", ServiceName).
+	err := miso.NewDynClient(rail, "/remote/user/info", ServiceName).
 		PostJson(req).
 		Json(&r)
 	if err != nil {
@@ -25,7 +25,7 @@ func FindUser(rail miso.Rail, req FindUserReq) (UserInfo, error) {
 
 func FindUserId(rail miso.Rail, username string) (int, error) {
 	var r miso.GnResp[int]
-	err := miso.NewDynTClient(rail, "/remote/user/id", ServiceName).
+	err := miso.NewDynClient(rail, "/remote/user/id", ServiceName).
 		AddQueryParams("username", username).
 		Get().
 		Json(&r)
@@ -37,7 +37,7 @@ func FindUserId(rail miso.Rail, username string) (int, error) {
 
 func FetchUsernames(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes, error) {
 	var r miso.GnResp[FetchUsernamesRes]
-	err := miso.NewDynTClient(rail, "/remote/user/userno/username", ServiceName).
+	err := miso.NewDynClient(rail, "/remote/user/userno/username", ServiceName).
 		PostJson(req).
 		Json(&r)
 	if err != nil {
@@ -48,7 +48,7 @@ func FetchUsernames(rail miso.Rail, req FetchNameByUserNoReq) (FetchUsernamesRes
 
 func FetchUsersWithRole(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, error) {
 	var r miso.GnResp[[]UserInfo]
-	err := miso.NewDynTClient(rail, "/remote/user/list/with-role", ServiceName).
+	err := miso.NewDynClient(rail, "/remote/user/list/with-role", ServiceName).
 		PostJson(req).
 		Json(&r)
 	if err != nil {
@@ -59,7 +59,7 @@ func FetchUsersWithRole(rail miso.Rail, req FetchUsersWithRoleReq) ([]UserInfo, 
 
 func GetRoleInfo(rail miso.Rail, roleNo string) (RoleInfoResp, error) {
 	var r miso.GnResp[RoleInfoResp]
-	err := miso.NewDynTClient(rail, "/open/api/role/info", ServiceName).
+	err := miso.NewDynClient(rail, "/open/api/role/info", ServiceName).
 		PostJson(RoleInfoReq{RoleNo: roleNo}).
 		Json(&r)
 	if err != nil {
@@ -70,7 +70,7 @@ func GetRoleInfo(rail miso.Rail, roleNo string) (RoleInfoResp, error) {
 
 func FetchUsersWithResource(rail miso.Rail, req FetchUserWithResourceReq) ([]UserInfo, error) {
 	var r miso.GnResp[[]UserInfo]
-	err := miso.NewDynTClient(rail, "/remote/user/list/with-resource", ServiceName).
+	err := miso.NewDynClient(rail, "/remote/user/list/with-resource", ServiceName).
 		PostJson(req).
 		Json(&r)
 	if err != nil {
@@ -81,7 +81,7 @@ func FetchUsersWithResource(rail miso.Rail, req FetchUserWithResourceReq) ([]Use
 
 func CreateNotification(rail miso.Rail, req CreateNotificationReq) error {
 	var resp miso.GnResp[util.Void]
-	err := miso.NewDynTClient(rail, "/open/api/v1/notification/create", ServiceName).
+	err := miso.NewDynClient(rail, "/open/api/v1/notification/create", ServiceName).
 		Require2xx().
 		PostJson(req).
 		Json(&resp)
@@ -93,7 +93,7 @@ func CreateNotification(rail miso.Rail, req CreateNotificationReq) error {
 
 func SendCheckResAccessReq(rail miso.Rail, req CheckResAccessReq) (CheckResAccessResp, error) {
 	var res miso.GnResp[CheckResAccessResp]
-	err := miso.NewDynTClient(rail, "/remote/path/resource/access-test", "user-vault").
+	err := miso.NewDynClient(rail, "/remote/path/resource/access-test", "user-vault").
 		PostJson(req).
 		Json(&res)
 	if err != nil {
@@ -114,7 +114,7 @@ type FindUserCommonReq struct {
 
 func FindUserCommon(rail miso.Rail, req FindUserCommonReq) (common.User, error) {
 	var res miso.GnResp[common.User]
-	err := miso.NewDynTClient(rail, "/internal/v1/user/info/common", "user-vault").
+	err := miso.NewDynClient(rail, "/internal/v1/user/info/common", "user-vault").
 		PostJson(req).
 		Json(&res)
 	if err != nil {

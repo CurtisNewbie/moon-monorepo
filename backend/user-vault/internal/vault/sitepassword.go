@@ -8,6 +8,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
 
@@ -56,7 +57,7 @@ func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, d
 	}
 
 	if !checkPassword(u.Password, u.Salt, req.LoginPassword) {
-		return miso.NewErrf("Login password incorrect, please try again")
+		return errs.NewErrf("Login password incorrect, please try again")
 	}
 
 	encrypted, err := crypto.AesEcbEncrypt(pad256([]byte(req.LoginPassword)), req.SitePassword)
@@ -106,13 +107,13 @@ func DecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq, user common
 		return DecryptSitePasswordRes{}, err
 	}
 	if !checkPassword(u.Password, u.Salt, req.LoginPassword) {
-		return DecryptSitePasswordRes{}, miso.NewErrf("Login password incorrect, please try again")
+		return DecryptSitePasswordRes{}, errs.NewErrf("Login password incorrect, please try again")
 	}
 
 	decrypted, err := crypto.AesEcbDecrypt(pad256([]byte(req.LoginPassword)), bsp.Password)
 	if err != nil {
 		rail.Warnf("Failed to encrypt site password, %v, %v", user.Username, err)
-		return DecryptSitePasswordRes{}, miso.NewErrf("Password incorrect")
+		return DecryptSitePasswordRes{}, errs.NewErrf("Password incorrect")
 	}
 	return DecryptSitePasswordRes{Decrypted: decrypted}, nil
 }
@@ -126,7 +127,7 @@ type BasicSitePassword struct {
 func loadBasicSitePassword(rail miso.Rail, db *gorm.DB, userNo string, recordId string) (BasicSitePassword, error) {
 	var bsp BasicSitePassword
 	n, err := dbquery.NewQueryRail(rail, db).
-		From("site_password").
+		Table("site_password").
 		Eq("record_id", recordId).
 		Select("password, user_no").
 		Scan(&bsp)
@@ -134,7 +135,7 @@ func loadBasicSitePassword(rail miso.Rail, db *gorm.DB, userNo string, recordId 
 		return bsp, err
 	}
 	if n < 1 {
-		return bsp, miso.NewErrf("Record not found")
+		return bsp, errs.NewErrf("Record not found")
 	}
 	bsp.RecordId = recordId
 	if bsp.UserNo != userNo {
@@ -175,7 +176,7 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 		}
 
 		if !checkPassword(u.Password, u.Salt, req.LoginPassword) {
-			return miso.NewErrf("Login password incorrect, please try again")
+			return errs.NewErrf("Login password incorrect, please try again")
 		}
 
 		encrypted, err := crypto.AesEcbEncrypt(pad256([]byte(req.LoginPassword)), req.SitePassword)
@@ -186,7 +187,7 @@ func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User,
 		encryptedSitePwd = encrypted
 	}
 
-	_, err = dbquery.NewQueryRail(rail, db).From("site_password").
+	_, err = dbquery.NewQueryRail(rail, db).Table("site_password").
 		Eq("record_id", req.RecordId).
 		Set("site", req.Site).
 		Set("alias", req.Alias).

@@ -32,6 +32,8 @@
                 Keys</button>
             <button mat-menu-item routerLink="/access-log" routerLinkActive="active" *ngIf="hasRes('basic-user')">Login
                 History</button>
+            <button mat-menu-item routerLink="/note" routerLinkActive="active"
+                *ngIf="hasRes('basic-user')">Notes</button>
         </mat-menu>
 
         <mat-menu #site="matMenu">

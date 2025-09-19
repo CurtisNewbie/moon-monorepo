@@ -81,10 +81,10 @@ github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGX
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
-github.com/curtisnewbie/event-pump v0.0.16-0.20250301093613-7eea1e23e0c8 h1:B42PJvEqC+XIqAtv8ar/kX8fLZ8IjYU/BjOlsplgaiw=
-github.com/curtisnewbie/event-pump v0.0.16-0.20250301093613-7eea1e23e0c8/go.mod h1:mL33D9xNfqrhplCklHba84eujF9YGP5sUijqxwK/WGw=
-github.com/curtisnewbie/miso v0.2.17-0.20250911155514-89778f71fdb4 h1:tJAkxaNnPWbe4APhcBdncl2YSy3mMVW3uR1JFjmD2+Y=
-github.com/curtisnewbie/miso v0.2.17-0.20250911155514-89778f71fdb4/go.mod h1:nc7igUZ3zwB3FAVY67XmUas8vUX9pNk2svtEqtGq1Mw=
+github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451 h1:9BdbNTHugiKXInPVfDhALXBX1D9OU85yq0maCP7f9XA=
+github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451/go.mod h1:vNeChg7BootqflaJsaMD+CTjnLt/a3Z/4PJW603QPHs=
+github.com/curtisnewbie/miso v0.3.1-0.20250919061847-336dbf957d95 h1:0pRV1mbokTFL9CyBjAgrRTxspSLltahyRJWFLhdLJ6Q=
+github.com/curtisnewbie/miso v0.3.1-0.20250919061847-336dbf957d95/go.mod h1:FEQTJwWbfsrBLsHZz9jgKgPFac8nxOy+MxDA6MxbShk=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

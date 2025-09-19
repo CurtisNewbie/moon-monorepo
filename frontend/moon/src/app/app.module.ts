@@ -97,6 +97,8 @@ import { HIGHLIGHT_OPTIONS, HighlightModule } from "ngx-highlightjs";
 import { FileBookmarkDialogComponent } from "./file-bookmark-dialog/file-bookmark-dialog.component";
 import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
 import { DroneTaskComponent } from "./drone-task/drone-task.component";
+import { MngNoteComponent } from './mng-note/mng-note.component';
+import { EditNoteDialogComponent } from './edit-note-dialog/edit-note-dialog.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -154,6 +156,8 @@ PlotlyModule.plotlyjs = PlotlyJS;
     FileBookmarkDialogComponent,
     EventPumpDashboardComponent,
     DroneTaskComponent,
+    MngNoteComponent,
+    EditNoteDialogComponent,
   ],
   imports: [
     PlotlyModule,
