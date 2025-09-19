@@ -184,7 +184,7 @@ func ExchangeTokenEp(inb *miso.Inbound, req vault.ExchangeTokenReq) (string, err
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(metrics.TokenExchangeHisto)
 	defer timer.ObserveDuration()
-	return vault.ExchangeToken(rail, mysql.GetMySQL(), req)
+	return vault.ExchangeToken(rail, req)
 }
 
 // misoapi-http: GET /open/api/token/user

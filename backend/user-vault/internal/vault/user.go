@@ -10,7 +10,6 @@ import (
 
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/jwt"
-	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -83,13 +82,13 @@ type UserDetail struct {
 	Salt         string `json:"salt"`
 }
 
-func loadUser(rail miso.Rail, tx *gorm.DB, username string) (User, error) {
+func loadUser(rail miso.Rail, db *gorm.DB, username string) (User, error) {
 	if username == "" {
 		return User{}, errs.NewErrf("Username is required")
 	}
 
 	var user User
-	t := tx.Raw(`
+	n, err := dbquery.NewQuery(rail, db).Raw(`
 		SELECT u.*, r.name AS role_name
 		FROM user u
 		LEFT JOIN role r using (role_no)
@@ -97,20 +96,20 @@ func loadUser(rail miso.Rail, tx *gorm.DB, username string) (User, error) {
 	`, username).
 		Scan(&user)
 
-	if t.Error != nil {
-		rail.Errorf("Failed to find user, username: %v, %v", username, t.Error)
-		return User{}, t.Error
+	if err != nil {
+		rail.Errorf("Failed to find user, username: %v, %v", username, err)
+		return User{}, err
 	}
 
-	if t.RowsAffected < 1 {
+	if n < 1 {
 		return User{}, errs.NewErrf("User not found").WithInternalMsg("User %v is not found", username)
 	}
 
 	return user, nil
 }
 
-func UserLogin(rail miso.Rail, tx *gorm.DB, req PasswordLoginParam) (string, User, error) {
-	user, err := userLogin(rail, tx, req.Username, req.Password)
+func UserLogin(rail miso.Rail, db *gorm.DB, req PasswordLoginParam) (string, User, error) {
+	user, err := userLogin(rail, db, req.Username, req.Password)
 	if err != nil {
 		return "", User{}, err
 	}
@@ -148,7 +147,7 @@ func buildToken(user TokenUser, exp time.Duration) (string, error) {
 	return jwt.JwtEncode(claims, exp)
 }
 
-func userLogin(rail miso.Rail, tx *gorm.DB, username string, password string) (User, error) {
+func userLogin(rail miso.Rail, db *gorm.DB, username string, password string) (User, error) {
 	if strutil.IsBlankStr(username) {
 		return User{}, errs.NewErrf("Username is required")
 	}
@@ -157,7 +156,7 @@ func userLogin(rail miso.Rail, tx *gorm.DB, username string, password string) (U
 		return User{}, errs.NewErrf("Password is required")
 	}
 
-	user, err := loadUser(rail, tx, username)
+	user, err := loadUser(rail, db, username)
 	if err != nil {
 		return User{}, err
 	}
@@ -189,7 +188,7 @@ func userLogin(rail miso.Rail, tx *gorm.DB, username string, password string) (U
 	}
 
 	// if the password is incorrect, maybe a user_key is used instead
-	ok, err := checkUserKey(rail, tx, user.UserNo, password)
+	ok, err := checkUserKey(rail, db, user.UserNo, password)
 	if err != nil {
 		return User{}, err
 	}
@@ -204,21 +203,21 @@ func userLogin(rail miso.Rail, tx *gorm.DB, username string, password string) (U
 	return User{}, errs.NewErrf("Password incorrect").WithInternalMsg("User %v login failed, password incorrect", username)
 }
 
-func checkUserKey(rail miso.Rail, tx *gorm.DB, userNo string, password string) (bool, error) {
+func checkUserKey(rail miso.Rail, db *gorm.DB, userNo string, password string) (bool, error) {
 	if password == "" {
 		return false, nil
 	}
 
 	var id int
-	t := tx.Raw(
+	n, err := dbquery.NewQuery(rail, db).Raw(
 		`SELECT id FROM user_key WHERE user_no = ? AND secret_key = ? AND expiration_time > ? AND is_del = '0' LIMIT 1`,
 		userNo, password, util.Now(),
-	).
-		Scan(&id)
-	if t.Error != nil {
-		rail.Errorf("failed to checkUserKey, userNo: %v, %v", userNo, t.Error)
+	).Scan(&id)
+
+	if err != nil {
+		rail.Errorf("failed to checkUserKey, userNo: %v, %v", userNo, err)
 	}
-	return id > 0, nil
+	return n > 0, nil
 }
 
 func checkPassword(encoded string, salt string, password string) bool {
@@ -349,8 +348,8 @@ type ListUserReq struct {
 	Paging     miso.Paging `json:"paging"`
 }
 
-func ListUsers(rail miso.Rail, tx *gorm.DB, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
-	return dbquery.NewPagedQuery[api.UserInfo](tx).
+func ListUsers(rail miso.Rail, db *gorm.DB, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
+	return dbquery.NewPagedQuery[api.UserInfo](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("u.*, r.name as role_name").Order("u.id DESC")
 		}).
@@ -377,7 +376,7 @@ type AdminUpdateUserReq struct {
 	IsDisabled int    `json:"isDisabled"`
 }
 
-func AdminUpdateUser(rail miso.Rail, tx *gorm.DB, req AdminUpdateUserReq, operator common.User) error {
+func AdminUpdateUser(rail miso.Rail, db *gorm.DB, req AdminUpdateUserReq, operator common.User) error {
 	if operator.UserNo == req.UserNo {
 		return errs.NewErrf("You cannot update yourself")
 	}
@@ -389,7 +388,7 @@ func AdminUpdateUser(rail miso.Rail, tx *gorm.DB, req AdminUpdateUserReq, operat
 		}
 	}
 
-	_, err := dbquery.NewQuery(rail, tx).Exec(
+	_, err := dbquery.NewQuery(rail, db).Exec(
 		`UPDATE user SET is_disabled = ?, update_by = ?, role_no = ? WHERE user_no = ?`,
 		req.IsDisabled, operator.Username, req.RoleNo, req.UserNo,
 	)
@@ -401,7 +400,7 @@ type AdminReviewUserReq struct {
 	ReviewStatus string `json:"reviewStatus"`
 }
 
-func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq) error {
+func ReviewUserRegistration(rail miso.Rail, db *gorm.DB, req AdminReviewUserReq) error {
 	if req.ReviewStatus != api.ReviewRejected && req.ReviewStatus != api.ReviewApproved {
 		return errs.NewErrf("Illegal Argument").
 			WithInternalMsg("ReviewStatus was neither ReviewApproved nor ReviewRejected, it was %v", req.ReviewStatus)
@@ -410,14 +409,15 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 	return redis.RLockExec(rail, fmt.Sprintf("auth:user:registration:review:%v", req.UserId),
 		func() error {
 			var user User
-			t := tx.Raw(`SELECT * FROM user WHERE id = ?`, req.UserId).
+			n, err := dbquery.NewQuery(rail, db).
+				Raw(`SELECT * FROM user WHERE id = ?`, req.UserId).
 				Scan(&user)
-			if t.Error != nil {
-				rail.Errorf("Failed to find user, id = %v %v", req.UserId, t.Error)
-				return t.Error
+			if err != nil {
+				rail.Errorf("Failed to find user, id = %v %v", req.UserId, err)
+				return err
 			}
 
-			if t.RowsAffected < 1 {
+			if n < 1 {
 				return errs.NewErrf("User not found").WithInternalMsg("User %v not found", req.UserId)
 			}
 
@@ -444,13 +444,13 @@ func ReviewUserRegistration(rail miso.Rail, tx *gorm.DB, req AdminReviewUserReq)
 				}
 			}
 
-			_, err := dbquery.NewQuery(rail, tx).Table(
-				"user").
+			err = dbquery.NewQuery(rail, db).
+				Table("user").
 				Set("review_status", req.ReviewStatus).
 				Set("is_disabled", isDisabled).
 				SetIf(roleNo != "", "role_no", roleNo).
 				Eq("id", req.UserId).
-				Update()
+				UpdateAny()
 
 			rail.ErrorIf(err, "Failed to update user for registration review, userId: %v", req.UserId)
 			return err
@@ -483,8 +483,8 @@ type UserInfoBrief struct {
 	RegisterDate string `json:"registerDate"`
 }
 
-func FetchUserBrief(rail miso.Rail, tx *gorm.DB, username string) (UserInfoBrief, error) {
-	ud, err := LoadUserBriefThrCache(rail, mysql.GetMySQL(), username)
+func FetchUserBrief(rail miso.Rail, db *gorm.DB, username string) (UserInfoBrief, error) {
+	ud, err := LoadUserBriefThrCache(rail, db, username)
 	if err != nil {
 		return UserInfoBrief{}, err
 	}
@@ -498,11 +498,11 @@ func FetchUserBrief(rail miso.Rail, tx *gorm.DB, username string) (UserInfoBrief
 	}, nil
 }
 
-func LoadUserBriefThrCache(rail miso.Rail, tx *gorm.DB, username string) (UserDetail, error) {
+func LoadUserBriefThrCache(rail miso.Rail, db *gorm.DB, username string) (UserDetail, error) {
 	rail.Debugf("LoadUserBriefThrCache, username: %v", username)
 	return userInfoCache.GetValElse(rail, username, func() (UserDetail, error) {
 		rail.Debugf("LoadUserInfoBrief, username: %v", username)
-		return LoadUserInfoBrief(rail, mysql.GetMySQL(), username)
+		return LoadUserInfoBrief(rail, db, username)
 	})
 }
 
@@ -510,8 +510,8 @@ func InvalidateUserInfoCache(rail miso.Rail, username string) error {
 	return userInfoCache.Del(rail, username)
 }
 
-func LoadUserInfoBrief(rail miso.Rail, tx *gorm.DB, username string) (UserDetail, error) {
-	u, err := loadUser(rail, tx, username)
+func LoadUserInfoBrief(rail miso.Rail, db *gorm.DB, username string) (UserDetail, error) {
+	u, err := loadUser(rail, db, username)
 	if err != nil {
 		return UserDetail{}, err
 	}
@@ -533,7 +533,7 @@ type UpdatePasswordReq struct {
 	NewPassword  string `json:"newPassword" valid:"notEmpty"`
 }
 
-func UpdatePassword(rail miso.Rail, tx *gorm.DB, username string, req UpdatePasswordReq) error {
+func UpdatePassword(rail miso.Rail, db *gorm.DB, username string, req UpdatePasswordReq) error {
 	req.NewPassword = strings.TrimSpace(req.NewPassword)
 	req.PrevPassword = strings.TrimSpace(req.PrevPassword)
 
@@ -549,7 +549,7 @@ func UpdatePassword(rail miso.Rail, tx *gorm.DB, username string, req UpdatePass
 		return errs.NewErrf("Username and password must be different")
 	}
 
-	u, err := LoadUserBriefThrCache(rail, tx, username)
+	u, err := LoadUserBriefThrCache(rail, db, username)
 	if err != nil {
 		return errs.NewErrf("Failed to load user info, please try again later").
 			WithInternalMsg("Failed to LoadUserBriefThrCache, %v", err)
@@ -559,7 +559,7 @@ func UpdatePassword(rail miso.Rail, tx *gorm.DB, username string, req UpdatePass
 		return errs.NewErrf("Password incorrect")
 	}
 
-	_, err = dbquery.NewQuery(rail, tx).
+	_, err = dbquery.NewQuery(rail, db).
 		Exec("update user set password = ? where username = ?", encodePasswordSalt(req.NewPassword, u.Salt), username)
 	if err != nil {
 		return errs.NewErrf("Failed to update password, please try again laster").
@@ -602,7 +602,7 @@ func DecodeTokenUsername(rail miso.Rail, token string) (string, error) {
 	return un, nil
 }
 
-func ExchangeToken(rail miso.Rail, tx *gorm.DB, req ExchangeTokenReq) (string, error) {
+func ExchangeToken(rail miso.Rail, req ExchangeTokenReq) (string, error) {
 	u, err := DecodeTokenUser(rail, req.Token)
 	if err != nil {
 		return "", err
@@ -619,7 +619,7 @@ func ExchangeToken(rail miso.Rail, tx *gorm.DB, req ExchangeTokenReq) (string, e
 	return buildToken(tu, 15*time.Minute)
 }
 
-func GetTokenUser(rail miso.Rail, tx *gorm.DB, token string) (UserInfoBrief, error) {
+func GetTokenUser(rail miso.Rail, db *gorm.DB, token string) (UserInfoBrief, error) {
 	if strutil.IsBlankStr(token) {
 		return UserInfoBrief{}, errs.NewErrf("Invalid token").WithInternalMsg("Token is blank")
 	}
@@ -628,8 +628,7 @@ func GetTokenUser(rail miso.Rail, tx *gorm.DB, token string) (UserInfoBrief, err
 		return UserInfoBrief{}, err
 	}
 
-	u, err := LoadUserBriefThrCache(rail, tx, username)
-
+	u, err := LoadUserBriefThrCache(rail, db, username)
 	if err != nil {
 		return UserInfoBrief{}, err
 	}
@@ -643,10 +642,11 @@ func GetTokenUser(rail miso.Rail, tx *gorm.DB, token string) (UserInfoBrief, err
 	}, nil
 }
 
-func ItnFindUserInfo(rail miso.Rail, tx *gorm.DB, req api.FindUserReq) (api.UserInfo, error) {
+func ItnFindUserInfo(rail miso.Rail, db *gorm.DB, req api.FindUserReq) (api.UserInfo, error) {
 
 	var ui api.UserInfo
-	tx = tx.Table("user").
+	q := dbquery.NewQuery(rail, db).
+		Table("user").
 		Joins("left join role on user.role_no = role.role_no").
 		Select("user.*, role.name role_name")
 
@@ -655,26 +655,26 @@ func ItnFindUserInfo(rail miso.Rail, tx *gorm.DB, req api.FindUserReq) (api.User
 	}
 
 	if req.UserId != nil {
-		tx = tx.Where("user.id = ?", *req.UserId)
+		q = q.Where("user.id = ?", *req.UserId)
 	}
 	if req.UserNo != nil {
-		tx = tx.Where("user.user_no = ?", *req.UserNo)
+		q = q.Where("user.user_no = ?", *req.UserNo)
 	}
 	if req.Username != nil {
-		tx = tx.Where("user.username = ?", *req.Username)
+		q = q.Where("user.username = ?", *req.Username)
 	}
 
-	t := tx.Scan(&ui)
-	if t.Error != nil {
-		return ui, fmt.Errorf("failed to find user %w", t.Error)
+	n, err := q.Scan(&ui)
+	if err != nil {
+		return ui, fmt.Errorf("failed to find user %w", err)
 	}
-	if t.RowsAffected < 1 {
+	if n < 1 {
 		return ui, errs.NewErrf("User not found")
 	}
 	return ui, nil
 }
 
-func ItnFindNameOfUserNo(rail miso.Rail, tx *gorm.DB, req api.FetchNameByUserNoReq) (api.FetchUsernamesRes, error) {
+func ItnFindNameOfUserNo(rail miso.Rail, db *gorm.DB, req api.FetchNameByUserNoReq) (api.FetchUsernamesRes, error) {
 	if len(req.UserNos) < 1 {
 		return api.FetchUsernamesRes{UserNoToUsername: map[string]string{}}, nil
 	}
@@ -685,11 +685,11 @@ func ItnFindNameOfUserNo(rail miso.Rail, tx *gorm.DB, req api.FetchNameByUserNoR
 	}
 
 	var queried []UserNoToName
-	err := tx.Table("user").
+	err := dbquery.NewQuery(rail, db).
+		Table("user").
 		Select("username", "user_no").
 		Where("user_no in ?", slutil.Distinct(req.UserNos)).
-		Scan(&queried).
-		Error
+		ScanVal(&queried)
 	if err != nil {
 		return api.FetchUsernamesRes{}, err
 	}
