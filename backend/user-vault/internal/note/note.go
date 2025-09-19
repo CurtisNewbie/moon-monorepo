@@ -1,4 +1,4 @@
-package vault
+package note
 
 import (
 	"github.com/curtisnewbie/miso/middleware/dbquery"

@@ -4813,12 +4813,12 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/vault.Note]) response data
+    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/note.Note]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.Note) payload values in current page
+      - "payload": ([]note.Note) payload values in current page
         - "recordId": (string) 
         - "title": (string) 
         - "content": (string) 

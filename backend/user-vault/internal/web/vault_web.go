@@ -9,6 +9,7 @@ import (
 	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/curtisnewbie/user-vault/internal/metrics"
+	"github.com/curtisnewbie/user-vault/internal/note"
 	"github.com/curtisnewbie/user-vault/internal/vault"
 	"gorm.io/gorm"
 )
@@ -504,24 +505,24 @@ func ApiClearUserFailedLoginAttempts(rail miso.Rail, req vault.ClearUserFailedLo
 //   - misoapi-http: POST /open/api/note/list-notes
 //   - misoapi-resource: ref(ResourceBasicUser)
 //   - misoapi-ngtable
-func ApiListNotes(rail miso.Rail, db *gorm.DB, req vault.ListNoteReq, user common.User) (miso.PageRes[vault.Note], error) {
-	return vault.ListNotes(rail, db, req, user)
+func ApiListNotes(rail miso.Rail, db *gorm.DB, req note.ListNoteReq, user common.User) (miso.PageRes[note.Note], error) {
+	return note.ListNotes(rail, db, req, user)
 }
 
 // User Save Note
 //
 //   - misoapi-http: POST /open/api/note/save-note
 //   - misoapi-resource: ref(ResourceBasicUser)
-func ApiSaveNote(rail miso.Rail, db *gorm.DB, req vault.SaveNoteReq, user common.User) error {
-	return vault.DBSaveNote(rail, db, req, user)
+func ApiSaveNote(rail miso.Rail, db *gorm.DB, req note.SaveNoteReq, user common.User) error {
+	return note.DBSaveNote(rail, db, req, user)
 }
 
 // User Update Note
 //
 //   - misoapi-http: POST /open/api/note/update-note
 //   - misoapi-resource: ref(ResourceBasicUser)
-func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req vault.UpdateNoteReq, user common.User) error {
-	return vault.UpdateNote(rail, db, req, user)
+func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req note.UpdateNoteReq, user common.User) error {
+	return note.UpdateNote(rail, db, req, user)
 }
 
 type ApiDeleteNoteReq struct {
@@ -533,5 +534,5 @@ type ApiDeleteNoteReq struct {
 //   - misoapi-http: POST /open/api/note/delete-note
 //   - misoapi-resource: ref(ResourceBasicUser)
 func ApiDeleteNote(rail miso.Rail, db *gorm.DB, req ApiDeleteNoteReq, user common.User) error {
-	return vault.DeleteNote(rail, db, req.RecordId, user)
+	return note.DeleteNote(rail, db, req.RecordId, user)
 }
