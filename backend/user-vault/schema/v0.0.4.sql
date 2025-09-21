@@ -18,4 +18,5 @@ CREATE TABLE user_vault.note (
 
 alter table user_vault.user add column `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
   change column `create_by` `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
-  change column `update_by` `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by';
+  change column `update_by` `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
+  change column `is_del` `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'record deleted';

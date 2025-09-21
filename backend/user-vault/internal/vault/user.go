@@ -60,11 +60,7 @@ type User struct {
 	CreateBy     string `gorm:"column:created_by"`
 	UpdateTime   util.ETime
 	UpdateBy     string `gorm:"column:updated_by"`
-	IsDel        bool
-}
-
-func (u *User) Deleted() bool {
-	return u.IsDel
+	Deleted      bool
 }
 
 func (u *User) CanReview() bool {
@@ -92,7 +88,7 @@ func loadUser(rail miso.Rail, db *gorm.DB, username string) (User, error) {
 		SELECT u.*, r.name AS role_name
 		FROM user u
 		LEFT JOIN role r using (role_no)
-		WHERE u.username = ? and u.is_del = 0
+		WHERE u.username = ? and u.deleted = 0
 	`, username).
 		Scan(&user)
 
@@ -210,7 +206,7 @@ func checkUserKey(rail miso.Rail, db *gorm.DB, userNo string, password string) (
 
 	var id int
 	n, err := dbquery.NewQuery(rail, db).Raw(
-		`SELECT id FROM user_key WHERE user_no = ? AND secret_key = ? AND expiration_time > ? AND is_del = '0' LIMIT 1`,
+		`SELECT id FROM user_key WHERE user_no = ? AND secret_key = ? AND expiration_time > ? AND deleted = 0 LIMIT 1`,
 		userNo, password, util.Now(),
 	).Scan(&id)
 
@@ -365,7 +361,7 @@ func ListUsers(rail miso.Rail, db *gorm.DB, req ListUserReq) (miso.PageRes[api.U
 			if req.IsDisabled != nil {
 				q = q.Eq("u.is_disabled", *req.IsDisabled)
 			}
-			return q.Where("u.is_del = 0")
+			return q.Where("u.deleted = 0")
 		}).
 		Scan(rail, req.Paging)
 }
@@ -421,7 +417,7 @@ func ReviewUserRegistration(rail miso.Rail, db *gorm.DB, req AdminReviewUserReq)
 				return errs.NewErrf("User not found").WithInternalMsg("User %v not found", req.UserId)
 			}
 
-			if user.Deleted() {
+			if user.Deleted {
 				return errs.NewErrf("User not found").WithInternalMsg("User %v is deleted", req.UserId)
 			}
 

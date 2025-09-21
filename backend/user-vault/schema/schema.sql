@@ -1,6 +1,5 @@
 create database if not exists user_vault;
 
--- TODO update ddl
 CREATE TABLE `user` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `username` varchar(50) NOT NULL COMMENT 'username',
@@ -10,11 +9,12 @@ CREATE TABLE `user` (
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
   `is_disabled` int(11) NOT NULL DEFAULT '0' COMMENT 'whether the user is disabled, 0-normal, 1-disabled',
   `review_status` varchar(25) NOT NULL COMMENT 'Review Status',
-  `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
-  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
+  `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'record deleted',
   `user_no` varchar(32) NOT NULL COMMENT 'user no',
   `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
+  `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `user_no` (`user_no`)
