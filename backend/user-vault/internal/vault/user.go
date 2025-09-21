@@ -384,11 +384,17 @@ func AdminUpdateUser(rail miso.Rail, db *gorm.DB, req AdminUpdateUserReq, operat
 		}
 	}
 
-	_, err := dbquery.NewQuery(rail, db).Exec(
-		`UPDATE user SET is_disabled = ?, update_by = ?, role_no = ? WHERE user_no = ?`,
-		req.IsDisabled, operator.Username, req.RoleNo, req.UserNo,
-	)
-	return err
+	return dbquery.NewQuery(rail, db).
+		Table("user").
+		SetCols(struct {
+			RoleNo     string
+			IsDisabled int
+		}{
+			IsDisabled: req.IsDisabled,
+			RoleNo:     req.RoleNo,
+		}).
+		Eq("user_no", req.UserNo).
+		UpdateAny()
 }
 
 type AdminReviewUserReq struct {
@@ -555,8 +561,11 @@ func UpdatePassword(rail miso.Rail, db *gorm.DB, username string, req UpdatePass
 		return errs.NewErrf("Password incorrect")
 	}
 
-	_, err = dbquery.NewQuery(rail, db).
-		Exec("update user set password = ? where username = ?", encodePasswordSalt(req.NewPassword, u.Salt), username)
+	err = dbquery.NewQuery(rail, db).
+		Table("user").
+		Set("password", encodePasswordSalt(req.NewPassword, u.Salt)).
+		Eq("username", username).
+		UpdateAny()
 	if err != nil {
 		return errs.NewErrf("Failed to update password, please try again laster").
 			WithInternalMsg("Failed to update password, %v", err)
