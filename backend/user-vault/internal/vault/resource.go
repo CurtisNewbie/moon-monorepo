@@ -3,7 +3,6 @@ package vault
 import (
 	"crypto/md5"
 	"encoding/base64"
-	"errors"
 	"strings"
 	"time"
 
@@ -46,16 +45,6 @@ const (
 	PathTypePublic    string = "PUBLIC"
 )
 
-type PathRes struct {
-	Id         int    // id
-	PathNo     string // path no
-	ResCode    string // resource code
-	CreateTime util.ETime
-	CreateBy   string
-	UpdateTime util.ETime
-	UpdateBy   string
-}
-
 type ExtendedPathRes struct {
 	Id         int    // id
 	Pgroup     string // path group
@@ -66,53 +55,9 @@ type ExtendedPathRes struct {
 	Method     string // http method
 	Ptype      string // path type: PROTECTED, PUBLIC
 	CreateTime util.ETime
-	CreateBy   string
+	CreateBy   string `gorm:"column:created_by"`
 	UpdateTime util.ETime
-	UpdateBy   string
-}
-
-type EPath struct {
-	Id         int    // id
-	Pgroup     string // path group
-	PathNo     string // path no
-	Desc       string // description
-	Url        string // url
-	Method     string // method
-	Ptype      string // path type: PROTECTED, PUBLIC
-	CreateTime util.ETime
-	CreateBy   string
-	UpdateTime util.ETime
-	UpdateBy   string
-}
-
-type ERes struct {
-	Id         int    // id
-	Code       string // resource code
-	Name       string // resource name
-	CreateTime util.ETime
-	CreateBy   string
-	UpdateTime util.ETime
-	UpdateBy   string
-}
-
-type ERoleRes struct {
-	Id         int    // id
-	RoleNo     string // role no
-	ResCode    string // resource code
-	CreateTime util.ETime
-	CreateBy   string
-	UpdateTime util.ETime
-	UpdateBy   string
-}
-
-type ERole struct {
-	Id         int
-	RoleNo     string
-	Name       string
-	CreateTime util.ETime
-	CreateBy   string
-	UpdateTime util.ETime
-	UpdateBy   string
+	UpdateBy   string `gorm:"column:updated_by"`
 }
 
 type WRole struct {
@@ -123,16 +68,6 @@ type WRole struct {
 	CreateBy   string     `json:"createBy"`
 	UpdateTime util.ETime `json:"updateTime"`
 	UpdateBy   string     `json:"updateBy"`
-}
-
-type CachedUrlRes struct {
-	Id      int    // id
-	Pgroup  string // path group
-	PathNo  string // path no
-	ResCode string // resource code
-	Url     string // url
-	Method  string // http method
-	Ptype   string // path type: PROTECTED, PUBLIC
 }
 
 type ResBrief struct {
@@ -175,9 +110,9 @@ type WPath struct {
 	Url        string     `json:"url"`
 	Ptype      string     `json:"ptype" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
 	CreateTime util.ETime `json:"createTime"`
-	CreateBy   string     `json:"createBy"`
+	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
 	UpdateTime util.ETime `json:"updateTime"`
-	UpdateBy   string     `json:"updateBy"`
+	UpdateBy   string     `json:"updateBy" gorm:"column:updated_by"`
 }
 
 type WRes struct {
@@ -373,9 +308,12 @@ func ListResources(rail miso.Rail, req ListResReq) (ListResResp, error) {
 func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
 		return nil, mysql.GetMySQL().Transaction(func(tx *gorm.DB) error {
-			_, err := dbquery.NewQuery(rail, tx).
-				Exec(`UPDATE path SET pgroup = ?, ptype = ? WHERE path_no = ?`,
-					req.Group, req.Type, req.PathNo)
+			err := dbquery.NewQuery(rail, tx).
+				Table("path").
+				Set("pgroup", req.Group).
+				Set("ptype", req.Type).
+				Eq("path_no", req.PathNo).
+				UpdateAny()
 			if err != nil {
 				return miso.ErrUnknownError.Wrap(err)
 			}
@@ -432,16 +370,15 @@ func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user common.User
 			return nil, nil
 		}
 
-		res := ERes{
-			Name:     req.Name,
-			Code:     req.Code,
-			CreateBy: user.Username,
-			UpdateBy: user.Username,
+		res := struct {
+			Code string
+			Name string
+		}{
+			Name: req.Name,
+			Code: req.Code,
 		}
-
 		_, err = dbquery.NewQuery(rail, mysql.GetMySQL()).
 			Table("resource").
-			Omit("Id", "CreateTime", "UpdateTime").
 			Create(&res)
 		return nil, err
 	})
@@ -459,38 +396,53 @@ func CreatePath(rail miso.Rail, req CreatePathReq, user common.User) error {
 	req.Method = strings.ToUpper(strings.TrimSpace(req.Method))
 	pathNo := genPathNo(req.Group, req.Url, req.Method)
 
+	type path struct {
+		Id     int
+		Pgroup string
+		PathNo string
+		Desc   string
+		Url    string
+		Method string
+		Ptype  string
+	}
+
 	_, err := lockPath(rail, pathNo, func() (bool, error) {
 		db := mysql.GetMySQL()
-		var prev EPath
-		_, err := dbquery.NewQuery(rail, db).Raw(`select * from path where path_no = ? limit 1`, pathNo).Scan(&prev)
+		var prev path
+		ok, err := dbquery.NewQuery(rail, db).
+			Table("path").
+			Eq("path_no", pathNo).
+			ScanAny(&prev)
 		if err != nil {
 			return false, err
 		}
-		if prev.Id > 0 { // exists already
+		if ok { // exists already
 			rail.Debugf("Path '%s %s' (%s) already exists", req.Method, req.Url, pathNo)
 			if prev.Ptype != req.Type {
-				_, err := dbquery.NewQuery(rail, db).Exec(`UPDATE path SET ptype = ? WHERE path_no = ?`, req.Type, pathNo)
+				err := dbquery.NewQuery(rail, db).
+					Table("path").
+					Set("ptype", req.Type).
+					Eq("path_no", pathNo).
+					UpdateAny()
 				if err != nil {
-					rail.Errorf("failed to update path.ptype, pathNo: %v, %v", pathNo, err)
+					rail.Errorf("Failed to update path.ptype, pathNo: %v, %v", pathNo, err)
 					return false, err
 				}
 			}
 			return false, nil
 		}
 
-		ep := EPath{
-			Url:      req.Url,
-			Desc:     req.Desc,
-			Ptype:    req.Type,
-			Pgroup:   req.Group,
-			Method:   req.Method,
-			PathNo:   pathNo,
-			CreateBy: user.Username,
-			UpdateBy: user.Username,
+		ep := path{
+			Url:    req.Url,
+			Desc:   req.Desc,
+			Ptype:  req.Type,
+			Pgroup: req.Group,
+			Method: req.Method,
+			PathNo: pathNo,
 		}
 		_, err = dbquery.NewQuery(rail, db).
 			Table("path").
-			Omit("Id", "CreateTime", "UpdateTime").
+			Omit("Id").
 			Create(&ep)
 		if err != nil {
 			return false, err
@@ -573,18 +525,21 @@ func BindPathRes(rail miso.Rail, req BindPathResReq) error {
 			}
 
 			// bind resource to path
-			_, err = dbquery.NewQuery(rail, db).
-				Exec(`INSERT INTO path_resource (path_no, res_code) VALUES (?, ?)`, req.PathNo, req.ResCode)
-			return err
+			return dbquery.NewQuery(rail, db).
+				Table("path_resource").
+				CreateAny(struct {
+					PathNo  string
+					ResCode string
+				}(req))
 		})
 	})
 
 	return e
 }
 
-func ListPaths(ec miso.Rail, req ListPathReq) (ListPathResp, error) {
+func ListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
 
-	applyCond := func(t *gorm.DB) *gorm.DB {
+	applyCond := func(t *dbquery.Query) *dbquery.Query {
 		if req.Pgroup != "" {
 			t = t.Where("p.pgroup = ?", req.Pgroup)
 		}
@@ -602,46 +557,43 @@ func ListPaths(ec miso.Rail, req ListPathReq) (ListPathResp, error) {
 	}
 
 	var paths []WPath
-	tx := mysql.GetMySQL().
+	err := applyCond(dbquery.NewQuery(rail).
 		Table("path p").
 		Select("p.*").
-		Order("id DESC")
-
-	tx = applyCond(tx).
+		Order("id DESC")).
 		Offset(req.Paging.GetOffset()).
 		Limit(req.Paging.GetLimit()).
-		Scan(&paths)
-	if tx.Error != nil {
-		return ListPathResp{}, tx.Error
+		ScanVal(&paths)
+	if err != nil {
+		return ListPathResp{}, err
 	}
 
 	var count int
-	tx = mysql.GetMySQL().
+	err = applyCond(dbquery.NewQuery(rail).
 		Table("path p").
-		Select("COUNT(*)")
-
-	tx = applyCond(tx).
-		Scan(&count)
-
-	if tx.Error != nil {
-		return ListPathResp{}, tx.Error
+		Select("COUNT(*)")).
+		ScanVal(&count)
+	if err != nil {
+		return ListPathResp{}, err
 	}
 
-	return ListPathResp{Payload: paths, Paging: miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count}}, nil
+	return ListPathResp{
+		Payload: paths,
+		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count},
+	}, nil
 }
 
-func AddRole(ec miso.Rail, req AddRoleReq, user common.User) error {
-	_, e := redis.RLockRun(ec, "user-vault:role:add"+req.Name, func() (any, error) {
-		r := ERole{
-			RoleNo:   util.GenIdP("role_"),
-			Name:     req.Name,
-			CreateBy: user.Username,
-			UpdateBy: user.Username,
-		}
-		return nil, mysql.GetMySQL().
+func AddRole(rail miso.Rail, req AddRoleReq, user common.User) error {
+	_, e := redis.RLockRun(rail, "user-vault:role:add"+req.Name, func() (any, error) {
+		return nil, dbquery.NewQuery(rail, mysql.GetMySQL()).
 			Table("role").
-			Omit("Id", "CreateTime", "UpdateTime").
-			Create(&r).Error
+			CreateAny(struct {
+				RoleNo string
+				Name   string
+			}{
+				RoleNo: util.GenIdP("role_"),
+				Name:   req.Name,
+			})
 	})
 	return e
 }
@@ -685,16 +637,15 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 			}
 
 			// create role-resource relation
-			rr := ERoleRes{
-				RoleNo:   req.RoleNo,
-				ResCode:  req.ResCode,
-				CreateBy: user.Username,
-				UpdateBy: user.Username,
+			rr := struct {
+				RoleNo  string // role no
+				ResCode string // resource code
+			}{
+				RoleNo:  req.RoleNo,
+				ResCode: req.ResCode,
 			}
-
 			return true, mysql.GetMySQL().
 				Table("role_resource").
-				Omit("Id", "CreateTime", "UpdateTime").
 				Create(&rr).Error
 		})
 	})
@@ -746,23 +697,26 @@ func ListAllRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
 
 func ListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 	var roles []WRole
-	tx := mysql.GetMySQL().
+	err := dbquery.NewQuery(rail).
 		Raw("select * from role order by id desc limit ?, ?", req.Paging.GetOffset(), req.Paging.GetLimit()).
-		Scan(&roles)
-	if tx.Error != nil {
-		return ListRoleResp{}, tx.Error
+		ScanVal(&roles)
+	if err != nil {
+		return ListRoleResp{}, err
 	}
 	if roles == nil {
 		roles = []WRole{}
 	}
 
 	var count int
-	tx = mysql.GetMySQL().Raw("select count(*) from role").Scan(&count)
-	if tx.Error != nil {
-		return ListRoleResp{}, tx.Error
+	err = dbquery.NewQuery(rail).Raw("select count(*) from role").ScanVal(&count)
+	if err != nil {
+		return ListRoleResp{}, err
 	}
 
-	return ListRoleResp{Payload: roles, Paging: miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count}}, nil
+	return ListRoleResp{
+		Payload: roles,
+		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count},
+	}, nil
 }
 
 // Test access to resource
@@ -838,28 +792,15 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 
 func listRoleNos(rail miso.Rail) ([]string, error) {
 	var ern []string
-	t := mysql.GetMySQL().Raw("select role_no from role").Scan(&ern)
-	if t.Error != nil {
-		return nil, t.Error
+	err := dbquery.NewQuery(rail).Raw("select role_no from role").ScanVal(&ern)
+	if err != nil {
+		return nil, err
 	}
 
 	if ern == nil {
 		ern = []string{}
 	}
 	return ern, nil
-}
-
-func listRoleRes(rail miso.Rail, roleNo string) ([]ERoleRes, error) {
-	var rr []ERoleRes
-	t := mysql.GetMySQL().Raw("select * from role_resource where role_no = ?", roleNo).Scan(&rr)
-	if t.Error != nil {
-		if errors.Is(t.Error, gorm.ErrRecordNotFound) {
-			return []ERoleRes{}, nil
-		}
-		return nil, t.Error
-	}
-
-	return rr, nil
 }
 
 // preprocess url, the processed url will always starts with '/' and never ends with '/'
@@ -953,25 +894,25 @@ func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 	var paths []ExtendedPathRes
 
 	if isDefAdmin(roleNo) {
-		tx := mysql.GetMySQL().
+		err := dbquery.NewQuery(rail).
 			Raw(`SELECT p.*, pr.res_code
 				FROM path_resource pr
 				LEFT JOIN path p ON p.path_no = pr.path_no`).
-			Scan(&paths)
-		if tx.Error != nil {
-			return miso.ErrUnknownError.Wrapf(tx.Error, "failed to load default admin's path resources")
+			ScanVal(&paths)
+		if err != nil {
+			return err
 		}
 	} else {
-		tx := mysql.GetMySQL().
+		err := dbquery.NewQuery(rail).
 			Raw(`SELECT p.*, pr.res_code
 		FROM role_resource rr
 		LEFT JOIN path_resource pr ON rr.res_code = pr.res_code
 		LEFT JOIN path p ON p.path_no = pr.path_no
 		WHERE rr.role_no = ?
 		`, roleNo).
-			Scan(&paths)
-		if tx.Error != nil {
-			return tx.Error
+			ScanVal(&paths)
+		if err != nil {
+			return err
 		}
 	}
 	if paths == nil {
@@ -979,11 +920,11 @@ func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 	}
 
 	var public []ExtendedPathRes
-	tx := mysql.GetMySQL().
+	err := dbquery.NewQuery(rail).
 		Raw(`SELECT p.* FROM path p WHERE p.ptype = ?`, PathTypePublic).
-		Scan(&public)
-	if tx.Error != nil {
-		return tx.Error
+		ScanVal(&public)
+	if err != nil {
+		return err
 	}
 	if len(public) > 0 {
 		paths = append(paths, public...)
@@ -1001,7 +942,7 @@ func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 	cached := RoleAccess{
 		Paths: pai,
 	}
-	err := roleAccessCache.Put(rail, roleNo, cached)
+	err = roleAccessCache.Put(rail, roleNo, cached)
 	if err == nil {
 		rail.Infof("Updated RoleAccessCache for %v, path counts: %v, public paths: %v", roleNo, len(pai), len(public))
 		return nil
@@ -1011,11 +952,11 @@ func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 
 func LoadPublicAccessCache(rail miso.Rail) error {
 	var public []ExtendedPathRes
-	tx := mysql.GetMySQL().
+	err := dbquery.NewQuery(rail).
 		Raw(`SELECT p.* FROM path p WHERE p.ptype = ?`, PathTypePublic).
-		Scan(&public)
-	if tx.Error != nil {
-		return tx.Error
+		ScanVal(&public)
+	if err != nil {
+		return err
 	}
 	if public == nil {
 		return nil
@@ -1030,7 +971,7 @@ func LoadPublicAccessCache(rail miso.Rail) error {
 				Ptype:   t.Ptype,
 			}
 		})
-	err := publicAccessCache.Put(rail, "", pai)
+	err = publicAccessCache.Put(rail, "", pai)
 	if err == nil {
 		rail.Infof("Updated PublicAccessCache, public paths: %v", len(public))
 		return nil

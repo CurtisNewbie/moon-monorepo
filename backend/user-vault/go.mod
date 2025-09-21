@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.0
 	github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451
-	github.com/curtisnewbie/miso v0.3.1-0.20250919155052-1d6e7398e7d4
+	github.com/curtisnewbie/miso v0.3.1-0.20250921144459-d0c8beda5e8d
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.6.0
@@ -36,6 +36,7 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/google/gops v0.3.28 // indirect
 	github.com/hashicorp/consul/api v1.15.3 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.2.0 // indirect

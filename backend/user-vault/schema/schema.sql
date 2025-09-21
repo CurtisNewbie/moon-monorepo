@@ -66,10 +66,11 @@ CREATE TABLE `path` (
   `url` varchar(128) NOT NULL DEFAULT '' COMMENT 'path url',
   `ptype` varchar(10) NOT NULL DEFAULT '' COMMENT 'path type: PROTECTED, PUBLIC',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
-  `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
+  `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
-  `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'record deleted',
+  `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
   PRIMARY KEY (`id`),
   KEY `path_no` (`path_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Paths';
