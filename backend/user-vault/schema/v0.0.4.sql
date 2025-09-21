@@ -28,3 +28,11 @@ alter table user_vault.user_key add column `trace_id` varchar(32) NOT NULL DEFAU
   change column `is_del` `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'record deleted',
 
 alter table user_vault.user_key comment 'user key';
+
+alter table user_vault.access_log add column `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
+  add column `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
+  add column `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated at',
+  add column `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
+  add column `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
+  add column `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'record deleted',
+  add key username_idx (username, deleted);

@@ -47,7 +47,14 @@ CREATE TABLE `access_log` (
   `url` varchar(255) DEFAULT '' COMMENT 'request url',
   `user_agent` varchar(512) NOT NULL DEFAULT '' COMMENT 'User Agent',
   `success` tinyint(1) DEFAULT '1' COMMENT 'login was successful',
-  PRIMARY KEY (`id`)
+  `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
+  `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
+  `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'record deleted',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated at',
+  PRIMARY KEY (`id`),
+  KEY `username_idx` (`username`,`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='access log';
 
 CREATE TABLE `path` (

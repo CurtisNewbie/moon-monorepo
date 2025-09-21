@@ -8,21 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type AccessLog struct {
-	Id         int
-	UserAgent  string
-	IpAddress  string
-	UserId     int
-	Username   string
-	Url        string
-	AccessTime util.ETime
-	CreateTime util.ETime
-	CreateBy   string
-	UpdateTime util.ETime
-	UpdateBy   string
-	IsDel      bool
-}
-
 type SaveAccessLogParam struct {
 	UserAgent  string
 	IpAddress  string
@@ -55,12 +40,11 @@ type ListAccessLogReq struct {
 func ListAccessLogs(rail miso.Rail, tx *gorm.DB, user common.User, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
 	return dbquery.NewPagedQuery[ListedAccessLog](tx).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
-			return q.Select("id", "access_time", "ip_address", "username", "url", "user_agent", "success").
-				Order("id desc")
+			return q.SelectCols(ListedAccessLog{}).
+				OrderDesc("id")
 		}).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
-			return q.Table("access_log").
-				Where("username = ?", user.Username)
+			return q.Table("access_log").Eq("username", user.Username)
 		}).
 		Scan(rail, req.Paging)
 }
