@@ -72,11 +72,11 @@ func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.
 			q = q.Table("user_key").
 				Where("user_no = ?", user.UserNo).
 				Where("expiration_time > ?", util.Now()).
-				Where("is_del = 0")
+				Where("deleted = 0")
 			return q.LikeIf(!strutil.IsBlankStr(req.Name), "name", req.Name)
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
-			return q.Select("id, secret_key, name, expiration_time, create_time").
+			return q.SelectCols(ListedUserKey{}).
 				Order("id DESC")
 		}).
 		Scan(rail, req.Paging)
@@ -87,7 +87,12 @@ type DeleteUserKeyReq struct {
 }
 
 func DeleteUserKey(rail miso.Rail, tx *gorm.DB, req DeleteUserKeyReq, userNo string) error {
-	_, err := dbquery.NewQuery(rail, tx).
-		Exec(`UPDATE user_key SET is_del = 1 WHERE user_no = ? AND id = ? AND is_del = 0`, userNo, req.UserKeyId)
+	err := dbquery.NewQuery(rail, tx).
+		Table("user_key").
+		Set("deleted", true).
+		Eq("user_no", userNo).
+		Eq("id", req.UserKeyId).
+		Eq("deleted", false).
+		UpdateAny()
 	return err
 }
