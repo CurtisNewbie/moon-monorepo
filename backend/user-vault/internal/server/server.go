@@ -15,16 +15,8 @@ func BootstrapServer(args []string) {
 
 	miso.PreServerBootstrap(
 		func(rail miso.Rail) error {
-			// TODO
-			fn := func(table string) (ok bool) {
-				switch table {
-				case "user":
-					return true
-				}
-				return false
-			}
-			dbquery.PrepareCreateModelHook(fn)
-			dbquery.PrepareUpdateModelHook(fn)
+			dbquery.PrepareCreateModelHook()
+			dbquery.PrepareUpdateModelHook()
 			return nil
 		},
 		vault.SubscribeBinlogEvent,
