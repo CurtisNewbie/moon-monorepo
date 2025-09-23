@@ -76,7 +76,7 @@ type ResBrief struct {
 }
 
 type AddRoleReq struct {
-	Name string `json:"name" validation:"notEmpty,maxLen:32"` // role name
+	Name string `json:"name" valid:"notEmpty,maxLen:32"` // role name
 }
 
 type ListRoleReq struct {
@@ -119,9 +119,9 @@ type WRes struct {
 	Id         int        `json:"id"`
 	Code       string     `json:"code"`
 	Name       string     `json:"name"`
-	CreateTime util.ETime `json:"createTime"`
+	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
 	CreateBy   string     `json:"createBy"`
-	UpdateTime util.ETime `json:"updateTime"`
+	UpdateTime util.ETime `json:"updateTime" gorm:"column:updated_at"`
 	UpdateBy   string     `json:"updateBy"`
 }
 
@@ -272,7 +272,10 @@ func ListAllResBriefsOfRole(rail miso.Rail, roleNo string) ([]ResBrief, error) {
 
 func ListAllResBriefs(rail miso.Rail) ([]ResBrief, error) {
 	var res []ResBrief
-	_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).Raw("select name, code from resource").Scan(&res)
+	_, err := dbquery.NewQuery(rail).
+		Table("resource").
+		SelectCols(ResBrief{}).
+		Scan(&res)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +288,11 @@ func ListAllResBriefs(rail miso.Rail) ([]ResBrief, error) {
 func ListResources(rail miso.Rail, req ListResReq) (ListResResp, error) {
 	var resources []WRes
 	_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
-		Raw("select * from resource order by id desc limit ?, ?", req.Paging.GetOffset(), req.Paging.GetLimit()).
+		Table("resource").
+		SelectCols(WRes{}).
+		OrderDesc("id").
+		Limit(req.Paging.GetLimit()).
+		Offset(req.Paging.GetOffset()).
 		Scan(&resources)
 	if err != nil {
 		return ListResResp{}, err
@@ -294,15 +301,12 @@ func ListResources(rail miso.Rail, req ListResReq) (ListResResp, error) {
 		resources = []WRes{}
 	}
 
-	var count int
-	_, err = dbquery.NewQuery(rail, mysql.GetMySQL()).
-		Raw("select count(*) from resource").
-		Scan(&count)
+	count, err := dbquery.NewQuery(rail, mysql.GetMySQL()).Count()
 	if err != nil {
 		return ListResResp{}, err
 	}
 
-	return ListResResp{Paging: miso.RespPage(req.Paging, count), Payload: resources}, nil
+	return ListResResp{Paging: miso.RespPage(req.Paging, int(count)), Payload: resources}, nil
 }
 
 func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
@@ -315,17 +319,18 @@ func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 				Eq("path_no", req.PathNo).
 				UpdateAny()
 			if err != nil {
-				return miso.ErrUnknownError.Wrap(err)
+				return err
 			}
 
-			var id int
-			n, err := dbquery.NewQuery(rail, tx).
-				Raw(`SELECT id FROM path_resource WHERE path_no = ? AND res_code = ? LIMIT 1`, req.PathNo, req.ResCode).
-				Scan(&id)
+			ok, err := dbquery.NewQuery(rail, tx).
+				Table("path_resource").
+				Eq("path_no", req.PathNo).
+				Eq("res_code", req.ResCode).
+				HasAny()
 			if err != nil {
-				return miso.ErrUnknownError.Wrap(err)
+				return err
 			}
-			if n < 1 {
+			if !ok {
 				err = dbquery.NewQuery(rail, tx).
 					Table("path_resource").
 					CreateAny(struct {
@@ -362,15 +367,15 @@ func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user common.User
 	req.Code = strings.TrimSpace(req.Code)
 
 	_, e := lockResourceGlobal(rail, func() (any, error) {
-		var id int
-		_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
-			Raw(`select id from resource where code = ? limit 1`, req.Code).
-			Scan(&id)
+		ok, err := dbquery.NewQuery(rail).
+			Table("resource").
+			Eq("code", req.Code).
+			HasAny()
 		if err != nil {
 			return nil, err
 		}
 
-		if id > 0 {
+		if ok {
 			rail.Debugf("Resource '%s' (%s) already exist", req.Code, req.Name)
 			return nil, nil
 		}
@@ -630,14 +635,15 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 			}
 
 			// check if role-resource relation exists
-			var id int
-			_, err = dbquery.NewQuery(rail, mysql.GetMySQL()).
-				Raw(`select id from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode).
-				Scan(&id)
+			ok, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
+				Table("role_resource").
+				Eq("role_no", req.RoleNo).
+				Eq("res_code", req.ResCode).
+				HasAny()
 			if err != nil {
 				return false, err
 			}
-			if id > 0 { // relation exists already
+			if ok { // relation exists already
 				return false, nil
 			}
 
@@ -712,15 +718,16 @@ func ListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 		roles = []WRole{}
 	}
 
-	var count int
-	err = dbquery.NewQuery(rail).Raw("select count(*) from role").ScanVal(&count)
+	count, err := dbquery.NewQuery(rail).
+		Table("role").
+		Count()
 	if err != nil {
 		return ListRoleResp{}, err
 	}
 
 	return ListRoleResp{
 		Payload: roles,
-		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count},
+		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: int(count)},
 	}, nil
 }
 
@@ -935,7 +942,7 @@ func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 		paths = append(paths, public...)
 	}
 
-	var pai []PathAccessInfo = slutil.MapTo[ExtendedPathRes, PathAccessInfo](paths,
+	var pai []PathAccessInfo = slutil.MapTo(paths,
 		func(t ExtendedPathRes) PathAccessInfo {
 			return PathAccessInfo{
 				ResCode: t.ResCode,
@@ -967,7 +974,7 @@ func LoadPublicAccessCache(rail miso.Rail) error {
 		return nil
 	}
 
-	var pai []PathAccessInfo = slutil.MapTo[ExtendedPathRes, PathAccessInfo](public,
+	var pai []PathAccessInfo = slutil.MapTo(public,
 		func(t ExtendedPathRes) PathAccessInfo {
 			return PathAccessInfo{
 				ResCode: t.ResCode,

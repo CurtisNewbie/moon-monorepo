@@ -91,16 +91,17 @@ CREATE TABLE `path_resource` (
 
 CREATE TABLE `resource` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
-  `code` varchar(128) NOT NULL DEFAULT '' COMMENT 'resource code',
-  `name` varchar(128) NOT NULL DEFAULT '' COMMENT 'resource name',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
-  `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
-  `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
+  `name` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource name',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
+  `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated at',
+  `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'record deleted',
+  `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
   PRIMARY KEY (`id`),
   KEY `code` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Resources';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Resources'
 
 CREATE TABLE `role` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
