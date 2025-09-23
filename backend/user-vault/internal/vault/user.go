@@ -56,10 +56,10 @@ type User struct {
 	RoleNo       string
 	RoleName     string
 	IsDisabled   int
-	CreateTime   util.ETime
-	CreateBy     string `gorm:"column:created_by"`
-	UpdateTime   util.ETime
-	UpdateBy     string `gorm:"column:updated_by"`
+	CreateTime   util.ETime `gorm:"column:created_at"`
+	CreateBy     string     `gorm:"column:created_by"`
+	UpdateTime   util.ETime `gorm:"column:updated_at"`
+	UpdateBy     string     `gorm:"column:updated_by"`
 	Deleted      bool
 }
 
@@ -418,7 +418,6 @@ func ReviewUserRegistration(rail miso.Rail, db *gorm.DB, req AdminReviewUserReq)
 				rail.Errorf("Failed to find user, id = %v %v", req.UserId, err)
 				return err
 			}
-
 			if n < 1 {
 				return errs.NewErrf("User not found").WithInternalMsg("User %v not found", req.UserId)
 			}

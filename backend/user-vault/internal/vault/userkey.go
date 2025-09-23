@@ -63,7 +63,7 @@ type ListedUserKey struct {
 	SecretKey      string     `json:"secretKey"`
 	Name           string     `json:"name"`
 	ExpirationTime util.ETime `json:"expirationTime"`
-	CreateTime     util.ETime `json:"createTime"`
+	CreateTime     util.ETime `json:"createTime" gorm:"column:created_at"`
 }
 
 func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.User) (miso.PageRes[ListedUserKey], error) {
