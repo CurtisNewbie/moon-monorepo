@@ -15,7 +15,7 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451
 	github.com/curtisnewbie/mini-fstore v0.0.0-00010101000000-000000000000
-	github.com/curtisnewbie/miso v0.3.1-0.20250919061847-336dbf957d95
+	github.com/curtisnewbie/miso v0.3.2-0.20250923095955-901964829234
 	github.com/curtisnewbie/user-vault v0.0.0-00010101000000-000000000000
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
@@ -44,6 +44,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/google/gops v0.3.28 // indirect
 	github.com/hashicorp/consul/api v1.15.3 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.2.0 // indirect
