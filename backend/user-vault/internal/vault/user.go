@@ -344,8 +344,22 @@ type ListUserReq struct {
 	Paging     miso.Paging `json:"paging"`
 }
 
-func ListUsers(rail miso.Rail, db *gorm.DB, req ListUserReq) (miso.PageRes[api.UserInfo], error) {
-	return dbquery.NewPagedQuery[api.UserInfo](db).
+type UserInfo struct {
+	Id           int
+	Username     string
+	RoleName     string
+	RoleNo       string
+	UserNo       string
+	ReviewStatus string
+	IsDisabled   int
+	CreateTime   util.ETime `gorm:"column:created_at"`
+	CreateBy     string     `gorm:"column:created_by"`
+	UpdateTime   util.ETime `gorm:"column:updated_at"`
+	UpdateBy     string     `gorm:"column:updated_by"`
+}
+
+func ListUsers(rail miso.Rail, db *gorm.DB, req ListUserReq) (miso.PageRes[UserInfo], error) {
+	return dbquery.NewPagedQuery[UserInfo](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("u.*, r.name as role_name").Order("u.id DESC")
 		}).
@@ -646,9 +660,9 @@ func GetTokenUser(rail miso.Rail, db *gorm.DB, token string) (UserInfoBrief, err
 	}, nil
 }
 
-func ItnFindUserInfo(rail miso.Rail, db *gorm.DB, req api.FindUserReq) (api.UserInfo, error) {
+func ItnFindUserInfo(rail miso.Rail, db *gorm.DB, req api.FindUserReq) (UserInfo, error) {
 
-	var ui api.UserInfo
+	var ui UserInfo
 	q := dbquery.NewQuery(rail, db).
 		Table("user").
 		Joins("left join role on user.role_no = role.role_no").
@@ -709,8 +723,8 @@ func ItnFindNameOfUserNo(rail miso.Rail, db *gorm.DB, req api.FetchNameByUserNoR
 	return api.FetchUsernamesRes{UserNoToUsername: mapping}, nil
 }
 
-func ItnFindUsersWithRole(rail miso.Rail, db *gorm.DB, req api.FetchUsersWithRoleReq) ([]api.UserInfo, error) {
-	var users []api.UserInfo
+func ItnFindUsersWithRole(rail miso.Rail, db *gorm.DB, req api.FetchUsersWithRoleReq) ([]UserInfo, error) {
+	var users []UserInfo
 	_, err := dbquery.NewQuery(rail, db).
 		Table("user").
 		Where("role_no = ?", req.RoleNo).
@@ -721,8 +735,8 @@ func ItnFindUsersWithRole(rail miso.Rail, db *gorm.DB, req api.FetchUsersWithRol
 	return users, nil
 }
 
-func FindUserWithRes(rail miso.Rail, db *gorm.DB, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
-	var users []api.UserInfo
+func FindUserWithRes(rail miso.Rail, db *gorm.DB, req api.FetchUserWithResourceReq) ([]UserInfo, error) {
+	var users []UserInfo
 	_, err := dbquery.NewQuery(rail, db).Raw(`
 		select u.*, r.name role_name from user u
 		left join role r on u.role_no = r.role_no

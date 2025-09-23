@@ -120,7 +120,7 @@ func ApiAdminAddUser(inb *miso.Inbound, req vault.AddUserParam) (any, error) {
 // misoapi-http: POST /open/api/user/list
 // misoapi-desc: Admin list users
 // misoapi-resource: ref(ResourceManagerUser)
-func ApiAdminListUsers(inb *miso.Inbound, req vault.ListUserReq) (miso.PageRes[api.UserInfo], error) {
+func ApiAdminListUsers(inb *miso.Inbound, req vault.ListUserReq) (miso.PageRes[vault.UserInfo], error) {
 	return vault.ListUsers(inb.Rail(), mysql.GetMySQL(), req)
 }
 
@@ -380,7 +380,7 @@ func ApiAdminUpdatePath(inb *miso.Inbound, req vault.UpdatePathReq) (any, error)
 
 // misoapi-http: POST /remote/user/info
 // misoapi-desc: Fetch user info
-func ApiFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (api.UserInfo, error) {
+func ApiFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (vault.UserInfo, error) {
 	rail := inb.Rail()
 	return vault.ItnFindUserInfo(rail, mysql.GetMySQL(), req)
 }
@@ -418,14 +418,14 @@ func ApiFetchUsernamesByNosEp(inb *miso.Inbound, req api.FetchNameByUserNoReq) (
 
 // misoapi-http: POST /remote/user/list/with-role
 // misoapi-desc: Fetch users with the role_no
-func ApiFindUserWithRoleEp(inb *miso.Inbound, req api.FetchUsersWithRoleReq) ([]api.UserInfo, error) {
+func ApiFindUserWithRoleEp(inb *miso.Inbound, req api.FetchUsersWithRoleReq) ([]vault.UserInfo, error) {
 	rail := inb.Rail()
 	return vault.ItnFindUsersWithRole(rail, mysql.GetMySQL(), req)
 }
 
 // misoapi-http: POST /remote/user/list/with-resource
 // misoapi-desc: Fetch users that have access to the resource
-func ApiFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceReq) ([]api.UserInfo, error) {
+func ApiFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceReq) ([]vault.UserInfo, error) {
 	rail := inb.Rail()
 	return vault.FindUserWithRes(rail, mysql.GetMySQL(), req)
 }

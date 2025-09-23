@@ -352,12 +352,12 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/user-vault/api.UserInfo]) response data
+    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/vault.UserInfo]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]api.UserInfo) payload values in current page
+      - "payload": ([]vault.UserInfo) payload values in current page
         - "id": (int) 
         - "username": (string) 
         - "roleName": (string) 
@@ -3684,7 +3684,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]api.UserInfo) response data
+    - "data": ([]vault.UserInfo) response data
       - "id": (int) 
       - "username": (string) 
       - "roleName": (string) 
@@ -3808,7 +3808,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]api.UserInfo) response data
+    - "data": ([]vault.UserInfo) response data
       - "id": (int) 
       - "username": (string) 
       - "roleName": (string) 

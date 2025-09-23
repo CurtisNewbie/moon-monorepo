@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	UserWithResCache = redis.NewRCache[[]api.UserInfo]("user-vault:users-with-res:cache", redis.RCacheConfig{
+	UserWithResCache = redis.NewRCache[[]vault.UserInfo]("user-vault:users-with-res:cache", redis.RCacheConfig{
 		Exp: time.Second * 30,
 	})
 )
@@ -33,7 +33,7 @@ func InitPipeline(rail miso.Rail) error {
 			return nil
 		}
 
-		users, err := UserWithResCache.GetValElse(rail, evt.ResCode, func() ([]api.UserInfo, error) {
+		users, err := UserWithResCache.GetValElse(rail, evt.ResCode, func() ([]vault.UserInfo, error) {
 			users, err := vault.FindUserWithRes(rail, mysql.GetMySQL(), api.FetchUserWithResourceReq{ResourceCode: evt.ResCode})
 			if err != nil {
 				rail.Errorf("failed to FindUserWithRes, %v", err)

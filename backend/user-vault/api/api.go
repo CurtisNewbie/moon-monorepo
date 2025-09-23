@@ -16,10 +16,10 @@ type UserInfo struct {
 	UserNo       string
 	ReviewStatus string
 	IsDisabled   int
-	CreateTime   util.ETime `gorm:"column:created_at"`
-	CreateBy     string     `gorm:"column:created_by"`
-	UpdateTime   util.ETime `gorm:"column:updated_at"`
-	UpdateBy     string     `gorm:"column:updated_by"`
+	CreateTime   util.ETime
+	CreateBy     string
+	UpdateTime   util.ETime
+	UpdateBy     string
 }
 
 type FetchNameByUserNoReq struct {
