@@ -120,9 +120,9 @@ type WRes struct {
 	Code       string     `json:"code"`
 	Name       string     `json:"name"`
 	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string     `json:"createBy"`
+	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
 	UpdateTime util.ETime `json:"updateTime" gorm:"column:updated_at"`
-	UpdateBy   string     `json:"updateBy"`
+	UpdateBy   string     `json:"updateBy" gorm:"column:updated_by"`
 }
 
 type ListPathResp struct {
@@ -164,8 +164,8 @@ type ListedRoleRes struct {
 	Id         int        `json:"id"`
 	ResCode    string     `json:"resCode"`
 	ResName    string     `json:"resName"`
-	CreateTime util.ETime `json:"createTime"`
-	CreateBy   string     `json:"createBy"`
+	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
+	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
 }
 
 type GenResScriptReq struct {
@@ -301,7 +301,7 @@ func ListResources(rail miso.Rail, req ListResReq) (ListResResp, error) {
 		resources = []WRes{}
 	}
 
-	count, err := dbquery.NewQuery(rail, mysql.GetMySQL()).Count()
+	count, err := dbquery.NewQuery(rail).Table("resource").Count()
 	if err != nil {
 		return ListResResp{}, err
 	}

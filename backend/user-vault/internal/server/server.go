@@ -35,7 +35,8 @@ func BootstrapServer(args []string) {
 		vault.ScheduleTasks,
 		web.RegisterRoutes,
 		postbox.InitPipeline,
-		postbox.SubscribeBinlogChanges)
+		postbox.SubscribeBinlogChanges,
+	)
 
 	miso.PostServerBootstrap(vault.CreateMonitoredServiceWatches)
 	miso.BootstrapServer(args)
