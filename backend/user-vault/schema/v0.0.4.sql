@@ -38,6 +38,8 @@ alter table user_vault.access_log add column `trace_id` varchar(32) NOT NULL DEF
   add key username_idx (username, deleted);
 
 alter table user_vault.path add column `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
+  change column `create_time` `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
+  change column `update_time` `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated at',
   change column `create_by` `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
   change column `update_by` `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
   change column `is_del` `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'record deleted';

@@ -46,18 +46,18 @@ const (
 )
 
 type ExtendedPathRes struct {
-	Id         int    // id
-	Pgroup     string // path group
-	PathNo     string // path no
-	ResCode    string // resource code
-	Desc       string // description
-	Url        string // url
-	Method     string // http method
-	Ptype      string // path type: PROTECTED, PUBLIC
-	CreateTime util.ETime
-	CreateBy   string `gorm:"column:created_by"`
-	UpdateTime util.ETime
-	UpdateBy   string `gorm:"column:updated_by"`
+	Id         int        // id
+	Pgroup     string     // path group
+	PathNo     string     // path no
+	ResCode    string     // resource code
+	Desc       string     // description
+	Url        string     // url
+	Method     string     // http method
+	Ptype      string     // path type: PROTECTED, PUBLIC
+	CreateTime util.ETime `gorm:"column:created_at"`
+	CreateBy   string     `gorm:"column:created_by"`
+	UpdateTime util.ETime `gorm:"column:updated_at"`
+	UpdateBy   string     `gorm:"column:updated_by"`
 }
 
 type WRole struct {
@@ -109,9 +109,9 @@ type WPath struct {
 	Desc       string     `json:"desc"`
 	Url        string     `json:"url"`
 	Ptype      string     `json:"ptype" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	CreateTime util.ETime `json:"createTime"`
+	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
 	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
-	UpdateTime util.ETime `json:"updateTime"`
+	UpdateTime util.ETime `json:"updateTime" gorm:"column:updated_at"`
 	UpdateBy   string     `json:"updateBy" gorm:"column:updated_by"`
 }
 
