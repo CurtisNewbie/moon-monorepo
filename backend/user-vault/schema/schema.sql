@@ -78,12 +78,13 @@ CREATE TABLE `path` (
 CREATE TABLE `path_resource` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `path_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'path no',
-  `res_code` varchar(128) NOT NULL DEFAULT '' COMMENT 'resource code',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
-  `create_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'when the record is updated',
-  `update_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who updated this record',
-  `is_del` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0-normal, 1-deleted',
+  `res_code` varchar(32) NOT NULL DEFAULT '' COMMENT 'resource code',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
+  `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated at',
+  `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'record deleted',
+  `trace_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'trace_id',
   PRIMARY KEY (`id`),
   KEY `path_no` (`path_no`,`res_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Path Resource';

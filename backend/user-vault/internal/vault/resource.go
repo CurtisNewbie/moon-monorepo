@@ -320,13 +320,18 @@ func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 
 			var id int
 			n, err := dbquery.NewQuery(rail, tx).
-				Raw(`SELECT id FROM path_resource WHERE path_no = ? AND res_code = ? LIMIT 1`, req.PathNo, req.ResCode).Scan(&id)
+				Raw(`SELECT id FROM path_resource WHERE path_no = ? AND res_code = ? LIMIT 1`, req.PathNo, req.ResCode).
+				Scan(&id)
 			if err != nil {
 				return miso.ErrUnknownError.Wrap(err)
 			}
 			if n < 1 {
-				_, err = dbquery.NewQuery(rail, tx).
-					Exec(`INSERT INTO path_resource (path_no, res_code) VALUES (?, ?)`, req.PathNo, req.ResCode)
+				err = dbquery.NewQuery(rail, tx).
+					Table("path_resource").
+					CreateAny(struct {
+						PathNo  string
+						ResCode string
+					}{req.PathNo, req.ResCode})
 				return err
 			}
 			return nil
