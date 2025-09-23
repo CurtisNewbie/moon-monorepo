@@ -666,7 +666,7 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 func ListRoleRes(ec miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
 	var res []ListedRoleRes
 	tx := mysql.GetMySQL().
-		Raw(`select rr.id, rr.res_code, rr.create_time, rr.create_by, r.name 'res_name' from role_resource rr
+		Raw(`select rr.id, rr.res_code, rr.created_at, rr.created_by, r.name 'res_name' from role_resource rr
 			left join resource r on rr.res_code = r.code
 			where rr.role_no = ? order by rr.id desc limit ?, ?`, req.RoleNo, req.Paging.GetOffset(), req.Paging.GetLimit()).
 		Scan(&res)
