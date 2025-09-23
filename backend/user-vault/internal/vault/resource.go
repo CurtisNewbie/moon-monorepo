@@ -348,8 +348,10 @@ func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
 func GetRoleInfo(rail miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) {
 	resp, err := roleInfoCache.GetValElse(rail, req.RoleNo, func() (api.RoleInfoResp, error) {
 		var resp api.RoleInfoResp
-		n, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
-			Raw("select role_no, name from role where role_no = ?", req.RoleNo).
+		n, err := dbquery.NewQuery(rail).
+			Table("role").
+			Eq("role_no", req.RoleNo).
+			SelectCols(resp).
 			Scan(&resp)
 		if err != nil {
 			return resp, err
@@ -507,29 +509,29 @@ func BindPathRes(rail miso.Rail, req BindPathResReq) error {
 			db := mysql.GetMySQL()
 
 			// check if resource exist
-			var resId int
-			_, err := dbquery.NewQuery(rail, db).
-				Raw(`SELECT id FROM resource WHERE code = ?`, req.ResCode).
-				Scan(&resId)
+			ok, err := dbquery.NewQuery(rail, db).
+				Table("resource").Eq("code", req.ResCode).
+				HasAny()
 			if err != nil {
 				return err
 			}
-			if resId < 1 {
+			if !ok {
 				rail.Errorf("Resource %v not found", req.ResCode)
 				return errs.NewErrf("Resource not found")
 			}
 
 			// check if the path is already bound to current resource
-			var prid int
-			_, err = dbquery.NewQuery(rail, db).
-				Raw(`SELECT id FROM path_resource WHERE path_no = ? AND res_code = ? LIMIT 1`, req.PathNo, req.ResCode).
-				Scan(&prid)
+			ok, err = dbquery.NewQuery(rail, db).
+				Table("path_resource").
+				Eq("path_no", req.PathNo).
+				Eq("res_code", req.ResCode).
+				HasAny()
 
 			if err != nil {
 				rail.Errorf("Failed to bind path %v to resource %v, %v", req.PathNo, req.ResCode, err)
 				return err
 			}
-			if prid > 0 {
+			if ok {
 				rail.Debugf("Path %v already bound to resource %v", req.PathNo, req.ResCode)
 				return err
 			}
@@ -578,18 +580,16 @@ func ListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
 		return ListPathResp{}, err
 	}
 
-	var count int
-	err = applyCond(dbquery.NewQuery(rail).
-		Table("path p").
-		Select("COUNT(*)")).
-		ScanVal(&count)
+	count, err := applyCond(dbquery.NewQuery(rail).
+		Table("path p")).
+		Count()
 	if err != nil {
 		return ListPathResp{}, err
 	}
 
 	return ListPathResp{
 		Payload: paths,
-		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count},
+		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: int(count)},
 	}, nil
 }
 
