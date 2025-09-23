@@ -64,10 +64,10 @@ type WRole struct {
 	Id         int        `json:"id"`
 	RoleNo     string     `json:"roleNo"`
 	Name       string     `json:"name"`
-	CreateTime util.ETime `json:"createTime"`
-	CreateBy   string     `json:"createBy"`
-	UpdateTime util.ETime `json:"updateTime"`
-	UpdateBy   string     `json:"updateBy"`
+	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
+	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
+	UpdateTime util.ETime `json:"updateTime" gorm:"column:updated_at"`
+	UpdateBy   string     `json:"updateBy" gorm:"column:updated_by"`
 }
 
 type ResBrief struct {
