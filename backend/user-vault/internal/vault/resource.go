@@ -493,7 +493,7 @@ func DeletePath(rail miso.Rail, req DeletePathReq) error {
 func UnbindPathRes(rail miso.Rail, req UnbindPathResReq) error {
 	req.PathNo = strings.TrimSpace(req.PathNo)
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
-		_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
+		_, err := dbquery.NewQuery(rail).
 			Exec(`delete from path_resource where path_no = ?`, req.PathNo)
 		return nil, err
 	})
@@ -595,7 +595,7 @@ func ListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
 
 func AddRole(rail miso.Rail, req AddRoleReq, user common.User) error {
 	_, e := redis.RLockRun(rail, "user-vault:role:add"+req.Name, func() (any, error) {
-		return nil, dbquery.NewQuery(rail, mysql.GetMySQL()).
+		return nil, dbquery.NewQuery(rail).
 			Table("role").
 			CreateAny(struct {
 				RoleNo string
@@ -624,7 +624,7 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 		return lockResourceGlobal(rail, func() (any, error) {
 			// check if resource exist
 			var resId int
-			_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
+			_, err := dbquery.NewQuery(rail).
 				Raw(`select id from resource where code = ?`, req.ResCode).
 				Scan(&resId)
 			if err != nil {
@@ -635,7 +635,7 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 			}
 
 			// check if role-resource relation exists
-			ok, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
+			ok, err := dbquery.NewQuery(rail).
 				Table("role_resource").
 				Eq("role_no", req.RoleNo).
 				Eq("res_code", req.ResCode).
@@ -655,50 +655,57 @@ func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User)
 				RoleNo:  req.RoleNo,
 				ResCode: req.ResCode,
 			}
-			return true, mysql.GetMySQL().
+			err = dbquery.NewQuery(rail).
 				Table("role_resource").
-				Create(&rr).Error
+				CreateAny(&rr)
+			return true, err
 		})
 	})
 	return e
 }
 
-func ListRoleRes(ec miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
+func ListRoleRes(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
 	var res []ListedRoleRes
-	tx := mysql.GetMySQL().
-		Raw(`select rr.id, rr.res_code, rr.created_at, rr.created_by, r.name 'res_name' from role_resource rr
-			left join resource r on rr.res_code = r.code
-			where rr.role_no = ? order by rr.id desc limit ?, ?`, req.RoleNo, req.Paging.GetOffset(), req.Paging.GetLimit()).
-		Scan(&res)
+	err := dbquery.NewQuery(rail).
+		Table("role_resource rr").
+		Joins("LEFT JOIN resource r on rr.res_code = r.code").
+		Select(`rr.id, rr.res_code, rr.created_at, rr.created_by, r.name 'res_name'`).
+		Eq("rr.role_no", req.RoleNo).
+		OrderDesc("rr.id").
+		Offset(req.Paging.GetOffset()).
+		Limit(req.Paging.GetLimit()).
+		ScanVal(&res)
 
-	if tx.Error != nil {
-		return ListRoleResResp{}, tx.Error
+	if err != nil {
+		return ListRoleResResp{}, err
 	}
 
 	if res == nil {
 		res = []ListedRoleRes{}
 	}
 
-	var count int
-	tx = mysql.GetMySQL().
-		Raw(`select count(*) from role_resource rr
-			left join resource r on rr.res_code = r.code
-			where rr.role_no = ?`, req.RoleNo).
-		Scan(&count)
+	count, err := dbquery.NewQuery(rail).
+		Table("role_resource rr").
+		Joins("LEFT JOIN resource r on rr.res_code = r.code").
+		Eq("rr.role_no", req.RoleNo).
+		Count()
 
-	if tx.Error != nil {
-		return ListRoleResResp{}, tx.Error
+	if err != nil {
+		return ListRoleResResp{}, err
 	}
 
 	return ListRoleResResp{Payload: res,
-		Paging: miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: count}}, nil
+		Paging: miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: int(count)}}, nil
 }
 
 func ListAllRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
 	var roles []RoleBrief
-	tx := mysql.GetMySQL().Raw("select role_no, name from role").Scan(&roles)
-	if tx.Error != nil {
-		return nil, tx.Error
+	err := dbquery.NewQuery(rail).
+		Table("role").
+		SelectCols(RoleBrief{}).
+		ScanVal(&roles)
+	if err != nil {
+		return nil, err
 	}
 	if roles == nil {
 		roles = []RoleBrief{}
@@ -709,7 +716,10 @@ func ListAllRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
 func ListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
 	var roles []WRole
 	err := dbquery.NewQuery(rail).
-		Raw("select * from role order by id desc limit ?, ?", req.Paging.GetOffset(), req.Paging.GetLimit()).
+		Table("role").
+		SelectCols(WRole{}).
+		OrderDesc("id").
+		AtPage(req.Paging).
 		ScanVal(&roles)
 	if err != nil {
 		return ListRoleResp{}, err
@@ -804,7 +814,10 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 
 func listRoleNos(rail miso.Rail) ([]string, error) {
 	var ern []string
-	err := dbquery.NewQuery(rail).Raw("select role_no from role").ScanVal(&ern)
+	err := dbquery.NewQuery(rail).
+		Table("role").
+		Select("role_no").
+		ScanVal(&ern)
 	if err != nil {
 		return nil, err
 	}
