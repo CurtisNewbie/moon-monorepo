@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.0
 	github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451
-	github.com/curtisnewbie/miso v0.3.2-0.20250923095955-901964829234
+	github.com/curtisnewbie/miso v0.3.2-beta.1
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.6.0
