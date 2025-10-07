@@ -44,7 +44,8 @@
                                         <i class="bi bi-folder2-open"></i>
                                     </button>
                                     <span (click)="selectDir(node)"
-                                        [ngStyle]="{ 'color' : dirTree.matchNode(node, searchDirTreeName) ? 'yellow' : null }">/{{node.name}}</span>
+                                        style="text-align: left; white-space: nowrap; overflow: scroll;"
+                                        [ngStyle]="{ 'color' : dirTree.matchNode(node, searchDirTreeName) ? 'yellow' : null, 'max-width': env.isMobile() ? '200px': '' }">/{{node.name}}</span>
                                 </div>
                                 <ul [class.tree-invisible]="!dirTreeControl.isExpanded(node)">
                                     <ng-container matTreeNodeOutlet></ng-container>

@@ -36,7 +36,7 @@ import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
                 <button *ngIf="!dirTree.treeHasChild(0, node)" mat-icon-button>
                   <i class="bi bi-folder2-open"></i>
                 </button>
-                <button mat-icon-button (click)="dirTree.goToFile(node)">
+                <button mat-icon-button (click)="dirTree.goToFile(node)" style="text-align: left">
                   /{{ node.name }}
                 </button>
               </div>
