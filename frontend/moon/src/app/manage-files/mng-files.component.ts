@@ -89,8 +89,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   /** expanded fileInfo */
   curr: FileInfo;
-  /** expanded fileInfo's id or -1 */
-  currId: number = -1;
 
   /** list of files fetched */
   fileInfoList: FileInfo[] = [];
@@ -105,9 +103,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   idEquals = isIdEqual;
 
   selectExpanded = (row: FileInfo) => {
-    // if (this.env.isMobile()) return;
-    this.curr = this.currId > -1 && row.id == this.currId ? null : { ...row };
-    this.currId = this.curr ? this.curr.id : -1;
+    this.curr = this.curr != null && row.id == this.curr.id ? null : { ...row };
   };
 
   isEnterKeyPressed = isEnterKey;
@@ -207,26 +203,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnDestroy(): void {}
 
   ngOnInit() {
-    window.addEventListener("keydown", (evt) => {
-      if (this.inFolderNo) {
-        return;
-      }
+    this.orderByName = true;
+    this.registerSelectAllEventHandler();
+    this.parseRouteParam();
+  }
 
-      if (
-        this.searchFilenameInput &&
-        this.searchFilenameInput.nativeElement == document.activeElement
-      ) {
-        return;
-      }
-
-      if (evt.key == "a" && evt.metaKey) {
-        evt.preventDefault();
-        for (let f of this.fileInfoList) {
-          this.bookmarkFile(f);
-        }
-      }
-    });
-
+  parseRouteParam() {
     this.route.paramMap.subscribe((params) => {
       // vfolder
       this.inFolderNo = params.get("folderNo");
@@ -269,6 +251,28 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             this.fetchFileInfoList();
             // console.log("ngOnInit.fetchFileInfoList", time())
           }
+        }
+      }
+    });
+  }
+
+  registerSelectAllEventHandler() {
+    window.addEventListener("keydown", (evt) => {
+      if (this.inFolderNo) {
+        return;
+      }
+
+      if (
+        this.searchFilenameInput &&
+        this.searchFilenameInput.nativeElement == document.activeElement
+      ) {
+        return;
+      }
+
+      if (evt.key == "a" && evt.metaKey) {
+        evt.preventDefault();
+        for (let f of this.fileInfoList) {
+          this.bookmarkFile(f);
         }
       }
     });
@@ -452,7 +456,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     fetchFileInfoList: boolean = true
   ): void {
     this.curr = null;
-    this.currId = -1;
 
     this.searchParam = {};
     if (setFirstPage && !this.pagingController.atFirstPage()) {
@@ -513,7 +516,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
               { duration: 3000 }
             );
             this.curr = null;
-            this.currId = -1;
             this.fetchFileInfoList();
           });
       });
@@ -564,7 +566,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         complete: () => {
           this.fetchFileInfoList();
           this.curr = null;
-          this.currId = 0;
         },
       });
   }
@@ -1058,7 +1059,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           this.snackBar.open(`Unpacking ${fi.name}, please be patient.`, "ok", {
             duration: 3000,
           });
-          this.currId = -1;
+          this.curr = null;
         },
       });
     return false;
@@ -1148,7 +1149,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     } else {
       this.fileBookmark.del(f.uuid);
     }
-    this.currId = -1;
+    this.curr = null;
   }
 
   showFileBookmark() {

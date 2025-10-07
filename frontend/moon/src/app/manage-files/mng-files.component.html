@@ -263,7 +263,7 @@
                 <td mat-cell *matCellDef="let u" [attr.colspan]="displayedColumns.length">
                     <ng-container *ngIf="curr != null && !inFolderNo">
                         <div class="element-detail"
-                            [@detailExpand]="(currId > -1 && u.id == currId) ? 'expanded' : 'collapsed'">
+                            [@detailExpand]="(curr && u.id == curr.id) ? 'expanded' : 'collapsed'">
                             <div class="container-fluid m-4">
                                 <div class="d-flex align-items-center flex-wrap">
                                     <div>
@@ -320,7 +320,7 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
-                [class.expanded-row]="currId > -1 && row.id == currId" (click)="onRowClicked($event, row, i)"
+                [class.expanded-row]="curr != null && row.id == curr.id" (click)="onRowClicked($event, row, i)"
                 matTooltipShowDelay="1000"
                 [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
             </tr>
