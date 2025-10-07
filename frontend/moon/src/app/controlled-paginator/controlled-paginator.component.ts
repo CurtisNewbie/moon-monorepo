@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { isEnterKey } from "src/common/condition";
+import { Env } from "src/common/env-util";
 import { Paging, PagingConst } from "src/common/paging";
 
 @Component({
@@ -32,7 +33,7 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   @Output("pageChanged")
   pageChangedEmitter = new EventEmitter<Paging>();
 
-  constructor() {}
+  constructor(private env: Env) {}
 
   ngAfterViewInit(): void {
     // first page
@@ -46,10 +47,16 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
       this.goto = String(evt.pageIndex + 1);
       this.pageChangedEmitter.emit(this.paging);
     });
+
+    if (this.env.isMobile()) {
+      this.PAGE_LIMIT_OPTIONS = [5, 10, 30];
+      this.paging.limit = this.PAGE_LIMIT_OPTIONS[0];
+    }
   }
 
   onGoToPageKeyUp(evt) {
     if (!this.goto) {
+      this.goto = String(1);
       return;
     }
     let n = parseInt(this.goto);

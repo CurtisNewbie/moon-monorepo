@@ -29,7 +29,7 @@ export class ManageRoleComponent implements OnInit {
   newRoleDialog = false;
   newRoleName = "";
   readonly tabcol = this.env.isMobile()
-    ? ["roleNo", "name", "updateTime"]
+    ? ["name", "updateTime"]
     : ["roleNo", "name", "createBy", "createTime", "updateBy", "updateTime"];
   roles: ERole[] = [];
 

@@ -21,7 +21,7 @@
 </mat-form-field>
 
 
-<div class="d-grid gap-2 d-flex justify-content-end mb-3">
+<div class="d-grid gap-2 d-flex flex-wrap justify-content-end mb-3">
     <button mat-raised-button class="m-2" *ngIf="isOneSelected" (click)="selectFolder(selected[0])">Open Folder</button>
     <button mat-raised-button class="m-2" *ngIf="isOneSelected && isOwner(selected[0])"
         (click)="popToGrantAccess(selected[0])">List Granted Access</button>

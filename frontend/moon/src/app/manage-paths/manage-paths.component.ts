@@ -6,6 +6,7 @@ import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { Env } from "src/common/env-util";
 
 export interface CreatePathReq {
   type?: string; // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
@@ -58,16 +59,23 @@ export class ManagePathsComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
-  readonly tabcol = [
-    "id",
-    "pgroup",
-    "url",
-    "method",
-    "ptype",
-    "desc",
-    "createBy",
-    "createTime",
-  ];
+  readonly tabcol = this.env.isMobile()
+    ? [
+        "pgroup",
+        "method",
+        "url",
+        "ptype",
+      ]
+    : [
+        "id",
+        "pgroup",
+        "method",
+        "url",
+        "ptype",
+        "desc",
+        "createBy",
+        "createTime",
+      ];
   paths: WPath[] = [];
 
   idEquals = isIdEqual;
@@ -75,6 +83,7 @@ export class ManagePathsComponent implements OnInit {
   isEnter = isEnterKey;
 
   constructor(
+    private env: Env,
     private http: HttpClient,
     private dialog: MatDialog,
     private snackBar: MatSnackBar

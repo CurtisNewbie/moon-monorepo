@@ -32,12 +32,11 @@ export class GalleryComponent implements OnInit {
   readonly DESKTOP_COLUMNS = [
     "galleryNo",
     "name",
-    "userNo",
     "createTime",
     "updateTime",
     "createBy",
   ];
-  readonly MOBILE_COLUMNS = ["name", "userNo"];
+  readonly MOBILE_COLUMNS = ["name", "createBy"];
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;

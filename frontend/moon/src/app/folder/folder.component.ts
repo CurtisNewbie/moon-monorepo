@@ -61,9 +61,6 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
     this.userSub = this.userService.userInfoObservable.subscribe((u) => {
       this.user = u;
     });
-    this.pagingController.PAGE_LIMIT_OPTIONS = [5, 10];
-    this.pagingController.paging.limit =
-      this.pagingController.PAGE_LIMIT_OPTIONS[0];
   }
 
   ngOnDestroy(): void {

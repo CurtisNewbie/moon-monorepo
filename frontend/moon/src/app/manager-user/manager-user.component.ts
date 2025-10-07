@@ -33,7 +33,7 @@ export class ManagerUserComponent implements OnInit {
   readonly USER_IS_NORMAL = UserIsDisabledEnum.NORMAL;
   readonly USER_IS_DISABLED = UserIsDisabledEnum.IS_DISABLED;
   readonly COLUMNS = this.env.isMobile()
-    ? ["name", "role", "status", "reviewStatus"]
+    ? ["name", "role", "status"]
     : [
         "userno",
         "name",

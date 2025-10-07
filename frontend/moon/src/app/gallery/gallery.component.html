@@ -63,37 +63,29 @@
             <td mat-cell *matCellDef="let u"
                 [attr.colspan]="(env.isMobile() ? MOBILE_COLUMNS : DESKTOP_COLUMNS).length">
                 <div class="element-detail" [@detailExpand]="idEquals(u, expandedElement) ? 'expanded' : 'collapsed'">
-                    <div class="row row-cols-lg-auto g-3 align-items-center" *ngIf="expandedElement != null">
-                        <div class="col-12">
-                            <mat-form-field style="width: 100%;">
-                                <mat-label>Name</mat-label>
-                                <input matInput type="text" [(ngModel)]="expandedElement.name"
-                                    [disabled]="!expandedElement.isOwner">
-                            </mat-form-field>
-                        </div>
-                        <ng-container *ngIf="u.isOwner">
-                            <div class="col-12 m-2">
+                    <div class="d-flex flex-wrap gap-2" *ngIf="expandedElement != null">
+                        <mat-form-field style="width: 300px;" class="me-2">
+                            <mat-label>Name</mat-label>
+                            <input matInput type="text" [(ngModel)]="expandedElement.name"
+                                [disabled]="!expandedElement.isOwner">
+                        </mat-form-field>
+                        <div class="d-flex flex-wrap gap-2 mb-3" *ngIf="expandedElement != null">
+                            <ng-container *ngIf="u.isOwner">
                                 <button mat-raised-button (click)="updateGallery(u.galleryNo, u.name)">
                                     Update
                                 </button>
-                            </div>
-                            <div class="col-12 m-2">
                                 <button mat-raised-button (click)="deleteGallery(u.galleryNo, u.name)">
                                     Delete
                                 </button>
-                            </div>
-                            <div class="col-12 m-2">
                                 <button mat-raised-button (click)="popToGrantAccess(u)">
                                     Share
                                 </button>
-                            </div>
-                            <div class="col-12 m-2" *ngIf="u.dirFileKey">
-                                <button mat-raised-button (click)="openFileDir(u)">
-                                    Open Directory
-                                </button>
-                            </div>
-                        </ng-container>
-                        <div class="col-12 m-2">
+                                <ng-container *ngIf="u.dirFileKey">
+                                    <button mat-raised-button (click)="openFileDir(u)">
+                                        Directory
+                                    </button>
+                                </ng-container>
+                            </ng-container>
                             <button mat-raised-button (click)="browse(expandedElement.galleryNo)">
                                 Browse
                             </button>

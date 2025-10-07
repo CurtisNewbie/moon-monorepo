@@ -45,16 +45,16 @@
 
 <!-- search param  -->
 <div>
-    <mat-form-field style="width: 600px">
+    <mat-form-field style="width: 300px">
         <mat-label>Path URL:</mat-label>
         <input matInput type="text" [(ngModel)]="searchPath" (keyup)="isEnter($event) && fetchList()">
         <button *ngIf="searchPath" matSuffix aria-label="Clear" (click)="searchPath=''" class="btn-close">
         </button>
     </mat-form-field>
 
-    <div class="d-flex justify-content-between">
+    <div class="d-flex justify-content-start">
         <div class="d-flex flex-wrap gap-3 align-items-center">
-            <mat-form-field style=" width: 150px;">
+            <mat-form-field style="width: 130px;">
                 <mat-label>Group:</mat-label>
                 <input matInput type="text" [(ngModel)]="searchGroup" (keyup)="isEnter($event) && fetchList()">
                 <button *ngIf="searchGroup" matSuffix aria-label="Clear" (click)="searchGroup=''" class="btn-close">
@@ -71,7 +71,9 @@
                 </mat-select>
             </mat-form-field>
         </div>
+    </div>
 
+    <div class="d-flex justify-content-end">
         <div class="d-grid gap-2 d-flex justify-content-end mb-3">
             <button mat-raised-button class="m-2" (click)="showNewPath= !showNewPath">New
                 Path</button>
@@ -80,7 +82,6 @@
             <button mat-icon-button class="m-1 icon-button-large" (click)="reset()"><i
                     class="bi bi-slash-circle"></i></button>
         </div>
-
     </div>
 </div>
 
