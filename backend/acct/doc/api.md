@@ -49,7 +49,9 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/list' \
     -H 'Content-Type: application/json' \
-    -d '{"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":0,"transTimeStart":0}'
+    -d @- << EOF
+    {"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":0,"transTimeStart":0}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -346,7 +348,9 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/list-statistics' \
     -H 'Content-Type: application/json' \
-    -d '{"aggRange":"","aggType":"","currency":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"aggRange":"","aggType":"","currency":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -473,7 +477,9 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/plot-statistics' \
     -H 'Content-Type: application/json' \
-    -d '{"aggType":"","currency":"","endTime":0,"startTime":0}'
+    -d @- << EOF
+    {"aggType":"","currency":"","endTime":0,"startTime":0}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):

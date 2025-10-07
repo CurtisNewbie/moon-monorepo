@@ -243,7 +243,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/move-to-dir' \
     -H 'Content-Type: application/json' \
-    -d '{"parentFileUuid":"","uuid":""}'
+    -d @- << EOF
+    {"parentFileUuid":"","uuid":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -329,7 +331,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/batch-move-to-dir' \
     -H 'Content-Type: application/json' \
-    -d '{"instructions":[]}'
+    -d @- << EOF
+    {"instructions":[]}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -423,7 +427,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/make-dir' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","parentFile":""}'
+    -d @- << EOF
+    {"name":"","parentFile":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -624,7 +630,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/list' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
+    -d @- << EOF
+    {"fileKey":"","fileType":"","filename":"","folderNo":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -769,7 +777,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/delete' \
     -H 'Content-Type: application/json' \
-    -d '{"uuid":""}'
+    -d @- << EOF
+    {"uuid":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -851,7 +861,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/dir/truncate' \
     -H 'Content-Type: application/json' \
-    -d '{"uuid":""}'
+    -d @- << EOF
+    {"uuid":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -937,7 +949,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/dir/bottom-up-tree' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":""}'
+    -d @- << EOF
+    {"fileKey":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1120,7 +1134,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/delete/batch' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKeys":[]}'
+    -d @- << EOF
+    {"fileKeys":[]}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1204,7 +1220,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/create' \
     -H 'Content-Type: application/json' \
-    -d '{"filename":"","fstoreFileId":"","parentFile":""}'
+    -d @- << EOF
+    {"filename":"","fstoreFileId":"","parentFile":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1292,7 +1310,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/info/update' \
     -H 'Content-Type: application/json' \
-    -d '{"id":0,"name":"","sensitiveMode":""}'
+    -d @- << EOF
+    {"id":0,"name":"","sensitiveMode":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1379,7 +1399,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/token/generate' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":""}'
+    -d @- << EOF
+    {"fileKey":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1464,7 +1486,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/unpack' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","parentFileKey":""}'
+    -d @- << EOF
+    {"fileKey":"","parentFileKey":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1707,7 +1731,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/list' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"name":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1839,7 +1865,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/create' \
     -H 'Content-Type: application/json' \
-    -d '{"name":""}'
+    -d @- << EOF
+    {"name":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1924,7 +1952,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/file/add' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKeys":[],"folderNo":""}'
+    -d @- << EOF
+    {"fileKeys":[],"folderNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2009,7 +2039,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/file/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKeys":[],"folderNo":""}'
+    -d @- << EOF
+    {"fileKeys":[],"folderNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2094,7 +2126,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/share' \
     -H 'Content-Type: application/json' \
-    -d '{"folderNo":"","username":""}'
+    -d @- << EOF
+    {"folderNo":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2179,7 +2213,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/access/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"folderNo":"","userNo":""}'
+    -d @- << EOF
+    {"folderNo":"","userNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2276,7 +2312,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/granted/list' \
     -H 'Content-Type: application/json' \
-    -d '{"folderNo":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"folderNo":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2397,7 +2435,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"folderNo":""}'
+    -d @- << EOF
+    {"folderNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2575,7 +2615,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/new' \
     -H 'Content-Type: application/json' \
-    -d '{"name":""}'
+    -d @- << EOF
+    {"name":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2686,7 +2728,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/update' \
     -H 'Content-Type: application/json' \
-    -d '{"galleryNo":"","name":""}'
+    -d @- << EOF
+    {"galleryNo":"","name":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2770,7 +2814,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/delete' \
     -H 'Content-Type: application/json' \
-    -d '{"galleryNo":""}'
+    -d @- << EOF
+    {"galleryNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2871,7 +2917,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/list' \
     -H 'Content-Type: application/json' \
-    -d '{"paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3001,7 +3049,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/access/grant' \
     -H 'Content-Type: application/json' \
-    -d '{"galleryNo":"","username":""}'
+    -d @- << EOF
+    {"galleryNo":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3086,7 +3136,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/access/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"galleryNo":"","userNo":""}'
+    -d @- << EOF
+    {"galleryNo":"","userNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3185,7 +3237,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/access/list' \
     -H 'Content-Type: application/json' \
-    -d '{"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3319,7 +3373,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/images' \
     -H 'Content-Type: application/json' \
-    -d '{"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3442,7 +3498,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/image/transfer' \
     -H 'Content-Type: application/json' \
-    -d '{"images":[]}'
+    -d @- << EOF
+    {"images":[]}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3554,7 +3612,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/list' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"name":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3696,7 +3756,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/history' \
     -H 'Content-Type: application/json' \
-    -d '{"paging":{"limit":0,"page":0,"total":0},"verFileId":""}'
+    -d @- << EOF
+    {"paging":{"limit":0,"page":0,"total":0},"verFileId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3819,7 +3881,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/accumulated-size' \
     -H 'Content-Type: application/json' \
-    -d '{"verFileId":""}'
+    -d @- << EOF
+    {"verFileId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3915,7 +3979,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/create' \
     -H 'Content-Type: application/json' \
-    -d '{"filename":"","fstoreFileId":""}'
+    -d @- << EOF
+    {"filename":"","fstoreFileId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4012,7 +4078,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/update' \
     -H 'Content-Type: application/json' \
-    -d '{"filename":"","fstoreFileId":"","verFileId":""}'
+    -d @- << EOF
+    {"filename":"","fstoreFileId":"","verFileId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4098,7 +4166,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/delete' \
     -H 'Content-Type: application/json' \
-    -d '{"verFileId":""}'
+    -d @- << EOF
+    {"verFileId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4391,7 +4461,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/list' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"name":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4481,7 +4553,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"id":0}'
+    -d @- << EOF
+    {"id":0}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4567,7 +4641,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/blacklist/list' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"name":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4657,7 +4733,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/blacklist/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"id":0}'
+    -d @- << EOF
+    {"id":0}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4833,7 +4911,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/history/record-browse-history' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":""}'
+    -d @- << EOF
+    {"fileKey":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5000,7 +5080,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/v1/file/create' \
     -H 'Content-Type: application/json' \
-    -d '{"filename":"","fstoreFileId":"","parentFile":"","userNo":""}'
+    -d @- << EOF
+    {"filename":"","fstoreFileId":"","parentFile":"","userNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5171,7 +5253,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/file/check-access' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","userNo":""}'
+    -d @- << EOF
+    {"fileKey":"","userNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5259,7 +5343,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/file/fetch-info' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":""}'
+    -d @- << EOF
+    {"fileKey":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5360,7 +5446,9 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/v1/file/make-dir' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","parentFile":"","userNo":""}'
+    -d @- << EOF
+    {"name":"","parentFile":"","userNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):

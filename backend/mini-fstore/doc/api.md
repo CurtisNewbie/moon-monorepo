@@ -543,7 +543,9 @@
   ```sh
   curl -X POST 'http://localhost:8084/file/unzip' \
     -H 'Content-Type: application/json' \
-    -d '{"extra":"","fileId":"","replyToEventBus":""}'
+    -d @- << EOF
+    {"extra":"","fileId":"","replyToEventBus":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -641,7 +643,9 @@
   curl -X POST 'http://localhost:8084/backup/file/list' \
     -H 'Authorization: ' \
     -H 'Content-Type: application/json' \
-    -d '{"idOffset":0,"limit":0}'
+    -d @- << EOF
+    {"idOffset":0,"limit":0}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):

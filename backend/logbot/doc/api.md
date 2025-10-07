@@ -23,7 +23,9 @@
   ```sh
   curl -X POST 'http://localhost:8087/log/error/list' \
     -H 'Content-Type: application/json' \
-    -d '{"app":"","page":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"app":"","page":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):

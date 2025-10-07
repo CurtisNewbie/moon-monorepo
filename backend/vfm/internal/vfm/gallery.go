@@ -171,7 +171,7 @@ func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, db *gorm.DB
 						UpdateBy:   cmd.Username,
 						IsDel:      false,
 					}
-					return dbquery.NewQuery(rail, tx).Omit("CreateTime", "UpdateTime").CreateAny(gallery)
+					return dbquery.NewQuery(rail, tx).Table("gallery").Omit("CreateTime", "UpdateTime").CreateAny(gallery)
 				})
 				if err != nil {
 					return galleryNo, err

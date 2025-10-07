@@ -81,7 +81,9 @@
     -H 'x-forwarded-for: ' \
     -H 'user-agent: ' \
     -H 'Content-Type: application/json' \
-    -d '{"password":"","username":""}'
+    -d @- << EOF
+    {"password":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -178,7 +180,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/register/request' \
     -H 'Content-Type: application/json' \
-    -d '{"password":"","username":""}'
+    -d @- << EOF
+    {"password":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -264,7 +268,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/add' \
     -H 'Content-Type: application/json' \
-    -d '{"password":"","roleNo":"","username":""}'
+    -d @- << EOF
+    {"password":"","roleNo":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -373,7 +379,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/list' \
     -H 'Content-Type: application/json' \
-    -d '{"isDisabled":0,"paging":{"limit":0,"page":0,"total":0},"roleNo":"","username":""}'
+    -d @- << EOF
+    {"isDisabled":0,"paging":{"limit":0,"page":0,"total":0},"roleNo":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -512,7 +520,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/info/update' \
     -H 'Content-Type: application/json' \
-    -d '{"isDisabled":0,"roleNo":"","userNo":""}'
+    -d @- << EOF
+    {"isDisabled":0,"roleNo":"","userNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -599,7 +609,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/registration/review' \
     -H 'Content-Type: application/json' \
-    -d '{"reviewStatus":"","userId":0}'
+    -d @- << EOF
+    {"reviewStatus":"","userId":0}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -781,7 +793,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/password/update' \
     -H 'Content-Type: application/json' \
-    -d '{"newPassword":"","prevPassword":""}'
+    -d @- << EOF
+    {"newPassword":"","prevPassword":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -866,7 +880,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/token/exchange' \
     -H 'Content-Type: application/json' \
-    -d '{"token":""}'
+    -d @- << EOF
+    {"token":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1067,7 +1083,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/access/history' \
     -H 'Content-Type: application/json' \
-    -d '{"paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1191,7 +1209,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/key/generate' \
     -H 'Content-Type: application/json' \
-    -d '{"keyName":"","password":""}'
+    -d @- << EOF
+    {"keyName":"","password":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1290,7 +1310,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/key/list' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"name":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1411,7 +1433,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/key/delete' \
     -H 'Content-Type: application/json' \
-    -d '{"userKeyId":0}'
+    -d @- << EOF
+    {"userKeyId":0}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1494,7 +1518,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/resource/add' \
     -H 'Content-Type: application/json' \
-    -d '{"code":"","name":""}'
+    -d @- << EOF
+    {"code":"","name":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1578,7 +1604,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/resource/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"resCode":""}'
+    -d @- << EOF
+    {"resCode":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1765,7 +1793,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/resource/list' \
     -H 'Content-Type: application/json' \
-    -d '{"paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2063,7 +2093,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/resource/add' \
     -H 'Content-Type: application/json' \
-    -d '{"resCode":"","roleNo":""}'
+    -d @- << EOF
+    {"resCode":"","roleNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2148,7 +2180,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/resource/remove' \
     -H 'Content-Type: application/json' \
-    -d '{"resCode":"","roleNo":""}'
+    -d @- << EOF
+    {"resCode":"","roleNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2232,7 +2266,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/add' \
     -H 'Content-Type: application/json' \
-    -d '{"name":""}'
+    -d @- << EOF
+    {"name":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2330,7 +2366,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/list' \
     -H 'Content-Type: application/json' \
-    -d '{"paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2557,7 +2595,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/resource/list' \
     -H 'Content-Type: application/json' \
-    -d '{"paging":{"limit":0,"page":0,"total":0},"roleNo":""}'
+    -d @- << EOF
+    {"paging":{"limit":0,"page":0,"total":0},"roleNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2685,7 +2725,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/info' \
     -H 'Content-Type: application/json' \
-    -d '{"roleNo":""}'
+    -d @- << EOF
+    {"roleNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2804,7 +2846,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/list' \
     -H 'Content-Type: application/json' \
-    -d '{"paging":{"limit":0,"page":0,"total":0},"pgroup":"","ptype":"","resCode":"","url":""}'
+    -d @- << EOF
+    {"paging":{"limit":0,"page":0,"total":0},"pgroup":"","ptype":"","resCode":"","url":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2948,7 +2992,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/resource/bind' \
     -H 'Content-Type: application/json' \
-    -d '{"pathNo":"","resCode":""}'
+    -d @- << EOF
+    {"pathNo":"","resCode":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3033,7 +3079,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/resource/unbind' \
     -H 'Content-Type: application/json' \
-    -d '{"pathNo":"","resCode":""}'
+    -d @- << EOF
+    {"pathNo":"","resCode":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3117,7 +3165,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/delete' \
     -H 'Content-Type: application/json' \
-    -d '{"pathNo":""}'
+    -d @- << EOF
+    {"pathNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3202,7 +3252,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/update' \
     -H 'Content-Type: application/json' \
-    -d '{"group":"","pathNo":"","resCode":"","type":""}'
+    -d @- << EOF
+    {"group":"","pathNo":"","resCode":"","type":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3303,7 +3355,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/info' \
     -H 'Content-Type: application/json' \
-    -d '{"userId":0,"userNo":"","username":""}'
+    -d @- << EOF
+    {"userId":0,"userNo":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3425,7 +3479,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/internal/v1/user/info/common' \
     -H 'Content-Type: application/json' \
-    -d '{"userId":0,"userNo":"","username":""}'
+    -d @- << EOF
+    {"userId":0,"userNo":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3596,7 +3652,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/userno/username' \
     -H 'Content-Type: application/json' \
-    -d '{"userNos":[]}'
+    -d @- << EOF
+    {"userNos":[]}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3700,7 +3758,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/list/with-role' \
     -H 'Content-Type: application/json' \
-    -d '{"roleNo":""}'
+    -d @- << EOF
+    {"roleNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3824,7 +3884,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/list/with-resource' \
     -H 'Content-Type: application/json' \
-    -d '{"resourceCode":""}'
+    -d @- << EOF
+    {"resourceCode":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3937,7 +3999,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/resource/add' \
     -H 'Content-Type: application/json' \
-    -d '{"code":"","name":""}'
+    -d @- << EOF
+    {"code":"","name":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4024,7 +4088,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/path/resource/access-test' \
     -H 'Content-Type: application/json' \
-    -d '{"method":"","roleNo":"","url":""}'
+    -d @- << EOF
+    {"method":"","roleNo":"","url":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4126,7 +4192,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/path/add' \
     -H 'Content-Type: application/json' \
-    -d '{"desc":"","group":"","method":"","resCode":"","type":"","url":""}'
+    -d @- << EOF
+    {"desc":"","group":"","method":"","resCode":"","type":"","url":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4235,7 +4303,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/list-site-passwords' \
     -H 'Content-Type: application/json' \
-    -d '{"alias":"","paging":{"limit":0,"page":0,"total":0},"site":"","username":""}'
+    -d @- << EOF
+    {"alias":"","paging":{"limit":0,"page":0,"total":0},"site":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4364,7 +4434,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/add-site-password' \
     -H 'Content-Type: application/json' \
-    -d '{"alias":"","loginPassword":"","site":"","sitePassword":"","username":""}'
+    -d @- << EOF
+    {"alias":"","loginPassword":"","site":"","sitePassword":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4454,7 +4526,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/remove-site-password' \
     -H 'Content-Type: application/json' \
-    -d '{"recordId":""}'
+    -d @- << EOF
+    {"recordId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4539,7 +4613,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/decrypt-site-password' \
     -H 'Content-Type: application/json' \
-    -d '{"loginPassword":"","recordId":""}'
+    -d @- << EOF
+    {"loginPassword":"","recordId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4639,7 +4715,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/edit-site-password' \
     -H 'Content-Type: application/json' \
-    -d '{"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":"","username":""}'
+    -d @- << EOF
+    {"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":"","username":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4731,7 +4809,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/clear-failed-login-attempts' \
     -H 'Content-Type: application/json' \
-    -d '{"userNo":""}'
+    -d @- << EOF
+    {"userNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4829,7 +4909,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/list-notes' \
     -H 'Content-Type: application/json' \
-    -d '{"keywords":"","paging":{"limit":0,"page":0,"total":0}}'
+    -d @- << EOF
+    {"keywords":"","paging":{"limit":0,"page":0,"total":0}}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4985,7 +5067,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/save-note' \
     -H 'Content-Type: application/json' \
-    -d '{"content":"","title":""}'
+    -d @- << EOF
+    {"content":"","title":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5071,7 +5155,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/update-note' \
     -H 'Content-Type: application/json' \
-    -d '{"content":"","recordId":"","title":""}'
+    -d @- << EOF
+    {"content":"","recordId":"","title":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5157,7 +5243,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/delete-note' \
     -H 'Content-Type: application/json' \
-    -d '{"recordId":""}'
+    -d @- << EOF
+    {"recordId":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5241,7 +5329,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/create' \
     -H 'Content-Type: application/json' \
-    -d '{"message":"","receiverUserNos":[],"title":""}'
+    -d @- << EOF
+    {"message":"","receiverUserNos":[],"title":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5331,7 +5421,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/query' \
     -H 'Content-Type: application/json' \
-    -d '{"page":{"limit":0,"page":0,"total":0},"status":""}'
+    -d @- << EOF
+    {"page":{"limit":0,"page":0,"total":0},"status":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5490,7 +5582,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/open' \
     -H 'Content-Type: application/json' \
-    -d '{"notifiNo":""}'
+    -d @- << EOF
+    {"notifiNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5572,7 +5666,9 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/open-all' \
     -H 'Content-Type: application/json' \
-    -d '{"notifiNo":""}'
+    -d @- << EOF
+    {"notifiNo":""}
+  EOF
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
