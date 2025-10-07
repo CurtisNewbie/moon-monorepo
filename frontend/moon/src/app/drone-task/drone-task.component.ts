@@ -61,11 +61,13 @@ export interface ListTaskReq {
 export interface ListedTask {
   taskId?: string;
   status?: string;
+  statusLabel?: string;
   attempt?: number;
   url?: string;
   platform?: string;
   dirFileKey?: string;
   dirName?: string;
+  trimmedDirName?: string;
   createdAt?: number;
   fileCount?: number;
   remark?: string;
@@ -126,12 +128,27 @@ export class DroneTaskComponent implements OnInit {
         }
         let dat: PageRes = resp.data;
         this.tabdata = dat.payload;
-        const maxLen = 40;
+
+        const isMob = this.env.isMobile();
+        const remarkMaxLen = 40;
+        const statusLabelMaxLen = 60;
+
         if (this.tabdata) {
           for (let t of this.tabdata) {
-            if (t.remark && t.remark.length > maxLen) {
-              t.remark = "..." + t.remark.substring(t.remark.length - maxLen);
+            if (t.remark && t.remark.length > remarkMaxLen) {
+              t.remark =
+                "... " +
+                t.remark.substring(t.remark.length - remarkMaxLen).trim();
             }
+            t.trimmedDirName = t.dirName;
+            if (isMob && t.trimmedDirName.length > statusLabelMaxLen) {
+              t.trimmedDirName =
+                t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
+            }
+            t.statusLabel = t.status;
+            // if (isMob) {
+            //   t.statusLabel = t.statusLabel.substring(0, 5);
+            // }
           }
         }
         this.pagingController.onTotalChanged(dat.paging);

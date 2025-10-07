@@ -5,6 +5,7 @@ import { HttpClient, HttpEvent } from "@angular/common/http";
 import { ConfirmDialog } from "src/common/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { Env } from "src/common/env-util";
 
 @Component({
   selector: "app-manage-bookmarks",
@@ -13,7 +14,9 @@ import { ControlledPaginatorComponent } from "../controlled-paginator/controlled
 })
 export class ManageBookmarksComponent implements OnInit {
   readonly isEnterKeyPressed = isEnterKey;
-  readonly tabcol = ["id", "name", "operation"];
+  readonly tabcol = this.env.isMobile()
+    ? ["name", "operation"]
+    : ["id", "name", "operation"];
 
   tabdat = [];
   isEnter = isEnterKey;
@@ -29,6 +32,7 @@ export class ManageBookmarksComponent implements OnInit {
   uploadFileInput: ElementRef;
 
   constructor(
+    private env: Env,
     private http: HttpClient,
     private confirmDialog: ConfirmDialog,
     private snackBar: MatSnackBar
