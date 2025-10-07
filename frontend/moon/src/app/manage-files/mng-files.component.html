@@ -139,12 +139,15 @@
             <div class="d-flex justify-content-end flex-wrap">
 
                 <ng-container *ngIf="!inFolderName">
-                    <button mat-icon-button class="m-1 icon-button-large"
-                        [matBadge]="this.fileBookmark.bucket.size > 0? this.fileBookmark.bucket.size : ''"
-                        matTooltip="Bookmark files to undertake batch operation" matTooltipPosition="above"
-                        matTooltipShowDelay="200" matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
-                        (click)="showFileBookmark()">
-                        <i class="bi bi-basket icon-button-large"></i> </button>
+                    <ng-container *ngIf="!fileBookmark.isEmpty()">
+                        <button mat-icon-button class="m-1 icon-button-large"
+                            [matBadge]="this.fileBookmark.bucket.size > 0? this.fileBookmark.bucket.size : ''"
+                            matTooltip="Bookmark files to undertake batch operation" matTooltipPosition="above"
+                            matTooltipShowDelay="200" matBadgeColor="warn" matBadgeOverlap="true" matBadgeSize="small"
+                            (click)="showFileBookmark()">
+                            <i class="bi icon-button-large bi-bag-check-fill"></i>
+                        </button>
+                    </ng-container>
 
                     <button mat-icon-button class="m-1 icon-button-large" matTooltipPosition="above"
                         matTooltip="Show directory tree" (click)="popDirTree()"> <i class="bi bi-bar-chart-steps"></i>
@@ -178,7 +181,7 @@
 
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef> <b>Name</b> </th>
-                <td mat-cell *matCellDef="let f"> <span class="ms-1 pe-1">{{f.name}}
+                <td mat-cell *matCellDef="let f"> <span class="m-2">{{f.name}}
                     </span></td>
             </ng-container>
 
@@ -236,22 +239,22 @@
                 <th mat-header-cell *matHeaderCellDef> <b>Operation</b> </th>
                 <td mat-cell *matCellDef="let f">
                     <ng-container *ngIf="!inFolderNo">
-                        <button mat-icon-button class="m-2" [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
+                        <button mat-icon-button class="m-1" [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
                             [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''" matBadgeColor="warn"
                             matBadgeOverlap="true" matBadgeSize="small"
                             matTooltip="Bookmark file for batch operation. Click row with meta key for convenience."
                             matTooltipShowDelay="1000" (click)=" $event.stopPropagation() || bookmarkFile(f)"><i
                                 class="bi icon-button-large"
-                                [class]="this.fileBookmark.has(f.uuid) ? 'bi-bookmark-dash': 'bi-bookmark-plus'"></i></button>
+                                [class]="this.fileBookmark.has(f.uuid) ? 'bi-bag-x': 'bi-bag-plus'"></i></button>
 
-                        <button class="icon-button-large" mat-icon-button matTooltipShowDelay="500"
+                        <button class="icon-button-large m-1" mat-icon-button matTooltipShowDelay="500"
                             (click)="$event.stopPropagation() || selectExpanded(f)">
                             <i class="bi bi-gear"></i>
                         </button>
                     </ng-container>
 
                     <ng-container *ngIf="f.isFile">
-                        <button class="icon-button-large" mat-icon-button
+                        <button class="icon-button-large m-1" mat-icon-button
                             (click)="$event.stopPropagation() || jumpToDownloadUrl(f.uuid)">
                             <i class="bi bi-cloud-download"></i>
                         </button>

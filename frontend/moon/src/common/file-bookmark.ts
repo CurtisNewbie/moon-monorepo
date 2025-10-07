@@ -30,4 +30,8 @@ export class FileBookmark {
   clear() {
     this.bucket.clear();
   }
+
+  isEmpty(): boolean {
+    return this.bucket.size < 1;
+  }
 }

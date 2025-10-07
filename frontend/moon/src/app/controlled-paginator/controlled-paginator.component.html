@@ -1,11 +1,14 @@
 <div class="mat-paginator-container mat-paginator">
-    <div class="me-2">
-        <mat-form-field style="width: 200px">
-            <mat-label>Go To Page: (Max: {{this.maxPage}})</mat-label>
-            <input matInput [(ngModel)]="goto" (keyup)="onGoToPageKeyUp($event)" />
-        </mat-form-field>
-    </div>
-    <mat-paginator #paginator [length]="paging.total" [pageSize]="paging.limit"
-        [pageSizeOptions]="PAGE_LIMIT_OPTIONS" aria-label="Select page">
+    <ng-container *ngIf="!env.isMobile()">
+        <div class="me-2">
+            <mat-form-field style="width: 100px">
+                <mat-label>Go To Page: (1-{{this.maxPage}})</mat-label>
+                <input matInput [(ngModel)]="goto" (keyup)="onGoToPageKeyUp($event)" />
+            </mat-form-field>
+        </div>
+    </ng-container>
+
+    <mat-paginator #paginator [length]="paging.total" [pageSize]="paging.limit" [pageSizeOptions]="PAGE_LIMIT_OPTIONS"
+        aria-label="Select page">
     </mat-paginator>
 </div>

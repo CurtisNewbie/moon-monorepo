@@ -74,14 +74,9 @@
             <td mat-cell *matCellDef="let u" [attr.colspan]="columns.length">
                 <div class="element-detail" [@detailExpand]="idEquals(u, expandedElement) ? 'expanded' : 'collapsed'">
                     <ng-container *ngIf="expandedElement">
-                        <div class="row row-cols-lg-auto g-3 align-items-center">
-                            <div class="col-12">
-                                <button mat-raised-button class="m-2" (click)="deleteUserKey(u.id)">Delete</button>
-                            </div>
-                            <div class="col-12">
-                                <button mat-raised-button class="m-2" (click)="copyToClipboard(u.secretKey)">Copy
-                                    Key</button>
-                            </div>
+                        <div class="d-flex flex-wrap m-3 gap-2">
+                            <button mat-raised-button (click)="deleteUserKey(u.id)">Delete</button>
+                            <button mat-raised-button (click)="copyToClipboard(u.secretKey)">Copy Key</button>
                         </div>
                     </ng-container>
                 </div>

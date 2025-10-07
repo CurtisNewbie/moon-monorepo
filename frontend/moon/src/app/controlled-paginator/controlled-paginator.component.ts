@@ -33,7 +33,7 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   @Output("pageChanged")
   pageChangedEmitter = new EventEmitter<Paging>();
 
-  constructor(private env: Env) {}
+  constructor(public env: Env) {}
 
   ngAfterViewInit(): void {
     // first page

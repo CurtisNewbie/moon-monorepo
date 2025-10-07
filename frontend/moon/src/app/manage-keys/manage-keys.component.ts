@@ -9,6 +9,7 @@ import { copyToClipboard } from "src/common/clipboard";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { Env } from "src/common/env-util";
 
 export interface UserToken {
   id: number;
@@ -33,7 +34,11 @@ export interface UserToken {
   animations: [animateElementExpanding()],
 })
 export class ManageKeysComponent implements OnInit {
-  readonly columns: string[] = [
+  readonly columns: string[] = this.env.isMobile()?[
+    "name",
+    "secretKey",
+    "expirationTime",
+  ]:[
     "id",
     "name",
     "secretKey",
@@ -57,7 +62,11 @@ export class ManageKeysComponent implements OnInit {
   isEnter = isEnterKey;
   copyToClipboard = copyToClipboard;
 
-  constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
+  constructor(
+    public env: Env,
+    private http: HttpClient,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit() {}
 

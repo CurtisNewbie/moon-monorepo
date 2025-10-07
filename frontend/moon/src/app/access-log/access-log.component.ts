@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { Env } from "src/common/env-util";
 
 export interface AccessLog {
   id: number;
@@ -19,21 +20,19 @@ export interface AccessLog {
   styleUrls: ["./access-log.component.css"],
 })
 export class AccessLogComponent implements OnInit {
-  readonly COLUMNS_TO_BE_DISPLAYED: string[] = [
-    "id",
-    "user",
-    "accessTime",
-    "success",
-    "ipAddress",
-    "userAgent",
-    "url",
-  ];
+  readonly COLUMNS_TO_BE_DISPLAYED: string[] = this.env.isMobile()
+    ? ["accessTime", "success", "ipAddress"]
+    : ["accessTime", "success", "ipAddress", "userAgent", "url"];
   accessLogList: AccessLog[] = [];
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
-  constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
+  constructor(
+    private env: Env,
+    private http: HttpClient,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit() {}
 

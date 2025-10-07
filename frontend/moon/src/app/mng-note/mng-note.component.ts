@@ -6,6 +6,7 @@ import { isEnterKey } from "src/common/condition";
 import { Paging } from "src/common/paging";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { EditNoteDialogComponent } from "../edit-note-dialog/edit-note-dialog.component";
+import { Env } from "src/common/env-util";
 
 export interface SaveNoteReq {
   title?: string; // Required.
@@ -45,6 +46,7 @@ export class MngNoteComponent implements OnInit {
   pagingController: ControlledPaginatorComponent;
 
   constructor(
+    public env: Env,
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private dialog: MatDialog
