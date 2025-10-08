@@ -106,7 +106,7 @@
 
                 <ng-container *ngIf="!searchParam.fileKey">
                     <div>
-                        <mat-form-field style="width: 300px; max-width: 80vw;">
+                        <mat-form-field style="width: 300px;">
                             <mat-label>Name</mat-label>
                             <input matInput type="text" id="searchFilenameInput" [(ngModel)]="searchParam.name"
                                 (keyup)="onSearchNameKeyUp($event)" #searchFilenameInput>
@@ -124,9 +124,9 @@
                         </mat-select>
                     </mat-form-field>
 
-                    <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
+                    <!-- <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
                         [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
-                        Mode</mat-checkbox>
+                        Mode</mat-checkbox> -->
                     <mat-checkbox [(ngModel)]="orderByName" (ngModelChange)="fetchFileInfoList()">Order By
                         Name</mat-checkbox>
                 </ng-container>
@@ -274,10 +274,10 @@
                                             <mat-label>Name</mat-label>
                                             <input matInput type="text" [(ngModel)]="curr.name">
                                         </mat-form-field>
-                                        <mat-checkbox [checked]="curr.sensitiveMode=='Y'"
+                                        <!-- <mat-checkbox [checked]="curr.sensitiveMode=='Y'"
                                             (change)="sensitiveModeChecked($event, curr)"
                                             (click)="$event.stopPropagation();" [labelPosition]="'before'">Sensitive
-                                            Content</mat-checkbox>
+                                            Content</mat-checkbox> -->
                                     </div>
 
                                     <ng-container *ngIf="curr.isDir">
