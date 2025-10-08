@@ -1234,7 +1234,7 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 		SET is_logic_deleted = 1, logic_delete_time = NOW()
 		WHERE id = ? AND is_logic_deleted = 0`, f.Id)
 	if err == nil {
-		rail.Infof("Deleted file %v", f.Uuid)
+		rail.Infof("Deleted file %v (File Type: %v)", f.Uuid, f.FileType)
 	}
 	return err
 }
@@ -1585,6 +1585,11 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 			}
 			if len(l) < 1 {
 				rail.Infof("Truncated dir %v", req.Uuid)
+
+				if err := DeleteFile(rail, db, DeleteFileReq{Uuid: dir.Uuid}, user, nil); err != nil {
+					rail.Errorf("Failed to delete empty dir after truncation, %v", dir.Uuid, err)
+				}
+
 				return
 			}
 			minId = l[len(l)-1].Id
