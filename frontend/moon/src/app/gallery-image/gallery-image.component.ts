@@ -57,10 +57,8 @@ export class GalleryImageComponent implements OnInit {
     _lbConfig.resizeDuration = 0.2;
     _lbConfig.fadeDuration = 0.2;
     _lbConfig.showRotate = true;
-    _lbConfig.showImageNumberLabel = true;
+    _lbConfig.showImageNumberLabel = false;
     _lbConfig.centerVertically = true;
-    _lbConfig.alwaysShowNavOnTouchDevices = false;
-    _lbConfig.disableKeyboardNav = true;
   }
 
   ngOnInit(): void {
@@ -134,9 +132,21 @@ export class GalleryImageComponent implements OnInit {
       }
       if (event.id === LIGHTBOX_EVENT.CHANGE_PAGE) {
         this.browseHistoryRecorder.record(this.images[event.data].fileKey);
+        console.log(
+          event.data,
+          this.images.length - 1,
+          event.data == this.images.length - 1
+        );
+        if (event.data == this.images.length - 1) {
+          this.fetchNextPageImages();
+          setTimeout(() => {
+            this._lightbox.close();
+            this._lightbox.open(this.images, event.data, {});
+          }, 100);
+        }
       }
     });
-    this._lightbox.open([this.images[index]], 0, {});
+    this._lightbox.open(this.images, index, {});
   }
 
   close(): void {
