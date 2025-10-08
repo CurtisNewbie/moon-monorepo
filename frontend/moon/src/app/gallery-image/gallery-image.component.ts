@@ -34,6 +34,8 @@ export class GalleryImageComponent implements OnInit {
   title = "fantahsea";
   images = [];
   page: Paging = { limit: 16, page: 1 };
+  fetching = false;
+  reachedEnd = false;
 
   private lbxSub: Subscription;
 
@@ -74,7 +76,11 @@ export class GalleryImageComponent implements OnInit {
       this.navigation.navigateTo(NavType.GALLERY);
       return;
     }
+    if (this.reachedEnd) {
+      return;
+    }
 
+    this.fetching = true;
     this.http
       .post<Resp<ListGalleryImagesResp>>(`vfm/open/api/gallery/images`, {
         galleryNo: this.galleryNo,
@@ -82,31 +88,39 @@ export class GalleryImageComponent implements OnInit {
       })
       .subscribe({
         next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-            return;
-          }
-          if (resp.data.images.length < 1) {
-            return;
-          }
-
-          this.page.page += 1;
-          if (resp.data.images) {
-            let imgs = resp.data.images;
-            for (let i = 0; i < imgs.length; i++) {
-              let src =
-                "fstore/file/raw?key=" +
-                encodeURIComponent(imgs[i].fileTempToken);
-              let thumb =
-                "fstore/file/raw?key=" +
-                encodeURIComponent(imgs[i].thumbnailToken);
-              this.images.push({
-                src: src,
-                thumb: thumb,
-                downloadUrl: src,
-                fileKey: imgs[i].fileKey,
-              });
+          try {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
             }
+
+            if (!resp.data.images || resp.data.images.length < 1) {
+              this.reachedEnd = true;
+            }
+
+            let tmp = [];
+            if (resp.data.images) {
+              let imgs = resp.data.images;
+              for (let i = 0; i < imgs.length; i++) {
+                let src =
+                  "fstore/file/raw?key=" +
+                  encodeURIComponent(imgs[i].fileTempToken);
+                let thumb =
+                  "fstore/file/raw?key=" +
+                  encodeURIComponent(imgs[i].thumbnailToken);
+                tmp.push({
+                  src: src,
+                  thumb: thumb,
+                  downloadUrl: src,
+                  fileKey: imgs[i].fileKey,
+                });
+              }
+              this.images = this.images.concat(tmp);
+
+              this.page.page = this.page.page + 1;
+            }
+          } finally {
+            this.fetching = false;
           }
         },
       });
@@ -158,10 +172,27 @@ export class GalleryImageComponent implements OnInit {
     const scrollHeight = e.target.scrollHeight;
     const scrollLocation = e.target.scrollTop;
 
-    const buffer = 200; // scrolled 200px
+    const buffer = this.vh(80) / 2;
     const limit = scrollHeight - viewHeight - buffer;
-    if (scrollLocation > limit) {
+    console.log(
+      "buffer",
+      buffer,
+      "scrollLocation",
+      scrollLocation,
+      "limit",
+      limit
+    );
+    if (!this.fetching && scrollLocation > limit) {
+      console.log("fetched for scroll", scrollLocation);
       this.fetchNextPageImages();
     }
+  }
+
+  vh(percent) {
+    var h = Math.max(
+      document.documentElement.clientHeight,
+      window.innerHeight || 0
+    );
+    return (percent * h) / 100;
   }
 }
