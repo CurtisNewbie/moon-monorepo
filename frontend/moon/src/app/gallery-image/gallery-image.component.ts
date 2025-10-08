@@ -21,7 +21,7 @@ import { MatMenuTrigger } from "@angular/material/menu";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { Subscription } from "rxjs";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { Paging } from "src/common/paging";
 
 @Component({
   selector: "app-gallery-image",
@@ -33,9 +33,7 @@ export class GalleryImageComponent implements OnInit {
   galleryNo: string = null;
   title = "fantahsea";
   images = [];
-
-  @ViewChild(ControlledPaginatorComponent, { static: true })
-  pagingController: ControlledPaginatorComponent;
+  page: Paging = { limit: 16, page: 1 };
 
   private lbxSub: Subscription;
 
@@ -59,17 +57,19 @@ export class GalleryImageComponent implements OnInit {
     _lbConfig.showRotate = true;
     _lbConfig.showImageNumberLabel = true;
     _lbConfig.centerVertically = true;
+    _lbConfig.alwaysShowNavOnTouchDevices = false;
+    _lbConfig.disableKeyboardNav = true;
   }
 
   ngOnInit(): void {
-    this.pagingController.setPageLimitOptions([16, 32, 64]);
     this.route.paramMap.subscribe((params) => {
       let galleryNo = params.get("galleryNo");
       if (galleryNo) this.galleryNo = galleryNo;
     });
+    this.fetchNextPageImages();
   }
 
-  fetchImages(): void {
+  fetchNextPageImages(): void {
     if (!this.galleryNo) {
       this.navigation.navigateTo(NavType.GALLERY);
       return;
@@ -78,7 +78,7 @@ export class GalleryImageComponent implements OnInit {
     this.http
       .post<Resp<ListGalleryImagesResp>>(`vfm/open/api/gallery/images`, {
         galleryNo: this.galleryNo,
-        paging: this.pagingController.paging,
+        paging: this.page,
       })
       .subscribe({
         next: (resp) => {
@@ -86,12 +86,10 @@ export class GalleryImageComponent implements OnInit {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
-          this.pagingController.onTotalChanged(resp.data.paging);
 
-          this.images = [];
+          this.page.page += 1;
           if (resp.data.images) {
             let imgs = resp.data.images;
-            this.images = [];
             for (let i = 0; i < imgs.length; i++) {
               let src =
                 "fstore/file/raw?key=" +
@@ -107,7 +105,6 @@ export class GalleryImageComponent implements OnInit {
               });
             }
           }
-          console.log("images: ", this.images);
         },
       });
   }
@@ -122,10 +119,7 @@ export class GalleryImageComponent implements OnInit {
         this.browseHistoryRecorder.record(this.images[event.data].fileKey);
       }
     });
-    this._lightbox.open(this.images, index, {
-      wrapAround: true,
-      showImageNumberLabel: true,
-    });
+    this._lightbox.open([this.images[index]], 0, {});
   }
 
   close(): void {
@@ -154,5 +148,17 @@ export class GalleryImageComponent implements OnInit {
     this.navigation.navigateTo(NavType.MANAGE_FILES, [
       { searchedFileKey: this.menuBoundImage.fileKey },
     ]);
+  }
+
+  onScroll(e) {
+    const viewHeight = e.target.offsetHeight;
+    const scrollHeight = e.target.scrollHeight;
+    const scrollLocation = e.target.scrollTop;
+
+    const buffer = 200; // scrolled 200px
+    const limit = scrollHeight - viewHeight - buffer;
+    if (scrollLocation > limit) {
+      this.fetchNextPageImages();
+    }
   }
 }

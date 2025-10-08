@@ -1,4 +1,4 @@
-<div style="min-height: 80vh" class="container text-center">
+<div style="height: 85vh; overflow: scroll;" class="container text-center mb-3" (scroll)="onScroll($event)">
     <div class="text-center row-cols-xl-4 row-cols-md-2 row-cols-sm-1 row">
         <div *ngFor="let image of images; let i=index">
             <div (contextmenu)="onRightClick($event, image)">
@@ -11,9 +11,6 @@
     <div id="lightboxdiv">
     </div>
 </div>
-
-<app-controlled-paginator (pageChanged)="fetchImages()"></app-controlled-paginator>
-
 
 <div style="visibility: hidden; position: fixed;" [style.left]="menuTopLeftPosition.x"
     [style.top]="menuTopLeftPosition.y" [matMenuTriggerFor]="rightMenu"></div>

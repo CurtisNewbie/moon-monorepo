@@ -5,7 +5,7 @@ export interface Paging {
   /** page size */
   limit: number;
   /** total number of items */
-  total: number;
+  total?: number;
 }
 
 /**
