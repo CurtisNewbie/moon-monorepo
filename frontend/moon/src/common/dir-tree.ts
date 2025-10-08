@@ -1,3 +1,4 @@
+import { HighContrastModeDetector } from "@angular/cdk/a11y";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
@@ -10,6 +11,7 @@ export interface DirTopDownTreeNode {
   fileKey?: string;
   name?: string;
   child?: DirTopDownTreeNode[];
+  hidden?: boolean;
 }
 
 @Injectable({
@@ -65,21 +67,52 @@ export class DirTree {
     if (!root) {
       return false;
     }
+
+    let rootFound = false;
     if (this.matchNode(root, kw)) {
       console.log("found, ", root);
-      return true;
+      rootFound = true;
     }
-    let rootFound = false;
+
+    if (!rootFound) {
+      root.hidden = true;
+    }
+
     if (root.child && root.child.length > 0) {
       for (let c of root.child) {
+        c.hidden = true;
         if (this.search(dtc, c, kw)) {
           console.log("expand, ", root);
           dtc.expand(root);
           rootFound = true;
+          c.hidden = false;
         }
       }
     }
+
+    if (root.hidden && rootFound) {
+      root.hidden = false;
+    }
+
     return rootFound;
+  }
+
+  resetHidden(r: DirTopDownTreeNode) {
+    if (!r) {
+      return;
+    }
+    r.hidden = false;
+    if (r.child && r.child.length > 0) {
+      for (let c of r.child) {
+        this.resetHidden(c);
+      }
+    }
+  }
+
+  resetHiddenNodes(roots: DirTopDownTreeNode[]) {
+    for (let r of roots) {
+      this.resetHidden(r);
+    }
   }
 
   searchMulti(
@@ -87,6 +120,8 @@ export class DirTree {
     roots: DirTopDownTreeNode[],
     kw: string
   ) {
+    this.resetHiddenNodes(roots);
+
     console.log("roots, ", roots);
     for (let r of roots) {
       if (this.search(dtc, r, kw)) {

@@ -132,11 +132,6 @@ export class GalleryImageComponent implements OnInit {
       }
       if (event.id === LIGHTBOX_EVENT.CHANGE_PAGE) {
         this.browseHistoryRecorder.record(this.images[event.data].fileKey);
-        console.log(
-          event.data,
-          this.images.length - 1,
-          event.data == this.images.length - 1
-        );
         if (event.data == this.images.length - 1) {
           this.fetchNextPageImages();
           setTimeout(() => {
@@ -184,16 +179,8 @@ export class GalleryImageComponent implements OnInit {
 
     const buffer = this.vh(80) / 2;
     const limit = scrollHeight - viewHeight - buffer;
-    console.log(
-      "buffer",
-      buffer,
-      "scrollLocation",
-      scrollLocation,
-      "limit",
-      limit
-    );
+
     if (!this.fetching && scrollLocation > limit) {
-      console.log("fetched for scroll", scrollLocation);
       this.fetchNextPageImages();
     }
   }
