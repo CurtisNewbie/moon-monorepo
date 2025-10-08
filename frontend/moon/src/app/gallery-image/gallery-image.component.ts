@@ -86,6 +86,9 @@ export class GalleryImageComponent implements OnInit {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
+          if (resp.data.images.length < 1) {
+            return;
+          }
 
           this.page.page += 1;
           if (resp.data.images) {
