@@ -46,8 +46,7 @@ export class MngResDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.pagingController.PAGE_LIMIT_OPTIONS = [5];
-    this.pagingController.setPageLimit(5);
+    this.pagingController.setPageLimitOptions([5]);
   }
 
   listPathsBound() {

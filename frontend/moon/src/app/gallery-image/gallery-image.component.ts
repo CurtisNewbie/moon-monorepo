@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, ViewEncapsulation } from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { ListGalleryImagesResp } from "src/common/gallery";
@@ -28,7 +34,7 @@ export class GalleryImageComponent implements OnInit {
   title = "fantahsea";
   images = [];
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   private lbxSub: Subscription;
@@ -56,16 +62,18 @@ export class GalleryImageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.pagingController.setPageLimitOptions([16, 32, 64]);
     this.route.paramMap.subscribe((params) => {
       let galleryNo = params.get("galleryNo");
       if (galleryNo) this.galleryNo = galleryNo;
     });
-    this.pagingController.setPageLimit(40);
-    this.pagingController.PAGE_LIMIT_OPTIONS = [20, 40, 60, 100, 500];
   }
 
   fetchImages(): void {
-    if (!this.galleryNo) this.navigation.navigateTo(NavType.GALLERY);
+    if (!this.galleryNo) {
+      this.navigation.navigateTo(NavType.GALLERY);
+      return;
+    }
 
     this.http
       .post<Resp<ListGalleryImagesResp>>(`vfm/open/api/gallery/images`, {

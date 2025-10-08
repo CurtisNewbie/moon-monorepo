@@ -178,7 +178,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ----------------------------------
   */
 
-  @ViewChild("uploadFileInput", { static: true })
+  @ViewChild("uploadFileInput")
   uploadFileInput: ElementRef;
 
   @ViewChild("searchFilenameInput")
@@ -266,6 +266,15 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         this.searchFilenameInput &&
         this.searchFilenameInput.nativeElement == document.activeElement
       ) {
+        this.searchFilenameInput.nativeElement.dispatchEvent(evt);
+        return;
+      }
+
+      if (
+        this.uploadFileInput &&
+        this.uploadFileInput.nativeElement == document.activeElement
+      ) {
+        this.uploadFileInput.nativeElement.dispatchEvent(evt);
         return;
       }
 

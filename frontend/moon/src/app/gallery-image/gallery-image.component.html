@@ -1,7 +1,7 @@
-<div style="min-height: 80vh">
-    <div class="row row-cols-lg-auto g-3 align-items-center">
+<div style="min-height: 80vh" class="container text-center">
+    <div class="text-center row-cols-xl-4 row-cols-md-2 row-cols-sm-1 row">
         <div *ngFor="let image of images; let i=index">
-            <div class="col-12" (contextmenu)="onRightClick($event, image)">
+            <div (contextmenu)="onRightClick($event, image)">
                 <img [src]="image.thumb" matTooltip="Right Click To Open Menu" matTooltipShowDelay="1000"
                     (click)="open(i)" class="m-2" style="max-width:256px" />
             </div>

@@ -18,6 +18,7 @@ import { Paging, PagingConst } from "src/common/paging";
 })
 export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   PAGE_LIMIT_OPTIONS: number[] = PagingConst.getPagingLimitOptions();
+  disableMobileOpts: boolean = false;
   paging: Paging = {
     page: 1,
     limit: 10,
@@ -48,9 +49,8 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
       this.pageChangedEmitter.emit(this.paging);
     });
 
-    if (this.env.isMobile()) {
-      this.PAGE_LIMIT_OPTIONS = [5, 10, 30];
-      this.paging.limit = this.PAGE_LIMIT_OPTIONS[0];
+    if (!this.disableMobileOpts && this.env.isMobile()) {
+      this.setPageLimitOptions([5, 10, 30], false);
     }
   }
 
@@ -143,5 +143,14 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   /** set page limit */
   setPageLimit(limit: number): void {
     this.paging.limit = limit;
+  }
+
+  setPageLimitOptions(opts: number[], disableMobileOpts = true) {
+    if (disableMobileOpts) {
+      this.disableMobileOpts = true;
+    }
+    this.PAGE_LIMIT_OPTIONS = opts;
+    this.paging.limit =
+      this.PAGE_LIMIT_OPTIONS.length > 0 ? this.PAGE_LIMIT_OPTIONS[0] : 5;
   }
 }

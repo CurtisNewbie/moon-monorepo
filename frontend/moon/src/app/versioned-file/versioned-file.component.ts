@@ -249,8 +249,7 @@ export class VerFileHistoryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.pagingController.setPageLimit(5);
-    this.pagingController.PAGE_LIMIT_OPTIONS = [5];
+    this.pagingController.setPageLimitOptions([5]);
     this.qryTotalSize();
   }
 

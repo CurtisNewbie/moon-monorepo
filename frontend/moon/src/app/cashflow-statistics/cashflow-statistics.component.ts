@@ -204,8 +204,7 @@ export class CashflowStatisticsComponent implements OnInit {
   constructor(private snackBar: MatSnackBar, private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.pagingController.PAGE_LIMIT_OPTIONS = [5, 10, 30, 50];
-    this.pagingController.setPageLimit(5);
+    this.pagingController.setPageLimitOptions([5, 10, 30, 50]);
   }
 
   fetchList() {
