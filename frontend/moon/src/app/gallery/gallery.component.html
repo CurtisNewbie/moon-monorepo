@@ -12,7 +12,6 @@
         <div class="justify-content-end d-flex">
             <button mat-raised-button class="mt-2" (click)="createGallery()">Create</button>
         </div>
-
     </div>
 </div>
 
@@ -21,7 +20,8 @@
     <h3>Galleries</h3>
 
     <div class="d-flex justify-content-end mb-2">
-        <button mat-raised-button class="m-2" (click)="showCreateGalleryDiv=!showCreateGalleryDiv">Create
+        <button *ngIf="!env.isMobile()" mat-raised-button class="m-2"
+            (click)="showCreateGalleryDiv=!showCreateGalleryDiv">Create
             Gallery</button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="fetchGalleries()"><i
                 class="bi bi-arrow-clockwise"></i></button>
