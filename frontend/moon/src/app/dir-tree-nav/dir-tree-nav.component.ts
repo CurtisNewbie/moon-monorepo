@@ -1,14 +1,25 @@
 import { NestedTreeControl } from "@angular/cdk/tree";
-import { Component, OnInit } from "@angular/core";
+import { Component, EventEmitter, OnInit, Output } from "@angular/core";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
+import { Env } from "src/common/env-util";
 
 @Component({
   selector: "app-dir-tree-nav",
   template: `
-    <h1 mat-dialog-title>Directory Tree Navigation</h1>
-    <div mat-dialog-content>
+    <h3 mat-dialog-title>Directory Tree Navigation</h3>
+    <div mat-dialog-content class="mt-2">
       <div>
+        <mat-form-field style="width: 100%">
+          <mat-label>Search Dir Name</mat-label>
+          <input
+            matInput
+            [(ngModel)]="searchDirTreeName"
+            (keyup)="onSearchDirTreeNameChanged()"
+          />
+        </mat-form-field>
+      </div>
+      <div class="mt-1 mb-1" style="max-height: 500px; overflow: scroll;">
         <mat-tree
           [dataSource]="dirTreeDataSource"
           [treeControl]="dirTreeControl"
@@ -36,9 +47,18 @@ import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
                 <button *ngIf="!dirTree.treeHasChild(0, node)" mat-icon-button>
                   <i class="bi bi-folder2-open"></i>
                 </button>
-                <button mat-icon-button (click)="dirTree.goToFile(node)" style="text-align: left">
-                  /{{ node.name }}
-                </button>
+
+                <span
+                  (click)="selectDir(node)"
+                  style="text-align: left; white-space: nowrap; overflow: scroll;"
+                  [ngStyle]="{
+                    'font-weight': dirTree.matchNode(node, searchDirTreeName)
+                      ? 'bold'
+                      : null,
+                    'max-width': env.isMobile() ? '200px' : ''
+                  }"
+                  >/{{ node.name }}</span
+                >
               </div>
               <ul [class.tree-invisible]="!dirTreeControl.isExpanded(node)">
                 <ng-container matTreeNodeOutlet></ng-container>
@@ -52,7 +72,12 @@ import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
   styles: [],
 })
 export class DirTreeNavComponent implements OnInit {
-  constructor(public dirTree: DirTree) {}
+  searchDirTreeName: string = "";
+
+  @Output("selected")
+  selectedEmiter = new EventEmitter<DirTopDownTreeNode>();
+
+  constructor(public env: Env, public dirTree: DirTree) {}
 
   dirTreeControl = new NestedTreeControl<DirTopDownTreeNode>(
     (node) => node.child
@@ -63,11 +88,30 @@ export class DirTreeNavComponent implements OnInit {
     this.dirTree.fetchTopDownDirTree((dat) => {
       this.dirTreeDataSource.data = [dat];
       this.dirTreeControl.dataNodes = this.dirTreeDataSource.data;
-      // this.dirTreeControl.expandAll();
     });
   }
 
   ngOnInit(): void {
     this.fetchTopDownDirTree();
+  }
+
+  selectDir(node) {
+    this.selectedEmiter.emit({ ...node });
+  }
+
+  onSearchDirTreeNameChanged() {
+    this.dirTreeControl.collapseAll();
+    if (!this.searchDirTreeName) {
+      return;
+    }
+    this.dirTree.searchMulti(
+      this.dirTreeControl,
+      this.dirTreeDataSource.data,
+      this.searchDirTreeName
+    );
+  }
+
+  collapseAll() {
+    this.dirTreeControl.collapseAll();
   }
 }

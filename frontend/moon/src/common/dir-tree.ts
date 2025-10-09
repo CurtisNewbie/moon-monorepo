@@ -55,10 +55,6 @@ export class DirTree {
     return !!node.child && node.child.length > 0;
   }
 
-  goToFile(n) {
-    this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: n.fileKey }]);
-  }
-
   search(
     dtc: NestedTreeControl<DirTopDownTreeNode>,
     root: DirTopDownTreeNode,

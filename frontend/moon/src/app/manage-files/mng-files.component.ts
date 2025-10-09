@@ -1137,9 +1137,15 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   popDirTree() {
-    this.dialog.open(DirTreeNavComponent, {
+    let ref = this.dialog.open(DirTreeNavComponent, {
       width: "800px",
       data: {},
+    });
+    ref.componentInstance.selectedEmiter.subscribe((dat) => {
+      this.nav.navigateTo(NavType.MANAGE_FILES, [
+        { parentDirKey: dat.fileKey },
+      ]);
+      ref.close();
     });
   }
 

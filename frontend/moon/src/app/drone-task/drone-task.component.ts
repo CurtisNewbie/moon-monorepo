@@ -1,14 +1,12 @@
-import { NestedTreeControl } from "@angular/cdk/tree";
 import { HttpClient } from "@angular/common/http";
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatTreeNestedDataSource } from "@angular/material/tree";
-import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
 import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 
 export interface ApiDetectTitleReq {
   url?: string;
@@ -86,12 +84,11 @@ export class DroneTaskComponent implements OnInit {
   platforms: string[] = [];
   tabdata: ListedTask[] = [];
 
-  dirTreeControl = this.dirTree.newDirTreeControl();
-  dirTreeDataSource = this.dirTree.newDirTreeDataSource();
-  searchDirTreeName = "";
-
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
+
+  @ViewChild(DirTreeNavComponent)
+  dirTreeNav: DirTreeNavComponent;
 
   ngOnInit(): void {
     this.headers = this.env.isMobile()
@@ -113,7 +110,6 @@ export class DroneTaskComponent implements OnInit {
   constructor(
     private snackBar: MatSnackBar,
     private http: HttpClient,
-    public dirTree: DirTree,
     private nav: NavigationService,
     public env: Env
   ) {}
@@ -146,9 +142,6 @@ export class DroneTaskComponent implements OnInit {
                 t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
             }
             t.statusLabel = t.status;
-            // if (isMob) {
-            //   t.statusLabel = t.statusLabel.substring(0, 5);
-            // }
           }
         }
         this.pagingController.onTotalChanged(dat.paging);
@@ -202,52 +195,15 @@ export class DroneTaskComponent implements OnInit {
     });
   }
 
-  fetchTopDownDirTree() {
-    this.dirTree.fetchTopDownDirTree((dat) => {
-      this.dirTreeDataSource.data = [dat];
-      this.dirTreeControl.dataNodes = this.dirTreeDataSource.data;
-
-      this.http.get<any>(`/drone/open/api/task/last-selected-dir`).subscribe({
-        next: (resp) => {
-          if (resp.error) {
-            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-            return;
-          }
-          let dat: FetchLastSelectedDirRes = resp.data;
-          if (dat.fileKey) {
-            let children = this.dirTreeDataSource.data.slice();
-            while (children.length > 0) {
-              let c = children.shift();
-              if (c.fileKey && c.fileKey == dat.fileKey) {
-                this.selectDir(c);
-                break;
-              }
-              if (c.child) {
-                children.push(...c.child);
-              }
-            }
-          }
-        },
-        error: (err) => {
-          console.log(err);
-          this.snackBar.open("Request failed, unknown error", "ok", {
-            duration: 3000,
-          });
-        },
-      });
-    });
-  }
-
   selectDir(n) {
     this.createTaskReq.dirFileKey = n.fileKey;
     this.createTaskDirName = n.name;
-    this.dirTreeControl.collapseAll();
+    this.dirTreeNav.collapseAll();
   }
 
   toggleCreateTaskPanelShown() {
     this.createTaskPanelShown = !this.createTaskPanelShown;
     if (this.createTaskPanelShown) {
-      this.fetchTopDownDirTree();
       this.listPlatforms();
     }
   }
@@ -371,17 +327,5 @@ export class DroneTaskComponent implements OnInit {
         });
       },
     });
-  }
-
-  onSearchDirTreeNameChanged() {
-    this.dirTreeControl.collapseAll();
-    if (!this.searchDirTreeName) {
-      return;
-    }
-    this.dirTree.searchMulti(
-      this.dirTreeControl,
-      this.dirTreeDataSource.data,
-      this.searchDirTreeName
-    );
   }
 }
