@@ -56,6 +56,7 @@ type SaveNotifiReq struct {
 func SaveNotification(rail miso.Rail, db *gorm.DB, req SaveNotifiReq, user common.User) error {
 	notifiNo := NotifiNo()
 	err := dbquery.NewQuery(rail, db).
+		NotLogSQL().
 		Table("notification").
 		CreateAny(struct {
 			UserNo   string
