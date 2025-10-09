@@ -15,11 +15,11 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.0.19-0.20250916153407-7c9779c6a451
 	github.com/curtisnewbie/mini-fstore v0.0.0-00010101000000-000000000000
-	github.com/curtisnewbie/miso v0.3.3-0.20250929074248-b9f14e018a89
+	github.com/curtisnewbie/miso v0.3.3-beta.1
 	github.com/curtisnewbie/user-vault v0.0.0-00010101000000-000000000000
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	golang.org/x/net v0.40.0
+	golang.org/x/net v0.44.0
 )
 
 require (
@@ -96,12 +96,13 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
-	golang.org/x/tools v0.33.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/exp v0.0.0-20251002181428-27f1f14c8bb9 // indirect
+	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/tools v0.37.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

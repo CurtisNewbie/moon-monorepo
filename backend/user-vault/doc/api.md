@@ -59,6 +59,8 @@
 - [POST /open/api/v1/notification/open](#post-openapiv1notificationopen)
 - [POST /open/api/v1/notification/open-all](#post-openapiv1notificationopen-all)
 - [GET /open/api/v2/notification/count](#get-openapiv2notificationcount)
+- [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
+- [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## POST /open/api/user/login
 
@@ -956,7 +958,7 @@
 
 - Description: Get user info by token. This endpoint is expected to be accessible publicly
 - Expected Access Scope: PUBLIC
-  - Query Parameter:
+- Query Parameter:
   - "token": jwt token
 - JSON Response:
     - "errorCode": (string) error code
@@ -1678,7 +1680,7 @@
 
 - Description: List all resource candidates for role
 - Bound to Resource: `"manage-resources"`
-  - Query Parameter:
+- Query Parameter:
   - "roleNo": Role No
 - JSON Response:
     - "errorCode": (string) error code
@@ -3565,7 +3567,7 @@
 ## GET /remote/user/id
 
 - Description: Fetch id of user with the username
-  - Query Parameter:
+- Query Parameter:
   - "username": Username
 - JSON Response:
     - "errorCode": (string) error code
@@ -5740,7 +5742,7 @@
 
 - Description: Count received platform notification using long polling
 - Bound to Resource: `"postbox:notification:query"`
-  - Query Parameter:
+- Query Parameter:
   - "curr": Current count (used to implement long polling)
 - cURL:
   ```sh
@@ -5781,6 +5783,112 @@
   sendRequest() {
     let curr: any | null = null;
     this.http.get<any>(`/user-vault/open/api/v2/notification/count?curr=${curr}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/run
+
+- Description: Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
+- Query Parameter:
+  - "duration": Duration of the flight recording. Required. Duration cannot exceed 30 min.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8089/debug/trace/recorder/run?duration='
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
+  func SendRequest(rail miso.Rail, duration string) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "user-vault").
+  		AddQueryParams("duration", duration).
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    let duration: any | null = null;
+    this.http.get<any>(`/user-vault/debug/trace/recorder/run?duration=${duration}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/stop
+
+- Description: Stop existing FlightRecorder session.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8089/debug/trace/recorder/stop'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // Stop existing FlightRecorder session.
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/stop", "user-vault").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/user-vault/debug/trace/recorder/stop`)
       .subscribe({
         next: () => {
         },

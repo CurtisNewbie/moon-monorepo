@@ -19,12 +19,14 @@
 - [GET /storage/usage-info](#get-storageusage-info)
 - [GET /maintenance/status](#get-maintenancestatus)
 - [GET /auth/resource](#get-authresource)
+- [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
+- [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## GET /file/stream
 
 - Description: Media streaming using temporary file key, the file_key's ttl is extended with each subsequent request. This endpoint is expected to be accessible publicly without authorization, since a temporary file_key is generated and used.
 - Expected Access Scope: PUBLIC
-  - Query Parameter:
+- Query Parameter:
   - "key": temporary file key
 - cURL:
   ```sh
@@ -80,7 +82,7 @@
 
 - Description: Download file using temporary file key. This endpoint is expected to be accessible publicly without authorization, since a temporary file_key is generated and used.
 - Expected Access Scope: PUBLIC
-  - Query Parameter:
+- Query Parameter:
   - "key": temporary file key
 - cURL:
   ```sh
@@ -217,7 +219,7 @@
 ## GET /file/info
 
 - Description: Fetch file info
-  - Query Parameter:
+- Query Parameter:
   - "fileId": actual file_id of the file record
   - "uploadFileId": temporary file_id returned when uploading files
 - JSON Response:
@@ -326,7 +328,7 @@
 ## GET /file/key
 
 - Description: Generate temporary file key for downloading and streaming. This endpoint is expected to be called internally by another backend service that validates the ownership of the file properly.
-  - Query Parameter:
+- Query Parameter:
   - "fileId": actual file_id of the file record
   - "filename": the name that will be used when downloading the file
 - JSON Response:
@@ -404,7 +406,7 @@
 ## GET /file/direct
 
 - Description: Download files directly using file_id. This endpoint is expected to be protected and only used internally by another backend service. Users can eaily steal others file_id and attempt to download the file, so it's better not be exposed to the end users.
-  - Query Parameter:
+- Query Parameter:
   - "fileId": actual file_id of the file record
 - cURL:
   ```sh
@@ -459,7 +461,7 @@
 ## DELETE /file
 
 - Description: Mark file as deleted.
-  - Query Parameter:
+- Query Parameter:
   - "fileId": actual file_id of the file record
 - JSON Response:
     - "errorCode": (string) error code
@@ -757,7 +759,7 @@
 - Expected Access Scope: PUBLIC
 - Header Parameter:
   - "Authorization": Basic Authorization
-  - Query Parameter:
+- Query Parameter:
   - "fileId": actual file_id of the file record
 - cURL:
   ```sh
@@ -1407,6 +1409,112 @@
     this.http.get<ResourceInfoRes>(`/fstore/auth/resource`)
       .subscribe({
         next: (resp) => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/run
+
+- Description: Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
+- Query Parameter:
+  - "duration": Duration of the flight recording. Required. Duration cannot exceed 30 min.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8084/debug/trace/recorder/run?duration='
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
+  func SendRequest(rail miso.Rail, duration string) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "fstore").
+  		AddQueryParams("duration", duration).
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    let duration: any | null = null;
+    this.http.get<any>(`/fstore/debug/trace/recorder/run?duration=${duration}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/stop
+
+- Description: Stop existing FlightRecorder session.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8084/debug/trace/recorder/stop'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // Stop existing FlightRecorder session.
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/stop", "fstore").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/fstore/debug/trace/recorder/stop`)
+      .subscribe({
+        next: () => {
         },
         error: (err) => {
           console.log(err)
