@@ -354,7 +354,7 @@ func SaveErrorLog(rail miso.Rail, evt LogLineEvent) error {
 		Error
 
 	if err == nil {
-		nmsg := fmt.Sprintf("%s [%s,%s] %s : %s", evt.Time.FormatClassic(), evt.TraceId, evt.SpanId, evt.Caller, evt.Message)
+		nmsg := fmt.Sprintf("%s [%s,%s] %s: %s", evt.Time.FormatClassic(), evt.TraceId, evt.SpanId, evt.Caller, evt.Message)
 		// if len(nmsg) > 1000 {
 		// 	rnmsg := []rune(nmsg)
 		// 	if len(rnmsg) > 1000 {

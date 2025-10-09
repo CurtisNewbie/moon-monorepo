@@ -23,10 +23,9 @@ export interface ShowNatificationDialogData {
     <h1 mat-dialog-title>{{ data.title }}</h1>
     <div mat-dialog-content>
       <p>{{ data.time }}</p>
-      <pre style="text-wrap: pretty; line-break: anywhere">
-        {{ data.message }}
-      </pre
-      >
+      <pre style="text-wrap: pretty; line-break: anywhere">{{
+        data.message
+      }}</pre>
     </div>
     <div mat-dialog-actions class="d-flex justify-content-end">
       <button mat-button [mat-dialog-close]="true">Ok</button>
