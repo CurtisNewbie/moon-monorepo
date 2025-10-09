@@ -11,6 +11,8 @@ export interface Gallery {
   updateBy: string;
   isOwner: boolean;
   dirFileKey: string;
+  thumbnailToken?: string;
+  thumbnailUrl?: string;
 }
 
 export interface ListGalleryImagesResp {

@@ -13,8 +13,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// ------------------------------- entity start
-
 // Gallery
 type Gallery struct {
 	Id         int64
@@ -33,8 +31,6 @@ func (Gallery) TableName() string {
 	return "gallery"
 
 }
-
-// ------------------------------- entity end
 
 type CreateGalleryCmd struct {
 	Name string `json:"name" validation:"notEmpty"`
@@ -66,18 +62,19 @@ type VGalleryBrief struct {
 }
 
 type VGallery struct {
-	ID            int64      `json:"id"`
-	GalleryNo     string     `json:"galleryNo"`
-	UserNo        string     `json:"userNo"`
-	Name          string     `json:"name"`
-	CreateTime    util.ETime `json:"-"`
-	UpdateTime    util.ETime `json:"-"`
-	CreateBy      string     `json:"createBy"`
-	UpdateBy      string     `json:"updateBy"`
-	IsOwner       bool       `json:"isOwner"`
-	CreateTimeStr string     `json:"createTime"`
-	UpdateTimeStr string     `json:"updateTime"`
-	DirFileKey    string
+	ID             int64      `json:"id"`
+	GalleryNo      string     `json:"galleryNo"`
+	UserNo         string     `json:"userNo"`
+	Name           string     `json:"name"`
+	CreateTime     util.ETime `json:"-"`
+	UpdateTime     util.ETime `json:"-"`
+	CreateBy       string     `json:"createBy"`
+	UpdateBy       string     `json:"updateBy"`
+	IsOwner        bool       `json:"isOwner"`
+	CreateTimeStr  string     `json:"createTime"`
+	UpdateTimeStr  string     `json:"updateTime"`
+	DirFileKey     string
+	ThumbnailToken string
 }
 
 // List owned gallery briefs
@@ -107,7 +104,7 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("g.*").Order("g.update_time DESC")
 		}).
-		Transform(func(g VGallery) VGallery {
+		TransformAsync(func(g VGallery) util.Future[VGallery] {
 			if g.UserNo == user.UserNo {
 				g.IsOwner = true
 			}
@@ -116,7 +113,32 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 			}
 			g.CreateTimeStr = g.CreateTime.FormatClassic()
 			g.UpdateTimeStr = g.UpdateTime.FormatClassic()
-			return g
+
+			return util.RunAsync[VGallery](func() (VGallery, error) {
+				var thumbnailFileId string
+				ok, err := dbquery.NewQuery(rail).
+					Table("gallery_image gi").
+					Joins("LEFT JOIN file_info fi ON gi.file_key = fi.uuid").
+					Eq("gi.gallery_no", g.GalleryNo).
+					Eq("fi.is_logic_deleted", false).
+					Select("fi.thumbnail").
+					OrderAsc("gi.name").
+					Limit(1).
+					ScanAny(&thumbnailFileId)
+
+				if err != nil {
+					rail.Errorf("Failed to find thumbnail file_key for gallery: %v, %v", g.GalleryNo, err)
+				} else if ok {
+					tkn, err := GetFstoreTmpToken(rail.NextSpan(), thumbnailFileId, "thumbnail.jpg")
+					if err != nil {
+						rail.Errorf("Failed to generate tmp token for gallery thumbnail, galleryNo: %v, thumbnailFileId: %v, %v",
+							g.GalleryNo, thumbnailFileId, err)
+					} else {
+						g.ThumbnailToken = tkn
+					}
+				}
+				return g, nil
+			})
 		}).
 		Scan(rail, cmd.Paging)
 }

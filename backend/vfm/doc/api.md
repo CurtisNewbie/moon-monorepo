@@ -2915,6 +2915,7 @@
         - "createTime": (string) 
         - "updateTime": (string) 
         - "dirFileKey": (string) 
+        - "thumbnailToken": (string) 
 - cURL:
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/list' \
@@ -2942,6 +2943,7 @@
   	CreateTimeStr string `json:"createTime"`
   	UpdateTimeStr string `json:"updateTime"`
   	DirFileKey string `json:"dirFileKey"`
+  	ThumbnailToken string `json:"thumbnailToken"`
   }
 
   // List galleries
@@ -3004,6 +3006,7 @@
     createTime?: string;
     updateTime?: string;
     dirFileKey?: string;
+    thumbnailToken?: string;
   }
   ```
 

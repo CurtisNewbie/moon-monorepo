@@ -30,13 +30,14 @@ export interface ListGalleriesResp {
 })
 export class GalleryComponent implements OnInit {
   readonly DESKTOP_COLUMNS = [
+    "thumbnail",
     "galleryNo",
     "name",
     "createTime",
     "updateTime",
     "createBy",
   ];
-  readonly MOBILE_COLUMNS = ["name", "createBy"];
+  readonly MOBILE_COLUMNS = ["thumbnail", "name", "createBy"];
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
@@ -72,6 +73,12 @@ export class GalleryComponent implements OnInit {
           }
           this.pagingController.onTotalChanged(resp.data.paging);
           this.galleries = resp.data.payload;
+          for (let g of this.galleries) {
+            if (g.thumbnailToken) {
+              g.thumbnailUrl =
+                "fstore/file/raw?key=" + encodeURIComponent(g.thumbnailToken);
+            }
+          }
           this.expandedElement = null;
         },
       });
