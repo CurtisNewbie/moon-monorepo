@@ -18,7 +18,7 @@ func SubscribeBinlogChanges(rail miso.Rail) error {
 		Concurrency:        2,
 		ContinueOnErr:      true,
 		Listener:           evictNotifCountCache,
-		ListenerLogPayload: true,
+		ListenerLogPayload: false,
 	})
 	return nil
 }
