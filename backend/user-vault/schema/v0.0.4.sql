@@ -91,3 +91,5 @@ alter table user_vault.site_password add column `trace_id` varchar(32) NOT NULL 
   change column `create_by` `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'created by',
   change column `update_by` `updated_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'updated by',
   change column `is_del` `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'record deleted';
+
+alter table user_vault.notification modify column `message` text null default null COMMENT 'message';

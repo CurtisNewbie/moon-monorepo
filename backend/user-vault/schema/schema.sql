@@ -136,7 +136,7 @@ CREATE TABLE `notification` (
   `notifi_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'notification no',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
   `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'title',
-  `message` varchar(1000) NOT NULL DEFAULT '' COMMENT 'message',
+  `message` text COMMENT 'message',
   `status` varchar(10) NOT NULL DEFAULT 'INIT' COMMENT 'Status: INIT, OPENED',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'created at',
   `created_by` varchar(255) NOT NULL DEFAULT '' COMMENT 'who created this record',
