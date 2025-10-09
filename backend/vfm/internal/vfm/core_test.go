@@ -104,7 +104,7 @@ func TestFileExists(t *testing.T) {
 func TestFindParentFile(t *testing.T) {
 	corePreTest(t)
 	c := miso.EmptyRail()
-	pf, e := FindParentFile(c, mysql.GetMySQL(), FetchParentFileReq{FileKey: "ZZZ718071967023104410314"}, testUser())
+	pf, _, e := FindParentFile(c, mysql.GetMySQL(), FetchParentFileReq{FileKey: "ZZZ718071967023104410314"}, testUser())
 	if e != nil {
 		t.Fatal(e)
 	}

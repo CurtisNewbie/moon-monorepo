@@ -61,11 +61,11 @@ func ApiGetParentFile(rail miso.Rail, db *gorm.DB, req FetchParentFileReq, user 
 	if req.FileKey == "" {
 		return nil, errs.NewErrf("fileKey is required")
 	}
-	pf, e := FindParentFile(rail, db, req, user)
-	if e != nil {
-		return nil, e
+	pf, ok, err := FindParentFile(rail, db, req, user)
+	if err != nil {
+		return nil, err
 	}
-	if pf.Zero {
+	if !ok {
 		return nil, nil
 	}
 	return &pf, nil

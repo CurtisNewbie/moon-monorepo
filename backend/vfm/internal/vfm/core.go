@@ -110,7 +110,6 @@ type ShareVfolderReq struct {
 }
 
 type ParentFileInfo struct {
-	Zero     bool   `json:"-"`
 	FileKey  string `json:"fileKey"`
 	Filename string `json:"fileName"`
 }
@@ -380,10 +379,7 @@ func findFile(rail miso.Rail, db *gorm.DB, fileKey string) (FileInfo, bool, erro
 		Eq("uuid", fileKey).
 		Eq("is_del", 0).
 		ScanAny(&f)
-	if err != nil {
-		return f, false, err
-	}
-	return f, ok, nil
+	return f, ok, err
 }
 
 func findFileById(rail miso.Rail, tx *gorm.DB, id int) (FileInfo, bool, error) {
@@ -401,33 +397,33 @@ type FetchParentFileReq struct {
 	FileKey string `form:"fileKey"`
 }
 
-func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user common.User) (ParentFileInfo, error) {
-	f, ok, e := findFile(c, db, req.FileKey)
-	if e != nil {
-		return ParentFileInfo{}, e
+func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user common.User) (ParentFileInfo, bool, error) {
+	f, ok, err := findFile(c, db, req.FileKey)
+	if err != nil {
+		return ParentFileInfo{}, false, err
 	}
 	if !ok {
-		return ParentFileInfo{}, errs.NewErrf("File not found")
+		return ParentFileInfo{}, false, ErrFileNotFound.New()
 	}
 
 	// dir is only visible to the uploader for now
 	if f.UploaderNo != user.UserNo {
-		return ParentFileInfo{}, errs.NewErrf("Not permitted")
+		return ParentFileInfo{}, false, miso.ErrNotPermitted.New()
 	}
 
 	if f.ParentFile == "" {
-		return ParentFileInfo{Zero: true}, nil
+		return ParentFileInfo{}, false, nil
 	}
 
-	pf, ok, e := findFile(c, db, f.ParentFile)
-	if e != nil {
-		return ParentFileInfo{}, e
+	pf, ok, err := findFile(c, db, f.ParentFile)
+	if err != nil {
+		return ParentFileInfo{}, false, err
 	}
 	if !ok {
-		return ParentFileInfo{}, errs.NewErrf("File not found", fmt.Sprintf("ParentFile %v not found", f.ParentFile))
+		return ParentFileInfo{}, false, ErrFileNotFound.WithInternalMsg("ParentFile %v not found", f.ParentFile)
 	}
 
-	return ParentFileInfo{FileKey: pf.Uuid, Filename: pf.Name, Zero: false}, nil
+	return ParentFileInfo{FileKey: pf.Uuid, Filename: pf.Name}, true, nil
 }
 
 type MakeDirReq struct {
