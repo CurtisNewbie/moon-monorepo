@@ -90,8 +90,10 @@ func prepareServer(rail miso.Rail) error {
 		miso.PerfLogExclPath("/debug/pprof/profile")
 		miso.PerfLogExclPath("/debug/pprof/symbol")
 		miso.PerfLogExclPath("/debug/pprof/trace")
-		proxy.AddFilter(PProfFilter(bearer))
-		rail.Infof("Enabled pprof api for gatekeeper")
+		miso.PerfLogExclPath("/debug/trace/recorder/run")
+		miso.PerfLogExclPath("/debug/trace/recorder/stop")
+		proxy.AddFilter(DebugFilter(bearer))
+		rail.Infof("Enabled pprof/trace api for gatekeeper")
 	}
 
 	proxy.AddFilter(ProxyPprofAuthFilter)
@@ -170,15 +172,16 @@ func MetricsFilter(pc *miso.ProxyContext, next func()) {
 	next()
 }
 
-func PProfFilter(bearer string) func(pc *miso.ProxyContext, next func()) {
+func DebugFilter(bearer string) func(pc *miso.ProxyContext, next func()) {
 	return func(pc *miso.ProxyContext, next func()) {
 		w, r := pc.Inb.Unwrap()
 
-		p := r.URL.Path
-		if v, ok := strings.CutPrefix(r.URL.Path, "/gatekeeper"); ok {
+		p := pc.ProxyPath
+		if v, ok := strings.CutPrefix(p, "/gatekeeper"); ok {
 			p = v
 		}
-		if strings.HasPrefix(p, "/debug/pprof") {
+
+		if strutil.HasAnyPrefix(p, "/debug/pprof", "/debug/trace") {
 			if bearer != "" {
 				token, ok := miso.ParseBearer(r.Header.Get("Authorization"))
 				if !ok || token != bearer {
@@ -187,26 +190,38 @@ func PProfFilter(bearer string) func(pc *miso.ProxyContext, next func()) {
 					return
 				}
 			}
+		}
 
-			if p == "/debug/pprof/cmdline" {
+		if strings.HasPrefix(p, "/debug/pprof") {
+			switch p {
+			case "/debug/pprof/cmdline":
 				pprof.Cmdline(w, r)
 				return
-			} else if p == "/debug/pprof/profile" {
+			case "/debug/pprof/profile":
 				pprof.Profile(w, r)
 				return
-			} else if p == "/debug/pprof/symbol" {
+			case "/debug/pprof/symbol":
 				pprof.Symbol(w, r)
 				return
-			} else if p == "/debug/pprof/trace" {
+			case "/debug/pprof/trace":
 				pprof.Trace(w, r)
 				return
-			} else {
+			default:
 				if name, found := strings.CutPrefix(p, "/debug/pprof/"); found && name != "" {
 					pprof.Handler(name).ServeHTTP(w, r)
 					return
 				}
-
 				pprof.Index(w, r)
+				return
+			}
+
+		} else if strings.HasPrefix(p, "/debug/trace") {
+			switch p {
+			case "/debug/trace/recorder/run":
+				miso.HandleFlightRecorderRun(pc.Inb)
+				return
+			case "/debug/trace/recorder/stop":
+				miso.HandleFlightRecorderStop(pc.Inb)
 				return
 			}
 		}
@@ -228,16 +243,6 @@ func (g GatewayError) Error() string {
 }
 
 func ResolveServiceTarget(rail miso.Rail, proxyPath string) (string, error) {
-	if proxyPath == miso.GetPropStr(miso.PropHealthCheckUrl) {
-		return proxyPath, nil
-	}
-	if proxyPath == miso.GetPropStr(miso.PropMetricsRoute) {
-		return proxyPath, nil
-	}
-	if strings.HasPrefix(proxyPath, "/debug/pprof") {
-		return proxyPath, nil
-	}
-
 	// parse the request path, extract service name, and the relative url for the backend server
 	var sp ServicePath
 	var err error
