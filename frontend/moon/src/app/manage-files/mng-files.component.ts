@@ -465,6 +465,32 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     fetchFileInfoList: boolean = true
   ): void {
     this.curr = null;
+    if (
+      this.searchParam.fileKey &&
+      this.fileInfoList &&
+      this.fileInfoList.length > 0
+    ) {
+      this.http
+        .get<any>(
+          `vfm/open/api/file/parent?fileKey=${this.searchParam.fileKey}`
+        )
+        .subscribe({
+          next: (resp) => {
+            if (resp.error) {
+              this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+              return;
+            }
+            if (resp.data) {
+              this.searchParam.fileKey = null;
+              this.goToDir(resp.data.fileKey);
+            } else {
+              this.resetSearchParam();
+            }
+          },
+        });
+
+      return;
+    }
 
     this.searchParam = {};
     if (setFirstPage && !this.pagingController.atFirstPage()) {
