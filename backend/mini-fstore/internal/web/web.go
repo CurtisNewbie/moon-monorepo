@@ -32,6 +32,7 @@ const (
 )
 
 func PrepareWebServer(rail miso.Rail) error {
+	RegisterApi()
 
 	miso.AddInterceptor(func(c *gin.Context, next func()) {
 		url := c.Request.RequestURI

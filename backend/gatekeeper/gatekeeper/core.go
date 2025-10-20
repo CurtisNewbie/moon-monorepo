@@ -1,7 +1,6 @@
 package gatekeeper
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/pprof"
 	"strings"
@@ -56,7 +55,7 @@ func prepareServer(rail miso.Rail) error {
 	whitelistPatterns = miso.GetPropStrSlice(PropWhitelistPathPatterns)
 
 	// create proxy
-	proxy := miso.NewHttpProxy("/", ResolveServiceTarget)
+	proxy := miso.NewHttpProxy("/", miso.NewDynProxyTargetResolver())
 	proxy.AddFilter(ReqTimeLogFilter)
 	proxy.AddFilter(IpFilter)
 
@@ -106,32 +105,6 @@ func prepareServer(rail miso.Rail) error {
 	timerExclPath.Add(miso.GetPropStr(miso.PropMetricsRoute))
 	rail.Infof("Timer excluded paths: %v", timerExclPath)
 	return nil
-}
-
-func parseServicePath(url string) (ServicePath, error) {
-	rurl := []rune(url)[1:] // remove leading '/'
-
-	// root path, invalid request
-	if len(rurl) < 1 {
-		return ServicePath{}, errPathNotFound
-	}
-
-	start := 0
-	for i := range rurl {
-		if rurl[i] == '/' && i > 0 {
-			start = i
-			break
-		}
-	}
-
-	if start < 1 {
-		return ServicePath{}, errPathNotFound
-	}
-
-	return ServicePath{
-		ServiceName: string(rurl[0:start]),
-		Path:        string(rurl[start:]),
-	}, nil
 }
 
 func HealthcheckFilter(pc *miso.ProxyContext, next func()) {
@@ -228,35 +201,6 @@ func DebugFilter(bearer string) func(pc *miso.ProxyContext, next func()) {
 
 		next()
 	}
-}
-
-type GatewayError struct {
-	StatusCode int
-}
-
-func (g GatewayError) Status() int {
-	return g.StatusCode
-}
-
-func (g GatewayError) Error() string {
-	return fmt.Sprintf("gateway error, %v", g.StatusCode)
-}
-
-func ResolveServiceTarget(rail miso.Rail, proxyPath string) (string, error) {
-	// parse the request path, extract service name, and the relative url for the backend server
-	var sp ServicePath
-	var err error
-	if sp, err = parseServicePath(proxyPath); err != nil {
-		rail.Warnf("Invalid request, %v", err)
-		return "", GatewayError{StatusCode: 404}
-	}
-	rail.Debugf("parsed service path: %#v", sp)
-	target, err := miso.GetServiceRegistry().ResolveUrl(miso.EmptyRail(), sp.ServiceName, sp.Path)
-	if err != nil {
-		rail.Warnf("ServiceRegistry ResolveUrl failed, %v", err)
-		return "", GatewayError{StatusCode: 404}
-	}
-	return target, nil
 }
 
 func AuthFilter(pc *miso.ProxyContext, next func()) {

@@ -96,7 +96,7 @@ type CreateGalleryImageCmd struct {
 func DeleteGalleryImage(rail miso.Rail, tx *gorm.DB, fileKey string) error {
 	err := dbquery.NewQueryRail(rail, tx).ExecAny("delete from gallery_image where file_key = ?", fileKey)
 	if err != nil {
-		return errs.WrapErrf(err, "failed to update gallery_image, uuid: %v", fileKey)
+		return errs.Wrapf(err, "failed to update gallery_image, uuid: %v", fileKey)
 	}
 	rail.Infof("Removed file %v from all galleries", fileKey)
 	return nil
@@ -115,7 +115,7 @@ func CreateGalleryImage(rail miso.Rail, cmd CreateGalleryImageCmd, userNo string
 
 	lock := NewGalleryFileLock(rail, cmd.GalleryNo, cmd.FileKey)
 	if err := lock.Lock(); err != nil {
-		return errs.WrapErrf(err, "failed to obtain gallery image lock, gallery:%v, fileKey: %v", cmd.GalleryNo, cmd.FileKey)
+		return errs.Wrapf(err, "failed to obtain gallery image lock, gallery:%v, fileKey: %v", cmd.GalleryNo, cmd.FileKey)
 	}
 	defer lock.Unlock()
 
@@ -176,7 +176,7 @@ func GenFstoreTknAsync(rail miso.Rail, fileId string, name string) util.Future[F
 func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, user common.User) (*ListGalleryImagesResp, error) {
 	if hasAccess, err := HasAccessToGallery(rail, tx, user.UserNo, cmd.GalleryNo); err != nil || !hasAccess {
 		if err != nil {
-			return nil, errs.WrapErrf(err, "check HasAccessToGallery failed")
+			return nil, errs.Wrapf(err, "check HasAccessToGallery failed")
 		}
 		return nil, errs.ErrNotPermitted.New()
 	}
@@ -191,7 +191,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 		Limit(cmd.Paging.GetLimit()).
 		Scan(&galleryImages)
 	if err != nil {
-		return nil, errs.WrapErrf(err, "select gallery_image failed")
+		return nil, errs.Wrapf(err, "select gallery_image failed")
 	}
 	if galleryImages == nil {
 		galleryImages = []GalleryImage{}
@@ -206,7 +206,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 		if err == nil {
 			return total, nil
 		}
-		return total, errs.WrapErrf(err, "failed to count gallery_image")
+		return total, errs.Wrapf(err, "failed to count gallery_image")
 	})
 
 	// generate temp tokens for the actual files and the thumbnail, these are served by mini-fstore

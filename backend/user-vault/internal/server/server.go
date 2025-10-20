@@ -33,7 +33,7 @@ func BootstrapServer(args []string) {
 		},
 		printVersion,
 		vault.ScheduleTasks,
-		web.RegisterRoutes,
+		web.PrepareWebServer,
 		postbox.InitPipeline,
 		postbox.SubscribeBinlogChanges,
 	)

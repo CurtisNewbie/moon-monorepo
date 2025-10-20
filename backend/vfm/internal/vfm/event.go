@@ -94,7 +94,7 @@ func OnFileSaved(rail miso.Rail, evt ep.StreamEvent) error {
 	if isImage(f.Name) {
 		evt := fstore.ImgThumbnailTriggerEvent{Identifier: f.Uuid, FileId: f.FstoreFileId, ReplyTo: CompressImgNotifyEventBus}
 		if err := fstore.GenImgThumbnailPipeline.Send(rail, evt); err != nil {
-			return errs.WrapErrf(err, "failed to send %#v, uuid: %v", evt, f.Uuid)
+			return errs.Wrapf(err, "failed to send %#v, uuid: %v", evt, f.Uuid)
 		}
 		return nil
 	}
@@ -106,7 +106,7 @@ func OnFileSaved(rail miso.Rail, evt ep.StreamEvent) error {
 			ReplyTo:    GenVideoThumbnailNotifyEventBus,
 		}
 		if err := fstore.GenVidThumbnailPipeline.Send(rail, evt); err != nil {
-			return errs.WrapErrf(err, "failed to send %#v, uuid: %v", evt, f.Uuid)
+			return errs.Wrapf(err, "failed to send %#v, uuid: %v", evt, f.Uuid)
 		}
 		return nil
 	}
@@ -254,7 +254,7 @@ func OnFileDeleted(rail miso.Rail, evt ep.StreamEvent) error {
 	rail.Infof("File logically deleted, %v", uuid)
 
 	if e := OnNotifyFileDeletedEvent(rail, NotifyFileDeletedEvent{FileKey: uuid}); e != nil {
-		return errs.WrapErrf(e, "failed to send NotifyFileDeletedEvent, uuid: %v", uuid)
+		return errs.Wrapf(e, "failed to send NotifyFileDeletedEvent, uuid: %v", uuid)
 	}
 	return nil
 }

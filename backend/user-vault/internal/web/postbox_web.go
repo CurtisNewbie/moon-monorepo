@@ -14,7 +14,7 @@ const (
 	ResourceCreateNotification = "postbox:notification:create"
 )
 
-func RegisterRoutes(rail miso.Rail) error {
+func RegisterPostboxRoutes(rail miso.Rail) {
 
 	miso.BaseRoute("/open/api/v1/notification").Group(
 
@@ -45,7 +45,6 @@ func RegisterRoutes(rail miso.Rail) error {
 			DocQueryParam("curr", "Current count (used to implement long polling)").
 			Resource(ResourceQueryNotification),
 	)
-	return nil
 }
 
 func CreateNotificationEp(inb *miso.Inbound, req api.CreateNotificationReq) (any, error) {

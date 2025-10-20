@@ -101,7 +101,7 @@ func findGalleryAccess(rail miso.Rail, tx *gorm.DB, userNo string, galleryNo str
 		AND user_no = ? AND is_del = 0`, galleryNo, userNo).ScanAny(&userAccess)
 
 	if err != nil {
-		return nil, errs.WrapErrf(err, "failed to find gallery_user_access")
+		return nil, errs.Wrapf(err, "failed to find gallery_user_access")
 	}
 	if !ok {
 		return nil, nil
@@ -192,7 +192,7 @@ func RemoveGalleryAccess(rail miso.Rail, tx *gorm.DB, cmd RemoveGalleryAccessCmd
 		ExecAny(`UPDATE gallery_user_access SET is_del = 1, update_by = ? WHERE gallery_no = ? AND user_no = ?`,
 			user.Username, cmd.GalleryNo, cmd.UserNo)
 	if e != nil {
-		return errs.WrapErrf(e, "failed to update gallery_user_access, galleryNo: %v, userNo: %v, %v", cmd.GalleryNo, cmd.UserNo)
+		return errs.Wrapf(e, "failed to update gallery_user_access, galleryNo: %v, userNo: %v, %v", cmd.GalleryNo, cmd.UserNo)
 	}
 	rail.Infof("Gallery %v user access to %v is removed by %v", cmd.GalleryNo, cmd.UserNo, user.Username)
 	return nil

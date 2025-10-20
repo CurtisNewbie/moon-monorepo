@@ -14,6 +14,7 @@ const (
 )
 
 func PrepareWebServer(rail miso.Rail) {
+	RegisterApi()
 	common.LoadBuiltinPropagationKeys()
 	auth.ExposeResourceInfo([]auth.Resource{{
 		Code: CodeManageCashflows,

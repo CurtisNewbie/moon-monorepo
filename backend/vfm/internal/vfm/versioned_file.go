@@ -66,7 +66,7 @@ func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user co
 			VALUES (?,?,?,?,?,?,?,?)
 		`, verFileId, f.Uuid, f.Name, f.SizeInBytes, f.UploaderNo, f.UploaderName, util.Now(), user.Username)
 		if err != nil {
-			return errs.WrapErrf(err, "failed to insert versioned_file, req: #%v", req)
+			return errs.Wrapf(err, "failed to insert versioned_file, req: #%v", req)
 		}
 		if err := SaveVerFileLog(rail, tx,
 			SaveVerFileLogReq{VerFileId: verFileId, FileKey: fk, Username: user.Username}); err != nil {
@@ -125,7 +125,7 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 		WHERE ver_file_id = ?
 	`, req.VerFileId).ScanAny(&uvf)
 	if err != nil {
-		return errs.WrapErrf(err, "failed to query versioned_file, req: %#v", req)
+		return errs.Wrapf(err, "failed to query versioned_file, req: %#v", req)
 	}
 	if !ok {
 		return ErrFileNotFound.WithInternalMsg("ver_file_id not found, %v", req.VerFileId)
@@ -157,7 +157,7 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 			WHERE ver_file_id = ?
 		`, f.Uuid, f.Name, f.SizeInBytes, util.Now(), user.Username, req.VerFileId)
 		if err != nil {
-			return errs.WrapErrf(err, "failed to update versioned_file, req: #%v", req)
+			return errs.Wrapf(err, "failed to update versioned_file, req: #%v", req)
 		}
 		rail.Infof("Versioned file %v updated using %v", req.VerFileId, f.Uuid)
 		return nil
@@ -223,7 +223,7 @@ func SaveVerFileLog(rail miso.Rail, db *gorm.DB, req SaveVerFileLogReq) error {
 		Exec(`INSERT INTO versioned_file_log (ver_file_id, file_key, created_by) VALUES (?,?,?)`,
 			req.VerFileId, req.FileKey, req.Username)
 	if err != nil {
-		return errs.WrapErrf(err, "failed to save versioned_file_log, %#v", req)
+		return errs.Wrapf(err, "failed to save versioned_file_log, %#v", req)
 	}
 	return err
 }
@@ -264,19 +264,19 @@ func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.U
 			Exec(`UPDATE versioned_file SET deleted = 1, updated_by = ?, delete_time = ? WHERE ver_file_id = ?`,
 				user.Username, util.Now(), req.VerFileId)
 		if err != nil {
-			return errs.WrapErrf(err, "failed to mark versioend_file deleted, %v", req.VerFileId)
+			return errs.Wrapf(err, "failed to mark versioend_file deleted, %v", req.VerFileId)
 		}
 
 		var fks []string
 		if _, err := dbquery.NewQueryRail(rail, tx).
 			Raw(`SELECT vf.file_key FROM versioned_file_log vf WHERE vf.ver_file_id = ?`, req.VerFileId).
 			Scan(&fks); err != nil {
-			return errs.WrapErrf(err, "failed to query versioend_file_log, %v", req.VerFileId)
+			return errs.Wrapf(err, "failed to query versioend_file_log, %v", req.VerFileId)
 		}
 
 		for _, fk := range fks {
 			if err := DeleteFile(rail, tx, DeleteFileReq{Uuid: fk}, user, nil); err != nil {
-				return errs.WrapErrf(err, "failed to delete file in versioend_file_log, %v, %v", req.VerFileId, fk)
+				return errs.Wrapf(err, "failed to delete file in versioend_file_log, %v, %v", req.VerFileId, fk)
 			}
 		}
 		return nil
