@@ -113,8 +113,7 @@ export class GalleryImageComponent implements OnInit {
                   fileKey: imgs[i].fileKey,
                 });
               }
-              this.images = this.images.concat(tmp);
-
+              this.images.push(...tmp);
               this.page.page = this.page.page + 1;
             }
           } finally {
@@ -134,10 +133,6 @@ export class GalleryImageComponent implements OnInit {
         this.browseHistoryRecorder.record(this.images[event.data].fileKey);
         if (event.data == this.images.length - 1) {
           this.fetchNextPageImages();
-          setTimeout(() => {
-            this._lightbox.close();
-            this._lightbox.open(this.images, event.data, {});
-          }, 100);
         }
       }
     });
