@@ -5,6 +5,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  ViewEncapsulation,
 } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import {
@@ -26,6 +27,7 @@ export interface ImgViewerDialogData {
   selector: "app-image-viewer",
   templateUrl: "./image-viewer.component.html",
   styleUrls: ["./image-viewer.component.css"],
+  encapsulation: ViewEncapsulation.None
 })
 export class ImageViewerComponent implements OnInit, OnDestroy {
   lbsub: Subscription;

@@ -1,0 +1,21 @@
+/* fix lightbox image overflow issue */
+@media all and (max-width: 499px) {
+  #outerContainer {
+    max-height: 70svh !important;
+    overflow: scroll !important;
+  }
+}
+
+@media all and (min-width: 500px) and (max-width: 699px) {
+  #outerContainer {
+    max-height: 80svh !important;
+    overflow: scroll !important;
+  }
+}
+
+@media all and (min-width: 700px) {
+  #outerContainer {
+    max-height: 85vh !important;
+    overflow: scroll !important;
+  }
+}
