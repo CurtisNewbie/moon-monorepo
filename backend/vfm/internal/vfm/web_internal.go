@@ -62,6 +62,7 @@ type InternalFetchFileInfoReq struct {
 }
 
 type InternalFetchFileInfoRes struct {
+	FileKey     string
 	Name        string
 	UploadTime  util.ETime
 	SizeInBytes int64
@@ -74,6 +75,17 @@ type InternalFetchFileInfoRes struct {
 //   - misoapi-desc: Internal endpoint. Fetch file info.
 func ApiInternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
 	return InternalFetchFileInfo(rail, db, req)
+}
+
+type InternalBatchFetchFileInfoReq struct {
+	FileKey []string
+}
+
+// Internal endpoint. Batch Fetch file info.
+//
+//   - misoapi-http: POST /internal/file/batch-fetch-info
+func ApiItnBatchFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalBatchFetchFileInfoReq) ([]InternalFetchFileInfoRes, error) {
+	return InternalBatchFetchFileInfo(rail, db, req)
 }
 
 type SysMakeDirReq struct {

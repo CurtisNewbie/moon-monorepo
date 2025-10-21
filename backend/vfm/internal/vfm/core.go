@@ -1794,11 +1794,11 @@ func ValidateFileAccess(rail miso.Rail, db *gorm.DB, fileKey string, userNo stri
 
 func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
 	var res InternalFetchFileInfoRes
-	n, err := dbquery.NewQueryRail(rail, db).
+	n, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Eq("uuid", req.FileKey).
 		Eq("is_logic_deleted", DelN).
-		Select("name,upload_time,size_in_bytes,file_type").
+		Select("name,upload_time,size_in_bytes,file_type,uuid 'file_key'").
 		Scan(&res)
 	if err != nil {
 		return res, miso.UnknownErrf(err, "fileKey: %v", req.FileKey)
@@ -1807,6 +1807,21 @@ func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInf
 		return res, ErrFileNotFound.WithInternalMsg("fileKey: %v", req.FileKey)
 	}
 	return res, nil
+}
+
+func InternalBatchFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalBatchFetchFileInfoReq) ([]InternalFetchFileInfoRes, error) {
+	req.FileKey = slutil.FastDistinct(req.FileKey)
+	if len(req.FileKey) < 1 {
+		return []InternalFetchFileInfoRes{}, nil
+	}
+	var res []InternalFetchFileInfoRes
+	err := dbquery.NewQuery(rail, db).
+		Table("file_info").
+		In("uuid", req.FileKey).
+		Eq("is_logic_deleted", DelN).
+		Select("name,upload_time,size_in_bytes,file_type,uuid 'file_key'").
+		ScanVal(&res)
+	return res, err
 }
 
 type CheckDirExistsReq struct {

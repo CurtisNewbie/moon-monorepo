@@ -58,6 +58,7 @@
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
 - [POST /internal/file/fetch-info](#post-internalfilefetch-info)
+- [POST /internal/file/batch-fetch-info](#post-internalfilebatch-fetch-info)
 - [POST /internal/v1/file/make-dir](#post-internalv1filemake-dir)
 - [GET /auth/resource](#get-authresource)
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
@@ -5340,6 +5341,7 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (InternalFetchFileInfoRes) response data
+      - "fileKey": (string) 
       - "name": (string) 
       - "uploadTime": (int64) 
       - "sizeInBytes": (int64) 
@@ -5360,6 +5362,7 @@
   }
 
   type InternalFetchFileInfoRes struct {
+  	FileKey string `json:"fileKey"`
   	Name string `json:"name"`
   	UploadTime util.Time `json:"uploadTime"`
   	SizeInBytes int64 `json:"sizeInBytes"`
@@ -5399,6 +5402,7 @@
   }
 
   export interface InternalFetchFileInfoRes {
+    fileKey?: string;
     name?: string;
     uploadTime?: number;
     sizeInBytes?: number;
@@ -5426,6 +5430,114 @@
             return;
           }
           let dat: InternalFetchFileInfoRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /internal/file/batch-fetch-info
+
+- Description: Internal endpoint. Batch Fetch file info.
+- JSON Request:
+    - "fileKey": ([]string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": ([]vfm.InternalFetchFileInfoRes) response data
+      - "fileKey": (string) 
+      - "name": (string) 
+      - "uploadTime": (int64) 
+      - "sizeInBytes": (int64) 
+      - "fileType": (string) 
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/internal/file/batch-fetch-info' \
+    -H 'Content-Type: application/json' \
+    -d @- << EOF
+    {"fileKey":[]}
+  EOF
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type InternalBatchFetchFileInfoReq struct {
+  	FileKey []string `json:"fileKey"`
+  }
+
+  type InternalFetchFileInfoRes struct {
+  	FileKey string `json:"fileKey"`
+  	Name string `json:"name"`
+  	UploadTime util.Time `json:"uploadTime"`
+  	SizeInBytes int64 `json:"sizeInBytes"`
+  	FileType string `json:"fileType"`
+  }
+
+  // Internal endpoint. Batch Fetch file info.
+  func ApiItnBatchFetchFileInfo(rail miso.Rail, req InternalBatchFetchFileInfoReq) ([]InternalFetchFileInfoRes, error) {
+  	var res miso.GnResp[[]InternalFetchFileInfoRes]
+  	err := miso.NewDynClient(rail, "/internal/file/batch-fetch-info", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		var dat []InternalFetchFileInfoRes
+  		return dat, err
+  	}
+  	dat, err := res.Res()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return dat, err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface InternalBatchFetchFileInfoReq {
+    fileKey?: string[];
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: InternalFetchFileInfoRes[];
+  }
+
+  export interface InternalFetchFileInfoRes {
+    fileKey?: string;
+    name?: string;
+    uploadTime?: number;
+    sizeInBytes?: number;
+    fileType?: string;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  itnBatchFetchFileInfo() {
+    let req: InternalBatchFetchFileInfoReq | null = null;
+    this.http.post<any>(`/vfm/internal/file/batch-fetch-info`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: InternalFetchFileInfoRes[] = resp.data;
         },
         error: (err) => {
           console.log(err)
