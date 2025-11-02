@@ -67,6 +67,7 @@ export interface ListedTask {
   dirName?: string;
   trimmedDirName?: string;
   createdAt?: number;
+  updatedAt?: number;
   fileCount?: number;
   remark?: string;
 }
@@ -101,7 +102,7 @@ export class DroneTaskComponent implements OnInit {
           "attempt",
           "dirName",
           "fileCount",
-          "createdAt",
+          "updatedAt",
           "remark",
           "operation",
         ];
