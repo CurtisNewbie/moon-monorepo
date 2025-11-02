@@ -23,6 +23,7 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/osutil"
 	"github.com/curtisnewbie/miso/util/pair"
 	"github.com/curtisnewbie/miso/util/slutil"
 	"github.com/curtisnewbie/miso/util/strutil"
@@ -999,7 +1000,7 @@ func UnzipFile(rail miso.Rail, db *gorm.DB, evt UnzipFileEvent) ([]SavedZipEntry
 	}
 
 	tempDir := miso.GetPropStr(config.PropTempDir) + "/" + evt.FileId + "_" + util.RandNum(5)
-	if err := os.MkdirAll(tempDir, util.DefFileMode); err != nil {
+	if err := os.MkdirAll(tempDir, osutil.DefFileMode); err != nil {
 		return nil, fmt.Errorf("failed to MkdirAll for tempDir %v, %w", tempDir, err)
 	}
 
@@ -1043,7 +1044,7 @@ func UnpackZip(rail miso.Rail, f File, tempDir string) ([]UnpackedZipEntry, erro
 		}
 
 		tempPath := tempDir + "/" + util.GenIdP("ZIPENTRY")
-		tempFile, err := util.ReadWriteFile(tempPath)
+		tempFile, err := osutil.OpenRWFile(tempPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create temp file for zip entry file, %v, %w", f.Name, err)
 		}

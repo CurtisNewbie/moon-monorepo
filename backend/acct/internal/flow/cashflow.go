@@ -10,13 +10,15 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/async"
 	"github.com/curtisnewbie/miso/util/hash"
+	"github.com/curtisnewbie/miso/util/osutil"
 	"github.com/curtisnewbie/miso/util/slutil"
 	"gorm.io/gorm"
 )
 
 var (
-	importPool    util.AsyncPoolItf = util.NewIOAsyncPool()
+	importPool    async.AsyncPool = async.NewIOAsyncPool()
 	categoryConfs map[string]CategoryConf
 )
 
@@ -109,7 +111,7 @@ func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFl
 func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user common.User) error {
 	rail.Infof("User %v importing wechat cashflows", user.Username)
 
-	path, err := util.SaveTmpFile("/tmp", r.Body)
+	path, err := osutil.SaveTmpFile("/tmp", r.Body)
 	if err != nil {
 		return err
 	}

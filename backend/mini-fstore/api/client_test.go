@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/osutil"
 )
 
 func _clientPreTest(t *testing.T) miso.Rail {
@@ -60,7 +60,7 @@ func TestGenTempFileKey(t *testing.T) {
 
 func TestUploadFile(t *testing.T) {
 	rail := _clientPreTest(t)
-	f, err := util.OpenFile("../conf.yml", os.O_RDONLY)
+	f, err := osutil.OpenFile("../conf.yml", os.O_RDONLY)
 	if err != nil {
 		t.Fatal(err)
 	}

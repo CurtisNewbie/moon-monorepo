@@ -9,6 +9,7 @@ server:
   port: 7070
   perf.enabled: false
   pprof.enabled: false
+  use-nbio: true
 
 consul:
   enabled: true

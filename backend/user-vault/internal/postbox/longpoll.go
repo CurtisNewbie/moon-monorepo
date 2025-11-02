@@ -11,6 +11,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/async"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -55,14 +56,14 @@ func listenUserNotificationCountChanges(r *redis.Client) error {
 func newLongPolling() *LongPolling {
 	return &LongPolling{
 		mu:   sync.RWMutex{},
-		pool: util.NewIOAsyncPool(),
+		pool: async.NewIOAsyncPool(),
 		sub:  map[string]map[string]*LPSub{},
 	}
 }
 
 type LongPolling struct {
 	mu   sync.RWMutex
-	pool util.AsyncPoolItf
+	pool async.AsyncPool
 	sub  map[string]map[string]*LPSub
 }
 

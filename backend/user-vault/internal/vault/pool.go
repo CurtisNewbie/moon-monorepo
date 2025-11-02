@@ -1,7 +1,7 @@
 package vault
 
-import "github.com/curtisnewbie/miso/util"
+import "github.com/curtisnewbie/miso/util/async"
 
 var (
-	monitorPool = util.NewIOAsyncPool()
+	monitorPool = async.NewIOAsyncPool()
 )

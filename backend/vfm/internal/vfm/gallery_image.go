@@ -8,6 +8,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/async"
 	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
@@ -145,7 +146,7 @@ type FstoreTmpToken struct {
 	TempKey string
 }
 
-func GenFstoreTknBatch(rail miso.Rail, futures *util.AwaitFutures[FstoreTmpToken], fileId string, name string) {
+func GenFstoreTknBatch(rail miso.Rail, futures *async.AwaitFutures[FstoreTmpToken], fileId string, name string) {
 	futures.SubmitAsync(func() (FstoreTmpToken, error) {
 		tkn, err := GetFstoreTmpToken(rail.NextSpan(), fileId, name)
 		if err != nil {
@@ -158,8 +159,8 @@ func GenFstoreTknBatch(rail miso.Rail, futures *util.AwaitFutures[FstoreTmpToken
 	})
 }
 
-func GenFstoreTknAsync(rail miso.Rail, fileId string, name string) util.Future[FstoreTmpToken] {
-	return util.SubmitAsync[FstoreTmpToken](vfmPool,
+func GenFstoreTknAsync(rail miso.Rail, fileId string, name string) async.Future[FstoreTmpToken] {
+	return async.Submit[FstoreTmpToken](vfmPool,
 		func() (FstoreTmpToken, error) {
 			tkn, err := GetFstoreTmpToken(rail.NextSpan(), fileId, name)
 			if err != nil {
@@ -198,7 +199,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	}
 
 	// count total asynchronoulsy (normally, when the SELECT is successful, the COUNT doesn't really fail)
-	countFuture := util.SubmitAsync(vfmPool, func() (int, error) {
+	countFuture := async.Submit(vfmPool, func() (int, error) {
 		var total int
 		err := dbquery.NewQueryRail(rail, tx).
 			Raw(`SELECT COUNT(*) FROM gallery_image WHERE gallery_no = ?`, cmd.GalleryNo).
@@ -212,7 +213,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	// generate temp tokens for the actual files and the thumbnail, these are served by mini-fstore
 	images := []ImageInfo{}
 	if len(galleryImages) > 0 {
-		awaitFutures := util.NewAwaitFutures[FstoreTmpToken](vfmPool)
+		awaitFutures := async.NewAwaitFutures[FstoreTmpToken](vfmPool)
 		for _, img := range galleryImages {
 			fi, ok, e := findFile(rail, tx, img.FileKey)
 			if e != nil || !ok {

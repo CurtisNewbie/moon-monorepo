@@ -6,13 +6,13 @@ import (
 	fstore "github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/async"
 	vault "github.com/curtisnewbie/user-vault/api"
 )
 
 var (
 	userIdInfoCache = redis.NewRCache[vault.UserInfo]("vfm:user:info:userno", redis.RCacheConfig{Exp: 5 * time.Minute, NoSync: true})
-	fstorePool      = util.NewIOAsyncPool()
+	fstorePool      = async.NewIOAsyncPool()
 )
 
 func CachedFindUser(rail miso.Rail, userNo string) (vault.UserInfo, error) {
@@ -27,8 +27,8 @@ func GetFstoreTmpToken(rail miso.Rail, fileId string, filename string) (string, 
 	return fstore.GenTempFileKey(rail, fileId, filename)
 }
 
-func GetFstoreTmpTokenAsync(rail miso.Rail, fileId string, filename string) util.Future[string] {
-	return util.SubmitAsync(fstorePool, func() (string, error) {
+func GetFstoreTmpTokenAsync(rail miso.Rail, fileId string, filename string) async.Future[string] {
+	return async.Submit(fstorePool, func() (string, error) {
 		return fstore.GenTempFileKey(rail, fileId, filename)
 	})
 }
@@ -42,7 +42,7 @@ func BatchGetFstoreTmpToken(rail miso.Rail, reqs []FstoreTmpTokenReq) map[string
 	if len(reqs) < 1 {
 		return map[string]string{}
 	}
-	futures := make(map[string]util.Future[string], len(reqs))
+	futures := make(map[string]async.Future[string], len(reqs))
 	for _, r := range reqs {
 		futures[r.FileId] = GetFstoreTmpTokenAsync(rail, r.FileId, r.Filename)
 	}

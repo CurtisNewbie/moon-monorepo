@@ -11,6 +11,7 @@ import (
 	"github.com/curtisnewbie/miso/encoding/json"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/osutil"
 )
 
 const (
@@ -20,7 +21,7 @@ const (
 
 func ParseWechatCashflows(rail miso.Rail, path string) ([]NewCashflow, error) {
 
-	f, err := util.ReadWriteFile(path)
+	f, err := osutil.OpenRWFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %v, %w", path, err)
 	}

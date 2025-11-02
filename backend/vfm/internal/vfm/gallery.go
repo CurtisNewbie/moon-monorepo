@@ -9,6 +9,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/async"
 	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
@@ -104,7 +105,7 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select("g.*").Order("g.update_time DESC")
 		}).
-		TransformAsync(func(g VGallery) util.Future[VGallery] {
+		TransformAsync(func(g VGallery) async.Future[VGallery] {
 			if g.UserNo == user.UserNo {
 				g.IsOwner = true
 			}
@@ -114,7 +115,7 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *g
 			g.CreateTimeStr = g.CreateTime.FormatClassic()
 			g.UpdateTimeStr = g.UpdateTime.FormatClassic()
 
-			return util.RunAsync[VGallery](func() (VGallery, error) {
+			return async.Run[VGallery](func() (VGallery, error) {
 				var thumbnailFileId string
 				ok, err := dbquery.NewQuery(rail).
 					Table("gallery_image gi").

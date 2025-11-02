@@ -1,7 +1,7 @@
 package vfm
 
-import "github.com/curtisnewbie/miso/util"
+import "github.com/curtisnewbie/miso/util/async"
 
 var (
-	vfmPool = util.NewIOAsyncPool()
+	vfmPool = async.NewIOAsyncPool()
 )
