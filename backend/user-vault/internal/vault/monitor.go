@@ -3,11 +3,13 @@ package vault
 import (
 	"fmt"
 	"math"
+	"runtime"
 	"sort"
 	"time"
 
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util/async"
 	"github.com/spf13/cast"
 )
 
@@ -16,6 +18,7 @@ const (
 )
 
 var (
+	monitorPool           = async.NewAntsAsyncPool(runtime.GOMAXPROCS(0) * 10)
 	monitorServiceTickser = []*miso.TickRunner{}
 )
 
