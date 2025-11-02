@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   EventEmitter,
+  Input,
   OnInit,
   Output,
   ViewChild,
@@ -27,6 +28,9 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
 
   @ViewChild("paginator", { static: true })
   paginator: MatPaginator;
+
+  @Input("showGotoPageOnMobile")
+  showGotoPageOnMobile = false;
 
   goto: string = "1";
   maxPage: number = 1;

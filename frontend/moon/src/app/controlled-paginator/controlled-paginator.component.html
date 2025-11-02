@@ -1,5 +1,5 @@
 <div class="mat-paginator-container mat-paginator">
-    <ng-container *ngIf="!env.isMobile()">
+    <ng-container *ngIf="showGotoPageOnMobile || !env.isMobile()">
         <div class="me-2">
             <mat-form-field style="width: 100px">
                 <mat-label>Go To Page: (1-{{this.maxPage}})</mat-label>

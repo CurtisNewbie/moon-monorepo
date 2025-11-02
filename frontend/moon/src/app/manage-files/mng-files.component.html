@@ -331,6 +331,7 @@
         </table>
     </div>
 
-    <app-controlled-paginator (pageChanged)="pageChanged($event)"></app-controlled-paginator>
+    <app-controlled-paginator [showGotoPageOnMobile]="true"
+        (pageChanged)="pageChanged($event)"></app-controlled-paginator>
 
 </div>
