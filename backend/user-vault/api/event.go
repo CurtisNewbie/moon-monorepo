@@ -14,12 +14,12 @@ var (
 
 type CreateNotifiEvent struct {
 	Title           string   `valid:"maxLen:255" desc:"notification title"`
-	Message         string   `valid:"maxLen:1000" desc:"notification content"`
+	Message         string   `valid:"maxLen:65000" desc:"notification content"`
 	ReceiverUserNos []string `desc:"user_no of receivers"`
 }
 
 type CreateNotifiByAccessEvent struct {
 	Title   string `valid:"maxLen:255" desc:"notification title"`
-	Message string `valid:"maxLen:1000" desc:"notification content"`
+	Message string `valid:"maxLen:65000" desc:"notification content"`
 	ResCode string `valid:"notEmpty" desc:"resource code"`
 }
