@@ -7,7 +7,7 @@ import { Env } from "src/common/env-util";
 @Component({
   selector: "app-dir-tree-nav",
   template: `
-    <h3 mat-dialog-title>{{title}}</h3>
+    <h3 mat-dialog-title>{{ title }}</h3>
     <div mat-dialog-content class="mt-2">
       <div>
         <mat-form-field style="width: 100%">
@@ -29,7 +29,15 @@ import { Env } from "src/common/env-util";
             *matTreeNodeDef="let node; when: dirTree.treeHasChild"
           >
             <li>
-              <div class="mat-tree-node">
+              <div
+                class="mat-tree-node"
+                *ngIf="
+                  !searchDirTreeName ||
+                  (searchDirTreeName && (!!node.child && node.child.length > 0) && dirTreeControl.isExpanded(node)) ||
+                  (searchDirTreeName &&
+                    dirTree.matchNode(node, searchDirTreeName))
+                "
+              >
                 <button
                   *ngIf="dirTree.treeHasChild(0, node)"
                   mat-icon-button
