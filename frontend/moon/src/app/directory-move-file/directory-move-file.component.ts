@@ -25,24 +25,14 @@ export class DirectoryMoveFileComponent implements OnInit {
   moveIntoDirName: string = null;
   moveIntoDirKey: string = null;
 
-  dirTreeControl = new NestedTreeControl<DirTopDownTreeNode>(
-    (node) => node.child
-  );
-  dirTreeDataSource = new MatTreeNestedDataSource<DirTopDownTreeNode>();
-
   constructor(
     public dialogRef: MatDialogRef<DirectoryMoveFileComponent, Data>,
     @Inject(MAT_DIALOG_DATA) public dat: Data,
     private http: HttpClient,
-    private snackBar: MatSnackBar,
-    public dirTree: DirTree
-  ) {
-    this.dirTreeDataSource.data = [];
-  }
+    private snackBar: MatSnackBar
+  ) {}
 
-  ngOnInit(): void {
-    this.fetchTopDownDirTree();
-  }
+  ngOnInit(): void {}
 
   moveToDir() {
     const dk = this.moveIntoDirKey;
@@ -70,19 +60,11 @@ export class DirectoryMoveFileComponent implements OnInit {
       });
   }
 
-  fetchTopDownDirTree() {
-    this.dirTree.fetchTopDownDirTree((dat) => {
-      this.dirTreeDataSource.data = [dat];
-      this.dirTreeControl.dataNodes = this.dirTreeDataSource.data;
-    });
-  }
-
   selectDir(n) {
     this.moveIntoDirKey = n.fileKey;
     this.moveIntoDirName = n.name;
     this.snackBar.open(`Selected directory /${n.name}`, "ok", {
       duration: 1500,
     });
-    this.dirTreeControl.collapseAll();
   }
 }
