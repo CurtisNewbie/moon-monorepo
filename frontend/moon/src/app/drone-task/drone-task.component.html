@@ -27,7 +27,7 @@
                 <input matInput disabled readonly [ngModel]="createTaskDirName" />
             </mat-form-field>
             <div class="ms-3">
-                <app-dir-tree-nav (selected)="selectDir($event)"></app-dir-tree-nav>
+                <app-dir-tree-nav title="Directory Tree" (selected)="selectDir($event)"></app-dir-tree-nav>
             </div>
 
             <div class="justify-content-end d-flex">

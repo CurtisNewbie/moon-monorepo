@@ -1,5 +1,5 @@
 import { NestedTreeControl } from "@angular/cdk/tree";
-import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
 import { Env } from "src/common/env-util";
@@ -7,7 +7,7 @@ import { Env } from "src/common/env-util";
 @Component({
   selector: "app-dir-tree-nav",
   template: `
-    <h3 mat-dialog-title>Directory Tree Navigation</h3>
+    <h3 mat-dialog-title>{{title}}</h3>
     <div mat-dialog-content class="mt-2">
       <div>
         <mat-form-field style="width: 100%">
@@ -73,6 +73,9 @@ import { Env } from "src/common/env-util";
 })
 export class DirTreeNavComponent implements OnInit {
   searchDirTreeName: string = "";
+
+  @Input()
+  title: string = "Directory Tree Navigation";
 
   @Output("selected")
   selectedEmiter = new EventEmitter<DirTopDownTreeNode>();
