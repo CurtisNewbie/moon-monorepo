@@ -5909,7 +5909,7 @@
   - RabbitMQ RoutingKey: `#`
   - Event Payload:
     - "title": (string) notification title. Max length: 255.
-    - "message": (string) notification content. Max length: 1000.
+    - "message": (string) notification content. Max length: 65000.
     - "receiverUserNos": ([]string) user_no of receivers
 
 - CreateNotifiByAccessPipeline
@@ -5919,5 +5919,5 @@
   - RabbitMQ RoutingKey: `#`
   - Event Payload:
     - "title": (string) notification title. Max length: 255.
-    - "message": (string) notification content. Max length: 1000.
+    - "message": (string) notification content. Max length: 65000.
     - "resCode": (string) resource code. Required.
