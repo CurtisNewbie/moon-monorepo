@@ -286,7 +286,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         return;
       }
 
-      console.log(document.activeElement);
+      // console.log(document.activeElement);
 
       if (evt.key == "a" && evt.metaKey) {
         evt.preventDefault();

@@ -59,9 +59,11 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   }
 
   onGoToPageKeyUp(evt) {
+    if (!isEnterKey(evt)) {
+      return;
+    }
     if (!this.goto) {
       this.goto = String(1);
-      return;
     }
     let n = parseInt(this.goto);
     if (Number.isNaN(n)) {
@@ -78,10 +80,6 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
       n = maxPage;
     }
     this.goto = String(n);
-
-    if (!isEnterKey(evt)) {
-      return;
-    }
     this.goToPage(n);
   }
 
