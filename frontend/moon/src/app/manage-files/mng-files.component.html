@@ -72,7 +72,7 @@
 
             <mat-form-field style="width: 100%;">
                 <mat-label>Directory Name</mat-label>
-                <input matInput type="text" (keyup)="isEnterKeyPressed($event) && mkdir()" [(ngModel)]="newDirName">
+                <input #newDirNameInput matInput type="text" (keyup)="isEnterKeyPressed($event) && mkdir()" [(ngModel)]="newDirName">
                 <button *ngIf="newDirName" class="btn-close" matSuffix aria-label="Clear"
                     (click)="newDirName=''"></button>
             </mat-form-field>

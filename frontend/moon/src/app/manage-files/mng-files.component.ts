@@ -178,6 +178,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ----------------------------------
   */
 
+  @ViewChild("newDirNameInput")
+  newDirNameInput: ElementRef;
+
   @ViewChild("uploadFileInput")
   uploadFileInput: ElementRef;
 
@@ -266,7 +269,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         this.searchFilenameInput &&
         this.searchFilenameInput.nativeElement == document.activeElement
       ) {
-        this.searchFilenameInput.nativeElement.dispatchEvent(evt);
         return;
       }
 
@@ -274,9 +276,17 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         this.uploadFileInput &&
         this.uploadFileInput.nativeElement == document.activeElement
       ) {
-        this.uploadFileInput.nativeElement.dispatchEvent(evt);
         return;
       }
+
+      if (
+        this.newDirNameInput &&
+        this.newDirNameInput.nativeElement == document.activeElement
+      ) {
+        return;
+      }
+
+      console.log(document.activeElement);
 
       if (evt.key == "a" && evt.metaKey) {
         evt.preventDefault();
