@@ -94,13 +94,58 @@ type CreateGalleryImageCmd struct {
 	FileKey   string `json:"fileKey"`
 }
 
-func DeleteGalleryImage(rail miso.Rail, tx *gorm.DB, fileKey string) error {
-	err := dbquery.NewQueryRail(rail, tx).ExecAny("delete from gallery_image where file_key = ?", fileKey)
+func DeleteGalleryImage(rail miso.Rail, tx *gorm.DB, fileKey string) (bool, error) {
+	n, err := dbquery.NewQuery(rail, tx).Exec("delete from gallery_image where file_key = ?", fileKey)
 	if err != nil {
-		return errs.Wrapf(err, "failed to update gallery_image, uuid: %v", fileKey)
+		return false, errs.Wrapf(err, "failed to update gallery_image, uuid: %v", fileKey)
 	}
-	rail.Infof("Removed file %v from all galleries", fileKey)
-	return nil
+	if n > 0 {
+		rail.Infof("Removed file %v from all galleries", fileKey)
+	}
+	return n > 0, nil
+}
+
+func DeleteDirGallery(rail miso.Rail, db *gorm.DB, dirFileKey string) error {
+	lock := NewGalleryDirLock(rail, dirFileKey)
+	if err := lock.Lock(); err != nil {
+		return err
+	}
+	defer lock.Unlock()
+
+	var galleryNo string
+	ok, err := dbquery.NewQuery(rail, db).
+		Table("gallery").
+		Eq("dir_file_key", dirFileKey).
+		Select("gallery_no").
+		ScanAny(&galleryNo)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+
+	ok, err = dbquery.NewQuery(rail, db).
+		Table("gallery_image").
+		Eq("gallery_no", galleryNo).
+		HasAny()
+	if err != nil {
+		return err
+	}
+
+	// just in case the user adds images to the dir gallery
+	// if the dir gallery is empty, we just delete it
+	// if not, user may reuse the gallery for whatever reason
+	if !ok {
+		err = dbquery.NewQuery(rail, db).
+			Table("gallery").
+			Eq("gallery_no", galleryNo).
+			DeleteAny()
+		if err == nil {
+			rail.Infof("Deleted gallery for dir: %v", dirFileKey)
+		}
+	}
+	return err
 }
 
 // Create a gallery image record
@@ -314,7 +359,7 @@ func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user common
 				}
 			}
 		}
-	}(rail, cmd.Images)
+	}(rail.NewCtx(), cmd.Images)
 
 	return nil, nil
 }

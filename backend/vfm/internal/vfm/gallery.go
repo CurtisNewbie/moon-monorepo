@@ -170,38 +170,44 @@ func IsGalleryNameUsed(rail miso.Rail, name string, userNo string, tx *gorm.DB) 
 	return n > 0, nil
 }
 
+func NewGalleryDirLock(rail miso.Rail, dirFileKey string) *redis.RLock {
+	return redis.NewRLockf(rail, "fantahsea:gallery:create:dir:%v", dirFileKey)
+}
+
 // Create a new Gallery for dir
 func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, db *gorm.DB) (string, error) {
+	lock := NewGalleryDirLock(rail, cmd.DirFileKey)
+	if err := lock.Lock(); err != nil {
+		return "", err
+	}
+	defer lock.Unlock()
 
-	return redis.RLockRun(rail, "fantahsea:gallery:create:"+cmd.UserNo,
-		func() (string, error) {
-			galleryNo, err := GalleryNoOfDir(rail, cmd.DirFileKey, db)
-			if err != nil {
-				return "", err
+	galleryNo, err := GalleryNoOfDir(rail, cmd.DirFileKey, db)
+	if err != nil {
+		return "", err
+	}
+
+	if galleryNo == "" {
+		galleryNo = util.GenNoL("GAL", 25)
+		rail.Infof("Creating gallery (%s) for directory %s (%s)", galleryNo, cmd.DirName, cmd.DirFileKey)
+
+		err := db.Transaction(func(tx *gorm.DB) error {
+			gallery := &Gallery{
+				GalleryNo:  galleryNo,
+				Name:       cmd.DirName,
+				DirFileKey: cmd.DirFileKey,
+				UserNo:     cmd.UserNo,
+				CreateBy:   cmd.Username,
+				UpdateBy:   cmd.Username,
+				IsDel:      false,
 			}
-
-			if galleryNo == "" {
-				galleryNo = util.GenNoL("GAL", 25)
-				rail.Infof("Creating gallery (%s) for directory %s (%s)", galleryNo, cmd.DirName, cmd.DirFileKey)
-
-				err := db.Transaction(func(tx *gorm.DB) error {
-					gallery := &Gallery{
-						GalleryNo:  galleryNo,
-						Name:       cmd.DirName,
-						DirFileKey: cmd.DirFileKey,
-						UserNo:     cmd.UserNo,
-						CreateBy:   cmd.Username,
-						UpdateBy:   cmd.Username,
-						IsDel:      false,
-					}
-					return dbquery.NewQuery(rail, tx).Table("gallery").Omit("CreateTime", "UpdateTime").CreateAny(gallery)
-				})
-				if err != nil {
-					return galleryNo, err
-				}
-			}
-			return galleryNo, nil
+			return dbquery.NewQuery(rail, tx).Table("gallery").Omit("CreateTime", "UpdateTime").CreateAny(gallery)
 		})
+		if err != nil {
+			return galleryNo, err
+		}
+	}
+	return galleryNo, nil
 }
 
 // Create a new Gallery
@@ -364,9 +370,14 @@ func OnCreateGalleryImgEvent(rail miso.Rail, evt CreateGalleryImgEvent) error {
 
 func OnNotifyFileDeletedEvent(rail miso.Rail, evt NotifyFileDeletedEvent) error {
 	rail.Infof("Received NotifyFileDeletedEvent: %+v", evt)
-	err := DeleteGalleryImage(rail, mysql.GetMySQL(), evt.FileKey)
+	ok, err := DeleteGalleryImage(rail, mysql.GetMySQL(), evt.FileKey)
 	if err != nil {
 		return err
+	}
+	if !ok {
+		if err := DeleteDirGallery(rail, mysql.GetMySQL(), evt.FileKey); err != nil {
+			return err
+		}
 	}
 	return RemoveDeletedFileFromAllVFolder(rail, mysql.GetMySQL(), evt.FileKey)
 }
