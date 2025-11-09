@@ -38,6 +38,15 @@
 </div>
 
 <div>
+    <div class="d-flex flex-wrap gap-2">
+        <mat-form-field style="width: 400px">
+            <mat-label>Search URL</mat-label>
+            <input matInput [(ngModel)]="listTaskReq.url" (keyup)="isEnterKey($event) && listTasks()" />
+        </mat-form-field>
+    </div>
+</div>
+
+<div>
     <div class="d-flex flex-wrap justify-content-end">
         <button mat-icon-button class="m-1 icon-button-large" [class.status-green]="createTaskPanelShown"
             (click)="toggleCreateTaskPanelShown()">

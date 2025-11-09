@@ -7,6 +7,7 @@ import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
+import { isEnterKey } from "src/common/condition";
 
 export interface ApiDetectTitleReq {
   url?: string;
@@ -52,6 +53,7 @@ export interface PageRes {
 
 export interface ListTaskReq {
   paging?: Paging;
+  url?: string;
   taskId?: string;
   status?: string;
   platform?: string;
@@ -84,6 +86,8 @@ export class DroneTaskComponent implements OnInit {
   createTaskReq: CreateTaskReq = {};
   platforms: string[] = [];
   tabdata: ListedTask[] = [];
+  listTaskReq: ListTaskReq = {};
+  isEnterKey = isEnterKey;
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
@@ -116,44 +120,46 @@ export class DroneTaskComponent implements OnInit {
   ) {}
 
   listTasks() {
-    let req: ListTaskReq = { paging: this.pagingController.paging };
-    this.http.post<any>(`/drone/open/api/list-task`, req).subscribe({
-      next: (resp) => {
-        if (resp.error) {
-          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-          return;
-        }
-        let dat: PageRes = resp.data;
-        this.tabdata = dat.payload;
-
-        const isMob = this.env.isMobile();
-        const remarkMaxLen = 40;
-        const statusLabelMaxLen = 60;
-
-        if (this.tabdata) {
-          for (let t of this.tabdata) {
-            if (t.remark && t.remark.length > remarkMaxLen) {
-              t.remark =
-                "... " +
-                t.remark.substring(t.remark.length - remarkMaxLen).trim();
-            }
-            t.trimmedDirName = t.dirName;
-            if (isMob && t.trimmedDirName.length > statusLabelMaxLen) {
-              t.trimmedDirName =
-                t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
-            }
-            t.statusLabel = t.status;
+    this.listTaskReq.paging = this.pagingController.paging;
+    this.http
+      .post<any>(`/drone/open/api/list-task`, this.listTaskReq)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
           }
-        }
-        this.pagingController.onTotalChanged(dat.paging);
-      },
-      error: (err) => {
-        console.log(err);
-        this.snackBar.open("Request failed, unknown error", "ok", {
-          duration: 3000,
-        });
-      },
-    });
+          let dat: PageRes = resp.data;
+          this.tabdata = dat.payload;
+
+          const isMob = this.env.isMobile();
+          const remarkMaxLen = 40;
+          const statusLabelMaxLen = 60;
+
+          if (this.tabdata) {
+            for (let t of this.tabdata) {
+              if (t.remark && t.remark.length > remarkMaxLen) {
+                t.remark =
+                  "... " +
+                  t.remark.substring(t.remark.length - remarkMaxLen).trim();
+              }
+              t.trimmedDirName = t.dirName;
+              if (isMob && t.trimmedDirName.length > statusLabelMaxLen) {
+                t.trimmedDirName =
+                  t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
+              }
+              t.statusLabel = t.status;
+            }
+          }
+          this.pagingController.onTotalChanged(dat.paging);
+        },
+        error: (err) => {
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+      });
   }
 
   cancelTask(taskId) {
