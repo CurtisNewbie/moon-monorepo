@@ -1,4 +1,11 @@
-import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Inject,
+  OnDestroy,
+  OnInit,
+  Output,
+} from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 
 export interface MediaStreamerDialogData {
@@ -16,6 +23,12 @@ export class MediaStreamerComponent implements OnInit, OnDestroy {
   name: string;
   token: string;
   srcUrl: string;
+
+  @Output("prev")
+  prevEventEmitter = new EventEmitter();
+
+  @Output("next")
+  nextEventEmitter = new EventEmitter();
 
   constructor(
     public dialogRef: MatDialogRef<
@@ -38,5 +51,13 @@ export class MediaStreamerComponent implements OnInit, OnDestroy {
       "/" +
       this.data.url;
     this.token = this.data.token;
+  }
+
+  prev() {
+    this.prevEventEmitter.emit();
+  }
+
+  next() {
+    this.nextEventEmitter.emit();
   }
 }

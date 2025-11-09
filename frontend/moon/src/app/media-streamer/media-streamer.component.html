@@ -4,11 +4,17 @@
             Playing:
             {{name}}</span>
     </ng-container>
-    <div #playerRef>
+    <div #playerRef class="text-center">
         <div class="embed-responsive embed-responsive-16by9">
             <video #videoPlayer id="player" [src]="srcUrl" class="p-3 embed-responsive-item" controls preload="metadata"
-                style="max-height: 70vh; max-width: 70vw; overflow: auto">
+                style="max-height: 70vh; max-width: 65svw; overflow: auto">
             </video>
+        </div>
+        <div class="d-flex flex-wrap gap-1">
+            <button mat-icon-button class="icon-button-large" (click)="prev()"><i
+                    class="bi bi-arrow-left-circle"></i></button>
+            <button mat-icon-button class="icon-button-large" (click)="next()"><i
+                    class="bi bi-arrow-right-circle"></i></button>
         </div>
     </div>
 </div>

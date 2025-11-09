@@ -649,19 +649,109 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           }
 
           const token = resp.data;
-
           const getDownloadUrl = () =>
             "fstore/file/raw?key=" + encodeURIComponent(token);
           const getStreamingUrl = () =>
             "fstore/file/stream?key=" + encodeURIComponent(token);
 
+          let closeDialog = (afterClose) => {};
+          let nextIdx = -1;
+          let fetchNewList = false;
+          let fetchNewListNextPage = false;
+          let closing = false;
+          const canNav = (fn): boolean => {
+            return isImageByName(fn) || isStreamableVideo(fn);
+          };
+
+          let leftRight = (isLeft) => {
+            if (!isLeft) {
+              if (idx + 1 >= this.fileInfoList.length) {
+                if (this.pagingController.nextPage()) {
+                  fetchNewList = true;
+                  fetchNewListNextPage = true;
+                }
+              } else {
+                for (let j = idx + 1; j < this.fileInfoList.length; j++) {
+                  if (canNav(this.fileInfoList[j].name)) {
+                    nextIdx = j;
+                    break;
+                  }
+                }
+                if (nextIdx == -1 && this.pagingController.nextPage()) {
+                  fetchNewList = true;
+                  fetchNewListNextPage = true;
+                }
+              }
+            } else if (isLeft) {
+              if (idx - 1 < 0) {
+                if (this.pagingController.prevPage()) {
+                  fetchNewList = true;
+                }
+              } else {
+                for (let j = idx - 1; j > -1; j--) {
+                  if (canNav(this.fileInfoList[j].name)) {
+                    nextIdx = j;
+                    break;
+                  }
+                }
+                if (nextIdx == -1 && this.pagingController.prevPage()) {
+                  fetchNewList = true;
+                }
+              }
+            }
+            if (!closing && (nextIdx > -1 || fetchNewList)) {
+              closing = true;
+              closeDialog(() => {
+                if (fetchNewList) {
+                  this.fetchFileInfoList(() => {
+                    let idx = -1;
+                    if (fetchNewListNextPage) {
+                      for (let j = 0; j < this.fileInfoList.length; j++) {
+                        if (canNav(this.fileInfoList[j].name)) {
+                          idx = j;
+                          break;
+                        }
+                      }
+                    } else {
+                      for (let j = this.fileInfoList.length - 1; j > -1; j--) {
+                        if (canNav(this.fileInfoList[j].name)) {
+                          idx = j;
+                          break;
+                        }
+                      }
+                    }
+                    if (idx > -1) {
+                      this.preview(this.fileInfoList[idx], idx);
+                    }
+                  });
+                } else {
+                  this.preview(this.fileInfoList[nextIdx], nextIdx);
+                }
+              });
+            }
+          };
+
           if (isStreaming) {
-            this.dialog.open(MediaStreamerComponent, {
+            let d = this.dialog.open(MediaStreamerComponent, {
               data: {
                 name: u.name,
                 url: getStreamingUrl(),
                 token: token,
               },
+            });
+            closeDialog = (afterClose) => {
+              d.afterClosed().subscribe({
+                next: () => {
+                  afterClose();
+                },
+              });
+              d.close();
+            };
+            d.componentInstance.prevEventEmitter.subscribe(() => {
+              leftRight(true);
+            });
+            d.componentInstance.nextEventEmitter.subscribe(() => {
+              leftRight(false);
             });
           } else if (isPdf(u.name)) {
             this.nav.navigateTo(NavType.PDF_VIEWER, [
@@ -684,85 +774,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 rotate: false,
               },
             });
-
-            let nextIdx = -1;
-            let fetchNewList = false;
-            let fetchNewListNextPage = false;
-            let closing = false;
-
-            let leftRight = (isLeft) => {
-              if (!isLeft) {
-                if (idx + 1 >= this.fileInfoList.length) {
-                  if (this.pagingController.nextPage()) {
-                    fetchNewList = true;
-                    fetchNewListNextPage = true;
-                  }
-                } else {
-                  for (let j = idx + 1; j < this.fileInfoList.length; j++) {
-                    if (isImageByName(this.fileInfoList[j].name)) {
-                      nextIdx = j;
-                      break;
-                    }
-                  }
-                  if (nextIdx == -1 && this.pagingController.nextPage()) {
-                    fetchNewList = true;
-                    fetchNewListNextPage = true;
-                  }
-                }
-              } else if (isLeft) {
-                if (idx - 1 < 0) {
-                  if (this.pagingController.prevPage()) {
-                    fetchNewList = true;
-                  }
-                } else {
-                  for (let j = idx - 1; j > -1; j--) {
-                    if (isImageByName(this.fileInfoList[j].name)) {
-                      nextIdx = j;
-                      break;
-                    }
-                  }
-                  if (nextIdx == -1 && this.pagingController.prevPage()) {
-                    fetchNewList = true;
-                  }
-                }
-              }
-              if (!closing && (nextIdx > -1 || fetchNewList)) {
-                closing = true;
-                dialog.afterClosed().subscribe({
-                  next: () => {
-                    if (fetchNewList) {
-                      this.fetchFileInfoList(() => {
-                        let idx = -1;
-                        if (fetchNewListNextPage) {
-                          for (let j = 0; j < this.fileInfoList.length; j++) {
-                            if (isImageByName(this.fileInfoList[j].name)) {
-                              idx = j;
-                              break;
-                            }
-                          }
-                        } else {
-                          for (
-                            let j = this.fileInfoList.length - 1;
-                            j > -1;
-                            j--
-                          ) {
-                            if (isImageByName(this.fileInfoList[j].name)) {
-                              idx = j;
-                              break;
-                            }
-                          }
-                        }
-                        if (idx > -1) {
-                          this.preview(this.fileInfoList[idx], idx);
-                        }
-                      });
-                    } else {
-                      this.preview(this.fileInfoList[nextIdx], nextIdx);
-                    }
-                  },
-                });
-                dialog.close();
-              }
+            closeDialog = (afterClose) => {
+              dialog.afterClosed().subscribe({
+                next: () => {
+                  afterClose();
+                },
+              });
+              dialog.close();
             };
 
             dialog.componentInstance.swipeLeft.subscribe(() => {
