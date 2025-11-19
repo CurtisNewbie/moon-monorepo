@@ -32,7 +32,7 @@ func BeforeServerBootstrap(rail miso.Rail) error {
 		})
 
 	miso.HttpPost("/log/error/list",
-		miso.AutoHandler(func(inb *miso.Inbound, req ListErrorLogReq) (any, error) {
+		miso.AutoHandler(func(inb *miso.Inbound, req ListErrorLogReq) (ListErrorLogResp, error) {
 			return ListErrorLogs(inb.Rail(), req)
 		})).
 		Desc("List error logs").
