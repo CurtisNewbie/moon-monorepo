@@ -197,14 +197,14 @@ func BookmarkMd5(bm Bookmark) string {
 }
 
 type ListedBookmark struct {
-	Id     int64
-	UserNo string
-	Name   string
-	Href   string
-	Icon   string
+	Id     int64  `json:"id"`
+	UserNo string `json:"userNo"`
+	Name   string `json:"name"`
+	Href   string `json:"href"`
+	Icon   string `json:"icon"`
 }
 
-func ListBookmarks(rail miso.Rail, tx *gorm.DB, req ListBookmarksReq, userNo string) (any, error) {
+func ListBookmarks(rail miso.Rail, tx *gorm.DB, req ListBookmarksReq, userNo string) (miso.PageRes[ListedBookmark], error) {
 	return dbquery.NewPagedQuery[ListedBookmark](tx).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			if req.Blacklisted {

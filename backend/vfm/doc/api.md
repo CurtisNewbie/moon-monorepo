@@ -4394,6 +4394,17 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
+    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ListedBookmark]) response data
+      - "paging": (Paging) pagination parameters
+        - "limit": (int) page limit
+        - "page": (int) page number, 1-based
+        - "total": (int) total count
+      - "payload": ([]vfm.ListedBookmark) payload values in current page
+        - "id": (int64) 
+        - "userNo": (string) 
+        - "name": (string) 
+        - "href": (string) 
+        - "icon": (string) 
 - cURL:
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/list' \
@@ -4408,21 +4419,31 @@
   	Paging miso.Paging `json:"paging"`
   }
 
+
+  type ListedBookmark struct {
+  	Id int64 `json:"id"`
+  	UserNo string `json:"userNo"`
+  	Name string `json:"name"`
+  	Href string `json:"href"`
+  	Icon string `json:"icon"`
+  }
+
   // List bookmarks
-  func ApiListBookmarks(rail miso.Rail, req ListBookmarksReq) error {
-  	var res miso.GnResp[any]
+  func ApiListBookmarks(rail miso.Rail, req ListBookmarksReq) (miso.PageRes[ListedBookmark], error) {
+  	var res miso.GnResp[miso.PageRes[ListedBookmark]]
   	err := miso.NewDynClient(rail, "/bookmark/list", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		return err
+  		var dat miso.PageRes[ListedBookmark]
+  		return dat, err
   	}
-  	err = res.Err()
+  	dat, err := res.Res()
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
   	}
-  	return err
+  	return dat, err
   }
   ```
 
@@ -4443,6 +4464,26 @@
     errorCode?: string;            // error code
     msg?: string;                  // message
     error?: boolean;               // whether the request was successful
+    data?: PageRes;
+  }
+
+  export interface PageRes {
+    paging?: Paging;
+    payload?: ListedBookmark[];
+  }
+
+  export interface Paging {
+    limit?: number;                // page limit
+    page?: number;                 // page number, 1-based
+    total?: number;                // total count
+  }
+
+  export interface ListedBookmark {
+    id?: number;
+    userNo?: string;
+    name?: string;
+    href?: string;
+    icon?: string;
   }
   ```
 
@@ -4465,6 +4506,7 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
+          let dat: PageRes = resp.data;
         },
         error: (err) => {
           console.log(err)
@@ -4570,6 +4612,17 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
+    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ListedBookmark]) response data
+      - "paging": (Paging) pagination parameters
+        - "limit": (int) page limit
+        - "page": (int) page number, 1-based
+        - "total": (int) total count
+      - "payload": ([]vfm.ListedBookmark) payload values in current page
+        - "id": (int64) 
+        - "userNo": (string) 
+        - "name": (string) 
+        - "href": (string) 
+        - "icon": (string) 
 - cURL:
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/blacklist/list' \
@@ -4584,21 +4637,31 @@
   	Paging miso.Paging `json:"paging"`
   }
 
+
+  type ListedBookmark struct {
+  	Id int64 `json:"id"`
+  	UserNo string `json:"userNo"`
+  	Name string `json:"name"`
+  	Href string `json:"href"`
+  	Icon string `json:"icon"`
+  }
+
   // List bookmark blacklist
-  func ApiListBlacklistedBookmarks(rail miso.Rail, req ListBookmarksReq) error {
-  	var res miso.GnResp[any]
+  func ApiListBlacklistedBookmarks(rail miso.Rail, req ListBookmarksReq) (miso.PageRes[ListedBookmark], error) {
+  	var res miso.GnResp[miso.PageRes[ListedBookmark]]
   	err := miso.NewDynClient(rail, "/bookmark/blacklist/list", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		return err
+  		var dat miso.PageRes[ListedBookmark]
+  		return dat, err
   	}
-  	err = res.Err()
+  	dat, err := res.Res()
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
   	}
-  	return err
+  	return dat, err
   }
   ```
 
@@ -4619,6 +4682,26 @@
     errorCode?: string;            // error code
     msg?: string;                  // message
     error?: boolean;               // whether the request was successful
+    data?: PageRes;
+  }
+
+  export interface PageRes {
+    paging?: Paging;
+    payload?: ListedBookmark[];
+  }
+
+  export interface Paging {
+    limit?: number;                // page limit
+    page?: number;                 // page number, 1-based
+    total?: number;                // total count
+  }
+
+  export interface ListedBookmark {
+    id?: number;
+    userNo?: string;
+    name?: string;
+    href?: string;
+    icon?: string;
   }
   ```
 
@@ -4641,6 +4724,7 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
+          let dat: PageRes = resp.data;
         },
         error: (err) => {
           console.log(err)

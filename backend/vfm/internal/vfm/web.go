@@ -76,8 +76,8 @@ func ApiGetParentFile(rail miso.Rail, db *gorm.DB, req FetchParentFileReq, user 
 //   - misoapi-http: POST /open/api/file/move-to-dir
 //   - misoapi-desc: User move file into directory
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiMoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.User) (any, error) {
-	return nil, MoveFileToDir(rail, db, req, user)
+func ApiMoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.User) error {
+	return MoveFileToDir(rail, db, req, user)
 }
 
 type BatchMoveIntoDirReq struct {
@@ -89,13 +89,13 @@ type BatchMoveIntoDirReq struct {
 //   - misoapi-http: POST /open/api/file/batch-move-to-dir
 //   - misoapi-desc: User move files into directory
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiBatchMoveFileToDir(rail miso.Rail, db *gorm.DB, req BatchMoveIntoDirReq, user common.User) (any, error) {
+func ApiBatchMoveFileToDir(rail miso.Rail, db *gorm.DB, req BatchMoveIntoDirReq, user common.User) error {
 	for _, r := range req.Instructions {
 		if err := MoveFileToDir(rail, db, r, user); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 // Make dir.
@@ -130,8 +130,8 @@ func ApiListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user common.User
 //   - misoapi-http: POST /open/api/file/delete
 //   - misoapi-desc: User delete file
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiDeleteFiles(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.User) (any, error) {
-	return nil, DeleteFile(rail, db, req, user, nil)
+func ApiDeleteFiles(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.User) error {
+	return DeleteFile(rail, db, req, user, nil)
 }
 
 // Truncate dir.
@@ -139,8 +139,8 @@ func ApiDeleteFiles(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.
 //   - misoapi-http: POST /open/api/file/dir/truncate
 //   - misoapi-desc: User delete truncate directory recursively
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiTruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.User) (any, error) {
-	return nil, TruncateDir(rail, db, req, user, true)
+func ApiTruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.User) error {
+	return TruncateDir(rail, db, req, user, true)
 }
 
 type FetchDirTreeReq struct {
@@ -186,16 +186,16 @@ type BatchDeleteFileReq struct {
 //   - misoapi-http: POST /open/api/file/delete/batch
 //   - misoapi-desc: User delete file in batch
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiBatchDeleteFile(rail miso.Rail, db *gorm.DB, req BatchDeleteFileReq, user common.User) (any, error) {
+func ApiBatchDeleteFile(rail miso.Rail, db *gorm.DB, req BatchDeleteFileReq, user common.User) error {
 	if len(req.FileKeys) < 31 {
 		for i := range req.FileKeys {
 			fk := req.FileKeys[i]
 			if err := DeleteFile(rail, db, DeleteFileReq{fk}, user, nil); err != nil {
 				rail.Errorf("failed to delete file, fileKey: %v, %v", fk, err)
-				return nil, err
+				return err
 			}
 		}
-		return nil, nil
+		return nil
 	}
 
 	// too many file keys, delete files asynchronously
@@ -208,7 +208,7 @@ func ApiBatchDeleteFile(rail miso.Rail, db *gorm.DB, req BatchDeleteFileReq, use
 			}
 		})
 	}
-	return nil, nil
+	return nil
 }
 
 // User Create file.
@@ -216,9 +216,9 @@ func ApiBatchDeleteFile(rail miso.Rail, db *gorm.DB, req BatchDeleteFileReq, use
 //   - misoapi-http: POST /open/api/file/create
 //   - misoapi-desc: User create file
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiCreateFile(rail miso.Rail, db *gorm.DB, req CreateFileReq, user common.User) (any, error) {
+func ApiCreateFile(rail miso.Rail, db *gorm.DB, req CreateFileReq, user common.User) error {
 	_, err := CreateFile(rail, db, req, user)
-	return nil, err
+	return err
 }
 
 // Update file.
@@ -226,8 +226,8 @@ func ApiCreateFile(rail miso.Rail, db *gorm.DB, req CreateFileReq, user common.U
 //   - misoapi-http: POST /open/api/file/info/update
 //   - misoapi-desc: User update file
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiUpdateFile(rail miso.Rail, db *gorm.DB, req UpdateFileReq, user common.User) (any, error) {
-	return nil, UpdateFile(rail, db, req, user)
+func ApiUpdateFile(rail miso.Rail, db *gorm.DB, req UpdateFileReq, user common.User) error {
+	return UpdateFile(rail, db, req, user)
 }
 
 // Generate file token.
@@ -244,9 +244,9 @@ func ApiGenFileTkn(rail miso.Rail, db *gorm.DB, req GenerateTempTokenReq, user c
 //   - misoapi-http: POST /open/api/file/unpack
 //   - misoapi-desc: User unpack zip
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiUnpackZip(rail miso.Rail, db *gorm.DB, req UnpackZipReq, user common.User) (any, error) {
+func ApiUnpackZip(rail miso.Rail, db *gorm.DB, req UnpackZipReq, user common.User) error {
 	err := UnpackZip(rail, db, user, req)
-	return nil, err
+	return err
 }
 
 // Generate file token in QRCode.
@@ -316,8 +316,8 @@ func ApiCreateVFolder(rail miso.Rail, db *gorm.DB, req CreateVFolderReq, user co
 //   - misoapi-http: POST /open/api/vfolder/file/add
 //   - misoapi-desc: User add file to virtual folder
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiVFolderAddFile(rail miso.Rail, db *gorm.DB, req AddFileToVfolderReq, user common.User) (any, error) {
-	return nil, AddFileToVFolder(rail, db, req, user)
+func ApiVFolderAddFile(rail miso.Rail, db *gorm.DB, req AddFileToVfolderReq, user common.User) error {
+	return AddFileToVFolder(rail, db, req, user)
 }
 
 // Remove file from virtual folder.
@@ -325,8 +325,8 @@ func ApiVFolderAddFile(rail miso.Rail, db *gorm.DB, req AddFileToVfolderReq, use
 //   - misoapi-http: POST /open/api/vfolder/file/remove
 //   - misoapi-desc: User remove file from virtual folder
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiVFolderRemoveFile(rail miso.Rail, db *gorm.DB, req RemoveFileFromVfolderReq, user common.User) (any, error) {
-	return nil, RemoveFileFromVFolder(rail, db, req, user)
+func ApiVFolderRemoveFile(rail miso.Rail, db *gorm.DB, req RemoveFileFromVfolderReq, user common.User) error {
+	return RemoveFileFromVFolder(rail, db, req, user)
 }
 
 // Share virtual folder.
@@ -334,13 +334,13 @@ func ApiVFolderRemoveFile(rail miso.Rail, db *gorm.DB, req RemoveFileFromVfolder
 //   - misoapi-http: POST /open/api/vfolder/share
 //   - misoapi-desc: Share access to virtual folder
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiShareVFolder(rail miso.Rail, db *gorm.DB, req ShareVfolderReq, user common.User) (any, error) {
+func ApiShareVFolder(rail miso.Rail, db *gorm.DB, req ShareVfolderReq, user common.User) error {
 	sharedTo, e := vault.FindUser(rail, vault.FindUserReq{Username: &req.Username})
 	if e != nil {
 		rail.Warnf("Unable to find user, sharedTo: %s, %v", req.Username, e)
-		return nil, errs.NewErrf("Failed to find user")
+		return errs.NewErrf("Failed to find user")
 	}
-	return nil, ShareVFolder(rail, db, sharedTo, req.FolderNo, user)
+	return ShareVFolder(rail, db, sharedTo, req.FolderNo, user)
 }
 
 // Remove access to virtual folder.
@@ -348,8 +348,8 @@ func ApiShareVFolder(rail miso.Rail, db *gorm.DB, req ShareVfolderReq, user comm
 //   - misoapi-http: POST /open/api/vfolder/access/remove
 //   - misoapi-desc: Remove granted access to virtual folder
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiRemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAccessReq, user common.User) (any, error) {
-	return nil, RemoveVFolderAccess(rail, db, req, user)
+func ApiRemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAccessReq, user common.User) error {
+	return RemoveVFolderAccess(rail, db, req, user)
 }
 
 // List accesses to virtual folder.
@@ -366,8 +366,8 @@ func ApiListVFolderAccess(rail miso.Rail, db *gorm.DB, req ListGrantedFolderAcce
 //   - misoapi-http: POST /open/api/vfolder/remove
 //   - misoapi-desc: Remove virtual folder
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiRemoveVFolder(rail miso.Rail, db *gorm.DB, req RemoveVFolderReq, user common.User) (any, error) {
-	return nil, RemoveVFolder(rail, db, user, req)
+func ApiRemoveVFolder(rail miso.Rail, db *gorm.DB, req RemoveVFolderReq, user common.User) error {
+	return RemoveVFolder(rail, db, user, req)
 }
 
 // List gallery brief infos.
@@ -393,8 +393,8 @@ func ApiCreateGallery(rail miso.Rail, cmd CreateGalleryCmd, db *gorm.DB, user co
 //   - misoapi-http: POST /open/api/gallery/update
 //   - misoapi-desc: Update gallery
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiUpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, db *gorm.DB, user common.User) (any, error) {
-	return nil, UpdateGallery(rail, cmd, user, db)
+func ApiUpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, db *gorm.DB, user common.User) error {
+	return UpdateGallery(rail, cmd, user, db)
 }
 
 // Delete gallery.
@@ -402,8 +402,8 @@ func ApiUpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, db *gorm.DB, user co
 //   - misoapi-http: POST /open/api/gallery/delete
 //   - misoapi-desc: Delete gallery
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiDeleteGallery(rail miso.Rail, db *gorm.DB, cmd DeleteGalleryCmd, user common.User) (any, error) {
-	return nil, DeleteGallery(rail, db, cmd, user)
+func ApiDeleteGallery(rail miso.Rail, db *gorm.DB, cmd DeleteGalleryCmd, user common.User) error {
+	return DeleteGallery(rail, db, cmd, user)
 }
 
 // List galleries.
@@ -420,8 +420,8 @@ func ApiListGalleries(rail miso.Rail, db *gorm.DB, cmd ListGalleriesCmd, user co
 //   - misoapi-http: POST /open/api/gallery/access/grant
 //   - misoapi-desc: Grant access to the galleries
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiGranteGalleryAccess(rail miso.Rail, db *gorm.DB, cmd PermitGalleryAccessCmd, user common.User) (any, error) {
-	return nil, GrantGalleryAccessToUser(rail, db, cmd, user)
+func ApiGranteGalleryAccess(rail miso.Rail, db *gorm.DB, cmd PermitGalleryAccessCmd, user common.User) error {
+	return GrantGalleryAccessToUser(rail, db, cmd, user)
 }
 
 // Remove access to gallery.
@@ -429,8 +429,8 @@ func ApiGranteGalleryAccess(rail miso.Rail, db *gorm.DB, cmd PermitGalleryAccess
 //   - misoapi-http: POST /open/api/gallery/access/remove
 //   - misoapi-desc: Remove access to the galleries
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiRemoveGalleryAccess(rail miso.Rail, db *gorm.DB, cmd RemoveGalleryAccessCmd, user common.User) (any, error) {
-	return nil, RemoveGalleryAccess(rail, db, cmd, user)
+func ApiRemoveGalleryAccess(rail miso.Rail, db *gorm.DB, cmd RemoveGalleryAccessCmd, user common.User) error {
+	return RemoveGalleryAccess(rail, db, cmd, user)
 }
 
 // List accesses to gallery.
@@ -456,7 +456,7 @@ func ApiListGalleryImages(rail miso.Rail, db *gorm.DB, cmd ListGalleryImagesCmd,
 //   - misoapi-http: POST /open/api/gallery/image/transfer
 //   - misoapi-desc: Host selected images on gallery
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiTransferGalleryImage(rail miso.Rail, db *gorm.DB, cmd TransferGalleryImageReq, user common.User) (any, error) {
+func ApiTransferGalleryImage(rail miso.Rail, db *gorm.DB, cmd TransferGalleryImageReq, user common.User) error {
 	return BatchTransferAsync(rail, cmd, user, db)
 }
 
@@ -522,8 +522,8 @@ func ApiCreateVersionedFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq
 //   - misoapi-http: POST /open/api/versioned-file/update
 //   - misoapi-desc: Update versioned file
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiUpdateVersionedFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user common.User) (any, error) {
-	return nil, UpdateVerFile(rail, db, req, user)
+func ApiUpdateVersionedFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user common.User) error {
+	return UpdateVerFile(rail, db, req, user)
 }
 
 // Delete versioned file.
@@ -531,8 +531,8 @@ func ApiUpdateVersionedFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq
 //   - misoapi-http: POST /open/api/versioned-file/delete
 //   - misoapi-desc: Delete versioned file
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiDelVersionedFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.User) (any, error) {
-	return nil, DelVerFile(rail, db, req, user)
+func ApiDelVersionedFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.User) error {
+	return DelVerFile(rail, db, req, user)
 }
 
 // Compensate thumbnail generation
@@ -540,8 +540,8 @@ func ApiDelVersionedFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user
 //   - misoapi-http: POST /compensate/thumbnail
 //   - misoapi-desc: Compensate thumbnail generation
 //   - misoapi-resource: ref(ResVfmMaintenance)
-func ApiCompensateThumbnail(rail miso.Rail, db *gorm.DB) (any, error) {
-	return nil, CompensateThumbnail(rail, db)
+func ApiCompensateThumbnail(rail miso.Rail, db *gorm.DB) error {
+	return CompensateThumbnail(rail, db)
 }
 
 // Regenerate video thumbnails
@@ -565,28 +565,28 @@ type ListBookmarksReq struct {
 //   - misoapi-http: PUT /bookmark/file/upload
 //   - misoapi-desc: Upload bookmark file
 //   - misoapi-resource: ref(ResManageBookmark)
-func ApiUploadBookmarkFile(inb *miso.Inbound, user common.User) (any, error) {
+func ApiUploadBookmarkFile(inb *miso.Inbound, user common.User) error {
 	rail := inb.Rail()
 	_, r := inb.Unwrap()
 	path, err := TransferTmpFile(rail, r.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer os.Remove(path)
 
 	lock := redis.NewRLock(rail, "docindexer:bookmark:"+user.UserNo)
 	if err := lock.Lock(); err != nil {
 		rail.Errorf("failed to lock for bookmark upload, user: %v, %v", user.Username, err)
-		return nil, errs.NewErrf("Please try again later")
+		return errs.NewErrf("Please try again later")
 	}
 	defer lock.Unlock()
 
 	if err := ProcessUploadedBookmarkFile(rail, path, user); err != nil {
 		rail.Errorf("ProcessUploadedBookmarkFile failed, user: %v, path: %v, %v", user.Username, path, err)
-		return nil, errs.NewErrf("Failed to parse bookmark file")
+		return errs.NewErrf("Failed to parse bookmark file")
 	}
 
-	return nil, nil
+	return nil
 }
 
 // List bookmarks endpoint.
@@ -594,7 +594,7 @@ func ApiUploadBookmarkFile(inb *miso.Inbound, user common.User) (any, error) {
 //   - misoapi-http: POST /bookmark/list
 //   - misoapi-desc: List bookmarks
 //   - misoapi-resource: ref(ResManageBookmark)
-func ApiListBookmarks(rail miso.Rail, db *gorm.DB, req ListBookmarksReq, user common.User) (any, error) {
+func ApiListBookmarks(rail miso.Rail, db *gorm.DB, req ListBookmarksReq, user common.User) (miso.PageRes[ListedBookmark], error) {
 	return ListBookmarks(rail, db, req, user.UserNo)
 }
 
@@ -607,8 +607,8 @@ type RemoveBookmarkReq struct {
 //   - misoapi-http: POST /bookmark/remove
 //   - misoapi-desc: Remove bookmark
 //   - misoapi-resource: ref(ResManageBookmark)
-func ApiRemoveBookmark(rail miso.Rail, db *gorm.DB, req RemoveBookmarkReq, user common.User) (any, error) {
-	return nil, RemoveBookmark(rail, db, req.Id, user.UserNo)
+func ApiRemoveBookmark(rail miso.Rail, db *gorm.DB, req RemoveBookmarkReq, user common.User) error {
+	return RemoveBookmark(rail, db, req.Id, user.UserNo)
 }
 
 // List bookmark blacklists.
@@ -616,7 +616,7 @@ func ApiRemoveBookmark(rail miso.Rail, db *gorm.DB, req RemoveBookmarkReq, user 
 //   - misoapi-http: POST /bookmark/blacklist/list
 //   - misoapi-desc: List bookmark blacklist
 //   - misoapi-resource: ref(ResManageBookmark)
-func ApiListBlacklistedBookmarks(rail miso.Rail, db *gorm.DB, req ListBookmarksReq, user common.User) (any, error) {
+func ApiListBlacklistedBookmarks(rail miso.Rail, db *gorm.DB, req ListBookmarksReq, user common.User) (miso.PageRes[ListedBookmark], error) {
 	req.Blacklisted = true
 	return ListBookmarks(rail, db, req, user.UserNo)
 }
@@ -626,8 +626,8 @@ func ApiListBlacklistedBookmarks(rail miso.Rail, db *gorm.DB, req ListBookmarksR
 //   - misoapi-http: POST /bookmark/blacklist/remove
 //   - misoapi-desc: Remove bookmark blacklist
 //   - misoapi-resource: ref(ResManageBookmark)
-func ApiRemoveBookmarkBlacklist(rail miso.Rail, db *gorm.DB, req RemoveBookmarkReq, user common.User) (any, error) {
-	return nil, RemoveBookmarkBlacklist(rail, db, req.Id, user.UserNo)
+func ApiRemoveBookmarkBlacklist(rail miso.Rail, db *gorm.DB, req RemoveBookmarkReq, user common.User) error {
+	return RemoveBookmarkBlacklist(rail, db, req.Id, user.UserNo)
 }
 
 // List user browse history.

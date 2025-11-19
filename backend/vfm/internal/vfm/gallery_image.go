@@ -310,9 +310,9 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	return &ListGalleryImagesResp{Images: images, Paging: miso.RespPage(cmd.Paging, total)}, nil
 }
 
-func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user common.User, tx *gorm.DB) (any, error) {
+func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user common.User, tx *gorm.DB) error {
 	if len(cmd.Images) < 1 {
-		return nil, nil
+		return nil
 	}
 
 	// validate the keys first
@@ -322,9 +322,9 @@ func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user common
 			UserNo:  user.UserNo,
 		}); e != nil || !isValid {
 			if e != nil {
-				return nil, e
+				return e
 			}
-			return nil, errs.NewErrf("Only file's owner can make it a gallery image ('%s')", img.Name)
+			return errs.NewErrf("Only file's owner can make it a gallery image ('%s')", img.Name)
 		}
 	}
 
@@ -362,7 +362,7 @@ func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user common
 		}
 	}(rail.NewCtx(), cmd.Images)
 
-	return nil, nil
+	return nil
 }
 
 // Transfer images in dir
