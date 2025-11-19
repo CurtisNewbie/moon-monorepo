@@ -5,7 +5,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/idutil"
 	"gorm.io/gorm"
@@ -24,8 +24,8 @@ func NewNoteLock(rail miso.Rail, recordId string) *redis.RLock {
 }
 
 type SaveNoteReq struct {
-	Title   string `valid:"trim,notEmpty"`
-	Content string
+	Title   string `valid:"trim,notEmpty" json:"title"`
+	Content string `json:"content"`
 }
 
 func DBSaveNote(rail miso.Rail, db *gorm.DB, snr SaveNoteReq, user common.User) error {
@@ -47,9 +47,9 @@ func DBSaveNote(rail miso.Rail, db *gorm.DB, snr SaveNoteReq, user common.User) 
 }
 
 type UpdateNoteReq struct {
-	RecordId string `valid:"notEmpty"`
-	Title    string `valid:"trim,notEmpty"`
-	Content  string
+	RecordId string `valid:"notEmpty" json:"recordId"`
+	Title    string `valid:"trim,notEmpty" json:"title"`
+	Content  string `json:"content"`
 }
 
 func DBUpdateNote(rail miso.Rail, db *gorm.DB, unr UpdateNoteReq, user common.User) error {
@@ -86,12 +86,12 @@ func DBDeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user common.User
 }
 
 type Note struct {
-	RecordId  string
-	Title     string
-	Content   string
-	UserNo    string
-	CreatedAt util.ETime
-	UpdatedAt util.ETime
+	RecordId  string    `json:"recordId"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	UserNo    string    `json:"userNo"`
+	CreatedAt atom.Time `json:"createdAt"`
+	UpdatedAt atom.Time `json:"updatedAt"`
 }
 
 func FindNote(rail miso.Rail, db *gorm.DB, recordId string, userNo string) (Note, error) {
@@ -113,8 +113,8 @@ func FindNote(rail miso.Rail, db *gorm.DB, recordId string, userNo string) (Note
 }
 
 type ListNoteReq struct {
-	Keywords string
-	Paging   miso.Paging
+	Keywords string      `json:"keywords"`
+	Paging   miso.Paging `json:"paging"`
 }
 
 func ListNotes(rail miso.Rail, db *gorm.DB, req ListNoteReq, user common.User) (miso.PageRes[Note], error) {

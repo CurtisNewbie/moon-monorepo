@@ -52,12 +52,12 @@ func CreateNotificationEp(inb *miso.Inbound, req api.CreateNotificationReq) (any
 	return nil, postbox.CreateNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
-func QueryNotificationEp(inb *miso.Inbound, req postbox.QueryNotificationReq) (any, error) {
+func QueryNotificationEp(inb *miso.Inbound, req postbox.QueryNotificationReq) (miso.PageRes[postbox.ListedNotification], error) {
 	rail := inb.Rail()
 	return postbox.QueryNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
-func CountNotificationEp(inb *miso.Inbound) (any, error) {
+func CountNotificationEp(inb *miso.Inbound) (int, error) {
 	rail := inb.Rail()
 	return postbox.CachedCountNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
 }

@@ -9,9 +9,10 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/slutil"
+	"github.com/curtisnewbie/miso/util/snowflake"
 	"github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -76,21 +77,21 @@ func SaveNotification(rail miso.Rail, db *gorm.DB, req SaveNotifiReq, user commo
 }
 
 func NotifiNo() string {
-	return util.GenIdP("notif_")
+	return snowflake.IdPrefix("notif_")
 }
 
 type ListedNotification struct {
-	Id         int
-	NotifiNo   string
-	Title      string
-	Message    string
-	Status     string
-	CreateTime util.ETime `gorm:"column:created_at"`
+	Id         int       `json:"id"`
+	NotifiNo   string    `json:"notifiNo"`
+	Title      string    `json:"title"`
+	Message    string    `json:"message"`
+	Status     string    `json:"status"`
+	CreateTime atom.Time `gorm:"column:created_at" json:"createTime"`
 }
 
 type QueryNotificationReq struct {
-	Page   miso.Paging
-	Status string
+	Page   miso.Paging `json:"page"`
+	Status string      `json:"status"`
 }
 
 func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, user common.User) (miso.PageRes[ListedNotification], error) {
@@ -126,7 +127,7 @@ func CountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, erro
 }
 
 type OpenNotificationReq struct {
-	NotifiNo string `valid:"notEmpty"`
+	NotifiNo string `valid:"notEmpty" json:"notifiNo"`
 }
 
 func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {

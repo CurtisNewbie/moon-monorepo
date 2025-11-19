@@ -4,7 +4,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 )
 
 var (
@@ -23,5 +23,5 @@ type AccessLogEvent struct {
 	Username   string
 	Url        string
 	Success    bool
-	AccessTime util.ETime
+	AccessTime atom.Time
 }

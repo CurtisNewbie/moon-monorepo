@@ -5,7 +5,6 @@ import (
 
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
 )
 
 const (
@@ -80,7 +79,7 @@ func FetchUsersWithResource(rail miso.Rail, req FetchUserWithResourceReq) ([]Use
 }
 
 func CreateNotification(rail miso.Rail, req CreateNotificationReq) error {
-	var resp miso.GnResp[util.Void]
+	var resp miso.GnResp[any]
 	err := miso.NewDynClient(rail, "/open/api/v1/notification/create", ServiceName).
 		Require2xx().
 		PostJson(req).

@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/curtisnewbie/miso/encoding/json"
 	red "github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/async"
+	"github.com/curtisnewbie/miso/util/json"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -210,7 +210,7 @@ func (l *LPSub) Wait() {
 
 func NewLongPollSub(userId string, w http.ResponseWriter) *LPSub {
 	return &LPSub{
-		id:          util.ERand(30),
+		id:          randutil.ERand(30),
 		mu:          sync.Mutex{},
 		w:           w,
 		untilClosed: make(chan struct{}),

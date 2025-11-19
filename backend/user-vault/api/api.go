@@ -1,6 +1,6 @@
 package api
 
-import "github.com/curtisnewbie/miso/util"
+import "github.com/curtisnewbie/miso/util/atom"
 
 type FindUserReq struct {
 	UserId   *int    `json:"userId"`
@@ -16,9 +16,9 @@ type UserInfo struct {
 	UserNo       string
 	ReviewStatus string
 	IsDisabled   int
-	CreateTime   util.ETime
+	CreateTime   atom.Time
 	CreateBy     string
-	UpdateTime   util.ETime
+	UpdateTime   atom.Time
 	UpdateBy     string
 }
 
@@ -31,7 +31,7 @@ type FetchUsernamesRes struct {
 }
 
 type FetchUsersWithRoleReq struct {
-	RoleNo string `valid:"notEmpty"`
+	RoleNo string `valid:"notEmpty" json:"roleNo"`
 }
 
 type RoleInfoReq struct {
@@ -44,13 +44,13 @@ type RoleInfoResp struct {
 }
 
 type FetchUserWithResourceReq struct {
-	ResourceCode string
+	ResourceCode string `json:"resourceCode"`
 }
 
 type CreateNotificationReq struct {
-	Title           string `valid:"maxLen:255"`
-	Message         string `valid:"maxLen:1000"`
-	ReceiverUserNos []string
+	Title           string   `valid:"maxLen:255" json:"title"`
+	Message         string   `valid:"maxLen:1000" json:"message"`
+	ReceiverUserNos []string `json:"receiverUserNos"`
 }
 
 type CheckResAccessReq struct {

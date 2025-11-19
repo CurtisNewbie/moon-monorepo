@@ -13,10 +13,12 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/hash"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"github.com/curtisnewbie/miso/util/slutil"
+	"github.com/curtisnewbie/miso/util/snowflake"
 	"github.com/curtisnewbie/miso/util/strutil"
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/curtisnewbie/user-vault/internal/config"
@@ -56,10 +58,10 @@ type User struct {
 	RoleNo       string
 	RoleName     string
 	IsDisabled   int
-	CreateTime   util.ETime `gorm:"column:created_at"`
-	CreateBy     string     `gorm:"column:created_by"`
-	UpdateTime   util.ETime `gorm:"column:updated_at"`
-	UpdateBy     string     `gorm:"column:updated_by"`
+	CreateTime   atom.Time `gorm:"column:created_at"`
+	CreateBy     string    `gorm:"column:created_by"`
+	UpdateTime   atom.Time `gorm:"column:updated_at"`
+	UpdateBy     string    `gorm:"column:updated_by"`
 	Deleted      bool
 }
 
@@ -207,7 +209,7 @@ func checkUserKey(rail miso.Rail, db *gorm.DB, userNo string, password string) (
 	var id int
 	n, err := dbquery.NewQuery(rail, db).Raw(
 		`SELECT id FROM user_key WHERE user_no = ? AND secret_key = ? AND expiration_time > ? AND deleted = 0 LIMIT 1`,
-		userNo, password, util.Now(),
+		userNo, password, atom.Now(),
 	).Scan(&id)
 
 	if err != nil {
@@ -305,7 +307,7 @@ func NewUser(rail miso.Rail, db *gorm.DB, req CreateUserParam) error {
 	}
 
 	user := prepUserCred(req.Password)
-	user.UserNo = util.GenIdP("UE")
+	user.UserNo = snowflake.IdPrefix("UE")
 	user.Username = req.Username
 	user.RoleNo = req.RoleNo
 	user.IsDisabled = api.UserNormal
@@ -332,7 +334,7 @@ type NewUserParam struct {
 
 func prepUserCred(pwd string) NewUserParam {
 	u := NewUserParam{}
-	u.Salt = util.RandStr(6)
+	u.Salt = randutil.RandStr(6)
 	u.Password = encodePasswordSalt(pwd, u.Salt)
 	return u
 }
@@ -345,17 +347,17 @@ type ListUserReq struct {
 }
 
 type UserInfo struct {
-	Id           int
-	Username     string
-	RoleName     string
-	RoleNo       string
-	UserNo       string
-	ReviewStatus string
-	IsDisabled   int
-	CreateTime   util.ETime `gorm:"column:created_at"`
-	CreateBy     string     `gorm:"column:created_by"`
-	UpdateTime   util.ETime `gorm:"column:updated_at"`
-	UpdateBy     string     `gorm:"column:updated_by"`
+	Id           int       `json:"id"`
+	Username     string    `json:"username"`
+	RoleName     string    `json:"roleName"`
+	RoleNo       string    `json:"roleNo"`
+	UserNo       string    `json:"userNo"`
+	ReviewStatus string    `json:"reviewStatus"`
+	IsDisabled   int       `json:"isDisabled"`
+	CreateTime   atom.Time `gorm:"column:created_at" json:"createTime"`
+	CreateBy     string    `gorm:"column:created_by" json:"createBy"`
+	UpdateTime   atom.Time `gorm:"column:updated_at" json:"updateTime"`
+	UpdateBy     string    `gorm:"column:updated_by" json:"updateBy"`
 }
 
 func ListUsers(rail miso.Rail, db *gorm.DB, req ListUserReq) (miso.PageRes[UserInfo], error) {
@@ -381,7 +383,7 @@ func ListUsers(rail miso.Rail, db *gorm.DB, req ListUserReq) (miso.PageRes[UserI
 }
 
 type AdminUpdateUserReq struct {
-	UserNo     string `valid:"notEmpty"`
+	UserNo     string `valid:"notEmpty" json:"userNo"`
 	RoleNo     string `json:"roleNo"`
 	IsDisabled int    `json:"isDisabled"`
 }
@@ -747,7 +749,7 @@ func FindUserWithRes(rail miso.Rail, db *gorm.DB, req api.FetchUserWithResourceR
 }
 
 type ClearUserFailedLoginAttemptsReq struct {
-	UserNo string
+	UserNo string `json:"userNo"`
 }
 
 func ClearFailedLoginAttempts(rail miso.Rail, userNo string) error {

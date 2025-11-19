@@ -13,9 +13,10 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/slutil"
+	"github.com/curtisnewbie/miso/util/snowflake"
 	"github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -46,28 +47,28 @@ const (
 )
 
 type ExtendedPathRes struct {
-	Id         int        // id
-	Pgroup     string     // path group
-	PathNo     string     // path no
-	ResCode    string     // resource code
-	Desc       string     // description
-	Url        string     // url
-	Method     string     // http method
-	Ptype      string     // path type: PROTECTED, PUBLIC
-	CreateTime util.ETime `gorm:"column:created_at"`
-	CreateBy   string     `gorm:"column:created_by"`
-	UpdateTime util.ETime `gorm:"column:updated_at"`
-	UpdateBy   string     `gorm:"column:updated_by"`
+	Id         int       // id
+	Pgroup     string    // path group
+	PathNo     string    // path no
+	ResCode    string    // resource code
+	Desc       string    // description
+	Url        string    // url
+	Method     string    // http method
+	Ptype      string    // path type: PROTECTED, PUBLIC
+	CreateTime atom.Time `gorm:"column:created_at"`
+	CreateBy   string    `gorm:"column:created_by"`
+	UpdateTime atom.Time `gorm:"column:updated_at"`
+	UpdateBy   string    `gorm:"column:updated_by"`
 }
 
 type WRole struct {
-	Id         int        `json:"id"`
-	RoleNo     string     `json:"roleNo"`
-	Name       string     `json:"name"`
-	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
-	UpdateTime util.ETime `json:"updateTime" gorm:"column:updated_at"`
-	UpdateBy   string     `json:"updateBy" gorm:"column:updated_by"`
+	Id         int       `json:"id"`
+	RoleNo     string    `json:"roleNo"`
+	Name       string    `json:"name"`
+	CreateTime atom.Time `json:"createTime" gorm:"column:created_at"`
+	CreateBy   string    `json:"createBy" gorm:"column:created_by"`
+	UpdateTime atom.Time `json:"updateTime" gorm:"column:updated_at"`
+	UpdateBy   string    `json:"updateBy" gorm:"column:updated_by"`
 }
 
 type ResBrief struct {
@@ -102,27 +103,27 @@ type ListPathReq struct {
 }
 
 type WPath struct {
-	Id         int        `json:"id"`
-	Pgroup     string     `json:"pgroup"`
-	PathNo     string     `json:"pathNo"`
-	Method     string     `json:"method"`
-	Desc       string     `json:"desc"`
-	Url        string     `json:"url"`
-	Ptype      string     `json:"ptype" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
-	UpdateTime util.ETime `json:"updateTime" gorm:"column:updated_at"`
-	UpdateBy   string     `json:"updateBy" gorm:"column:updated_by"`
+	Id         int       `json:"id"`
+	Pgroup     string    `json:"pgroup"`
+	PathNo     string    `json:"pathNo"`
+	Method     string    `json:"method"`
+	Desc       string    `json:"desc"`
+	Url        string    `json:"url"`
+	Ptype      string    `json:"ptype" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
+	CreateTime atom.Time `json:"createTime" gorm:"column:created_at"`
+	CreateBy   string    `json:"createBy" gorm:"column:created_by"`
+	UpdateTime atom.Time `json:"updateTime" gorm:"column:updated_at"`
+	UpdateBy   string    `json:"updateBy" gorm:"column:updated_by"`
 }
 
 type WRes struct {
-	Id         int        `json:"id"`
-	Code       string     `json:"code"`
-	Name       string     `json:"name"`
-	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
-	UpdateTime util.ETime `json:"updateTime" gorm:"column:updated_at"`
-	UpdateBy   string     `json:"updateBy" gorm:"column:updated_by"`
+	Id         int       `json:"id"`
+	Code       string    `json:"code"`
+	Name       string    `json:"name"`
+	CreateTime atom.Time `json:"createTime" gorm:"column:created_at"`
+	CreateBy   string    `json:"createBy" gorm:"column:created_by"`
+	UpdateTime atom.Time `json:"updateTime" gorm:"column:updated_at"`
+	UpdateBy   string    `json:"updateBy" gorm:"column:updated_by"`
 }
 
 type ListPathResp struct {
@@ -161,11 +162,11 @@ type ListRoleResResp struct {
 }
 
 type ListedRoleRes struct {
-	Id         int        `json:"id"`
-	ResCode    string     `json:"resCode"`
-	ResName    string     `json:"resName"`
-	CreateTime util.ETime `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string     `json:"createBy" gorm:"column:created_by"`
+	Id         int       `json:"id"`
+	ResCode    string    `json:"resCode"`
+	ResName    string    `json:"resName"`
+	CreateTime atom.Time `json:"createTime" gorm:"column:created_at"`
+	CreateBy   string    `json:"createBy" gorm:"column:created_by"`
 }
 
 type GenResScriptReq struct {
@@ -173,19 +174,19 @@ type GenResScriptReq struct {
 }
 
 type UpdatePathReq struct {
-	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	PathNo  string `valid:"notEmpty"`
-	Group   string `valid:"notEmpty,maxLen:20"`
-	ResCode string
+	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible" json:"type"`
+	PathNo  string `valid:"notEmpty" json:"pathNo"`
+	Group   string `valid:"notEmpty,maxLen:20" json:"group"`
+	ResCode string `json:"resCode"`
 }
 
 type CreatePathReq struct {
-	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	Url     string `valid:"notEmpty,maxLen:128"`
-	Group   string `valid:"notEmpty,maxLen:20"`
-	Method  string `valid:"notEmpty,maxLen:10"`
-	Desc    string `valid:"maxLen:255"`
-	ResCode string
+	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible" json:"type"`
+	Url     string `valid:"notEmpty,maxLen:128" json:"url"`
+	Group   string `valid:"notEmpty,maxLen:20" json:"group"`
+	Method  string `valid:"notEmpty,maxLen:10" json:"method"`
+	Desc    string `valid:"maxLen:255" json:"desc"`
+	ResCode string `json:"resCode"`
 }
 
 type DeletePathReq struct {
@@ -601,7 +602,7 @@ func AddRole(rail miso.Rail, req AddRoleReq, user common.User) error {
 				RoleNo string
 				Name   string
 			}{
-				RoleNo: util.GenIdP("role_"),
+				RoleNo: snowflake.IdPrefix("role_"),
 				Name:   req.Name,
 			})
 	})

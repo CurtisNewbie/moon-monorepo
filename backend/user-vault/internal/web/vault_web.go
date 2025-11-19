@@ -6,7 +6,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/curtisnewbie/user-vault/internal/metrics"
 	"github.com/curtisnewbie/user-vault/internal/note"
@@ -36,12 +36,12 @@ type AdminAddUserReq struct {
 }
 
 type UserInfoRes struct {
-	Id           int
-	Username     string
-	RoleName     string
-	RoleNo       string
-	UserNo       string
-	RegisterDate string
+	Id           int    `json:"id"`
+	Username     string `json:"username"`
+	RoleName     string `json:"roleName"`
+	RoleNo       string `json:"roleNo"`
+	UserNo       string `json:"userNo"`
+	RegisterDate string `json:"registerDate"`
 }
 
 type GetTokenUserReq struct {
@@ -73,7 +73,7 @@ func ApiUserLogin(inb *miso.Inbound, req LoginReq) (string, error) {
 		Username:   req.Username,
 		Url:        passwordLoginUrl,
 		Success:    err == nil,
-		AccessTime: util.Now(),
+		AccessTime: atom.Now(),
 	}); er != nil {
 		rail.Errorf("Failed to sendAccessLogEvent, username: %v, remoteAddr: %v, userAgent: %v, %v",
 			req.Username, remoteAddr, userAgent, er)
@@ -526,7 +526,7 @@ func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req note.UpdateNoteReq, user com
 }
 
 type ApiDeleteNoteReq struct {
-	RecordId string
+	RecordId string `json:"recordId"`
 }
 
 // User Delete Note

@@ -60,6 +60,7 @@
 - [POST /open/api/v1/notification/open-all](#post-openapiv1notificationopen-all)
 - [GET /open/api/v2/notification/count](#get-openapiv2notificationcount)
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
+- [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
 - [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## POST /open/api/user/login
@@ -83,9 +84,7 @@
     -H 'x-forwarded-for: ' \
     -H 'user-agent: ' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"password":"","username":""}
-  EOF
+    -d '{"password":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -182,9 +181,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/register/request' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"password":"","username":""}
-  EOF
+    -d '{"password":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -270,9 +267,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/add' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"password":"","roleNo":"","username":""}
-  EOF
+    -d '{"password":"","roleNo":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -381,9 +376,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"isDisabled":0,"paging":{"limit":0,"page":0,"total":0},"roleNo":"","username":""}
-  EOF
+    -d '{"isDisabled":0,"paging":{"limit":0,"page":0,"total":0},"roleNo":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -404,9 +397,9 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
@@ -522,9 +515,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/info/update' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"isDisabled":0,"roleNo":"","userNo":""}
-  EOF
+    -d '{"isDisabled":0,"roleNo":"","userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -611,9 +602,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/registration/review' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"reviewStatus":"","userId":0}
-  EOF
+    -d '{"reviewStatus":"","userId":0}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -795,9 +784,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/password/update' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"newPassword":"","prevPassword":""}
-  EOF
+    -d '{"newPassword":"","prevPassword":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -882,9 +869,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/token/exchange' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"token":""}
-  EOF
+    -d '{"token":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1085,9 +1070,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/access/history' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1103,7 +1086,7 @@
   	IpAddress string `json:"ipAddress"`
   	Username string `json:"username"`
   	Url string `json:"url"`
-  	AccessTime util.Time `json:"accessTime"`
+  	AccessTime atom.Time `json:"accessTime"`
   	Success bool `json:"success"`
   }
 
@@ -1211,9 +1194,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/key/generate' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"keyName":"","password":""}
-  EOF
+    -d '{"keyName":"","password":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1312,9 +1293,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/key/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1329,8 +1308,8 @@
   	Id int `json:"id"`
   	SecretKey string `json:"secretKey"`
   	Name string `json:"name"`
-  	ExpirationTime util.Time `json:"expirationTime"`
-  	CreateTime util.Time `json:"createTime"`
+  	ExpirationTime atom.Time `json:"expirationTime"`
+  	CreateTime atom.Time `json:"createTime"`
   }
 
   // User list user keys
@@ -1435,9 +1414,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/key/delete' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"userKeyId":0}
-  EOF
+    -d '{"userKeyId":0}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1520,9 +1497,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/resource/add' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"code":"","name":""}
-  EOF
+    -d '{"code":"","name":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1606,9 +1581,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/resource/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"resCode":""}
-  EOF
+    -d '{"resCode":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1795,9 +1768,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/resource/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1815,9 +1786,9 @@
   	Id int `json:"id"`
   	Code string `json:"code"`
   	Name string `json:"name"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
@@ -2095,9 +2066,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/resource/add' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"resCode":"","roleNo":""}
-  EOF
+    -d '{"resCode":"","roleNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2182,9 +2151,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/resource/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"resCode":"","roleNo":""}
-  EOF
+    -d '{"resCode":"","roleNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2268,9 +2235,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/add' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":""}
-  EOF
+    -d '{"name":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2368,9 +2333,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2388,9 +2351,9 @@
   	Id int `json:"id"`
   	RoleNo string `json:"roleNo"`
   	Name string `json:"name"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
@@ -2597,9 +2560,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/resource/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"paging":{"limit":0,"page":0,"total":0},"roleNo":""}
-  EOF
+    -d '{"paging":{"limit":0,"page":0,"total":0},"roleNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2618,7 +2579,7 @@
   	Id int `json:"id"`
   	ResCode string `json:"resCode"`
   	ResName string `json:"resName"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
   }
 
@@ -2727,9 +2688,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/role/info' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"roleNo":""}
-  EOF
+    -d '{"roleNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2848,9 +2807,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"paging":{"limit":0,"page":0,"total":0},"pgroup":"","ptype":"","resCode":"","url":""}
-  EOF
+    -d '{"paging":{"limit":0,"page":0,"total":0},"pgroup":"","ptype":"","resCode":"","url":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2876,9 +2833,9 @@
   	Desc string `json:"desc"`
   	Url string `json:"url"`
   	Ptype string `json:"ptype"`    // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
@@ -2994,9 +2951,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/resource/bind' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"pathNo":"","resCode":""}
-  EOF
+    -d '{"pathNo":"","resCode":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3081,9 +3036,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/resource/unbind' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"pathNo":"","resCode":""}
-  EOF
+    -d '{"pathNo":"","resCode":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3167,9 +3120,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/delete' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"pathNo":""}
-  EOF
+    -d '{"pathNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3254,9 +3205,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/path/update' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"group":"","pathNo":"","resCode":"","type":""}
-  EOF
+    -d '{"group":"","pathNo":"","resCode":"","type":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3357,9 +3306,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/info' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"userId":0,"userNo":"","username":""}
-  EOF
+    -d '{"userId":0,"userNo":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3378,9 +3325,9 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
@@ -3481,9 +3428,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/internal/v1/user/info/common' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"userId":0,"userNo":"","username":""}
-  EOF
+    -d '{"userId":0,"userNo":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3654,9 +3599,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/userno/username' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"userNos":[]}
-  EOF
+    -d '{"userNos":[]}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3760,9 +3703,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/list/with-role' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"roleNo":""}
-  EOF
+    -d '{"roleNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3779,9 +3720,9 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
@@ -3886,9 +3827,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/user/list/with-resource' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"resourceCode":""}
-  EOF
+    -d '{"resourceCode":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3905,9 +3844,9 @@
   	UserNo string `json:"userNo"`
   	ReviewStatus string `json:"reviewStatus"`
   	IsDisabled int `json:"isDisabled"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   }
 
@@ -4001,9 +3940,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/resource/add' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"code":"","name":""}
-  EOF
+    -d '{"code":"","name":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4090,9 +4027,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/path/resource/access-test' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"method":"","roleNo":"","url":""}
-  EOF
+    -d '{"method":"","roleNo":"","url":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4194,9 +4129,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/remote/path/add' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"desc":"","group":"","method":"","resCode":"","type":"","url":""}
-  EOF
+    -d '{"desc":"","group":"","method":"","resCode":"","type":"","url":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4305,9 +4238,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/list-site-passwords' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"alias":"","paging":{"limit":0,"page":0,"total":0},"site":"","username":""}
-  EOF
+    -d '{"alias":"","paging":{"limit":0,"page":0,"total":0},"site":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4325,7 +4256,7 @@
   	Site string `json:"site"`
   	Alias string `json:"alias"`
   	Username string `json:"username"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   }
 
   // List site password records
@@ -4436,9 +4367,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/add-site-password' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"alias":"","loginPassword":"","site":"","sitePassword":"","username":""}
-  EOF
+    -d '{"alias":"","loginPassword":"","site":"","sitePassword":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4528,9 +4457,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/remove-site-password' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"recordId":""}
-  EOF
+    -d '{"recordId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4615,9 +4542,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/decrypt-site-password' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"loginPassword":"","recordId":""}
-  EOF
+    -d '{"loginPassword":"","recordId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4717,9 +4642,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/password/edit-site-password' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":"","username":""}
-  EOF
+    -d '{"alias":"","loginPassword":"","recordId":"","site":"","sitePassword":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4811,9 +4734,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/user/clear-failed-login-attempts' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"userNo":""}
-  EOF
+    -d '{"userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4911,9 +4832,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/list-notes' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"keywords":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"keywords":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4929,8 +4848,8 @@
   	Title string `json:"title"`
   	Content string `json:"content"`
   	UserNo string `json:"userNo"`
-  	CreatedAt util.Time `json:"createdAt"`
-  	UpdatedAt util.Time `json:"updatedAt"`
+  	CreatedAt atom.Time `json:"createdAt"`
+  	UpdatedAt atom.Time `json:"updatedAt"`
   }
 
   // List User Notes
@@ -5069,9 +4988,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/save-note' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"content":"","title":""}
-  EOF
+    -d '{"content":"","title":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5157,9 +5074,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/update-note' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"content":"","recordId":"","title":""}
-  EOF
+    -d '{"content":"","recordId":"","title":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5245,9 +5160,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/note/delete-note' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"recordId":""}
-  EOF
+    -d '{"recordId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5331,9 +5244,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/create' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"message":"","receiverUserNos":[],"title":""}
-  EOF
+    -d '{"message":"","receiverUserNos":[],"title":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5419,13 +5330,23 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
+    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/postbox.ListedNotification]) response data
+      - "paging": (Paging) pagination parameters
+        - "limit": (int) page limit
+        - "page": (int) page number, 1-based
+        - "total": (int) total count
+      - "payload": ([]postbox.ListedNotification) payload values in current page
+        - "id": (int) 
+        - "notifiNo": (string) 
+        - "title": (string) 
+        - "message": (string) 
+        - "status": (string) 
+        - "createTime": (int64) 
 - cURL:
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/query' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"page":{"limit":0,"page":0,"total":0},"status":""}
-  EOF
+    -d '{"page":{"limit":0,"page":0,"total":0},"status":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5435,21 +5356,32 @@
   	Status string `json:"status"`
   }
 
+
+  type ListedNotification struct {
+  	Id int `json:"id"`
+  	NotifiNo string `json:"notifiNo"`
+  	Title string `json:"title"`
+  	Message string `json:"message"`
+  	Status string `json:"status"`
+  	CreateTime atom.Time `json:"createTime"`
+  }
+
   // Query platform notification
-  func SendQueryNotificationReq(rail miso.Rail, req QueryNotificationReq) error {
-  	var res miso.GnResp[any]
+  func SendQueryNotificationReq(rail miso.Rail, req QueryNotificationReq) (miso.PageRes[ListedNotification], error) {
+  	var res miso.GnResp[miso.PageRes[ListedNotification]]
   	err := miso.NewDynClient(rail, "/open/api/v1/notification/query", "user-vault").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		return err
+  		var dat miso.PageRes[ListedNotification]
+  		return dat, err
   	}
-  	err = res.Err()
+  	dat, err := res.Res()
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
   	}
-  	return err
+  	return dat, err
   }
   ```
 
@@ -5470,6 +5402,27 @@
     errorCode?: string;            // error code
     msg?: string;                  // message
     error?: boolean;               // whether the request was successful
+    data?: PageRes;
+  }
+
+  export interface PageRes {
+    paging?: Paging;
+    payload?: ListedNotification[];
+  }
+
+  export interface Paging {
+    limit?: number;                // page limit
+    page?: number;                 // page number, 1-based
+    total?: number;                // total count
+  }
+
+  export interface ListedNotification {
+    id?: number;
+    notifiNo?: string;
+    title?: string;
+    message?: string;
+    status?: string;
+    createTime?: number;
   }
   ```
 
@@ -5492,6 +5445,7 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
+          let dat: PageRes = resp.data;
         },
         error: (err) => {
           console.log(err)
@@ -5509,6 +5463,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
+    - "data": (int) response data
 - cURL:
   ```sh
   curl -X GET 'http://localhost:8089/open/api/v1/notification/count'
@@ -5517,20 +5472,20 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   // Count received platform notification
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
+  func SendRequest(rail miso.Rail) (int, error) {
+  	var res miso.GnResp[int]
   	err := miso.NewDynClient(rail, "/open/api/v1/notification/count", "user-vault").
   		Get().
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		return err
+  		return 0, err
   	}
-  	err = res.Err()
+  	dat, err := res.Res()
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
   	}
-  	return err
+  	return dat, err
   }
   ```
 
@@ -5540,6 +5495,7 @@
     errorCode?: string;            // error code
     msg?: string;                  // message
     error?: boolean;               // whether the request was successful
+    data?: number;                 // response data
   }
   ```
 
@@ -5561,6 +5517,7 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
+          let dat: number = resp.data;
         },
         error: (err) => {
           console.log(err)
@@ -5584,9 +5541,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/open' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"notifiNo":""}
-  EOF
+    -d '{"notifiNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5668,9 +5623,7 @@
   ```sh
   curl -X POST 'http://localhost:8089/open/api/v1/notification/open-all' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"notifiNo":""}
-  EOF
+    -d '{"notifiNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5838,6 +5791,57 @@
   sendRequest() {
     let duration: any | null = null;
     this.http.get<any>(`/user-vault/debug/trace/recorder/run?duration=${duration}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/snapshot
+
+- Description: FlightRecorder take snapshot. Recorded result is written to trace.out.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8089/debug/trace/recorder/snapshot'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // FlightRecorder take snapshot. Recorded result is written to trace.out.
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/snapshot", "user-vault").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/user-vault/debug/trace/recorder/snapshot`)
       .subscribe({
         next: () => {
         },

@@ -6,8 +6,9 @@ import (
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"github.com/curtisnewbie/miso/util/strutil"
 	"gorm.io/gorm"
 )
@@ -25,7 +26,7 @@ type GenUserKeyReq struct {
 type NewUserKey struct {
 	Name           string
 	SecretKey      string
-	ExpirationTime util.ETime
+	ExpirationTime atom.Time
 	UserId         int
 	UserNo         string
 }
@@ -41,12 +42,12 @@ func GenUserKey(rail miso.Rail, tx *gorm.DB, req GenUserKeyReq, username string)
 		return errs.NewErrf("Password incorrect, unable to generate user secret key")
 	}
 
-	key := util.RandStr(userKeyLen)
+	key := randutil.RandStr(userKeyLen)
 	return tx.Table("user_key").
 		Create(NewUserKey{
 			Name:           req.KeyName,
 			SecretKey:      key,
-			ExpirationTime: util.Now().Add(userKeyExpDur),
+			ExpirationTime: atom.Now().Add(userKeyExpDur),
 			UserId:         user.Id,
 			UserNo:         user.UserNo,
 		}).
@@ -59,11 +60,11 @@ type ListUserKeysReq struct {
 }
 
 type ListedUserKey struct {
-	Id             int        `json:"id"`
-	SecretKey      string     `json:"secretKey"`
-	Name           string     `json:"name"`
-	ExpirationTime util.ETime `json:"expirationTime"`
-	CreateTime     util.ETime `json:"createTime" gorm:"column:created_at"`
+	Id             int       `json:"id"`
+	SecretKey      string    `json:"secretKey"`
+	Name           string    `json:"name"`
+	ExpirationTime atom.Time `json:"expirationTime"`
+	CreateTime     atom.Time `json:"createTime" gorm:"column:created_at"`
 }
 
 func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.User) (miso.PageRes[ListedUserKey], error) {
@@ -71,7 +72,7 @@ func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.Table("user_key").
 				Where("user_no = ?", user.UserNo).
-				Where("expiration_time > ?", util.Now()).
+				Where("expiration_time > ?", atom.Now()).
 				Where("deleted = 0")
 			return q.LikeIf(!strutil.IsBlankStr(req.Name), "name", req.Name)
 		}).

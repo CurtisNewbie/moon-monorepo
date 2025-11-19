@@ -4,7 +4,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +15,7 @@ type SaveAccessLogParam struct {
 	Username   string
 	Url        string
 	Success    bool
-	AccessTime util.ETime
+	AccessTime atom.Time
 }
 
 func SaveAccessLogEvent(rail miso.Rail, tx *gorm.DB, p SaveAccessLogParam) error {
@@ -24,13 +24,13 @@ func SaveAccessLogEvent(rail miso.Rail, tx *gorm.DB, p SaveAccessLogParam) error
 }
 
 type ListedAccessLog struct {
-	Id         int        `json:"id"`
-	UserAgent  string     `json:"userAgent"`
-	IpAddress  string     `json:"ipAddress"`
-	Username   string     `json:"username"`
-	Url        string     `json:"url"`
-	AccessTime util.ETime `json:"accessTime"`
-	Success    bool
+	Id         int       `json:"id"`
+	UserAgent  string    `json:"userAgent"`
+	IpAddress  string    `json:"ipAddress"`
+	Username   string    `json:"username"`
+	Url        string    `json:"url"`
+	AccessTime atom.Time `json:"accessTime"`
+	Success    bool      `json:"success"`
 }
 
 type ListAccessLogReq struct {

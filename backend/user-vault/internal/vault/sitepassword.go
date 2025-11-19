@@ -7,24 +7,25 @@ import (
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/snowflake"
 	"gorm.io/gorm"
 )
 
 type ListSitePasswordReq struct {
-	Alias    string
-	Site     string
-	Username string
-	Paging   miso.Paging
+	Alias    string      `json:"alias"`
+	Site     string      `json:"site"`
+	Username string      `json:"username"`
+	Paging   miso.Paging `json:"paging"`
 }
 
 type ListSitePasswordRes struct {
-	RecordId   string
-	Site       string
-	Alias      string
-	Username   string
-	CreateTime util.ETime `gorm:"column:created_at"`
+	RecordId   string    `json:"recordId"`
+	Site       string    `json:"site"`
+	Alias      string    `json:"alias"`
+	Username   string    `json:"username"`
+	CreateTime atom.Time `gorm:"column:created_at" json:"createTime"`
 }
 
 func ListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user common.User, db *gorm.DB) (miso.PageRes[ListSitePasswordRes], error) {
@@ -43,11 +44,11 @@ func ListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user common.User
 }
 
 type AddSitePasswordReq struct {
-	Site          string
-	Alias         string
-	Username      string `valid:"notEmpty"`
-	SitePassword  string `valid:"notEmpty"`
-	LoginPassword string `valid:"notEmpty"`
+	Site          string `json:"site"`
+	Alias         string `json:"alias"`
+	Username      string `valid:"notEmpty" json:"username"`
+	SitePassword  string `valid:"notEmpty" json:"sitePassword"`
+	LoginPassword string `valid:"notEmpty" json:"loginPassword"`
 }
 
 func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, db *gorm.DB) error {
@@ -66,7 +67,7 @@ func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, d
 		return miso.ErrUnknownError
 	}
 
-	recordId := util.GenIdP("sitepw_")
+	recordId := snowflake.IdPrefix("sitepw_")
 	_, err = dbquery.NewQuery(rail, db).
 		Table("site_password").
 		Create(struct {
@@ -88,7 +89,7 @@ func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, d
 }
 
 type RemoveSitePasswordRes struct {
-	RecordId string `valid:"notEmpty"`
+	RecordId string `valid:"notEmpty" json:"recordId"`
 }
 
 func RemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes, user common.User, db *gorm.DB) error {
@@ -101,12 +102,12 @@ func RemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes, user common.U
 }
 
 type DecryptSitePasswordReq struct {
-	LoginPassword string `valid:"notEmpty"`
-	RecordId      string `valid:"notEmpty"`
+	LoginPassword string `valid:"notEmpty" json:"loginPassword"`
+	RecordId      string `valid:"notEmpty" json:"recordId"`
 }
 
 type DecryptSitePasswordRes struct {
-	Decrypted string
+	Decrypted string `json:"decrypted"`
 }
 
 func DecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq, user common.User, db *gorm.DB) (DecryptSitePasswordRes, error) {
@@ -167,12 +168,12 @@ func pad256(b []byte) []byte {
 }
 
 type EditSitePasswordReq struct {
-	RecordId      string
-	Site          string
-	Username      string
-	Alias         string
-	SitePassword  string `desc:"new site password, optional"`
-	LoginPassword string `desc:"only used when site password is provided"`
+	RecordId      string `json:"recordId"`
+	Site          string `json:"site"`
+	Username      string `json:"username"`
+	Alias         string `json:"alias"`
+	SitePassword  string `desc:"new site password, optional" json:"sitePassword"`
+	LoginPassword string `desc:"only used when site password is provided" json:"loginPassword"`
 }
 
 func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User, db *gorm.DB) error {
