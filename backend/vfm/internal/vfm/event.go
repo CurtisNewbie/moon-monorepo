@@ -23,11 +23,6 @@ var (
 	GenVideoThumbnailNotifyPipeline = rabbit.NewEventPipeline[fstore.GenVideoThumbnailReplyEvent](GenVideoThumbnailNotifyEventBus)
 	CompressImgNotifyPipeline       = rabbit.NewEventPipeline[fstore.ImageCompressReplyEvent](CompressImgNotifyEventBus)
 	AddFileToVFolderPipeline        = rabbit.NewEventPipeline[AddFileToVfolderEvent](AddFileToVFolderEventBus)
-
-	// TODO: deprecated, remove this in v0.0.3
-	CalcDirSizePipeline = rabbit.NewEventPipeline[CalcDirSizeEvt]("event.bus.vfm.dir.size.calc").Listen(1, func(rail miso.Rail, t CalcDirSizeEvt) error {
-		return nil
-	})
 )
 
 func PrepareEventBus(rail miso.Rail) error {
@@ -411,10 +406,7 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 	_, err = dbquery.NewQuery(rail, db).
 		Table("gallery").
 		Where("gallery_no = ?", galleryNo).
-		SetCols(Gallery{
-			Name:     f.Name,
-			UpdateBy: "vfm",
-		}).
+		Set("name", f.Name).
 		Update()
 	return err
 }

@@ -2570,9 +2570,7 @@
       - "userNo": (string) 
       - "name": (string) 
       - "dirFileKey": (string) 
-      - "createTime": (int64) 
       - "createBy": (string) 
-      - "updateTime": (int64) 
       - "updateBy": (string) 
       - "isDel": (bool) 
 - cURL:
@@ -2594,9 +2592,7 @@
   	UserNo string `json:"userNo"`
   	Name string `json:"name"`
   	DirFileKey string `json:"dirFileKey"`
-  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   	IsDel bool `json:"isDel"`
   }
@@ -2638,9 +2634,7 @@
     userNo?: string;
     name?: string;
     dirFileKey?: string;
-    createTime?: number;
     createBy?: string;
-    updateTime?: number;
     updateBy?: string;
     isDel?: boolean;
   }

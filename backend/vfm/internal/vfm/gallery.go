@@ -17,16 +17,14 @@ import (
 
 // Gallery
 type Gallery struct {
-	Id         int64     `json:"id"`
-	GalleryNo  string    `json:"galleryNo"`
-	UserNo     string    `json:"userNo"`
-	Name       string    `json:"name"`
-	DirFileKey string    `json:"dirFileKey"`
-	CreateTime atom.Time `json:"createTime"` // TODO
-	CreateBy   string    `json:"createBy"`
-	UpdateTime atom.Time `json:"updateTime"` // TODO
-	UpdateBy   string    `json:"updateBy"`
-	IsDel      bool      `json:"isDel"`
+	Id         int64  `json:"id"`
+	GalleryNo  string `json:"galleryNo"`
+	UserNo     string `json:"userNo"`
+	Name       string `json:"name"`
+	DirFileKey string `json:"dirFileKey"`
+	CreateBy   string `json:"createBy"`
+	UpdateBy   string `json:"updateBy"`
+	IsDel      bool   `json:"isDel"`
 }
 
 func (Gallery) TableName() string {
