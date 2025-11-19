@@ -45,7 +45,7 @@ func CompensateThumbnail(rail miso.Rail, db *gorm.DB) error {
 
 	for {
 		var files []FileProcInf
-		n, err := dbquery.NewQueryRail(rail, db).
+		n, err := dbquery.NewQuery(rail, db).
 			Raw(`SELECT id, name, uuid, fstore_file_id
 			FROM file_info
 			WHERE id > ?
@@ -109,7 +109,7 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 	limit := 500
 	minId := 0
 	var maxId int
-	scanned, err := dbquery.NewQueryRail(rail, db).
+	scanned, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Select("max(id)").
 		Eq("file_type", "FILE").
@@ -126,7 +126,7 @@ func RegenerateVideoThumbnails(rail miso.Rail, db *gorm.DB) error {
 
 	for {
 		var files []FileProcInf
-		n, err := dbquery.NewQueryRail(rail, db).
+		n, err := dbquery.NewQuery(rail, db).
 			Raw(`SELECT id, name, uuid, fstore_file_id
 			FROM file_info
 			WHERE id > ?
@@ -204,7 +204,7 @@ func EnterMaintenance(rail miso.Rail) (bool, error) {
 }
 
 type MaintenanceStatus struct {
-	UnderMaintenance bool
+	UnderMaintenance bool `json:"underMaintenance"`
 }
 
 func CheckMaintenanceStatus() (MaintenanceStatus, error) {

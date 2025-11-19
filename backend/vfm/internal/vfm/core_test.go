@@ -12,7 +12,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"github.com/curtisnewbie/miso/util/strutil"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"github.com/sirupsen/logrus"
@@ -144,7 +144,7 @@ func TestMakeDir(t *testing.T) {
 func TestCreateVFolder(t *testing.T) {
 	corePreTest(t)
 	c := miso.EmptyRail()
-	r := util.ERand(5)
+	r := randutil.ERand(5)
 	folderNo, e := CreateVFolder(c, mysql.GetMySQL(), CreateVFolderReq{"MyFolder_" + r}, testUser())
 	if e != nil {
 		t.Fatal(e)

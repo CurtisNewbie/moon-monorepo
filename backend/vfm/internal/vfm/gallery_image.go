@@ -7,9 +7,10 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/async"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"gorm.io/gorm"
 )
 
@@ -27,7 +28,7 @@ const (
 )
 
 type TransferGalleryImageReq struct {
-	Images []CreateGalleryImageCmd
+	Images []CreateGalleryImageCmd `json:"images"`
 }
 
 type TransferGalleryImageInDirReq struct {
@@ -81,7 +82,7 @@ type ListGalleryImagesResp struct {
 }
 
 type ImageInfo struct {
-	FileKey         string
+	FileKey         string `json:"fileKey"`
 	ThumbnailToken  string `json:"thumbnailToken"`
 	FileTempToken   string `json:"fileTempToken"`
 	ImageFileId     string `json:"-"`
@@ -173,7 +174,7 @@ func CreateGalleryImage(rail miso.Rail, cmd CreateGalleryImageCmd, userNo string
 		return nil
 	}
 
-	imageNo := util.GenNoL("IMG", 25)
+	imageNo := randutil.GenNoL("IMG", 25)
 	return db.Transaction(func(tx *gorm.DB) error {
 		if err := dbquery.NewQuery(rail, tx).
 			ExecAny(`insert into gallery_image (gallery_no, image_no, name, file_key, create_by) values (?, ?, ?, ?, ?)`,
@@ -182,7 +183,7 @@ func CreateGalleryImage(rail miso.Rail, cmd CreateGalleryImageCmd, userNo string
 		}
 
 		return dbquery.NewQuery(rail, tx).
-			ExecAny(`UPDATE gallery SET update_time = ? WHERE gallery_no = ?`, util.Now(), cmd.GalleryNo)
+			ExecAny(`UPDATE gallery SET update_time = ? WHERE gallery_no = ?`, atom.Now(), cmd.GalleryNo)
 	})
 }
 
@@ -228,7 +229,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	}
 
 	var galleryImages []GalleryImage
-	_, err := dbquery.NewQueryRail(rail, tx).
+	_, err := dbquery.NewQuery(rail, tx).
 		Table("gallery_image").
 		Select("image_no, file_key").
 		Eq("gallery_no", cmd.GalleryNo).
@@ -246,7 +247,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	// count total asynchronoulsy (normally, when the SELECT is successful, the COUNT doesn't really fail)
 	countFuture := async.Submit(vfmPool, func() (int, error) {
 		var total int
-		err := dbquery.NewQueryRail(rail, tx).
+		err := dbquery.NewQuery(rail, tx).
 			Raw(`SELECT COUNT(*) FROM gallery_image WHERE gallery_no = ?`, cmd.GalleryNo).
 			ScanVal(&total)
 		if err == nil {
@@ -447,7 +448,7 @@ func GuessIsImage(rail miso.Rail, f FileInfo) bool {
 
 // check whether the gallery image is created already
 func isImgCreatedAlready(rail miso.Rail, tx *gorm.DB, galleryNo string, fileKey string) (created bool, er error) {
-	ok, err := dbquery.NewQueryRail(rail, tx).
+	ok, err := dbquery.NewQuery(rail, tx).
 		Table("gallery_image").
 		Eq("gallery_no", galleryNo).
 		Eq("file_key", fileKey).
@@ -472,7 +473,7 @@ func RemoveGalleryImage(rail miso.Rail, db *gorm.DB, dirFileKey string, imageFil
 	}
 	defer lock.Unlock()
 
-	return dbquery.NewQueryRail(rail, db).
+	return dbquery.NewQuery(rail, db).
 		Table(TableGalleryImage).
 		Eq("gallery_no", galleryNo).
 		Eq("file_key", imageFileKey).

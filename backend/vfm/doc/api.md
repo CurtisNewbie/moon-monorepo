@@ -62,6 +62,7 @@
 - [POST /internal/v1/file/make-dir](#post-internalv1filemake-dir)
 - [GET /auth/resource](#get-authresource)
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
+- [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
 - [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## GET /open/api/file/upload/duplication/preflight
@@ -246,9 +247,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/move-to-dir' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"parentFileUuid":"","uuid":""}
-  EOF
+    -d '{"parentFileUuid":"","uuid":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -334,9 +333,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/batch-move-to-dir' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"instructions":[]}
-  EOF
+    -d '{"instructions":[]}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -430,9 +427,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/make-dir' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":"","parentFile":""}
-  EOF
+    -d '{"name":"","parentFile":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -633,9 +628,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":"","fileType":"","filename":"","folderNo":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}
-  EOF
+    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -656,11 +649,11 @@
   	Id int `json:"id"`
   	Uuid string `json:"uuid"`
   	Name string `json:"name"`
-  	UploadTime util.Time `json:"uploadTime"`
+  	UploadTime atom.Time `json:"uploadTime"`
   	UploaderName string `json:"uploaderName"`
   	SizeInBytes int64 `json:"sizeInBytes"`
   	FileType string `json:"fileType"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	ParentFileName string `json:"parentFileName"`
   	SensitiveMode string `json:"sensitiveMode"`
   	ThumbnailToken string `json:"thumbnailToken"`
@@ -780,9 +773,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/delete' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"uuid":""}
-  EOF
+    -d '{"uuid":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -864,9 +855,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/dir/truncate' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"uuid":""}
-  EOF
+    -d '{"uuid":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -952,9 +941,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/dir/bottom-up-tree' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":""}
-  EOF
+    -d '{"fileKey":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1137,9 +1124,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/delete/batch' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKeys":[]}
-  EOF
+    -d '{"fileKeys":[]}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1223,9 +1208,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/create' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"filename":"","fstoreFileId":"","parentFile":""}
-  EOF
+    -d '{"filename":"","fstoreFileId":"","parentFile":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1313,9 +1296,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/info/update' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"id":0,"name":"","sensitiveMode":""}
-  EOF
+    -d '{"id":0,"name":"","sensitiveMode":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1402,9 +1383,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/token/generate' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":""}
-  EOF
+    -d '{"fileKey":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1489,9 +1468,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/unpack' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":"","parentFileKey":""}
-  EOF
+    -d '{"fileKey":"","parentFileKey":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1734,9 +1711,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1755,9 +1730,9 @@
   	Id int `json:"id"`
   	FolderNo string `json:"folderNo"`
   	Name string `json:"name"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   	Ownership string `json:"ownership"`
   }
@@ -1868,9 +1843,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/create' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":""}
-  EOF
+    -d '{"name":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1955,9 +1928,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/file/add' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKeys":[],"folderNo":""}
-  EOF
+    -d '{"fileKeys":[],"folderNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2042,9 +2013,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/file/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKeys":[],"folderNo":""}
-  EOF
+    -d '{"fileKeys":[],"folderNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2129,9 +2098,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/share' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"folderNo":"","username":""}
-  EOF
+    -d '{"folderNo":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2216,9 +2183,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/access/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"folderNo":"","userNo":""}
-  EOF
+    -d '{"folderNo":"","userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2315,9 +2280,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/granted/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"folderNo":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"folderNo":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2335,7 +2298,7 @@
   type ListedFolderAccess struct {
   	UserNo string `json:"userNo"`
   	Username string `json:"username"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   }
 
   // List granted access to virtual folder
@@ -2438,9 +2401,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/vfolder/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"folderNo":""}
-  EOF
+    -d '{"folderNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2618,9 +2579,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/new' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":""}
-  EOF
+    -d '{"name":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2635,9 +2594,9 @@
   	UserNo string `json:"userNo"`
   	Name string `json:"name"`
   	DirFileKey string `json:"dirFileKey"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   	CreateBy string `json:"createBy"`
-  	UpdateTime util.Time `json:"updateTime"`
+  	UpdateTime atom.Time `json:"updateTime"`
   	UpdateBy string `json:"updateBy"`
   	IsDel bool `json:"isDel"`
   }
@@ -2731,9 +2690,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/update' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"galleryNo":"","name":""}
-  EOF
+    -d '{"galleryNo":"","name":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2817,9 +2774,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/delete' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"galleryNo":""}
-  EOF
+    -d '{"galleryNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -2921,9 +2876,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3055,9 +3008,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/access/grant' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"galleryNo":"","username":""}
-  EOF
+    -d '{"galleryNo":"","username":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3142,9 +3093,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/access/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"galleryNo":"","userNo":""}
-  EOF
+    -d '{"galleryNo":"","userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3243,9 +3192,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/access/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3261,7 +3208,7 @@
   	GalleryNo string `json:"galleryNo"`
   	UserNo string `json:"userNo"`
   	Username string `json:"username"`
-  	CreateTime util.Time `json:"createTime"`
+  	CreateTime atom.Time `json:"createTime"`
   }
 
   // List granted access to the galleries
@@ -3379,9 +3326,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/images' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"galleryNo":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3504,9 +3449,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/gallery/image/transfer' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"images":[]}
-  EOF
+    -d '{"images":[]}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3618,9 +3561,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3636,9 +3577,9 @@
   	Name string `json:"name"`      // file name
   	FileKey string `json:"fileKey"` // file key
   	SizeInBytes int64 `json:"sizeInBytes"` // size in bytes
-  	UploadTime util.Time `json:"uploadTime"` // last upload time
-  	CreateTime util.Time `json:"createTime"` // create time of the versioned file record
-  	UpdateTime util.Time `json:"updateTime"` // Update time of the versioned file record
+  	UploadTime atom.Time `json:"uploadTime"` // last upload time
+  	CreateTime atom.Time `json:"createTime"` // create time of the versioned file record
+  	UpdateTime atom.Time `json:"updateTime"` // Update time of the versioned file record
   	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
@@ -3762,9 +3703,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/history' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"paging":{"limit":0,"page":0,"total":0},"verFileId":""}
-  EOF
+    -d '{"paging":{"limit":0,"page":0,"total":0},"verFileId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3779,7 +3718,7 @@
   	Name string `json:"name"`      // file name
   	FileKey string `json:"fileKey"` // file key
   	SizeInBytes int64 `json:"sizeInBytes"` // size in bytes
-  	UploadTime util.Time `json:"uploadTime"` // last upload time
+  	UploadTime atom.Time `json:"uploadTime"` // last upload time
   	Thumbnail string `json:"thumbnail"` // thumbnail token
   }
 
@@ -3887,9 +3826,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/accumulated-size' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"verFileId":""}
-  EOF
+    -d '{"verFileId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -3985,9 +3922,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/create' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"filename":"","fstoreFileId":""}
-  EOF
+    -d '{"filename":"","fstoreFileId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4084,9 +4019,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/update' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"filename":"","fstoreFileId":"","verFileId":""}
-  EOF
+    -d '{"filename":"","fstoreFileId":"","verFileId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4172,9 +4105,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/versioned-file/delete' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"verFileId":""}
-  EOF
+    -d '{"verFileId":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4467,9 +4398,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4559,9 +4488,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"id":0}
-  EOF
+    -d '{"id":0}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4647,9 +4574,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/blacklist/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"name":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4739,9 +4664,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/bookmark/blacklist/remove' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"id":0}
-  EOF
+    -d '{"id":0}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -4831,7 +4754,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ListBrowseRecordRes struct {
-  	Time util.Time `json:"time"`
+  	Time atom.Time `json:"time"`
   	FileKey string `json:"fileKey"`
   	Name string `json:"name"`
   	ThumbnailToken string `json:"thumbnailToken"`
@@ -4917,9 +4840,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/history/record-browse-history' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":""}
-  EOF
+    -d '{"fileKey":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5086,9 +5007,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/v1/file/create' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"filename":"","fstoreFileId":"","parentFile":"","userNo":""}
-  EOF
+    -d '{"filename":"","fstoreFileId":"","parentFile":"","userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5259,9 +5178,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/file/check-access' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":"","userNo":""}
-  EOF
+    -d '{"fileKey":"","userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5350,9 +5267,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/file/fetch-info' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":""}
-  EOF
+    -d '{"fileKey":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5364,7 +5279,7 @@
   type InternalFetchFileInfoRes struct {
   	FileKey string `json:"fileKey"`
   	Name string `json:"name"`
-  	UploadTime util.Time `json:"uploadTime"`
+  	UploadTime atom.Time `json:"uploadTime"`
   	SizeInBytes int64 `json:"sizeInBytes"`
   	FileType string `json:"fileType"`
   }
@@ -5458,9 +5373,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/file/batch-fetch-info' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"fileKey":[]}
-  EOF
+    -d '{"fileKey":[]}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5472,7 +5385,7 @@
   type InternalFetchFileInfoRes struct {
   	FileKey string `json:"fileKey"`
   	Name string `json:"name"`
-  	UploadTime util.Time `json:"uploadTime"`
+  	UploadTime atom.Time `json:"uploadTime"`
   	SizeInBytes int64 `json:"sizeInBytes"`
   	FileType string `json:"fileType"`
   }
@@ -5563,9 +5476,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/v1/file/make-dir' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"name":"","parentFile":"","userNo":""}
-  EOF
+    -d '{"name":"","parentFile":"","userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5788,6 +5699,57 @@
   sendRequest() {
     let duration: any | null = null;
     this.http.get<any>(`/vfm/debug/trace/recorder/run?duration=${duration}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/snapshot
+
+- Description: FlightRecorder take snapshot. Recorded result is written to trace.out.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8086/debug/trace/recorder/snapshot'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // FlightRecorder take snapshot. Recorded result is written to trace.out.
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/snapshot", "vfm").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/vfm/debug/trace/recorder/snapshot`)
       .subscribe({
         next: () => {
         },

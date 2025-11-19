@@ -7,8 +7,9 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/snowflake"
 	"gorm.io/gorm"
 )
 
@@ -38,7 +39,7 @@ type ApiCreateVerFileReq struct {
 }
 
 type ApiCreateVerFileRes struct {
-	VerFileId string `desc:"Versioned File Id"`
+	VerFileId string `desc:"Versioned File Id" json:"verFileId"`
 }
 
 func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user common.User) (ApiCreateVerFileRes, error) {
@@ -49,7 +50,7 @@ func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user co
 		return res, fmt.Errorf("failed to CreateFile, %v, %#v", err, req)
 	}
 
-	verFileId := util.GenIdP("verf_")
+	verFileId := snowflake.IdPrefix("verf_")
 	rail.Infof("file_info record created, fileKey: %s, req: %#v", fk, req)
 
 	f, ok, err := findFile(rail, db, fk)
@@ -61,10 +62,10 @@ func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user co
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
-		_, err := dbquery.NewQueryRail(rail, tx).Exec(`
+		_, err := dbquery.NewQuery(rail, tx).Exec(`
 			INSERT INTO versioned_file (ver_file_id,file_key,name,size_in_bytes,uploader_no,uploader_name,upload_time,created_by)
 			VALUES (?,?,?,?,?,?,?,?)
-		`, verFileId, f.Uuid, f.Name, f.SizeInBytes, f.UploaderNo, f.UploaderName, util.Now(), user.Username)
+		`, verFileId, f.Uuid, f.Name, f.SizeInBytes, f.UploaderNo, f.UploaderName, atom.Now(), user.Username)
 		if err != nil {
 			return errs.Wrapf(err, "failed to insert versioned_file, req: #%v", req)
 		}
@@ -82,7 +83,7 @@ func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user co
 }
 
 type ApiUpdateVerFileReq struct {
-	VerFileId        string `valid:"notEmpty" desc:"versioned file id"`
+	VerFileId        string `valid:"notEmpty" desc:"versioned file id" json:"verFileId"`
 	Filename         string `json:"filename" valid:"notEmpty"`
 	FakeFstoreFileId string `json:"fstoreFileId" valid:"notEmpty"`
 }
@@ -119,7 +120,7 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 	}
 
 	var uvf UpdateVerFileInf
-	ok, err = dbquery.NewQueryRail(rail, db).Raw(`
+	ok, err = dbquery.NewQuery(rail, db).Raw(`
 		SELECT file_key,uploader_no,deleted
 		FROM versioned_file
 		WHERE ver_file_id = ?
@@ -147,7 +148,7 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 			return err
 		}
 
-		_, err = dbquery.NewQueryRail(rail, tx).Exec(`
+		_, err = dbquery.NewQuery(rail, tx).Exec(`
 			UPDATE versioned_file
 			SET file_key = ?,
 				name = ?,
@@ -155,7 +156,7 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 				upload_time = ?,
 				updated_by = ?
 			WHERE ver_file_id = ?
-		`, f.Uuid, f.Name, f.SizeInBytes, util.Now(), user.Username, req.VerFileId)
+		`, f.Uuid, f.Name, f.SizeInBytes, atom.Now(), user.Username, req.VerFileId)
 		if err != nil {
 			return errs.Wrapf(err, "failed to update versioned_file, req: #%v", req)
 		}
@@ -166,19 +167,19 @@ func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user co
 }
 
 type ApiListVerFileReq struct {
-	Paging miso.Paging `desc:"paging params"`
-	Name   *string     `desc:"file name"`
+	Paging miso.Paging `desc:"paging params" json:"paging"`
+	Name   *string     `desc:"file name" json:"name"`
 }
 
 type ApiListVerFileRes struct {
-	VerFileId   string     `desc:"versioned file id"`
-	Name        string     `desc:"file name"`
-	FileKey     string     `desc:"file key"`
-	SizeInBytes int64      `desc:"size in bytes"`
-	UploadTime  util.ETime `desc:"last upload time"`
-	CreateTime  util.ETime `desc:"create time of the versioned file record"`
-	UpdateTime  util.ETime `desc:"Update time of the versioned file record"`
-	Thumbnail   string     `desc:"thumbnail token"`
+	VerFileId   string    `desc:"versioned file id" json:"verFileId"`
+	Name        string    `desc:"file name" json:"name"`
+	FileKey     string    `desc:"file key" json:"fileKey"`
+	SizeInBytes int64     `desc:"size in bytes" json:"sizeInBytes"`
+	UploadTime  atom.Time `desc:"last upload time" json:"uploadTime"`
+	CreateTime  atom.Time `desc:"create time of the versioned file record" json:"createTime"`
+	UpdateTime  atom.Time `desc:"Update time of the versioned file record" json:"updateTime"`
+	Thumbnail   string    `desc:"thumbnail token" json:"thumbnail"`
 }
 
 func ListVerFile(rail miso.Rail, db *gorm.DB, req ApiListVerFileReq, user common.User) (miso.PageRes[ApiListVerFileRes], error) {
@@ -219,7 +220,7 @@ type SaveVerFileLogReq struct {
 }
 
 func SaveVerFileLog(rail miso.Rail, db *gorm.DB, req SaveVerFileLogReq) error {
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Exec(`INSERT INTO versioned_file_log (ver_file_id, file_key, created_by) VALUES (?,?,?)`,
 			req.VerFileId, req.FileKey, req.Username)
 	if err != nil {
@@ -229,7 +230,7 @@ func SaveVerFileLog(rail miso.Rail, db *gorm.DB, req SaveVerFileLogReq) error {
 }
 
 type ApiDelVerFileReq struct {
-	VerFileId string `desc:"Versioned File Id" valid:"notEmpty"`
+	VerFileId string `desc:"Versioned File Id" valid:"notEmpty" json:"verFileId"`
 }
 
 func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.User) error {
@@ -240,7 +241,7 @@ func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.U
 	defer lock.Unlock()
 
 	var uvf UpdateVerFileInf
-	ok, err := dbquery.NewQueryRail(rail, db).Raw(`
+	ok, err := dbquery.NewQuery(rail, db).Raw(`
 		SELECT file_key,uploader_no,deleted
 		FROM versioned_file
 		WHERE ver_file_id = ?
@@ -260,15 +261,15 @@ func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.U
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		_, err := dbquery.NewQueryRail(rail, tx).
+		_, err := dbquery.NewQuery(rail, tx).
 			Exec(`UPDATE versioned_file SET deleted = 1, updated_by = ?, delete_time = ? WHERE ver_file_id = ?`,
-				user.Username, util.Now(), req.VerFileId)
+				user.Username, atom.Now(), req.VerFileId)
 		if err != nil {
 			return errs.Wrapf(err, "failed to mark versioend_file deleted, %v", req.VerFileId)
 		}
 
 		var fks []string
-		if _, err := dbquery.NewQueryRail(rail, tx).
+		if _, err := dbquery.NewQuery(rail, tx).
 			Raw(`SELECT vf.file_key FROM versioned_file_log vf WHERE vf.ver_file_id = ?`, req.VerFileId).
 			Scan(&fks); err != nil {
 			return errs.Wrapf(err, "failed to query versioend_file_log, %v", req.VerFileId)
@@ -319,7 +320,7 @@ func CalcVerFileAccuSize(rail miso.Rail, db *gorm.DB, req ApiQryVerFileAccuSizeR
 	}
 
 	var total int64
-	_, err := dbquery.NewQueryRail(rail, db).Raw(`
+	_, err := dbquery.NewQuery(rail, db).Raw(`
 		SELECT sum(fi.size_in_bytes) FROM versioned_file_log f
 		LEFT JOIN file_info fi ON f.file_key = fi.uuid
 		WHERE f.ver_file_id = ?
@@ -332,7 +333,7 @@ func CalcVerFileAccuSize(rail miso.Rail, db *gorm.DB, req ApiQryVerFileAccuSizeR
 
 func checkVerFileAccess(rail miso.Rail, db *gorm.DB, userNo string, verFileId string) error {
 	var id int
-	ok, err := dbquery.NewQueryRail(rail, db).
+	ok, err := dbquery.NewQuery(rail, db).
 		Raw(`SELECT id FROM versioned_file WHERE uploader_no = ? and ver_file_id = ? and deleted = 0 LIMIT 1`,
 			userNo, verFileId).ScanAny(&id)
 	if err != nil {

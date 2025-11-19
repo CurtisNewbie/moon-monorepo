@@ -408,7 +408,7 @@ func OnDirNameUpdated(rail miso.Rail, evt ep.StreamEvent) error {
 		return err
 	}
 
-	_, err = dbquery.NewQueryRail(rail, db).
+	_, err = dbquery.NewQuery(rail, db).
 		Table("gallery").
 		Where("gallery_no = ?", galleryNo).
 		SetCols(Gallery{

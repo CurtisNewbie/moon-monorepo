@@ -2,7 +2,7 @@ package vfm
 
 import (
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
 )
@@ -45,8 +45,8 @@ func ApiInternalCheckDuplicate(rail miso.Rail, db *gorm.DB, req InternalCheckDup
 }
 
 type InternalCheckFileAccessReq struct {
-	FileKey string
-	UserNo  string
+	FileKey string `json:"fileKey"`
+	UserNo  string `json:"userNo"`
 }
 
 // Internal endpoint, Check if user has access to the file
@@ -58,15 +58,15 @@ func ApiInternalCheckFileAccess(rail miso.Rail, db *gorm.DB, req InternalCheckFi
 }
 
 type InternalFetchFileInfoReq struct {
-	FileKey string `vaild:"notEmpty"`
+	FileKey string `vaild:"notEmpty" json:"fileKey"`
 }
 
 type InternalFetchFileInfoRes struct {
-	FileKey     string
-	Name        string
-	UploadTime  util.ETime
-	SizeInBytes int64
-	FileType    string
+	FileKey     string    `json:"fileKey"`
+	Name        string    `json:"name"`
+	UploadTime  atom.Time `json:"uploadTime"`
+	SizeInBytes int64     `json:"sizeInBytes"`
+	FileType    string    `json:"fileType"`
 }
 
 // Internal endpoint. Fetch file info.
@@ -78,7 +78,7 @@ func ApiInternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFile
 }
 
 type InternalBatchFetchFileInfoReq struct {
-	FileKey []string
+	FileKey []string `json:"fileKey"`
 }
 
 // Internal endpoint. Batch Fetch file info.
@@ -89,9 +89,9 @@ func ApiItnBatchFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalBatchFetc
 }
 
 type SysMakeDirReq struct {
-	ParentFile string `valid:"trim"`
-	UserNo     string `valid:"notEmpty"`
-	Name       string `valid:"notEmpty"`
+	ParentFile string `valid:"trim" json:"parentFile"`
+	UserNo     string `valid:"notEmpty" json:"userNo"`
+	Name       string `valid:"notEmpty" json:"name"`
 }
 
 // Internal endpoint. System make directory.

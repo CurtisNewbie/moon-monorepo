@@ -11,7 +11,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/strutil"
 	vault "github.com/curtisnewbie/user-vault/api"
@@ -81,7 +81,7 @@ func ApiMoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user comm
 }
 
 type BatchMoveIntoDirReq struct {
-	Instructions []MoveIntoDirReq
+	Instructions []MoveIntoDirReq `json:"instructions"`
 }
 
 // Move multiple files to dir.
@@ -144,13 +144,13 @@ func ApiTruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.
 }
 
 type FetchDirTreeReq struct {
-	FileKey string
+	FileKey string `json:"fileKey"`
 }
 
 type DirBottomUpTreeNode struct {
-	FileKey string
-	Name    string
-	Child   *DirBottomUpTreeNode
+	FileKey string               `json:"fileKey"`
+	Name    string               `json:"name"`
+	Child   *DirBottomUpTreeNode `json:"child"`
 }
 
 // Fetch dir trees, bottom up.
@@ -163,9 +163,9 @@ func ApiFetchDirBottomUpTree(inb *miso.Inbound, db *gorm.DB, req FetchDirTreeReq
 }
 
 type DirTopDownTreeNode struct {
-	FileKey string
-	Name    string
-	Child   []*DirTopDownTreeNode
+	FileKey string                `json:"fileKey"`
+	Name    string                `json:"name"`
+	Child   []*DirTopDownTreeNode `json:"child"`
 }
 
 // Fetch dir trees, top down.
@@ -178,7 +178,7 @@ func ApiFetchDirTopDownTree(inb *miso.Inbound, db *gorm.DB, user common.User) (*
 }
 
 type BatchDeleteFileReq struct {
-	FileKeys []string
+	FileKeys []string `json:"fileKeys"`
 }
 
 // Delete multiple files.
@@ -470,16 +470,16 @@ func ApiListVersionedFile(rail miso.Rail, db *gorm.DB, req ApiListVerFileReq, us
 }
 
 type ApiListVerFileHistoryReq struct {
-	Paging    miso.Paging `desc:"paging params"`
-	VerFileId string      `desc:"versioned file id" valid:"notEmpty"`
+	Paging    miso.Paging `desc:"paging params" json:"paging"`
+	VerFileId string      `desc:"versioned file id" valid:"notEmpty" json:"verFileId"`
 }
 
 type ApiListVerFileHistoryRes struct {
-	Name        string     `desc:"file name"`
-	FileKey     string     `desc:"file key"`
-	SizeInBytes int64      `desc:"size in bytes"`
-	UploadTime  util.ETime `desc:"last upload time"`
-	Thumbnail   string     `desc:"thumbnail token"`
+	Name        string    `desc:"file name" json:"name"`
+	FileKey     string    `desc:"file key" json:"fileKey"`
+	SizeInBytes int64     `desc:"size in bytes" json:"sizeInBytes"`
+	UploadTime  atom.Time `desc:"last upload time" json:"uploadTime"`
+	Thumbnail   string    `desc:"thumbnail token" json:"thumbnail"`
 }
 
 // List history of versioned file.
@@ -492,11 +492,11 @@ func ApiListVersionedFileHistory(rail miso.Rail, db *gorm.DB, req ApiListVerFile
 }
 
 type ApiQryVerFileAccuSizeReq struct {
-	VerFileId string `desc:"versioned file id" valid:"notEmpty"`
+	VerFileId string `desc:"versioned file id" valid:"notEmpty" json:"verFileId"`
 }
 
 type ApiQryVerFileAccuSizeRes struct {
-	SizeInBytes int64 `desc:"total size in bytes"`
+	SizeInBytes int64 `desc:"total size in bytes" json:"sizeInBytes"`
 }
 
 // Fetch versioned file accumulated size.
@@ -554,10 +554,10 @@ func ApiRegenerateVideoThumbnail(rail miso.Rail, db *gorm.DB) error {
 }
 
 type ListBookmarksReq struct {
-	Name *string
+	Name *string `json:"name"`
 
-	Paging      miso.Paging
-	Blacklisted bool `gorm:"-" json:"-"`
+	Paging      miso.Paging `json:"paging"`
+	Blacklisted bool        `gorm:"-" json:"-"`
 }
 
 // Upload bookmark file endpoint.
@@ -599,7 +599,7 @@ func ApiListBookmarks(rail miso.Rail, db *gorm.DB, req ListBookmarksReq, user co
 }
 
 type RemoveBookmarkReq struct {
-	Id int64
+	Id int64 `json:"id"`
 }
 
 // Remove bookmark endpoint.

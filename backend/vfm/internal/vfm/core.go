@@ -7,15 +7,16 @@ import (
 	"time"
 
 	fstore "github.com/curtisnewbie/mini-fstore/api"
-	"github.com/curtisnewbie/miso/encoding/json"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/hash"
+	"github.com/curtisnewbie/miso/util/json"
 	"github.com/curtisnewbie/miso/util/slutil"
+	"github.com/curtisnewbie/miso/util/snowflake"
 	"github.com/curtisnewbie/miso/util/strutil"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
@@ -49,9 +50,9 @@ func init() {
 type FileVFolder struct {
 	FolderNo   string
 	Uuid       string
-	CreateTime util.ETime
+	CreateTime atom.Time
 	CreateBy   string
-	UpdateTime util.ETime
+	UpdateTime atom.Time
 	UpdateBy   string
 	IsDel      bool
 }
@@ -68,19 +69,19 @@ type ListedDir struct {
 }
 
 type ListedFile struct {
-	Id             int        `json:"id"`
-	Uuid           string     `json:"uuid"`
-	Name           string     `json:"name"`
-	UploadTime     util.ETime `json:"uploadTime"`
-	UploaderName   string     `json:"uploaderName"`
-	SizeInBytes    int64      `json:"sizeInBytes"`
-	FileType       string     `json:"fileType"`
-	UpdateTime     util.ETime `json:"updateTime"`
-	ParentFileName string     `json:"parentFileName"`
-	SensitiveMode  string     `json:"sensitiveMode"`
-	ThumbnailToken string     `json:"thumbnailToken"`
-	Thumbnail      string     `json:"-"`
-	ParentFile     string     `json:"-"`
+	Id             int       `json:"id"`
+	Uuid           string    `json:"uuid"`
+	Name           string    `json:"name"`
+	UploadTime     atom.Time `json:"uploadTime"`
+	UploaderName   string    `json:"uploaderName"`
+	SizeInBytes    int64     `json:"sizeInBytes"`
+	FileType       string    `json:"fileType"`
+	UpdateTime     atom.Time `json:"updateTime"`
+	ParentFileName string    `json:"parentFileName"`
+	SensitiveMode  string    `json:"sensitiveMode"`
+	ThumbnailToken string    `json:"thumbnailToken"`
+	Thumbnail      string    `json:"-"`
+	ParentFile     string    `json:"-"`
 }
 
 type GrantAccessReq struct {
@@ -89,14 +90,14 @@ type GrantAccessReq struct {
 }
 
 type ListedVFolder struct {
-	Id         int        `json:"id"`
-	FolderNo   string     `json:"folderNo"`
-	Name       string     `json:"name"`
-	CreateTime util.ETime `json:"createTime"`
-	CreateBy   string     `json:"createBy"`
-	UpdateTime util.ETime `json:"updateTime"`
-	UpdateBy   string     `json:"updateBy"`
-	Ownership  string     `json:"ownership"`
+	Id         int       `json:"id"`
+	FolderNo   string    `json:"folderNo"`
+	Name       string    `json:"name"`
+	CreateTime atom.Time `json:"createTime"`
+	CreateBy   string    `json:"createBy"`
+	UpdateTime atom.Time `json:"updateTime"`
+	UpdateBy   string    `json:"updateBy"`
+	Ownership  string    `json:"ownership"`
 }
 
 type ListVFolderRes struct {
@@ -142,15 +143,15 @@ type FileInfo struct {
 	SizeInBytes      int64
 	UploaderNo       string // uploader's user_no
 	UploaderName     string
-	UploadTime       util.ETime
-	LogicDeleteTime  util.ETime
-	PhysicDeleteTime util.ETime
+	UploadTime       atom.Time
+	LogicDeleteTime  atom.Time
+	PhysicDeleteTime atom.Time
 	UserGroup        int
 	FileType         string
 	ParentFile       string
-	CreateTime       util.ETime
+	CreateTime       atom.Time
 	CreateBy         string
-	UpdateTime       util.ETime
+	UpdateTime       atom.Time
 	UpdateBy         string
 	IsDel            int
 	Hidden           bool
@@ -164,9 +165,9 @@ type VFolderWithOwnership struct {
 	Id         int
 	FolderNo   string
 	Name       string
-	CreateTime util.ETime
+	CreateTime atom.Time
 	CreateBy   string
-	UpdateTime util.ETime
+	UpdateTime atom.Time
 	UpdateBy   string
 	Ownership  string
 }
@@ -179,9 +180,9 @@ type VFolder struct {
 	Id         int
 	FolderNo   string
 	Name       string
-	CreateTime util.ETime
+	CreateTime atom.Time
 	CreateBy   string
-	UpdateTime util.ETime
+	UpdateTime atom.Time
 	UpdateBy   string
 }
 
@@ -192,9 +193,9 @@ type UserVFolder struct {
 	FolderNo   string
 	Ownership  string
 	GrantedBy  string // grantedBy (user_no)
-	CreateTime util.ETime
+	CreateTime atom.Time
 	CreateBy   string
-	UpdateTime util.ETime
+	UpdateTime atom.Time
 	UpdateBy   string
 }
 
@@ -221,7 +222,7 @@ type FileKeyName struct {
 
 func queryFilenames(rail miso.Rail, db *gorm.DB, fileKeys []string) (map[string]string, error) {
 	var rec []FileKeyName
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Select("uuid, name").
 		Table("file_info").
 		Where("uuid IN ?", fileKeys).
@@ -242,8 +243,8 @@ type ListFileReq struct {
 	FileType    *string     `json:"fileType"`
 	ParentFile  *string     `json:"parentFile"`
 	Sensitive   *bool       `json:"sensitive"`
-	FileKey     *string
-	OrderByName bool
+	FileKey     *string     `json:"fileKey"`
+	OrderByName bool        `json:"orderByName"`
 }
 
 func (q ListFileReq) IsEmpty() bool {
@@ -359,7 +360,7 @@ type PreflightCheckReq struct {
 }
 
 func FileExists(rail miso.Rail, db *gorm.DB, req PreflightCheckReq, userNo string) (bool, error) {
-	ok, err := dbquery.NewQueryRail(rail, db).
+	ok, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Where("parent_file = ?", req.ParentFileKey).
 		Where("name = ?", req.Filename).
@@ -374,7 +375,7 @@ func FileExists(rail miso.Rail, db *gorm.DB, req PreflightCheckReq, userNo strin
 
 func findFile(rail miso.Rail, db *gorm.DB, fileKey string) (FileInfo, bool, error) {
 	var f FileInfo
-	ok, err := dbquery.NewQueryRail(rail, db).
+	ok, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Eq("uuid", fileKey).
 		Eq("is_del", 0).
@@ -384,7 +385,7 @@ func findFile(rail miso.Rail, db *gorm.DB, fileKey string) (FileInfo, bool, erro
 
 func findFileById(rail miso.Rail, tx *gorm.DB, id int) (FileInfo, bool, error) {
 	var f FileInfo
-	ok, err := dbquery.NewQueryRail(rail, tx).
+	ok, err := dbquery.NewQuery(rail, tx).
 		Raw("SELECT * FROM file_info WHERE id = ? AND is_del = 0", id).
 		ScanAny(&f)
 	if err != nil {
@@ -436,7 +437,7 @@ func MakeDir(rail miso.Rail, tx *gorm.DB, req MakeDirReq, user common.User) (str
 
 	var dir FileInfo
 	dir.Name = req.Name
-	dir.Uuid = util.GenIdP("ZZZ")
+	dir.Uuid = snowflake.IdPrefix("ZZZ")
 	dir.SizeInBytes = 0
 	dir.FileType = FileTypeDir
 
@@ -529,7 +530,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 			}
 
 			newSize := pf.SizeInBytes + fi.SizeInBytes
-			_, err := dbquery.NewQueryRail(rail, tx).
+			_, err := dbquery.NewQuery(rail, tx).
 				Exec("UPDATE file_info SET size_in_bytes = ?, update_by = ?, update_time = ? WHERE uuid = ?",
 					newSize, user.Username, time.Now(), req.ParentFileUuid)
 			if err != nil {
@@ -539,7 +540,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 
 		}
 
-		_, err := dbquery.NewQueryRail(rail, tx).
+		_, err := dbquery.NewQuery(rail, tx).
 			Exec("UPDATE file_info SET parent_file = ?, update_by = ?, update_time = ? WHERE uuid = ?",
 				req.ParentFileUuid, user.Username, time.Now(), req.Uuid)
 		return err
@@ -550,7 +551,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 
 func _saveFile(rail miso.Rail, db *gorm.DB, f FileInfo, user common.User) error {
 	uname := user.Username
-	now := util.Now()
+	now := atom.Now()
 
 	f.IsLogicDeleted = DelN
 	f.IsPhysicDeleted = DelN
@@ -560,7 +561,7 @@ func _saveFile(rail miso.Rail, db *gorm.DB, f FileInfo, user common.User) error 
 	f.CreateTime = now
 	f.UploaderNo = user.UserNo
 
-	err := dbquery.NewQueryRail(rail, db).
+	err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Omit("id", "update_time", "update_by").
 		CreateAny(&f)
@@ -584,7 +585,7 @@ func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.
 
 	return redis.RLockRun(rail, "vfolder:user:"+userNo, func() (string, error) {
 
-		ok, err := dbquery.NewQueryRail(rail, db).
+		ok, err := dbquery.NewQuery(rail, db).
 			Table("vfolder vf").
 			Joins("LEFT JOIN user_vfolder uv ON (vf.folder_no = uv.folder_no)").
 			Where("uv.user_no = ? AND uv.ownership = 'OWNER'", userNo).
@@ -599,13 +600,13 @@ func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.
 			return "", errs.NewErrf("Found folder with same name ('%s')", r.Name)
 		}
 
-		folderNo := util.GenIdP("VFLD")
+		folderNo := snowflake.IdPrefix("VFLD")
 		e := db.Transaction(func(tx *gorm.DB) error {
-			ctime := util.Now()
+			ctime := atom.Now()
 
 			// for the vfolder
 			vf := VFolder{Name: r.Name, FolderNo: folderNo, CreateTime: ctime, CreateBy: user.Username}
-			if _, e := dbquery.NewQueryRail(rail, tx).
+			if _, e := dbquery.NewQuery(rail, tx).
 				Omit("id", "update_by", "update_time").Table("vfolder").Create(&vf); e != nil {
 				return errs.Wrapf(e, "failed to save VFolder")
 			}
@@ -620,7 +621,7 @@ func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.
 				CreateTime: ctime,
 				CreateBy:   user.Username}
 
-			err := dbquery.NewQueryRail(rail, tx).
+			err := dbquery.NewQuery(rail, tx).
 				Omit("id", "update_by", "update_time").
 				Table("user_vfolder").
 				CreateAny(&uv)
@@ -635,7 +636,7 @@ func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.
 
 func ListDirs(r miso.Rail, db *gorm.DB, user common.User) ([]ListedDir, error) {
 	var dirs []ListedDir
-	_, e := dbquery.NewQueryRail(r, db).
+	_, e := dbquery.NewQuery(r, db).
 		Table("file_info").
 		Select("id, uuid, name").
 		Where("uploader_no = ?", user.UserNo).
@@ -648,7 +649,7 @@ func ListDirs(r miso.Rail, db *gorm.DB, user common.User) ([]ListedDir, error) {
 
 func findVFolder(rail miso.Rail, db *gorm.DB, folderNo string, userNo string) (VFolderWithOwnership, error) {
 	var vfo VFolderWithOwnership
-	ok, err := dbquery.NewQueryRail(rail, db).
+	ok, err := dbquery.NewQuery(rail, db).
 		Table("vfolder vf").
 		Select("vf.*, uv.ownership").
 		Joins("LEFT JOIN user_vfolder uv ON (vf.folder_no = uv.folder_no AND uv.is_del = 0)").
@@ -683,7 +684,7 @@ func ShareVFolder(rail miso.Rail, db *gorm.DB, sharedTo vault.UserInfo, folderNo
 			return errs.NewErrf("Operation not permitted")
 		}
 
-		ok, err := dbquery.NewQueryRail(rail, db).
+		ok, err := dbquery.NewQuery(rail, db).
 			Table("user_vfolder").
 			Where("folder_no = ?", folderNo).
 			Where("user_no = ?", sharedTo.UserNo).
@@ -704,10 +705,10 @@ func ShareVFolder(rail miso.Rail, db *gorm.DB, sharedTo vault.UserInfo, folderNo
 			Username:   sharedTo.Username,
 			Ownership:  VfolderGranted,
 			GrantedBy:  user.Username,
-			CreateTime: util.Now(),
+			CreateTime: atom.Now(),
 			CreateBy:   user.Username,
 		}
-		err = dbquery.NewQueryRail(rail, db).Omit("id", "update_by", "update_time").Table("user_vfolder").CreateAny(&uv)
+		err = dbquery.NewQuery(rail, db).Omit("id", "update_by", "update_time").Table("user_vfolder").CreateAny(&uv)
 		if err != nil {
 			return errs.Wrapf(err, "failed to save UserVFolder")
 		}
@@ -733,7 +734,7 @@ func RemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAcc
 		if !vfo.IsOwner() {
 			return errs.NewErrf("Operation not permitted")
 		}
-		_, err := dbquery.NewQueryRail(rail, db).
+		_, err := dbquery.NewQuery(rail, db).
 			Exec("UPDATE user_vfolder SET is_del = 1, update_by = ? WHERE folder_no = ? AND user_no = ? AND ownership = 'GRANTED'",
 				user.Username, req.FolderNo, req.UserNo)
 		return err
@@ -742,7 +743,7 @@ func RemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAcc
 
 func ListVFolderBrief(rail miso.Rail, tx *gorm.DB, user common.User) ([]VFolderBrief, error) {
 	var vfb []VFolderBrief
-	err := dbquery.NewQueryRail(rail, tx).
+	err := dbquery.NewQuery(rail, tx).
 		Select("f.folder_no, f.name").
 		Table("vfolder f").
 		Joins("LEFT JOIN user_vfolder uv ON (f.folder_no = uv.folder_no AND uv.is_del = 0)").
@@ -782,11 +783,11 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, db *gorm.DB, evt AddFileToVfold
 		return nil
 	}
 
-	now := util.Now()
+	now := atom.Now()
 	username := evt.Username
 	doAddFileToVfolder := func(rail miso.Rail, folderNo string, fk string) error {
 		var err error
-		ok, err := dbquery.NewQueryRail(rail, db).
+		ok, err := dbquery.NewQuery(rail, db).
 			Table("file_vfolder").
 			Where("folder_no = ? AND uuid = ?", folderNo, fk).
 			Where("is_del = 0").
@@ -799,7 +800,7 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, db *gorm.DB, evt AddFileToVfold
 		}
 
 		fvf := FileVFolder{FolderNo: folderNo, Uuid: fk, CreateTime: now, CreateBy: username}
-		if _, err = dbquery.NewQueryRail(rail, db).
+		if _, err = dbquery.NewQuery(rail, db).
 			Table("file_vfolder").
 			Omit("id", "update_by", "update_time").
 			Create(&fvf); err != nil {
@@ -932,7 +933,7 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 				continue // not a file type, may be a dir
 			}
 
-			if _, err = dbquery.NewQueryRail(rail, tx).
+			if _, err = dbquery.NewQuery(rail, tx).
 				Exec("DELETE FROM file_vfolder WHERE folder_no = ? AND uuid = ?", req.FolderNo, fk); err != nil {
 				return errs.Wrapf(err, "failed to delete file_vfolder record")
 			}
@@ -943,7 +944,7 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 }
 
 func RemoveDeletedFileFromAllVFolder(rail miso.Rail, tx *gorm.DB, fileKey string) error {
-	_, err := dbquery.NewQueryRail(rail, tx).
+	_, err := dbquery.NewQuery(rail, tx).
 		Exec(`UPDATE file_vfolder SET is_del = 1 WHERE uuid = ?`, fileKey)
 	if err != nil {
 		return errs.Wrapf(err, "failed to update file_vfolder, uuid: %v", fileKey)
@@ -981,7 +982,7 @@ func ListVFolders(rail miso.Rail, tx *gorm.DB, req ListVFolderReq, user common.U
 }
 
 func newListVFoldersQuery(rail miso.Rail, db *gorm.DB, req ListVFolderReq, userNo string) *dbquery.Query {
-	t := dbquery.NewQueryRail(rail, db).
+	t := dbquery.NewQuery(rail, db).
 		Table("vfolder f").
 		Joins("LEFT JOIN user_vfolder uv ON (f.folder_no = uv.folder_no AND uv.is_del = 0)").
 		Where("f.is_del = 0 AND uv.user_no = ?", userNo).
@@ -1006,9 +1007,9 @@ type ListGrantedFolderAccessRes struct {
 }
 
 type ListedFolderAccess struct {
-	UserNo     string     `json:"userNo"`
-	Username   string     `json:"username"`
-	CreateTime util.ETime `json:"createTime"`
+	UserNo     string    `json:"userNo"`
+	Username   string    `json:"username"`
+	CreateTime atom.Time `json:"createTime"`
 }
 
 func ListGrantedFolderAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedFolderAccessReq, user common.User) (ListGrantedFolderAccessRes, error) {
@@ -1042,15 +1043,15 @@ func ListGrantedFolderAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedFolderA
 }
 
 func newListGrantedFolderAccessQuery(rail miso.Rail, tx *gorm.DB, r ListGrantedFolderAccessReq) *dbquery.Query {
-	return dbquery.NewQueryRail(rail, tx).
+	return dbquery.NewQuery(rail, tx).
 		Table("user_vfolder").
 		Where("folder_no = ? AND ownership = 'GRANTED' AND is_del = 0", r.FolderNo)
 }
 
 type UpdateFileReq struct {
-	Id            int `json:"id" validation:"positive"`
-	Name          string
-	SensitiveMode string
+	Id            int    `json:"id" validation:"positive"`
+	Name          string `json:"name"`
+	SensitiveMode string `json:"sensitiveMode"`
 }
 
 func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user common.User) error {
@@ -1075,7 +1076,7 @@ func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user common.User) 
 		r.SensitiveMode = "N"
 	}
 
-	_, err := dbquery.NewQueryRail(rail, tx).
+	_, err := dbquery.NewQuery(rail, tx).
 		Exec("UPDATE file_info SET name = ?, sensitive_mode = ?, update_by = ? WHERE id = ? AND is_logic_deleted = 0 AND is_del = 0",
 			r.Name, r.SensitiveMode, user.Username, r.Id)
 	return err
@@ -1115,7 +1116,7 @@ type SysCreateFileReq struct {
 	Filename         string `json:"filename"`
 	FakeFstoreFileId string `json:"fstoreFileId"`
 	ParentFile       string `json:"parentFile"`
-	UserNo           string
+	UserNo           string `json:"userNo"`
 }
 
 type SaveFileReq struct {
@@ -1129,7 +1130,7 @@ type SaveFileReq struct {
 func SaveFileRecord(rail miso.Rail, tx *gorm.DB, r SaveFileReq, user common.User) (string, error) {
 	var f FileInfo
 	f.Name = r.Filename
-	f.Uuid = util.GenIdP("ZZZ")
+	f.Uuid = snowflake.IdPrefix("ZZZ")
 	f.FstoreFileId = r.FileId
 	f.SizeInBytes = r.Size
 	f.FileType = FileTypeFile
@@ -1200,7 +1201,7 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 	}
 
 	if f.FileType == FileTypeDir { // if it's dir make sure it's empty
-		ok, e := dbquery.NewQueryRail(rail, tx).
+		ok, e := dbquery.NewQuery(rail, tx).
 			Table("file_info").
 			Where("parent_file = ? AND is_logic_deleted = 0 AND is_del = 0", req.Uuid).
 			Limit(1).
@@ -1225,7 +1226,7 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 		}
 	}
 
-	_, err := dbquery.NewQueryRail(rail, tx).Exec(`
+	_, err := dbquery.NewQuery(rail, tx).Exec(`
 		UPDATE file_info
 		SET is_logic_deleted = 1, logic_delete_time = NOW()
 		WHERE id = ? AND is_logic_deleted = 0`, f.Id)
@@ -1238,7 +1239,7 @@ func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User
 func validateFileAccess(rail miso.Rail, tx *gorm.DB, fileKey string, userNo string) (FileDownloadInfo, error) {
 	var f FileDownloadInfo
 
-	ok, err := dbquery.NewQueryRail(rail, tx).
+	ok, err := dbquery.NewQuery(rail, tx).
 		Select("fi.id 'file_id', fi.fstore_file_id, fi.name, fi.is_logic_deleted, fi.file_type, fi.uploader_no").
 		Table("file_info fi").
 		Where("fi.uuid = ? AND fi.is_del = 0", fileKey).
@@ -1260,7 +1261,7 @@ func validateFileAccess(rail miso.Rail, tx *gorm.DB, fileKey string, userNo stri
 	// user may have access to the vfolder, which contains the file
 	if !permitted {
 		var uvid int
-		ok, e := dbquery.NewQueryRail(rail, tx).
+		ok, e := dbquery.NewQuery(rail, tx).
 			Select("ifnull(uv.id, 0) as id").
 			Table("file_info fi").
 			Joins("LEFT JOIN file_vfolder fv ON (fi.uuid = fv.uuid AND fv.is_del = 0)").
@@ -1317,7 +1318,7 @@ func ListFilesInDir(rail miso.Rail, tx *gorm.DB, req ListFilesInDirReq) ([]strin
 	}
 
 	var fileKeys []string
-	e := dbquery.NewQueryRail(rail, tx).
+	e := dbquery.NewQuery(rail, tx).
 		Table("file_info").
 		Select("uuid").
 		Where("parent_file = ?", req.FileKey).
@@ -1377,7 +1378,7 @@ type ValidateFileOwnerReq struct {
 }
 
 func ValidateFileOwner(rail miso.Rail, tx *gorm.DB, q ValidateFileOwnerReq) (bool, error) {
-	ok, e := dbquery.NewQueryRail(rail, tx).
+	ok, e := dbquery.NewQuery(rail, tx).
 		Select("id").
 		Table("file_info").
 		Where("uuid = ?", q.FileKey).
@@ -1388,7 +1389,7 @@ func ValidateFileOwner(rail miso.Rail, tx *gorm.DB, q ValidateFileOwnerReq) (boo
 }
 
 type RemoveVFolderReq struct {
-	FolderNo string
+	FolderNo string `json:"folderNo"`
 }
 
 func RemoveVFolder(rail miso.Rail, db *gorm.DB, user common.User, req RemoveVFolderReq) error {
@@ -1430,8 +1431,8 @@ func RemoveVFolder(rail miso.Rail, db *gorm.DB, user common.User, req RemoveVFol
 }
 
 type UnpackZipReq struct {
-	FileKey       string // file key of the zip file
-	ParentFileKey string // file key of current directory (not where the zip entries will be saved)
+	FileKey       string `json:"fileKey"`       // file key of the zip file
+	ParentFileKey string `json:"parentFileKey"` // file key of current directory (not where the zip entries will be saved)
 }
 
 type UnpackZipExtra struct {
@@ -1557,7 +1558,7 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.Use
 		}
 		listFilesInDir := func(rail miso.Rail, minId int) ([]ListedFilesInDir, error) {
 			var l []ListedFilesInDir
-			err := dbquery.NewQueryRail(rail, db).
+			err := dbquery.NewQuery(rail, db).
 				Table("file_info").
 				Select("id, uuid, file_type").
 				Where("parent_file = ?", dir.Uuid).
@@ -1640,7 +1641,7 @@ func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user
 
 func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeNode) (*DirBottomUpTreeNode, error) {
 	p, ok, err := dirParentCache.GetElse(rail, child.FileKey, func() (*CachedDirTreeNode, bool, error) {
-		pi, err := doFindParentDir(rail, dbquery.NewQueryRail(rail, db), child.FileKey)
+		pi, err := doFindParentDir(rail, dbquery.NewQuery(rail, db), child.FileKey)
 		if err != nil || pi == nil {
 			return nil, false, err
 		}
@@ -1655,7 +1656,7 @@ func doFetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, child *DirBottomUpTreeN
 		return child, nil
 	}
 
-	name, err := cachedFindDirName(rail, dbquery.NewQueryRail(rail, db), p.FileKey)
+	name, err := cachedFindDirName(rail, dbquery.NewQuery(rail, db), p.FileKey)
 	if err != nil {
 		return nil, err
 	}
@@ -1728,7 +1729,7 @@ type TopDownTreeNodeBrief struct {
 
 func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen hash.Set[string]) error {
 	var cl []TopDownTreeNodeBrief
-	n, err := dbquery.NewQueryRail(rail, db).
+	n, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Select("uuid, name").
 		Eq("parent_file", root.FileKey).
@@ -1767,7 +1768,7 @@ type FileFstoreInfo struct {
 
 func queryFileFstoreInfo(rail miso.Rail, tx *gorm.DB, fileKeys []string) (map[string]FileFstoreInfo, error) {
 	var rec []FileFstoreInfo
-	e := dbquery.NewQueryRail(rail, tx).
+	e := dbquery.NewQuery(rail, tx).
 		Select("uuid, name", "fstore_file_id", "thumbnail", "is_logic_deleted").
 		Table("file_info").
 		Where("uuid IN ?", fileKeys).
@@ -1847,7 +1848,7 @@ func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user com
 	}
 
 	var dirKey string
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Eq("parent_file", req.ParentFile).
 		Eq("name", req.Name).

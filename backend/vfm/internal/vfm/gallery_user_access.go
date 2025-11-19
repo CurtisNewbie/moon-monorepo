@@ -6,7 +6,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"gorm.io/gorm"
@@ -95,7 +95,7 @@ func findGalleryAccess(rail miso.Rail, tx *gorm.DB, userNo string, galleryNo str
 	// check if the user has access to the gallery
 	var userAccess *GalleryUserAccess = &GalleryUserAccess{}
 
-	ok, err := dbquery.NewQueryRail(rail, tx).Raw(`
+	ok, err := dbquery.NewQuery(rail, tx).Raw(`
 		SELECT * FROM gallery_user_access
 		WHERE gallery_no = ?
 		AND user_no = ? AND is_del = 0`, galleryNo, userNo).ScanAny(&userAccess)
@@ -111,13 +111,13 @@ func findGalleryAccess(rail miso.Rail, tx *gorm.DB, userNo string, galleryNo str
 
 // Insert a new gallery_user_access record
 func createUserAccess(rail miso.Rail, tx *gorm.DB, userNo string, galleryNo string, createdBy string) error {
-	return dbquery.NewQueryRail(rail, tx).
+	return dbquery.NewQuery(rail, tx).
 		ExecAny(`INSERT INTO gallery_user_access (gallery_no, user_no, create_by) VALUES (?, ?, ?)`, galleryNo, userNo, createdBy)
 }
 
 // Update is_del of the record
 func updateUserAccessIsDelFlag(rail miso.Rail, tx *gorm.DB, cmd *UpdateGUAIsDelCmd) error {
-	err := dbquery.NewQueryRail(rail, tx).
+	err := dbquery.NewQuery(rail, tx).
 		ExecAny(`UPDATE gallery_user_access SET is_del = ?, update_by = ? WHERE gallery_no = ? AND user_no = ? AND is_del = ?`,
 			cmd.IsDelTo, cmd.UpdateBy, cmd.GalleryNo, cmd.UserNo, cmd.IsDelFrom)
 	return err
@@ -129,21 +129,21 @@ type RemoveGalleryAccessCmd struct {
 }
 
 type ListGrantedGalleryAccessCmd struct {
-	GalleryNo string `json:"galleryNo" validation:"notEmpty"`
-	Paging    miso.Paging
+	GalleryNo string      `json:"galleryNo" validation:"notEmpty"`
+	Paging    miso.Paging `json:"paging"`
 }
 
 type ListedGalleryAccessRes struct {
-	Id         int
-	GalleryNo  string
-	UserNo     string
-	Username   string
-	CreateTime util.ETime
+	Id         int       `json:"id"`
+	GalleryNo  string    `json:"galleryNo"`
+	UserNo     string    `json:"userNo"`
+	Username   string    `json:"username"`
+	CreateTime atom.Time `json:"createTime"`
 }
 
 type PermitGalleryAccessCmd struct {
-	GalleryNo string `validation:"notEmpty"`
-	Username  string `validation:"notEmpty"`
+	GalleryNo string `validation:"notEmpty" json:"galleryNo"`
+	Username  string `validation:"notEmpty" json:"username"`
 }
 
 func ListedGrantedGalleryAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedGalleryAccessCmd, user common.User) (miso.PageRes[ListedGalleryAccessRes], error) {
@@ -188,7 +188,7 @@ func RemoveGalleryAccess(rail miso.Rail, tx *gorm.DB, cmd RemoveGalleryAccessCmd
 		return errs.ErrNotPermitted.New()
 	}
 
-	e = dbquery.NewQueryRail(rail, tx).
+	e = dbquery.NewQuery(rail, tx).
 		ExecAny(`UPDATE gallery_user_access SET is_del = 1, update_by = ? WHERE gallery_no = ? AND user_no = ?`,
 			user.Username, cmd.GalleryNo, cmd.UserNo)
 	if e != nil {

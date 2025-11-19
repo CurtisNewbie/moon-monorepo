@@ -12,8 +12,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"golang.org/x/net/html"
 	"gorm.io/gorm"
 )
@@ -108,7 +108,7 @@ func ParseNetscapeBookmark(rail miso.Rail, body io.Reader) (NetscapeBookmarkFile
 }
 
 func TransferTmpFile(rail miso.Rail, reader io.Reader) (string, error) {
-	path := TempFilePath(util.RandAlpha(15))
+	path := TempFilePath(randutil.RandAlpha(15))
 
 	f, err := os.Create(path)
 	if err != nil {
@@ -267,7 +267,7 @@ func RemoveBookmark(rail miso.Rail, db *gorm.DB, id int64, userNo string) error 
 }
 
 func RemoveBookmarkBlacklist(rail miso.Rail, tx *gorm.DB, id int64, userNo string) error {
-	_, err := dbquery.NewQueryRail(rail, tx).
+	_, err := dbquery.NewQuery(rail, tx).
 		Exec("DELETE FROM bookmark_blacklist WHERE user_no = ? AND id = ?", userNo, id)
 	return err
 }

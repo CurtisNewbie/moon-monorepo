@@ -8,24 +8,25 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/async"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"gorm.io/gorm"
 )
 
 // Gallery
 type Gallery struct {
-	Id         int64
-	GalleryNo  string
-	UserNo     string
-	Name       string
-	DirFileKey string
-	CreateTime util.ETime
-	CreateBy   string
-	UpdateTime util.ETime
-	UpdateBy   string
-	IsDel      bool
+	Id         int64     `json:"id"`
+	GalleryNo  string    `json:"galleryNo"`
+	UserNo     string    `json:"userNo"`
+	Name       string    `json:"name"`
+	DirFileKey string    `json:"dirFileKey"`
+	CreateTime atom.Time `json:"createTime"` // TODO
+	CreateBy   string    `json:"createBy"`
+	UpdateTime atom.Time `json:"updateTime"` // TODO
+	UpdateBy   string    `json:"updateBy"`
+	IsDel      bool      `json:"isDel"`
 }
 
 func (Gallery) TableName() string {
@@ -63,19 +64,19 @@ type VGalleryBrief struct {
 }
 
 type VGallery struct {
-	ID             int64      `json:"id"`
-	GalleryNo      string     `json:"galleryNo"`
-	UserNo         string     `json:"userNo"`
-	Name           string     `json:"name"`
-	CreateTime     util.ETime `json:"-"`
-	UpdateTime     util.ETime `json:"-"`
-	CreateBy       string     `json:"createBy"`
-	UpdateBy       string     `json:"updateBy"`
-	IsOwner        bool       `json:"isOwner"`
-	CreateTimeStr  string     `json:"createTime"`
-	UpdateTimeStr  string     `json:"updateTime"`
-	DirFileKey     string
-	ThumbnailToken string
+	ID             int64     `json:"id"`
+	GalleryNo      string    `json:"galleryNo"`
+	UserNo         string    `json:"userNo"`
+	Name           string    `json:"name"`
+	CreateTime     atom.Time `json:"-"`
+	UpdateTime     atom.Time `json:"-"`
+	CreateBy       string    `json:"createBy"`
+	UpdateBy       string    `json:"updateBy"`
+	IsOwner        bool      `json:"isOwner"`
+	CreateTimeStr  string    `json:"createTime"`
+	UpdateTimeStr  string    `json:"updateTime"`
+	DirFileKey     string    `json:"dirFileKey"`
+	ThumbnailToken string    `json:"thumbnailToken"`
 }
 
 // List owned gallery briefs
@@ -188,7 +189,7 @@ func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, db *gorm.DB
 	}
 
 	if galleryNo == "" {
-		galleryNo = util.GenNoL("GAL", 25)
+		galleryNo = randutil.GenNoL("GAL", 25)
 		rail.Infof("Creating gallery (%s) for directory %s (%s)", galleryNo, cmd.DirName, cmd.DirFileKey)
 
 		err := db.Transaction(func(tx *gorm.DB) error {
@@ -223,7 +224,7 @@ func CreateGallery(rail miso.Rail, cmd CreateGalleryCmd, user common.User, tx *g
 			return nil, errs.NewErrf("You already have a gallery with the same name, please change and try again")
 		}
 
-		galleryNo := util.GenNoL("GAL", 25)
+		galleryNo := randutil.GenNoL("GAL", 25)
 		gallery := &Gallery{
 			GalleryNo: galleryNo,
 			Name:      cmd.Name,

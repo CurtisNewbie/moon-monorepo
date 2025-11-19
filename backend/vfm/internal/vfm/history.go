@@ -5,11 +5,11 @@ import (
 	"sort"
 	"time"
 
-	"github.com/curtisnewbie/miso/encoding/json"
 	red "github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
+	"github.com/curtisnewbie/miso/util/json"
 	"github.com/curtisnewbie/miso/util/slutil"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -21,15 +21,15 @@ const (
 )
 
 type ListBrowseRecordRes struct {
-	Time           util.ETime
-	FileKey        string
-	Name           string
-	ThumbnailToken string
-	Deleted        bool
+	Time           atom.Time `json:"time"`
+	FileKey        string    `json:"fileKey"`
+	Name           string    `json:"name"`
+	ThumbnailToken string    `json:"thumbnailToken"`
+	Deleted        bool      `json:"deleted"`
 }
 
 type BrowseRecord struct {
-	Time    util.ETime
+	Time    atom.Time
 	FileKey string
 }
 
@@ -71,7 +71,7 @@ func (b BrowseHistory) Push(rail miso.Rail, fileKey string) error {
 	}
 
 	// push into queue
-	pushed, err := json.SWriteJson(BrowseRecord{Time: util.Now(), FileKey: fileKey})
+	pushed, err := json.SWriteJson(BrowseRecord{Time: atom.Now(), FileKey: fileKey})
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBro
 }
 
 type RecordBrowseHistoryReq struct {
-	FileKey string `valid:"notEmpty"`
+	FileKey string `valid:"notEmpty" json:"fileKey"`
 }
 
 func RecordBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User, req RecordBrowseHistoryReq) error {
