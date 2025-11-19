@@ -9,8 +9,8 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
 	"github.com/curtisnewbie/miso/util/async"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/hash"
 	"github.com/curtisnewbie/miso/util/osutil"
 	"github.com/curtisnewbie/miso/util/slutil"
@@ -43,28 +43,28 @@ func LoadCategoryConfs(rail miso.Rail) {
 }
 
 type ListCashFlowReq struct {
-	Paging         miso.Paging `desc:"Paging"`
-	Direction      string      `desc:"Flow Direction: IN / OUT" valid:"member:IN|OUT|"`
-	TransTimeStart *util.ETime `desc:"Transaction Time Range Start"`
-	TransTimeEnd   *util.ETime `desc:"Transaction Time Range End"`
-	TransId        string      `desc:"Transaction ID"`
-	Category       string      `desc:"Category Code"`
-	MinAmt         *money.Amt  `desc:"Minimum amount"`
+	Paging         miso.Paging `desc:"Paging" json:"paging"`
+	Direction      string      `desc:"Flow Direction: IN / OUT" valid:"member:IN|OUT|" json:"direction"`
+	TransTimeStart *atom.Time  `desc:"Transaction Time Range Start" json:"transTimeStart"`
+	TransTimeEnd   *atom.Time  `desc:"Transaction Time Range End" json:"transTimeEnd"`
+	TransId        string      `desc:"Transaction ID" json:"transId"`
+	Category       string      `desc:"Category Code" json:"category"`
+	MinAmt         *money.Amt  `desc:"Minimum amount" json:"minAmt"`
 }
 
 type ListCashFlowRes struct {
-	Direction     string     `desc:"Flow Direction: IN / OUT"`
-	TransTime     util.ETime `desc:"Transaction Time"`
-	TransId       string     `desc:"Transaction ID"`
-	Counterparty  string     `desc:"Counterparty of the transaction"`
-	PaymentMethod string     `desc:"Payment Method"`
-	Amount        string     `desc:"Amount"`
-	Currency      string     `desc:"Currency"`
-	Extra         string     `desc:"Extra Information"`
-	Category      string     `desc:"Category Code"`
-	CategoryName  string     `desc:"Category Name"`
-	Remark        string     `desc:"Remark"`
-	CreatedAt     util.ETime `desc:"Create Time"`
+	Direction     string    `desc:"Flow Direction: IN / OUT" json:"direction"`
+	TransTime     atom.Time `desc:"Transaction Time" json:"transTime"`
+	TransId       string    `desc:"Transaction ID" json:"transId"`
+	Counterparty  string    `desc:"Counterparty of the transaction" json:"counterparty"`
+	PaymentMethod string    `desc:"Payment Method" json:"paymentMethod"`
+	Amount        string    `desc:"Amount" json:"amount"`
+	Currency      string    `desc:"Currency" json:"currency"`
+	Extra         string    `desc:"Extra Information" json:"extra"`
+	Category      string    `desc:"Category Code" json:"category"`
+	CategoryName  string    `desc:"Category Name" json:"categoryName"`
+	Remark        string    `desc:"Remark" json:"remark"`
+	CreatedAt     atom.Time `desc:"Create Time" json:"createdAt"`
 }
 
 func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
@@ -153,7 +153,7 @@ func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user co
 
 type NewCashflow struct {
 	Direction     string
-	TransTime     util.ETime
+	TransTime     atom.Time
 	TransId       string
 	PaymentMethod string
 	Counterparty  string
@@ -172,7 +172,7 @@ type SaveCashflowParams struct {
 type SavingCashflow struct {
 	UserNo        string
 	Direction     string
-	TransTime     util.ETime
+	TransTime     atom.Time
 	TransId       string
 	Counterparty  string
 	Amount        string
@@ -181,7 +181,7 @@ type SavingCashflow struct {
 	Extra         string
 	Category      string
 	Remark        string
-	CreatedAt     util.ETime
+	CreatedAt     atom.Time
 }
 
 type CashflowCurrency struct {
@@ -201,7 +201,7 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 	}
 	defer lock.Unlock()
 
-	now := util.Now()
+	now := atom.Now()
 
 	// find those that already exist and skip them
 	transIdSet := hash.NewSet[string]()
@@ -209,7 +209,7 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 		transIdSet.Add(v.TransId)
 	}
 	var existingTransId []string
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Raw(`SELECT trans_id FROM cashflow WHERE user_no = ? AND category = ? AND trans_id IN ? AND deleted = 0`,
 			userNo, param.Category, transIdSet.CopyKeys()).
 		Scan(&existingTransId)
@@ -248,13 +248,13 @@ func SaveCashflows(rail miso.Rail, db *gorm.DB, param SaveCashflowParams) ([]New
 	}
 
 	rail.Infof("Cashflows (%d records) saved for %v", len(saving), param.User.Username)
-	_, err = dbquery.NewQueryRail(rail, db).Table("cashflow").Create(saving)
+	_, err = dbquery.NewQuery(rail, db).Table("cashflow").Create(saving)
 	if err != nil {
 		return nil, err
 	}
 
 	newUserCcy := slutil.MapTo(ccySet.CopyKeys(), func(ccy string) CashflowCurrency { return CashflowCurrency{UserNo: userNo, Currency: ccy} })
-	_, err = dbquery.NewQueryRail(rail, db).Table("cashflow_currency").CreateIgnore(newUserCcy)
+	_, err = dbquery.NewQuery(rail, db).Table("cashflow_currency").CreateIgnore(newUserCcy)
 	return records, err
 }
 
@@ -264,7 +264,7 @@ func userCashflowLock(rail miso.Rail, userNo string) *redis.RLock {
 
 func ListCurrencies(rail miso.Rail, db *gorm.DB, user common.User) ([]string, error) {
 	var ccy []string
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Raw(`SELECT currency FROM cashflow_currency WHERE user_no = ?`, user.UserNo).
 		Scan(&ccy)
 	return ccy, err

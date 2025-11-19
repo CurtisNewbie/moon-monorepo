@@ -9,7 +9,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/slutil"
 )
 
@@ -74,7 +74,7 @@ func TestOnCalcCashflowStatsEvent(t *testing.T) {
 			UserNo:   "UE1049787455160320075953",
 			AggType:  typ,
 			AggRange: rng,
-			AggTime:  util.ETime(ti),
+			AggTime:  atom.Time(ti),
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -102,13 +102,13 @@ func TestOnCashflowChanged(t *testing.T) {
 	}
 
 	userNo := "UE1049787455160320075953"
-	var tranTimes []util.ETime
+	var tranTimes []atom.Time
 	err = mysql.GetMySQL().Raw(`SELECT trans_time FROM cashflow WHERE user_no = ?`, userNo).Scan(&tranTimes).Error
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = OnCashflowChanged(rail, slutil.MapTo(tranTimes, func(et util.ETime) CashflowChange { return CashflowChange{et} }), userNo)
+	err = OnCashflowChanged(rail, slutil.MapTo(tranTimes, func(et atom.Time) CashflowChange { return CashflowChange{et} }), userNo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,10 +130,10 @@ func TestPlotCashflowStatistics(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	startt, _ := util.ParseClassicDateTime("2024-01-01 00:00:00", time.Local)
-	endt, _ := util.ParseClassicDateTime("2024-12-01 00:00:00", time.Local)
-	start := util.ToETime(startt)
-	end := util.ToETime(endt)
+	startt, _ := atom.ParseClassicDateTime("2024-01-01 00:00:00", time.Local)
+	endt, _ := atom.ParseClassicDateTime("2024-12-01 00:00:00", time.Local)
+	start := atom.WrapTime(startt)
+	end := atom.WrapTime(endt)
 	tab := []string{AggTypeMonthly, AggTypeWeekly, AggTypeYearly}
 
 	for _, ta := range tab {

@@ -9,6 +9,7 @@
 - [POST /open/api/v1/cashflow/plot-statistics](#post-openapiv1cashflowplot-statistics)
 - [GET /auth/resource](#get-authresource)
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
+- [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
 - [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## POST /open/api/v1/cashflow/list
@@ -51,9 +52,7 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":0,"transTimeStart":0}
-  EOF
+    -d '{"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":0,"transTimeStart":0}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -61,8 +60,8 @@
   type ListCashFlowReq struct {
   	Paging miso.Paging `json:"paging"`
   	Direction string `json:"direction"` // Flow Direction: IN / OUT. Enums: ["IN","OUT",""].
-  	TransTimeStart *util.Time `json:"transTimeStart"` // Transaction Time Range Start
-  	TransTimeEnd *util.Time `json:"transTimeEnd"` // Transaction Time Range End
+  	TransTimeStart *atom.Time `json:"transTimeStart"` // Transaction Time Range Start
+  	TransTimeEnd *atom.Time `json:"transTimeEnd"` // Transaction Time Range End
   	TransId string `json:"transId"` // Transaction ID
   	Category string `json:"category"` // Category Code
   	MinAmt *money.Amt `json:"minAmt"` // Minimum amount
@@ -71,7 +70,7 @@
 
   type ListCashFlowRes struct {
   	Direction string `json:"direction"` // Flow Direction: IN / OUT
-  	TransTime util.Time `json:"transTime"` // Transaction Time
+  	TransTime atom.Time `json:"transTime"` // Transaction Time
   	TransId string `json:"transId"` // Transaction ID
   	Counterparty string `json:"counterparty"` // Counterparty of the transaction
   	PaymentMethod string `json:"paymentMethod"` // Payment Method
@@ -81,7 +80,7 @@
   	Category string `json:"category"` // Category Code
   	CategoryName string `json:"categoryName"` // Category Name
   	Remark string `json:"remark"`  // Remark
-  	CreatedAt util.Time `json:"createdAt"` // Create Time
+  	CreatedAt atom.Time `json:"createdAt"` // Create Time
   }
 
   func ApiListCashFlows(rail miso.Rail, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
@@ -350,9 +349,7 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/list-statistics' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"aggRange":"","aggType":"","currency":"","paging":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"aggRange":"","aggType":"","currency":"","paging":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -479,16 +476,14 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/plot-statistics' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"aggType":"","currency":"","endTime":0,"startTime":0}
-  EOF
+    -d '{"aggType":"","currency":"","endTime":0,"startTime":0}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type ApiPlotStatisticsReq struct {
-  	StartTime util.Time `json:"startTime"` // Start time
-  	EndTime util.Time `json:"endTime"` // End time
+  	StartTime atom.Time `json:"startTime"` // Start time
+  	EndTime atom.Time `json:"endTime"` // End time
   	AggType string `json:"aggType"` // Aggregation Type. Enums: ["YEARLY","MONTHLY","WEEKLY"].
   	Currency string `json:"currency"` // Currency
   }
@@ -716,6 +711,57 @@
   sendRequest() {
     let duration: any | null = null;
     this.http.get<any>(`/acct/debug/trace/recorder/run?duration=${duration}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/snapshot
+
+- Description: FlightRecorder take snapshot. Recorded result is written to trace.out.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8093/debug/trace/recorder/snapshot'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // FlightRecorder take snapshot. Recorded result is written to trace.out.
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/snapshot", "acct").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/acct/debug/trace/recorder/snapshot`)
       .subscribe({
         next: () => {
         },

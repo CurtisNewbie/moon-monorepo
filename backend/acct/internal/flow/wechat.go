@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/curtisnewbie/miso/encoding/json"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
+	"github.com/curtisnewbie/miso/util/json"
 	"github.com/curtisnewbie/miso/util/osutil"
 )
 
@@ -71,12 +71,12 @@ func ParseWechatCashflows(rail miso.Rail, path string) ([]NewCashflow, error) {
 			}
 
 			var stranTime string = mapTryGet(titleMap, "交易时间", l)
-			var tranTime util.ETime
+			var tranTime atom.Time
 			t, err := time.ParseInLocation("2006-01-02 15:04:05", stranTime, time.FixedZone("", 8))
 			if err != nil {
 				rail.Errorf("failed to parse transaction time: '%v', %v", stranTime, err)
 			} else {
-				tranTime = util.ToETime(t)
+				tranTime = atom.WrapTime(t)
 			}
 
 			extram := map[string]string{}

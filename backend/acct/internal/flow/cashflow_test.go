@@ -8,7 +8,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 )
 
 func TestListCashFlows(t *testing.T) {
@@ -56,14 +56,14 @@ func TestListCashFlows(t *testing.T) {
 	}
 	t.Logf("6. l: %+v", l)
 
-	tt := util.Now().Add(-time.Hour * 24)
+	tt := atom.Now().Add(-time.Hour * 24)
 	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransTimeStart: &tt})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("7. l: %+v", l)
 
-	tt = util.Now().Add(time.Hour * 24)
+	tt = atom.Now().Add(time.Hour * 24)
 	l, err = ListCashFlows(rail, mysql.GetMySQL(), common.User{UserNo: "test_user"}, ListCashFlowReq{TransTimeStart: &tt})
 	if err != nil {
 		t.Fatal(err)
@@ -84,7 +84,7 @@ func TestSaveCashflows(t *testing.T) {
 		{
 			TransId:      "1234",
 			Direction:    DirectionOut,
-			TransTime:    util.Now(),
+			TransTime:    atom.Now(),
 			Counterparty: "Apple Corp",
 			Amount:       "123.44",
 			Currency:     "CNY",

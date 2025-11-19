@@ -13,7 +13,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/hash"
 	"gorm.io/gorm"
@@ -42,7 +42,7 @@ type CalcCashflowStatsEvent struct {
 	UserNo   string
 	AggType  string
 	AggRange string
-	AggTime  util.ETime
+	AggTime  atom.Time
 }
 
 type ApiCalcCashflowStatsReq struct {
@@ -50,28 +50,28 @@ type ApiCalcCashflowStatsReq struct {
 	AggRange string `desc:"Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD)." valid:"notEmpty"`
 }
 
-func ParseAggRangeTime(aggType string, aggRange string) (util.ETime, error) {
+func ParseAggRangeTime(aggType string, aggRange string) (atom.Time, error) {
 	pat, ok := RangeFormatMap[aggType]
 	if !ok {
-		return util.ETime{}, errs.NewErrf("Invalid AggType")
+		return atom.Time{}, errs.NewErrf("Invalid AggType")
 	}
 
 	t, err := time.ParseInLocation(pat, aggRange, time.Local)
 	if err != nil {
-		return util.ETime{}, errs.NewErrf("Invalid AppRange '%s' for %s aggregate type", aggRange, aggType).
+		return atom.Time{}, errs.NewErrf("Invalid AppRange '%s' for %s aggregate type", aggRange, aggType).
 			WithInternalMsg("%v", err)
 	}
 	if aggType == AggTypeWeekly {
 		wd := t.Weekday()
 		if wd != time.Sunday {
-			return util.ETime{}, errs.NewErrf("Invalid aggRange '%v' for aggType: %v, should be Sunday", aggRange, aggType)
+			return atom.Time{}, errs.NewErrf("Invalid aggRange '%v' for aggType: %v, should be Sunday", aggRange, aggType)
 		}
 	}
-	return util.ToETime(t), err
+	return atom.WrapTime(t), err
 }
 
 type CashflowChange struct {
-	TransTime util.ETime
+	TransTime atom.Time
 }
 
 func OnCashflowChanged(rail miso.Rail, changes []CashflowChange, userNo string) error {
@@ -192,7 +192,7 @@ func calcCashflowSum(rail miso.Rail, db *gorm.DB, tr TimeRange, userNo string) (
 	rail.Infof("Calculating cashflow sum between %v, %v, userNo: %v", tr.Start, tr.End, userNo)
 
 	var res []CashflowSum
-	_, err := dbquery.NewQueryRail(rail, db).Raw(`
+	_, err := dbquery.NewQuery(rail, db).Raw(`
 	SELECT SUM(case when direction = 'IN' then amount else (-1 * amount) end) amount_sum, currency
 	FROM cashflow WHERE user_no = ? and trans_time between ? and ? and deleted = 0
 	GROUP BY currency
@@ -206,19 +206,19 @@ func calcCashflowSum(rail miso.Rail, db *gorm.DB, tr TimeRange, userNo string) (
 func updateCashflowStat(rail miso.Rail, db *gorm.DB, stats []CashflowSum, aggType string, aggRange string, userNo string) error {
 	for _, st := range stats {
 		var id int64
-		_, err := dbquery.NewQueryRail(rail, db).Raw(`SELECT id FROM cashflow_statistics WHERE user_no = ? and agg_type = ? and agg_range = ? and currency = ?`,
+		_, err := dbquery.NewQuery(rail, db).Raw(`SELECT id FROM cashflow_statistics WHERE user_no = ? and agg_type = ? and agg_range = ? and currency = ?`,
 			userNo, aggType, aggRange, st.Currency).Scan(&id)
 		if err != nil {
 			return fmt.Errorf("failed to query cashflow_statistics, %w", err)
 		}
 		if id > 0 {
-			_, err := dbquery.NewQueryRail(rail, db).Exec(`UPDATE cashflow_statistics SET agg_value = ? WHERE id = ?`,
+			_, err := dbquery.NewQuery(rail, db).Exec(`UPDATE cashflow_statistics SET agg_value = ? WHERE id = ?`,
 				st.AmountSum, id)
 			if err != nil {
 				return fmt.Errorf("failed to update cashflow_statistics, id: %v, %w", id, err)
 			}
 		} else {
-			_, err := dbquery.NewQueryRail(rail, db).Exec(`INSERT INTO cashflow_statistics (user_no, agg_type, agg_range, currency, agg_value) VALUES (?,?,?,?,?)`,
+			_, err := dbquery.NewQuery(rail, db).Exec(`INSERT INTO cashflow_statistics (user_no, agg_type, agg_range, currency, agg_value) VALUES (?,?,?,?,?)`,
 				userNo, aggType, aggRange, st.Currency, st.AmountSum)
 			if err != nil {
 				return fmt.Errorf("failed to save cashflow_statistics, %w", err)
@@ -229,17 +229,17 @@ func updateCashflowStat(rail miso.Rail, db *gorm.DB, stats []CashflowSum, aggTyp
 }
 
 type ApiListStatisticsReq struct {
-	Paging   miso.Paging `desc:"Paging Info"`
-	AggType  string      `desc:"Aggregation Type." valid:"member:YEARLY|MONTHLY|WEEKLY"`
-	AggRange string      `desc:"Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD)."`
-	Currency string      `desc:"Currency"`
+	Paging   miso.Paging `desc:"Paging Info" json:"paging"`
+	AggType  string      `desc:"Aggregation Type." valid:"member:YEARLY|MONTHLY|WEEKLY" json:"aggType"`
+	AggRange string      `desc:"Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD)." json:"aggRange"`
+	Currency string      `desc:"Currency" json:"currency"`
 }
 
 type ApiListStatisticsRes struct {
-	AggType  string `desc:"Aggregation Type."`
-	AggRange string `desc:"Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD)."`
-	AggValue string `desc:"Aggregation Value."`
-	Currency string `desc:"Currency"`
+	AggType  string `desc:"Aggregation Type." json:"aggType"`
+	AggRange string `desc:"Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD)." json:"aggRange"`
+	AggValue string `desc:"Aggregation Value." json:"aggValue"`
+	Currency string `desc:"Currency" json:"currency"`
 }
 
 func ListCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiListStatisticsReq, user common.User) (miso.PageRes[ApiListStatisticsRes], error) {
@@ -272,15 +272,15 @@ func ListCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiListStatisticsRe
 }
 
 type ApiPlotStatisticsReq struct {
-	StartTime util.ETime `desc:"Start time"`
-	EndTime   util.ETime `desc:"End time"`
-	AggType   string     `desc:"Aggregation Type." valid:"member:YEARLY|MONTHLY|WEEKLY"`
-	Currency  string     `desc:"Currency"`
+	StartTime atom.Time `desc:"Start time" json:"startTime"`
+	EndTime   atom.Time `desc:"End time" json:"endTime"`
+	AggType   string    `desc:"Aggregation Type." valid:"member:YEARLY|MONTHLY|WEEKLY" json:"aggType"`
+	Currency  string    `desc:"Currency" json:"currency"`
 }
 
 type ApiPlotStatisticsRes struct {
-	AggRange string `desc:"Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD)."`
-	AggValue string `desc:"Aggregation Value."`
+	AggRange string `desc:"Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD)." json:"aggRange"`
+	AggValue string `desc:"Aggregation Value." json:"aggValue"`
 }
 
 func PlotCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiPlotStatisticsReq, user common.User) ([]ApiPlotStatisticsRes, error) {
@@ -297,7 +297,7 @@ func PlotCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiPlotStatisticsRe
 		pad = "0101"
 	}
 
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Raw(`
 			SELECT agg_range, agg_value FROM cashflow_statistics
 			WHERE user_no = ? AND agg_type = ? AND currency = ?
