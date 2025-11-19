@@ -5,6 +5,7 @@
 - [POST /log/error/list](#post-logerrorlist)
 - [GET /auth/resource](#get-authresource)
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
+- [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
 - [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## POST /log/error/list
@@ -25,9 +26,7 @@
   ```sh
   curl -X POST 'http://localhost:8087/log/error/list' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"app":"","page":{"limit":0,"page":0,"total":0}}
-  EOF
+    -d '{"app":"","page":{"limit":0,"page":0,"total":0}}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -252,6 +251,57 @@
   sendRequest() {
     let duration: any | null = null;
     this.http.get<any>(`/logbot/debug/trace/recorder/run?duration=${duration}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/snapshot
+
+- Description: FlightRecorder take snapshot. Recorded result is written to trace.out.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8087/debug/trace/recorder/snapshot'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // FlightRecorder take snapshot. Recorded result is written to trace.out.
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/snapshot", "logbot").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/logbot/debug/trace/recorder/snapshot`)
       .subscribe({
         next: () => {
         },

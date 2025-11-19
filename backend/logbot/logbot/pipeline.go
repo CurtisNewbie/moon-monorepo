@@ -3,13 +3,13 @@ package logbot
 import (
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 )
 
 type ErrorLog struct {
 	Node     string
 	App      string
-	Time     util.ETime
+	Time     atom.Time
 	TraceId  string
 	SpanId   string
 	FuncName string

@@ -4,13 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/heap"
 )
 
 func TestETimeHeap(t *testing.T) {
-	start := util.Now()
-	h := heap.New[util.ETime](50, func(iv, jv util.ETime) bool {
+	start := atom.Now()
+	h := heap.New[atom.Time](50, func(iv, jv atom.Time) bool {
 		return iv.Before(jv)
 	})
 

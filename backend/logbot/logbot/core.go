@@ -16,8 +16,9 @@ import (
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/hash"
+	"github.com/curtisnewbie/miso/util/strutil"
 	uvault "github.com/curtisnewbie/user-vault/api"
 	red "github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -195,7 +196,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 					recPos(rail, wc.App, nodeName, pos)
 				}
 
-				prevBytesRead = int64(len(util.UnsafeStr2Byt(line)))
+				prevBytesRead = int64(len(strutil.UnsafeStr2Byt(line)))
 				prevLine = line
 				prevLogLine = &logLine
 
@@ -206,7 +207,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 				//
 				// 90% of the time, the log is single line
 				// so it's better leave it here
-				prevBytesRead += int64(len(util.UnsafeStr2Byt(line)))
+				prevBytesRead += int64(len(strutil.UnsafeStr2Byt(line)))
 				prevLine = prevLine + line
 				if parsed, ep := parseLogLine(rail, wc.App, prevLine, wc.Type); ep == nil {
 					prevLogLine = &parsed
@@ -251,7 +252,7 @@ func WatchLogFile(rail miso.Rail, wc WatchConfig, nodeName string) error {
 type LogLineEvent struct {
 	App     string
 	Node    string
-	Time    util.ETime
+	Time    atom.Time
 	Level   string
 	TraceId string
 	SpanId  string
@@ -261,7 +262,7 @@ type LogLineEvent struct {
 
 type LogLine struct {
 	App        string
-	Time       util.ETime
+	Time       atom.Time
 	TimeStr    string
 	Level      string
 	TraceId    string
@@ -288,16 +289,12 @@ func parseLogLine(rail miso.Rail, app string, line string, typ string) (LogLine,
 	}
 
 	msg := matches[6]
-	msgRu := []rune(msg)
-	limit := 65535
-	if len(msgRu) > limit {
-		msg = string(msgRu[:limit])
-	}
+	msg = strutil.MaxLenStr(msg, 65000)
 
 	ll := LogLine{
 		App:        app,
 		OriginLine: line,
-		Time:       util.ToETime(time),
+		Time:       atom.WrapTime(time),
 		TimeStr:    matches[1],
 		Level:      matches[2],
 		TraceId:    strings.TrimSpace(matches[3]),
@@ -335,7 +332,7 @@ type SaveErrorLogCmd struct {
 	TraceId string
 	SpanId  string
 	ErrMsg  string
-	RTime   util.ETime `gorm:"column:rtime"`
+	RTime   atom.Time `gorm:"column:rtime"`
 }
 
 func SaveErrorLog(rail miso.Rail, evt LogLineEvent) error {
@@ -374,14 +371,14 @@ func SaveErrorLog(rail miso.Rail, evt LogLineEvent) error {
 }
 
 type ListedErrorLog struct {
-	Id      int64      `json:"id"`
-	Node    string     `json:"node"`
-	App     string     `json:"app"`
-	Caller  string     `json:"caller"`
-	TraceId string     `json:"traceId"`
-	SpanId  string     `json:"spanId"`
-	ErrMsg  string     `json:"errMsg"`
-	RTime   util.ETime `json:"rtime" gorm:"column:rtime"`
+	Id      int64     `json:"id"`
+	Node    string    `json:"node"`
+	App     string    `json:"app"`
+	Caller  string    `json:"caller"`
+	TraceId string    `json:"traceId"`
+	SpanId  string    `json:"spanId"`
+	ErrMsg  string    `json:"errMsg"`
+	RTime   atom.Time `json:"rtime" gorm:"column:rtime"`
 }
 
 type ListErrorLogReq struct {

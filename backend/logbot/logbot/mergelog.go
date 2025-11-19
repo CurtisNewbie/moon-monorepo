@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/heap"
 	"github.com/sirupsen/logrus"
 )
@@ -56,7 +56,7 @@ func flushMergedLogs() {
 	mergedLogMu.Lock()
 	defer mergedLogMu.Unlock()
 
-	now := util.Now()
+	now := atom.Now()
 	offset := now.Add(-3 * time.Second)
 
 	for mergedLogs.Len() > 0 {
