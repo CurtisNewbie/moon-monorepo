@@ -20,6 +20,7 @@
 - [GET /maintenance/status](#get-maintenancestatus)
 - [GET /auth/resource](#get-authresource)
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
+- [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
 - [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## GET /file/stream
@@ -248,9 +249,9 @@
   	Status string `json:"status"`  // status, 'NORMAL', 'LOG_DEL' (logically deleted), 'PHY_DEL' (physically deleted)
   	Size int64 `json:"size"`       // file size in bytes
   	Md5 string `json:"md5"`        // MD5 checksum
-  	UplTime util.Time `json:"uplTime"` // upload time
-  	LogDelTime *util.Time `json:"logDelTime"` // logically deleted at
-  	PhyDelTime *util.Time `json:"phyDelTime"` // physically deleted at
+  	UplTime atom.Time `json:"uplTime"` // upload time
+  	LogDelTime *atom.Time `json:"logDelTime"` // logically deleted at
+  	PhyDelTime *atom.Time `json:"phyDelTime"` // physically deleted at
   }
 
   // Fetch file info
@@ -545,9 +546,7 @@
   ```sh
   curl -X POST 'http://localhost:8084/file/unzip' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"extra":"","fileId":"","replyToEventBus":""}
-  EOF
+    -d '{"extra":"","fileId":"","replyToEventBus":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -645,9 +644,7 @@
   curl -X POST 'http://localhost:8084/backup/file/list' \
     -H 'Authorization: ' \
     -H 'Content-Type: application/json' \
-    -d @- << EOF
-    {"idOffset":0,"limit":0}
-  EOF
+    -d '{"idOffset":0,"limit":0}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1462,6 +1459,57 @@
   sendRequest() {
     let duration: any | null = null;
     this.http.get<any>(`/fstore/debug/trace/recorder/run?duration=${duration}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /debug/trace/recorder/snapshot
+
+- Description: FlightRecorder take snapshot. Recorded result is written to trace.out.
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8084/debug/trace/recorder/snapshot'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // FlightRecorder take snapshot. Recorded result is written to trace.out.
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/trace/recorder/snapshot", "fstore").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/fstore/debug/trace/recorder/snapshot`)
       .subscribe({
         next: () => {
         },

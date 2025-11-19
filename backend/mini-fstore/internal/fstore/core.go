@@ -16,16 +16,18 @@ import (
 
 	"github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/mini-fstore/internal/config"
-	"github.com/curtisnewbie/miso/encoding/json"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/errs"
+	"github.com/curtisnewbie/miso/util/json"
 	"github.com/curtisnewbie/miso/util/osutil"
 	"github.com/curtisnewbie/miso/util/pair"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"github.com/curtisnewbie/miso/util/slutil"
+	"github.com/curtisnewbie/miso/util/snowflake"
 	"github.com/curtisnewbie/miso/util/strutil"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/spf13/cast"
@@ -149,17 +151,17 @@ func (p PDelFileTrashOp) delete(rail miso.Rail, fileId string) error {
 }
 
 type File struct {
-	Id         int64       `json:"id"`
-	FileId     string      `json:"fileId"`
-	Link       string      `json:"-"`
-	Name       string      `json:"name"`
-	Status     string      `json:"status"`
-	Size       int64       `json:"size"`
-	Md5        string      `json:"md5"`
-	Sha1       string      `json:"sha1"`
-	UplTime    util.ETime  `json:"uplTime"`
-	LogDelTime *util.ETime `json:"logDelTime"`
-	PhyDelTime *util.ETime `json:"phyDelTime"`
+	Id         int64      `json:"id"`
+	FileId     string     `json:"fileId"`
+	Link       string     `json:"-"`
+	Name       string     `json:"name"`
+	Status     string     `json:"status"`
+	Size       int64      `json:"size"`
+	Md5        string     `json:"md5"`
+	Sha1       string     `json:"sha1"`
+	UplTime    atom.Time  `json:"uplTime"`
+	LogDelTime *atom.Time `json:"logDelTime"`
+	PhyDelTime *atom.Time `json:"phyDelTime"`
 }
 
 // Check whether current file is of zero value
@@ -192,7 +194,7 @@ func (f *File) StoragePath() string {
 
 // Generate random file_id
 func GenFileId() string {
-	return util.GenIdP(FileIdPrefix)
+	return snowflake.IdPrefix(FileIdPrefix)
 }
 
 // Initialize storage dir
@@ -352,7 +354,7 @@ func listPendingPhyDelFiles(rail miso.Rail, db *gorm.DB, beforeLogDelTime time.T
 	defer miso.TimeOp(rail, time.Now(), "listPendingPhyDelFiles")
 
 	var l []PendingPhyDelFile
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Raw("select id, file_id from file where id > ? and status = ? and log_del_time <= ? order by id asc limit 500",
 			minId, api.FileStatusLogicDel, beforeLogDelTime).
 		Scan(&l)
@@ -398,7 +400,7 @@ func FastCheckFileExists(rail miso.Rail, fileId string) error {
 
 // Create random file key for the file
 func RandFileKey(rail miso.Rail, name string, fileId string) (string, error) {
-	fk := util.ERand(30)
+	fk := randutil.ERand(30)
 	err := FastCheckFileExists(rail, fileId)
 	if err != nil {
 		return "", err
@@ -685,7 +687,7 @@ func CreateFileRec(rail miso.Rail, c CreateFile) error {
 		Md5:     c.Md5,
 		Sha1:    c.Sha1,
 		Link:    c.Link,
-		UplTime: util.Now(),
+		UplTime: atom.Now(),
 	}
 	t := mysql.GetMySQL().Table("file").Omit("Id", "DelTime").Create(&f)
 	if t.Error != nil {
@@ -697,7 +699,7 @@ func CreateFileRec(rail miso.Rail, c CreateFile) error {
 
 func FindDuplicateFile(rail miso.Rail, db *gorm.DB, size int64, sha1 string) (string, error) {
 	var fileId string
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Table("file").
 		Select("file_id").
 		Where("sha1 = ?", sha1).
@@ -734,7 +736,7 @@ func CheckAllNormalFiles(fileIds []string) (bool, error) {
 // Find File
 func FindFile(rail miso.Rail, db *gorm.DB, fileId string) (File, error) {
 	var f File
-	_, err := dbquery.NewQueryRail(rail, db).
+	_, err := dbquery.NewQuery(rail, db).
 		Raw("select * from file where file_id = ?", fileId).
 		Scan(&f)
 	if err != nil {
@@ -812,7 +814,7 @@ func LDelFile(rail miso.Rail, db *gorm.DB, fileId string) error {
 		return ErrFileDeleted
 	}
 
-	_, err := dbquery.NewQueryRail(rail, db).Exec("update file set status = ?, log_del_time = ? where file_id = ?", api.FileStatusLogicDel, time.Now(), fileId)
+	_, err := dbquery.NewQuery(rail, db).Exec("update file set status = ?, log_del_time = ? where file_id = ?", api.FileStatusLogicDel, time.Now(), fileId)
 	if err != nil {
 		return ErrUnknownError.WithInternalMsg("Failed to update file, %v", err)
 	}
@@ -873,7 +875,7 @@ func PhyDelFile(rail miso.Rail, db *gorm.DB, fileId string, op PDelFileOp) error
 			return nil, ed
 		}
 
-		_, err := dbquery.NewQueryRail(rail, db).
+		_, err := dbquery.NewQuery(rail, db).
 			Exec("update file set status = ?, phy_del_time = ? where file_id = ?", api.FileStatusPhysicDel, time.Now(), fileId)
 		if err != nil {
 			return nil, ErrUnknownError.WithInternalMsg("Failed to update file, %v", err)
@@ -999,7 +1001,7 @@ func UnzipFile(rail miso.Rail, db *gorm.DB, evt UnzipFileEvent) ([]SavedZipEntry
 		return nil, nil
 	}
 
-	tempDir := miso.GetPropStr(config.PropTempDir) + "/" + evt.FileId + "_" + util.RandNum(5)
+	tempDir := miso.GetPropStr(config.PropTempDir) + "/" + evt.FileId + "_" + randutil.RandNum(5)
 	if err := os.MkdirAll(tempDir, osutil.DefFileMode); err != nil {
 		return nil, fmt.Errorf("failed to MkdirAll for tempDir %v, %w", tempDir, err)
 	}
@@ -1043,7 +1045,7 @@ func UnpackZip(rail miso.Rail, f File, tempDir string) ([]UnpackedZipEntry, erro
 			return nil, fmt.Errorf("failed to open zip entry file %v, %w", f.Name, err)
 		}
 
-		tempPath := tempDir + "/" + util.GenIdP("ZIPENTRY")
+		tempPath := tempDir + "/" + snowflake.IdPrefix("ZIPENTRY")
 		tempFile, err := osutil.OpenRWFile(tempPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create temp file for zip entry file, %v, %w", f.Name, err)
@@ -1161,7 +1163,7 @@ func ComputeFilesChecksum(rail miso.Rail, db *gorm.DB) error {
 	lastId := 0
 	listFiles := func(lastId int) ([]ComputingFile, error) {
 		var cfs []ComputingFile
-		_, err := dbquery.NewQueryRail(rail, db).
+		_, err := dbquery.NewQuery(rail, db).
 			Raw(`SELECT id, file_id, link FROM file WHERE id > ? AND status in (?, ?) AND sha1 = "" ORDER BY id ASC LIMIT 500`,
 				lastId, api.FileStatusLogicDel, api.FileStatusNormal).Scan(&cfs)
 		if err != nil {
@@ -1184,7 +1186,7 @@ func ComputeFilesChecksum(rail miso.Rail, db *gorm.DB) error {
 			p := FileStoragePath(f.FileId, f.Link)
 			sha1, err := ChkSumSha1(p)
 			if err == nil && sha1 != "" {
-				if _, er := dbquery.NewQueryRail(rail, db).Exec(`UPDATE file set sha1 = ? WHERE id = ?`, sha1, f.Id); er != nil {
+				if _, er := dbquery.NewQuery(rail, db).Exec(`UPDATE file set sha1 = ? WHERE id = ?`, sha1, f.Id); er != nil {
 					return fmt.Errorf("failed to update file sha1 checksum, id: %v, %v", f.Id, err)
 				} else {
 					rail.Infof("Updated sha1: %v to id: %v, fileId: %v", sha1, f.Id, f.FileId)
@@ -1205,19 +1207,19 @@ func FileStoragePath(fileId, link string) string {
 }
 
 type StorageInfo struct {
-	Volumns []VolumnInfo
+	Volumns []VolumnInfo `json:"volumns"`
 }
 
 type VolumnInfo struct {
-	Mounted         string
-	Total           uint64
-	Used            uint64
-	Available       uint64
-	UsedPercent     float64
-	TotalText       string
-	UsedText        string
-	AvailableText   string
-	UsedPercentText string
+	Mounted         string  `json:"mounted"`
+	Total           uint64  `json:"total"`
+	Used            uint64  `json:"used"`
+	Available       uint64  `json:"available"`
+	UsedPercent     float64 `json:"usedPercent"`
+	TotalText       string  `json:"totalText"`
+	UsedText        string  `json:"usedText"`
+	AvailableText   string  `json:"availableText"`
+	UsedPercentText string  `json:"usedPercentText"`
 }
 
 func LoadStorageInfo() StorageInfo {
@@ -1265,10 +1267,10 @@ func readableBytes(d uint64) string {
 }
 
 type StorageUsageInfo struct {
-	Type     string
-	Path     string
-	Used     uint64
-	UsedText string
+	Type     string `json:"type"`
+	Path     string `json:"path"`
+	Used     uint64 `json:"used"`
+	UsedText string `json:"usedText"`
 }
 
 func LoadStorageUsageInfoCached(rail miso.Rail) ([]StorageUsageInfo, error) {
@@ -1337,7 +1339,7 @@ func doReadDirSize(path string) (uint64, error) {
 }
 
 type MaintenanceStatus struct {
-	UnderMaintenance bool
+	UnderMaintenance bool `json:"underMaintenance"`
 }
 
 func CheckMaintenanceStatus() (MaintenanceStatus, error) {

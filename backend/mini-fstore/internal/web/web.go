@@ -18,7 +18,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util"
+	"github.com/curtisnewbie/miso/util/randutil"
 	"github.com/gin-gonic/gin"
 )
 
@@ -141,7 +141,7 @@ func ApiUploadFile(inb *miso.Inbound) (string, error) {
 	// generate a random file key for the backend server to retrieve the
 	// actual fileId later (this is to prevent user guessing others files' fileId,
 	// the fileId should be used internally within the system)
-	tempFileId := util.ERand(40)
+	tempFileId := randutil.ERand(40)
 
 	cmd := redis.GetRedis().Set(rail.Context(), "mini-fstore:upload:fileId:"+tempFileId, fileId, 6*time.Hour)
 	if cmd.Err() != nil {
