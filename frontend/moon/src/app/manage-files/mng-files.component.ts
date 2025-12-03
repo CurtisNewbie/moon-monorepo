@@ -110,7 +110,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inSensitiveMode = false;
   orderByName = false;
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   /*
@@ -247,6 +247,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           let p = sessionStorage.getItem(`mng-files.dir.${this.inDirFileKey}`);
           if (p) {
             page = parseInt(p, 10);
+            console.log(`dir ${this.inDirFileKey} prev page: ${page}`);
           }
         }
         if (page > -1) {
@@ -1252,7 +1253,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     if (this.inDirFileKey) {
       sessionStorage.setItem(
         `mng-files.dir.${this.inDirFileKey}`,
-        evt.page.toString()
+        (evt.page + 1).toString()
       );
     }
     this.fetchFileInfoList();
