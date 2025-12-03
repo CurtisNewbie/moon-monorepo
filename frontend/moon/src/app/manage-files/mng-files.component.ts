@@ -108,7 +108,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
-  orderByName = true;
+  orderByName = false;
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
@@ -206,7 +206,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnDestroy(): void {}
 
   ngOnInit() {
-    this.orderByName = true;
+    this.orderByName = false;
     this.registerSelectAllEventHandler();
     this.parseRouteParam();
   }
@@ -221,6 +221,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       let searchedFileKey = params.get("searchedFileKey");
       if (searchedFileKey) {
         this.searchParam.fileKey = searchedFileKey;
+      }
+
+      let obn = params.get("orderByName");
+      if (obn) {
+        this.orderByName = obn == "true";
       }
 
       // directory
@@ -325,7 +330,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.expandUploadPanel = false;
     this.curr = null;
     this.resetSearchParam(false, false);
-    this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: fileKey }]);
+    this.nav.navigateTo(NavType.MANAGE_FILES, [
+      { parentDirKey: fileKey, orderByName: this.orderByName },
+    ]);
   }
 
   /** fetch file info list */
