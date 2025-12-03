@@ -260,41 +260,36 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   registerSelectAllEventHandler() {
-    window.addEventListener("keydown", (evt) => {
-      if (this.inFolderNo) {
-        return;
-      }
-
-      if (
-        this.searchFilenameInput &&
-        this.searchFilenameInput.nativeElement == document.activeElement
-      ) {
-        return;
-      }
-
-      if (
-        this.uploadFileInput &&
-        this.uploadFileInput.nativeElement == document.activeElement
-      ) {
-        return;
-      }
-
-      if (
-        this.newDirNameInput &&
-        this.newDirNameInput.nativeElement == document.activeElement
-      ) {
-        return;
-      }
-
-      // console.log(document.activeElement);
-
-      if (evt.key == "a" && evt.metaKey) {
-        evt.preventDefault();
-        for (let f of this.fileInfoList) {
-          this.bookmarkFile(f);
-        }
-      }
-    });
+    // window.addEventListener("keydown", (evt) => {
+    //   if (this.inFolderNo) {
+    //     return;
+    //   }
+    //   if (
+    //     this.searchFilenameInput &&
+    //     this.searchFilenameInput.nativeElement == document.activeElement
+    //   ) {
+    //     return;
+    //   }
+    //   if (
+    //     this.uploadFileInput &&
+    //     this.uploadFileInput.nativeElement == document.activeElement
+    //   ) {
+    //     return;
+    //   }
+    //   if (
+    //     this.newDirNameInput &&
+    //     this.newDirNameInput.nativeElement == document.activeElement
+    //   ) {
+    //     return;
+    //   }
+    //   // console.log(document.activeElement);
+    //   if (evt.key == "a" && evt.metaKey) {
+    //     evt.preventDefault();
+    //     for (let f of this.fileInfoList) {
+    //       this.bookmarkFile(f);
+    //     }
+    //   }
+    // });
   }
 
   // make dir
