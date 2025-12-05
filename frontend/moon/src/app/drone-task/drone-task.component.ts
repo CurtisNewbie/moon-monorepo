@@ -72,6 +72,7 @@ export interface ListedTask {
   updatedAt?: number;
   fileCount?: number;
   remark?: string;
+  remarkShort?: string;
 }
 
 @Component({
@@ -133,15 +134,24 @@ export class DroneTaskComponent implements OnInit {
           this.tabdata = dat.payload;
 
           const isMob = this.env.isMobile();
-          const remarkMaxLen = 40;
+          const remarkShortMaxLen = 40;
+          const remarkMaxLen = 800;
           const statusLabelMaxLen = 60;
 
           if (this.tabdata) {
             for (let t of this.tabdata) {
-              if (t.remark && t.remark.length > remarkMaxLen) {
-                t.remark =
+              t.remarkShort = t.remark;
+              if (t.remark && t.remark.length > remarkShortMaxLen) {
+                t.remarkShort =
                   "... " +
-                  t.remark.substring(t.remark.length - remarkMaxLen).trim();
+                  t.remark
+                    .substring(t.remark.length - remarkShortMaxLen)
+                    .trim();
+                if (t.remark.length > remarkMaxLen) {
+                  t.remark =
+                    "... " +
+                    t.remark.substring(t.remark.length - remarkMaxLen).trim();
+                }
               }
               t.trimmedDirName = t.dirName;
               if (isMob && t.trimmedDirName.length > statusLabelMaxLen) {
