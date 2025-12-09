@@ -180,6 +180,8 @@ export class DroneTaskComponent implements OnInit {
           this.snackBar.open(resp.msg, "ok", { duration: 6000 });
           return;
         }
+
+        this.listTasks();
       },
       error: (err) => {
         console.log(err);
