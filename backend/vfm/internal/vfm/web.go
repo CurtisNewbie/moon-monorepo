@@ -32,7 +32,7 @@ var (
 	ErrFileDeleted  = errs.NewErrfCode("FILE_DELETED", "File deleted")
 )
 
-func RegisterHttpRoutes(rail miso.Rail) error {
+func PrepareWebServer(rail miso.Rail) error {
 
 	auth.ExposeResourceInfo([]auth.Resource{
 		{Code: ResManageFiles, Name: "Manage files"},

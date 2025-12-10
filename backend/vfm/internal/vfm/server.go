@@ -12,7 +12,7 @@ func PrepareServer() {
 	miso.PreServerBootstrap(SubscribeBinlogChanges)
 	miso.PreServerBootstrap(PrintVersion)
 	miso.PreServerBootstrap(PrepareEventBus)
-	miso.PreServerBootstrap(RegisterHttpRoutes)
+	miso.PreServerBootstrap(PrepareWebServer)
 	miso.PreServerBootstrap(MakeTempDirs)
 }
 

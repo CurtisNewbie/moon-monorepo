@@ -60,6 +60,7 @@
 - [POST /internal/file/fetch-info](#post-internalfilefetch-info)
 - [POST /internal/file/batch-fetch-info](#post-internalfilebatch-fetch-info)
 - [POST /internal/v1/file/make-dir](#post-internalv1filemake-dir)
+- [POST /internal/file/update-info](#post-internalfileupdate-info)
 - [GET /auth/resource](#get-authresource)
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
 - [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
@@ -5619,6 +5620,90 @@
             return;
           }
           let dat: string = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /internal/file/update-info
+
+- Description: Internal endpoint. Update file info.
+- JSON Request:
+    - "fileKey": (string) Required.
+    - "name": (string) Required.
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/internal/file/update-info' \
+    -H 'Content-Type: application/json' \
+    -d '{"fileKey":"","name":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type ApiInternalUpdateFileInfoReq struct {
+  	FileKey string `json:"fileKey"` // Required.
+  	Name string `json:"name"`      // Required.
+  }
+
+  // Internal endpoint. Update file info.
+  func ApiInternalUpdateFileInfo(rail miso.Rail, req ApiInternalUpdateFileInfoReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/internal/file/update-info", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface ApiInternalUpdateFileInfoReq {
+    fileKey?: string;              // Required.
+    name?: string;                 // Required.
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  internalUpdateFileInfo() {
+    let req: ApiInternalUpdateFileInfoReq | null = null;
+    this.http.post<any>(`/vfm/internal/file/update-info`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
         },
         error: (err) => {
           console.log(err)

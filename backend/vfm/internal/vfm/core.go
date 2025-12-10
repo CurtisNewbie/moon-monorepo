@@ -1861,3 +1861,18 @@ func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user com
 	}
 	return dirKey, nil
 }
+
+func InternalUpdateFileInfo(rail miso.Rail, db *gorm.DB, req ApiInternalUpdateFileInfoReq) error {
+	flock := fileLock(rail, req.FileKey)
+	if err := flock.Lock(); err != nil {
+		return err
+	}
+	defer flock.Unlock()
+
+	return dbquery.NewQuery(rail, db).
+		Table("file_info").
+		Set("name", req.Name).
+		Eq("uuid", req.FileKey).
+		Eq("is_del", 0).
+		UpdateAny()
+}

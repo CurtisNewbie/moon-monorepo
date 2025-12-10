@@ -122,3 +122,15 @@ func ApiSysMakeDir(rail miso.Rail, db *gorm.DB, req SysMakeDirReq) (string, erro
 
 	return fk, err
 }
+
+type ApiInternalUpdateFileInfoReq struct {
+	FileKey string `json:"fileKey" valid:"notEmpty"`
+	Name    string `json:"name" valid:"notEmpty"`
+}
+
+// Internal endpoint. Update file info.
+//
+//   - misoapi-http: POST /internal/file/update-info
+func ApiInternalUpdateFileInfo(rail miso.Rail, db *gorm.DB, req ApiInternalUpdateFileInfoReq) error {
+	return InternalUpdateFileInfo(rail, db, req)
+}
