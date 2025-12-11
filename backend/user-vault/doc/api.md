@@ -4962,11 +4962,11 @@
   	</ng-container>
   	<ng-container matColumnDef="createdAt">
   		<th mat-header-cell *matHeaderCellDef> CreatedAt </th>
-  		<td mat-cell *matCellDef="let u"> {{u.createdAt}} </td>
+  		<td mat-cell *matCellDef="let u"> {{u.createdAt | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
   	</ng-container>
   	<ng-container matColumnDef="updatedAt">
   		<th mat-header-cell *matHeaderCellDef> UpdatedAt </th>
-  		<td mat-cell *matCellDef="let u"> {{u.updatedAt}} </td>
+  		<td mat-cell *matCellDef="let u"> {{u.updatedAt | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
   	</ng-container>
   	<tr mat-row *matRowDef="let row; columns: ['recordId','title','content','userNo','createdAt','updatedAt'];"></tr>
   	<tr mat-header-row *matHeaderRowDef="['recordId','title','content','userNo','createdAt','updatedAt']"></tr>
