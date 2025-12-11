@@ -243,13 +243,17 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
       if (this.pagingController) {
         let page = -1;
-        if (this.inDirFileKey) {
-          let p = sessionStorage.getItem(`mng-files.dir.${this.inDirFileKey}`);
-          if (p) {
-            page = parseInt(p, 10);
-            console.log(`dir ${this.inDirFileKey} prev page: ${page}`);
-          }
-        }
+
+        // TODO: this feature is confusing for users
+        //
+        // if (this.inDirFileKey) {
+        //   let p = sessionStorage.getItem(`mng-files.dir.${this.inDirFileKey}`);
+        //   if (p) {
+        //     page = parseInt(p, 10);
+        //     console.log(`dir ${this.inDirFileKey} prev page: ${page}`);
+        //   }
+        // }
+
         if (page > -1) {
           this.pagingController.goToPage(page);
         } else {
@@ -1253,7 +1257,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     if (this.inDirFileKey) {
       sessionStorage.setItem(
         `mng-files.dir.${this.inDirFileKey}`,
-        (evt.page + 1).toString()
+        evt.page.toString()
       );
     }
     this.fetchFileInfoList();
