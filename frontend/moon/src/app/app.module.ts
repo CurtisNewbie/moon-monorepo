@@ -71,7 +71,10 @@ import { ManageBookmarksComponent } from "./manage-bookmarks/manage-bookmarks.co
 import { GalleryAccessComponent } from "./gallery-access/gallery-access.component";
 import { ShareFileQrcodeDialogComponent } from "./share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { MatBadgeModule } from "@angular/material/badge";
-import { ListNotificationComponent, ShowNotificationDialogComponent } from "./list-notification/list-notification.component";
+import {
+  ListNotificationComponent,
+  ShowNotificationDialogComponent,
+} from "./list-notification/list-notification.component";
 import { BookmarkBlacklistComponent } from "./bookmark-blacklist/bookmark-blacklist.component";
 import {
   VerFileHistoryComponent,
@@ -96,9 +99,12 @@ import { DirTreeNavComponent } from "./dir-tree-nav/dir-tree-nav.component";
 import { HIGHLIGHT_OPTIONS, HighlightModule } from "ngx-highlightjs";
 import { FileBookmarkDialogComponent } from "./file-bookmark-dialog/file-bookmark-dialog.component";
 import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
-import { DroneTaskComponent } from "./drone-task/drone-task.component";
-import { MngNoteComponent } from './mng-note/mng-note.component';
-import { EditNoteDialogComponent } from './edit-note-dialog/edit-note-dialog.component';
+import {
+  DroneTaskComponent,
+  UpdateDroneTaskDialogComponent,
+} from "./drone-task/drone-task.component";
+import { MngNoteComponent } from "./mng-note/mng-note.component";
+import { EditNoteDialogComponent } from "./edit-note-dialog/edit-note-dialog.component";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -111,6 +117,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MngFilesComponent,
     LoginComponent,
     NavComponent,
+    UpdateDroneTaskDialogComponent,
     ConfirmDialogComponent,
     GrantAccessDialogComponent,
     ImageViewerComponent,
@@ -192,7 +199,12 @@ PlotlyModule.plotlyjs = PlotlyJS;
     ScrollingModule,
     HighlightModule,
   ],
-  entryComponents: [ConfirmDialogComponent, GrantAccessDialogComponent, ShowNotificationDialogComponent],
+  entryComponents: [
+    ConfirmDialogComponent,
+    GrantAccessDialogComponent,
+    ShowNotificationDialogComponent,
+    UpdateDroneTaskDialogComponent,
+  ],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: APP_BASE_HREF, useValue: "/" },

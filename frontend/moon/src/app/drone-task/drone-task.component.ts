@@ -1,5 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
@@ -8,6 +8,11 @@ import { Env } from "src/common/env-util";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { isEnterKey } from "src/common/condition";
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogRef,
+} from "@angular/material/dialog";
 
 export interface ApiDetectTitleReq {
   url?: string;
@@ -75,6 +80,11 @@ export interface ListedTask {
   remarkShort?: string;
 }
 
+export interface UpdateTaskURLReq {
+  taskId?: string; // Required.
+  url?: string; // Required.
+}
+
 @Component({
   selector: "app-drone-task",
   templateUrl: "./drone-task.component.html",
@@ -117,7 +127,8 @@ export class DroneTaskComponent implements OnInit {
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private nav: NavigationService,
-    public env: Env
+    public env: Env,
+    private dialog: MatDialog
   ) {}
 
   listTasks() {
@@ -347,4 +358,69 @@ export class DroneTaskComponent implements OnInit {
       },
     });
   }
+
+  updateTaskUrl(req: UpdateTaskURLReq) {
+    this.http.post<any>(`/drone/open/api/task/update-url`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.listTasks();
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  clickUpdateTaskUrl(d) {
+    this.dialog
+      .open(UpdateDroneTaskDialogComponent, {
+        width: "700px",
+        data: {
+          taskId: d.taskId,
+          url: d.url,
+        },
+      })
+      .afterClosed()
+      .subscribe((newUrl) => {
+        if (newUrl && newUrl != d.url) {
+          this.updateTaskUrl({
+            taskId: d.taskId,
+            url: newUrl,
+          });
+        }
+      });
+  }
+}
+
+@Component({
+  selector: "update-drone-task-component",
+  template: `
+    <h1 mat-dialog-title>Update Drone Task</h1>
+    <div mat-dialog-content>
+      <mat-form-field style="width: 400px">
+        <mat-label>URL</mat-label>
+        <input readonly matInput [(ngModel)]="data.taskId" />
+      </mat-form-field>
+      <mat-form-field style="width: 400px">
+        <mat-label>URL</mat-label>
+        <input matInput [(ngModel)]="data.url" />
+      </mat-form-field>
+    </div>
+    <div mat-dialog-actions class="d-flex justify-content-end">
+      <button mat-button [mat-dialog-close]="data.url">Update</button>
+      <button mat-button [mat-dialog-close]="''" cdkFocusInitial>No</button>
+    </div>
+  `,
+})
+export class UpdateDroneTaskDialogComponent {
+  constructor(
+    public dialogRef: MatDialogRef<UpdateDroneTaskDialogComponent, any>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
 }

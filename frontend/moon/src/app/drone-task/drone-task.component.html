@@ -117,6 +117,9 @@
                     <ng-container *ngIf="u.status != 'PENDING' && u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">Retry</button>
                     </ng-container>
+                    <ng-container *ngIf="u.status == 'COMPLETED' && u.dirFileKey">
+                        <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">Update</button>
+                    </ng-container>
                 </div>
             </td>
         </ng-container>
