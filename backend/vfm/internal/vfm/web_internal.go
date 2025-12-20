@@ -29,7 +29,7 @@ func ApiSysCreateFile(rail miso.Rail, db *gorm.DB, req SysCreateFileReq) (string
 	return fk, err
 }
 
-type InternalCheckDuplicateReq struct {
+type ItnCheckDuplicateReq struct {
 	Filename      string `form:"fileName"`
 	ParentFileKey string `form:"parentFileKey"`
 	UserNo        string `form:"userNo"`
@@ -39,12 +39,12 @@ type InternalCheckDuplicateReq struct {
 //
 //   - misoapi-http: GET /internal/file/upload/duplication/preflight
 //   - misoapi-desc: Internal endpoint, Preflight check for duplicate file uploads
-func ApiInternalCheckDuplicate(rail miso.Rail, db *gorm.DB, req InternalCheckDuplicateReq) (bool, error) {
+func ApiItnCheckDuplicate(rail miso.Rail, db *gorm.DB, req ItnCheckDuplicateReq) (bool, error) {
 	pcq := PreflightCheckReq{Filename: req.Filename, ParentFileKey: req.ParentFileKey}
 	return FileExists(rail, db, pcq, req.UserNo)
 }
 
-type InternalCheckFileAccessReq struct {
+type ItnCheckFileAccessReq struct {
 	FileKey string `json:"fileKey"`
 	UserNo  string `json:"userNo"`
 }
@@ -53,15 +53,15 @@ type InternalCheckFileAccessReq struct {
 //
 //   - misoapi-http: POST /internal/file/check-access
 //   - misoapi-desc: Internal endpoint, Check if user has access to the file
-func ApiInternalCheckFileAccess(rail miso.Rail, db *gorm.DB, req InternalCheckFileAccessReq) error {
+func ApiItnCheckFileAccess(rail miso.Rail, db *gorm.DB, req ItnCheckFileAccessReq) error {
 	return ValidateFileAccess(rail, db, req.FileKey, req.UserNo)
 }
 
-type InternalFetchFileInfoReq struct {
+type ItnFetchFileInfoReq struct {
 	FileKey string `vaild:"notEmpty" json:"fileKey"`
 }
 
-type InternalFetchFileInfoRes struct {
+type ItnFetchFileInfoRes struct {
 	FileKey     string    `json:"fileKey"`
 	Name        string    `json:"name"`
 	UploadTime  atom.Time `json:"uploadTime"`
@@ -73,7 +73,7 @@ type InternalFetchFileInfoRes struct {
 //
 //   - misoapi-http: POST /internal/file/fetch-info
 //   - misoapi-desc: Internal endpoint. Fetch file info.
-func ApiInternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
+func ApiItnFetchFileInfo(rail miso.Rail, db *gorm.DB, req ItnFetchFileInfoReq) (ItnFetchFileInfoRes, error) {
 	return InternalFetchFileInfo(rail, db, req)
 }
 
@@ -84,7 +84,7 @@ type InternalBatchFetchFileInfoReq struct {
 // Internal endpoint. Batch Fetch file info.
 //
 //   - misoapi-http: POST /internal/file/batch-fetch-info
-func ApiItnBatchFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalBatchFetchFileInfoReq) ([]InternalFetchFileInfoRes, error) {
+func ApiItnBatchFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalBatchFetchFileInfoReq) ([]ItnFetchFileInfoRes, error) {
 	return InternalBatchFetchFileInfo(rail, db, req)
 }
 
@@ -98,7 +98,7 @@ type SysMakeDirReq struct {
 //
 //   - misoapi-http: POST /internal/v1/file/make-dir
 //   - misoapi-desc: Internal endpoint, System make directory.
-func ApiSysMakeDir(rail miso.Rail, db *gorm.DB, req SysMakeDirReq) (string, error) {
+func ApiItnMakeDir(rail miso.Rail, db *gorm.DB, req SysMakeDirReq) (string, error) {
 
 	user, err := vault.FindUserCommon(rail, vault.FindUserCommonReq{
 		UserNo: req.UserNo,
@@ -123,7 +123,7 @@ func ApiSysMakeDir(rail miso.Rail, db *gorm.DB, req SysMakeDirReq) (string, erro
 	return fk, err
 }
 
-type ApiInternalUpdateFileInfoReq struct {
+type ApiItnUpdateFileInfoReq struct {
 	FileKey string `json:"fileKey" valid:"notEmpty"`
 	Name    string `json:"name" valid:"notEmpty"`
 }
@@ -131,6 +131,6 @@ type ApiInternalUpdateFileInfoReq struct {
 // Internal endpoint. Update file info.
 //
 //   - misoapi-http: POST /internal/file/update-info
-func ApiInternalUpdateFileInfo(rail miso.Rail, db *gorm.DB, req ApiInternalUpdateFileInfoReq) error {
+func ApiItnUpdateFileInfo(rail miso.Rail, db *gorm.DB, req ApiItnUpdateFileInfoReq) error {
 	return InternalUpdateFileInfo(rail, db, req)
 }

@@ -1793,8 +1793,8 @@ func ValidateFileAccess(rail miso.Rail, db *gorm.DB, fileKey string, userNo stri
 	return nil
 }
 
-func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
-	var res InternalFetchFileInfoRes
+func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req ItnFetchFileInfoReq) (ItnFetchFileInfoRes, error) {
+	var res ItnFetchFileInfoRes
 	n, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Eq("uuid", req.FileKey).
@@ -1810,12 +1810,12 @@ func InternalFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalFetchFileInf
 	return res, nil
 }
 
-func InternalBatchFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalBatchFetchFileInfoReq) ([]InternalFetchFileInfoRes, error) {
+func InternalBatchFetchFileInfo(rail miso.Rail, db *gorm.DB, req InternalBatchFetchFileInfoReq) ([]ItnFetchFileInfoRes, error) {
 	req.FileKey = slutil.FastDistinct(req.FileKey)
 	if len(req.FileKey) < 1 {
-		return []InternalFetchFileInfoRes{}, nil
+		return []ItnFetchFileInfoRes{}, nil
 	}
-	var res []InternalFetchFileInfoRes
+	var res []ItnFetchFileInfoRes
 	err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		In("uuid", req.FileKey).
@@ -1862,7 +1862,7 @@ func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user com
 	return dirKey, nil
 }
 
-func InternalUpdateFileInfo(rail miso.Rail, db *gorm.DB, req ApiInternalUpdateFileInfoReq) error {
+func InternalUpdateFileInfo(rail miso.Rail, db *gorm.DB, req ApiItnUpdateFileInfoReq) error {
 	flock := fileLock(rail, req.FileKey)
 	if err := flock.Lock(); err != nil {
 		return err
