@@ -1876,3 +1876,56 @@ func InternalUpdateFileInfo(rail miso.Rail, db *gorm.DB, req ApiItnUpdateFileInf
 		Eq("is_del", 0).
 		UpdateAny()
 }
+
+type FetchDirThumbnailReq struct {
+	DirFileKey string `json:"dirFileKey" valid:"notEmpty"`
+}
+
+type FetchDirThumbnailRes struct {
+	FstoreToken string `json:"fstoreToken,omitzero"`
+}
+
+func FetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq, user common.User) (FetchDirThumbnailRes, error) {
+	f, ok, err := findFile(rail, db, req.DirFileKey)
+	if err != nil {
+		return FetchDirThumbnailRes{}, err
+	}
+	if !ok {
+		return FetchDirThumbnailRes{}, ErrFileNotFound.New()
+	}
+	if f.UploaderNo != user.UserNo {
+		return FetchDirThumbnailRes{}, miso.ErrNotPermitted.New()
+	}
+	fstFileId, ok, err := findFirstThumbnailFileId(rail, db, req.DirFileKey)
+	if err != nil {
+		return FetchDirThumbnailRes{}, err
+	}
+	if !ok || fstFileId == "" {
+		return FetchDirThumbnailRes{}, nil
+	}
+	tkn, err := GetFstoreTmpToken(rail, fstFileId, "")
+	if err != nil {
+		return FetchDirThumbnailRes{}, err
+	}
+	return FetchDirThumbnailRes{FstoreToken: tkn}, nil
+}
+
+func findFirstThumbnailFileId(rail miso.Rail, db *gorm.DB, dirFileKey string) (string, bool, error) {
+	var fstFileId string
+	ok, err := dbquery.NewQuery(rail, db).
+		Table("file_info").
+		Eq("parent_file", dirFileKey).
+		Eq("is_del", 0).
+		Ne("thumbnail", "").
+		OrderDesc("id").
+		Limit(1).
+		Select("thumbnail").
+		ScanAny(&fstFileId)
+	if err != nil {
+		return "", false, err
+	}
+	if !ok {
+		return "", false, nil
+	}
+	return fstFileId, true, nil
+}

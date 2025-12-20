@@ -54,6 +54,7 @@
 - [GET /history/list-browse-history](#get-historylist-browse-history)
 - [POST /history/record-browse-history](#post-historyrecord-browse-history)
 - [GET /maintenance/status](#get-maintenancestatus)
+- [GET /open/api/file/dir-thumbnail](#get-openapifiledir-thumbnail)
 - [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
@@ -5069,6 +5070,88 @@
   }
   ```
 
+## GET /open/api/file/dir-thumbnail
+
+- Description: Fetch Directory Thumbnail
+- Bound to Resource: `"manage-files"`
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (FetchDirThumbnailRes) response data
+      - "fstoreToken": (string) 
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8086/open/api/file/dir-thumbnail'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type FetchDirThumbnailRes struct {
+  	FstoreToken string `json:"fstoreToken,omitzero"`
+  }
+
+  // Fetch Directory Thumbnail
+  func ApiFetchDirThumbnail(rail miso.Rail) (FetchDirThumbnailRes, error) {
+  	var res miso.GnResp[FetchDirThumbnailRes]
+  	err := miso.NewDynClient(rail, "/open/api/file/dir-thumbnail", "vfm").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		var dat FetchDirThumbnailRes
+  		return dat, err
+  	}
+  	dat, err := res.Res()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return dat, err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: FetchDirThumbnailRes;
+  }
+
+  export interface FetchDirThumbnailRes {
+    fstoreToken?: string;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  fetchDirThumbnail() {
+    this.http.get<any>(`/vfm/open/api/file/dir-thumbnail`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: FetchDirThumbnailRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
 ## POST /internal/v1/file/create
 
 - Description: Internal endpoint, System create file
@@ -5182,7 +5265,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   // Internal endpoint, Preflight check for duplicate file uploads
-  func ApiInternalCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string, userNo string) (bool, error) {
+  func ApiItnCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string, userNo string) (bool, error) {
   	var res miso.GnResp[bool]
   	err := miso.NewDynClient(rail, "/internal/file/upload/duplication/preflight", "vfm").
   		AddQueryParams("fileName", fileName).
@@ -5222,7 +5305,7 @@
     private http: HttpClient
   ) {}
 
-  internalCheckDuplicate() {
+  itnCheckDuplicate() {
     let fileName: any | null = null;
     let parentFileKey: any | null = null;
     let userNo: any | null = null;
@@ -5262,13 +5345,13 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type InternalCheckFileAccessReq struct {
+  type ItnCheckFileAccessReq struct {
   	FileKey string `json:"fileKey"`
   	UserNo string `json:"userNo"`
   }
 
   // Internal endpoint, Check if user has access to the file
-  func ApiInternalCheckFileAccess(rail miso.Rail, req InternalCheckFileAccessReq) error {
+  func ApiItnCheckFileAccess(rail miso.Rail, req ItnCheckFileAccessReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/internal/file/check-access", "vfm").
   		PostJson(req).
@@ -5287,7 +5370,7 @@
 
 - JSON Request / Response Object In TypeScript:
   ```ts
-  export interface InternalCheckFileAccessReq {
+  export interface ItnCheckFileAccessReq {
     fileKey?: string;
     userNo?: string;
   }
@@ -5309,8 +5392,8 @@
     private http: HttpClient
   ) {}
 
-  internalCheckFileAccess() {
-    let req: InternalCheckFileAccessReq | null = null;
+  itnCheckFileAccess() {
+    let req: ItnCheckFileAccessReq | null = null;
     this.http.post<any>(`/vfm/internal/file/check-access`, req)
       .subscribe({
         next: (resp) => {
@@ -5336,7 +5419,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (InternalFetchFileInfoRes) response data
+    - "data": (ItnFetchFileInfoRes) response data
       - "fileKey": (string) 
       - "name": (string) 
       - "uploadTime": (int64) 
@@ -5351,11 +5434,11 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type InternalFetchFileInfoReq struct {
+  type ItnFetchFileInfoReq struct {
   	FileKey string `json:"fileKey"`
   }
 
-  type InternalFetchFileInfoRes struct {
+  type ItnFetchFileInfoRes struct {
   	FileKey string `json:"fileKey"`
   	Name string `json:"name"`
   	UploadTime atom.Time `json:"uploadTime"`
@@ -5364,14 +5447,14 @@
   }
 
   // Internal endpoint. Fetch file info.
-  func ApiInternalFetchFileInfo(rail miso.Rail, req InternalFetchFileInfoReq) (InternalFetchFileInfoRes, error) {
-  	var res miso.GnResp[InternalFetchFileInfoRes]
+  func ApiItnFetchFileInfo(rail miso.Rail, req ItnFetchFileInfoReq) (ItnFetchFileInfoRes, error) {
+  	var res miso.GnResp[ItnFetchFileInfoRes]
   	err := miso.NewDynClient(rail, "/internal/file/fetch-info", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat InternalFetchFileInfoRes
+  		var dat ItnFetchFileInfoRes
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -5384,7 +5467,7 @@
 
 - JSON Request / Response Object In TypeScript:
   ```ts
-  export interface InternalFetchFileInfoReq {
+  export interface ItnFetchFileInfoReq {
     fileKey?: string;
   }
 
@@ -5392,10 +5475,10 @@
     errorCode?: string;            // error code
     msg?: string;                  // message
     error?: boolean;               // whether the request was successful
-    data?: InternalFetchFileInfoRes;
+    data?: ItnFetchFileInfoRes;
   }
 
-  export interface InternalFetchFileInfoRes {
+  export interface ItnFetchFileInfoRes {
     fileKey?: string;
     name?: string;
     uploadTime?: number;
@@ -5414,8 +5497,8 @@
     private http: HttpClient
   ) {}
 
-  internalFetchFileInfo() {
-    let req: InternalFetchFileInfoReq | null = null;
+  itnFetchFileInfo() {
+    let req: ItnFetchFileInfoReq | null = null;
     this.http.post<any>(`/vfm/internal/file/fetch-info`, req)
       .subscribe({
         next: (resp) => {
@@ -5423,7 +5506,7 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
-          let dat: InternalFetchFileInfoRes = resp.data;
+          let dat: ItnFetchFileInfoRes = resp.data;
         },
         error: (err) => {
           console.log(err)
@@ -5442,7 +5525,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]vfm.InternalFetchFileInfoRes) response data
+    - "data": ([]vfm.ItnFetchFileInfoRes) response data
       - "fileKey": (string) 
       - "name": (string) 
       - "uploadTime": (int64) 
@@ -5461,7 +5544,7 @@
   	FileKey []string `json:"fileKey"`
   }
 
-  type InternalFetchFileInfoRes struct {
+  type ItnFetchFileInfoRes struct {
   	FileKey string `json:"fileKey"`
   	Name string `json:"name"`
   	UploadTime atom.Time `json:"uploadTime"`
@@ -5470,14 +5553,14 @@
   }
 
   // Internal endpoint. Batch Fetch file info.
-  func ApiItnBatchFetchFileInfo(rail miso.Rail, req InternalBatchFetchFileInfoReq) ([]InternalFetchFileInfoRes, error) {
-  	var res miso.GnResp[[]InternalFetchFileInfoRes]
+  func ApiItnBatchFetchFileInfo(rail miso.Rail, req InternalBatchFetchFileInfoReq) ([]ItnFetchFileInfoRes, error) {
+  	var res miso.GnResp[[]ItnFetchFileInfoRes]
   	err := miso.NewDynClient(rail, "/internal/file/batch-fetch-info", "vfm").
   		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
-  		var dat []InternalFetchFileInfoRes
+  		var dat []ItnFetchFileInfoRes
   		return dat, err
   	}
   	dat, err := res.Res()
@@ -5498,10 +5581,10 @@
     errorCode?: string;            // error code
     msg?: string;                  // message
     error?: boolean;               // whether the request was successful
-    data?: InternalFetchFileInfoRes[];
+    data?: ItnFetchFileInfoRes[];
   }
 
-  export interface InternalFetchFileInfoRes {
+  export interface ItnFetchFileInfoRes {
     fileKey?: string;
     name?: string;
     uploadTime?: number;
@@ -5529,7 +5612,7 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
-          let dat: InternalFetchFileInfoRes[] = resp.data;
+          let dat: ItnFetchFileInfoRes[] = resp.data;
         },
         error: (err) => {
           console.log(err)
@@ -5567,7 +5650,7 @@
   }
 
   // Internal endpoint, System make directory.
-  func ApiSysMakeDir(rail miso.Rail, req SysMakeDirReq) (string, error) {
+  func ApiItnMakeDir(rail miso.Rail, req SysMakeDirReq) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynClient(rail, "/internal/v1/file/make-dir", "vfm").
   		PostJson(req).
@@ -5610,7 +5693,7 @@
     private http: HttpClient
   ) {}
 
-  sysMakeDir() {
+  itnMakeDir() {
     let req: SysMakeDirReq | null = null;
     this.http.post<any>(`/vfm/internal/v1/file/make-dir`, req)
       .subscribe({
@@ -5648,13 +5731,13 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  type ApiInternalUpdateFileInfoReq struct {
+  type ApiItnUpdateFileInfoReq struct {
   	FileKey string `json:"fileKey"` // Required.
   	Name string `json:"name"`      // Required.
   }
 
   // Internal endpoint. Update file info.
-  func ApiInternalUpdateFileInfo(rail miso.Rail, req ApiInternalUpdateFileInfoReq) error {
+  func ApiItnUpdateFileInfo(rail miso.Rail, req ApiItnUpdateFileInfoReq) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/internal/file/update-info", "vfm").
   		PostJson(req).
@@ -5673,7 +5756,7 @@
 
 - JSON Request / Response Object In TypeScript:
   ```ts
-  export interface ApiInternalUpdateFileInfoReq {
+  export interface ApiItnUpdateFileInfoReq {
     fileKey?: string;              // Required.
     name?: string;                 // Required.
   }
@@ -5695,8 +5778,8 @@
     private http: HttpClient
   ) {}
 
-  internalUpdateFileInfo() {
-    let req: ApiInternalUpdateFileInfoReq | null = null;
+  itnUpdateFileInfo() {
+    let req: ApiItnUpdateFileInfoReq | null = null;
     this.http.post<any>(`/vfm/internal/file/update-info`, req)
       .subscribe({
         next: (resp) => {

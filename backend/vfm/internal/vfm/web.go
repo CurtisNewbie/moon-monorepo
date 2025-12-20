@@ -656,3 +656,11 @@ func ApiRecordBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User, req R
 func ApiFetchMaintenanceStatus() (MaintenanceStatus, error) {
 	return CheckMaintenanceStatus()
 }
+
+// Fetch Directory Thumbnail
+//
+//   - misoapi-http: GET /open/api/file/dir-thumbnail
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiFetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq, user common.User) (FetchDirThumbnailRes, error) {
+	return FetchDirThumbnail(rail, db, req, user)
+}
