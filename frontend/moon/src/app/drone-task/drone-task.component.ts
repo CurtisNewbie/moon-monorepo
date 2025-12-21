@@ -78,6 +78,8 @@ export interface ListedTask {
   fileCount?: number;
   remark?: string;
   remarkShort?: string;
+  thumbnailFstToken?: string;
+  thumbnail?: string;
 }
 
 export interface UpdateTaskURLReq {
@@ -110,6 +112,7 @@ export class DroneTaskComponent implements OnInit {
     this.headers = this.env.isMobile()
       ? ["status", "platform", "dirName", "operation"]
       : [
+          "thumbnail",
           "taskId",
           "status",
           "url",
@@ -163,6 +166,11 @@ export class DroneTaskComponent implements OnInit {
                     "... " +
                     t.remark.substring(t.remark.length - remarkMaxLen).trim();
                 }
+              }
+              if (t.thumbnailFstToken) {
+                t.thumbnail =
+                  "fstore/file/raw?key=" +
+                  encodeURIComponent(t.thumbnailFstToken);
               }
               t.trimmedDirName = t.dirName;
               if (isMob && t.trimmedDirName.length > statusLabelMaxLen) {
