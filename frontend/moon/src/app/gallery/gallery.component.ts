@@ -16,6 +16,7 @@ import { GalleryAccessComponent } from "../gallery-access/gallery-access.compone
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 export interface ListGalleriesResp {
   paging: Paging;
@@ -47,6 +48,9 @@ export class GalleryComponent implements OnInit {
   newGalleryName: string = "";
   showCreateGalleryDiv: boolean = false;
 
+  trl = (k) => {
+    return this.i18n.trl("gallery", k);
+  };
   idEquals = isIdEqual;
   getExpandedEle = (row) => getExpanded(row, this.expandedElement);
 
@@ -55,7 +59,8 @@ export class GalleryComponent implements OnInit {
     private http: HttpClient,
     private navigation: NavigationService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
 
   ngOnInit() {}

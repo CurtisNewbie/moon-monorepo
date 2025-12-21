@@ -3,15 +3,16 @@ import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
 import { Env } from "src/common/env-util";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-dir-tree-nav",
   template: `
-    <h3 mat-dialog-title>{{ title }}</h3>
+    <h3 mat-dialog-title>{{ trl(title) }}</h3>
     <div mat-dialog-content class="mt-2">
       <div>
         <mat-form-field style="width: 100%">
-          <mat-label>Search Dir Name</mat-label>
+          <mat-label>{{ trl("searchDirName") }}</mat-label>
           <input
             matInput
             [(ngModel)]="searchDirTreeName"
@@ -33,7 +34,10 @@ import { Env } from "src/common/env-util";
                 class="mat-tree-node"
                 *ngIf="
                   !searchDirTreeName ||
-                  (searchDirTreeName && (!!node.child && node.child.length > 0) && dirTreeControl.isExpanded(node)) ||
+                  (searchDirTreeName &&
+                    !!node.child &&
+                    node.child.length > 0 &&
+                    dirTreeControl.isExpanded(node)) ||
                   (searchDirTreeName &&
                     dirTree.matchNode(node, searchDirTreeName))
                 "
@@ -80,15 +84,18 @@ import { Env } from "src/common/env-util";
   styles: [],
 })
 export class DirTreeNavComponent implements OnInit {
+  trl = (k) => {
+    return this.i18n.trl("dir-tree-nav", k);
+  };
   searchDirTreeName: string = "";
 
   @Input()
-  title: string = "Directory Tree Navigation";
+  title: string = "defaultTitle";
 
   @Output("selected")
   selectedEmiter = new EventEmitter<DirTopDownTreeNode>();
 
-  constructor(public env: Env, public dirTree: DirTree) {}
+  constructor(public env: Env, public dirTree: DirTree, public i18n: I18n) {}
 
   dirTreeControl = new NestedTreeControl<DirTopDownTreeNode>(
     (node) => node.child

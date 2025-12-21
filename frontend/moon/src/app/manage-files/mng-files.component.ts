@@ -1270,4 +1270,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     }
     this.fetchFileInfoList();
   }
+
+  trl(k) {
+    return this.i18n.trl("manage-files", k)
+  }
 }

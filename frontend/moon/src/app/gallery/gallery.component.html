@@ -1,28 +1,27 @@
 <div class="mt-3 mb-5">
     <div class="container bootstrap p-3 mt-3 mb-5 shadow" *ngIf="showCreateGalleryDiv">
-        <h4 class="mt-2 mb-2">Create New Gallery</h4>
+        <h4 class="mt-2 mb-2">{{trl('createNew')}}</h4>
 
         <mat-form-field style="width: 100%;">
-            <mat-label>Gallery Name</mat-label>
+            <mat-label>{{trl('galleryName')}}</mat-label>
             <input matInput type="text" [(ngModel)]="newGalleryName">
             <button *ngIf="newGalleryName" class="btn-close" matSuffix aria-label="Clear" (click)="newGalleryName=''">
             </button>
         </mat-form-field>
 
         <div class="justify-content-end d-flex">
-            <button mat-raised-button class="mt-2" (click)="createGallery()">Create</button>
+            <button mat-raised-button class="mt-2" (click)="createGallery()">{{trl('create')}}</button>
         </div>
     </div>
 </div>
 
 
 <div class="mt-5">
-    <h3>Galleries</h3>
+    <h3>{{trl('galleries')}}</h3>
 
     <div class="d-flex justify-content-end mb-2">
         <button *ngIf="!env.isMobile()" mat-raised-button class="m-2"
-            (click)="showCreateGalleryDiv=!showCreateGalleryDiv">Create
-            Gallery</button>
+            (click)="showCreateGalleryDiv=!showCreateGalleryDiv">{{trl('createGallery')}}</button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="fetchGalleries()"><i
                 class="bi bi-arrow-clockwise"></i></button>
     </div>
@@ -80,22 +79,22 @@
                         <div class="d-flex flex-wrap gap-2 mb-3" *ngIf="expandedElement != null">
                             <ng-container *ngIf="u.isOwner">
                                 <button mat-raised-button (click)="updateGallery(u.galleryNo, u.name)">
-                                    Update
+                                    {{trl('update')}}
                                 </button>
                                 <button mat-raised-button (click)="deleteGallery(u.galleryNo, u.name)">
-                                    Delete
+                                    {{trl('delete')}}
                                 </button>
                                 <button mat-raised-button (click)="popToGrantAccess(u)">
-                                    Share
+                                    {{trl('share')}}
                                 </button>
                                 <ng-container *ngIf="u.dirFileKey">
                                     <button mat-raised-button (click)="openFileDir(u)">
-                                        Directory
+                                        {{trl('directory')}}
                                     </button>
                                 </ng-container>
                             </ng-container>
                             <button mat-raised-button (click)="browse(expandedElement.galleryNo)">
-                                Browse
+                                {{trl('browse')}}
                             </button>
                         </div>
                     </div>

@@ -2,7 +2,7 @@
     <h4 style="word-wrap: break-word;">{{name}}</h4>
     <div style="height: 100%;">
         <div *ngIf="!name" class="ml-5 mr-5 alert alert-secondary">
-            No PDF selected. Consider picking one to read?
+            {{trl('noFileSelected')}}
         </div>
         <div class="container-fluid">
             <div id="pdfViewerDiv">

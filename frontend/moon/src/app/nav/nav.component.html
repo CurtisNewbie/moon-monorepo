@@ -11,7 +11,7 @@
                 matBadgeSize="small"><i class="bi bi-bell icon-button-large"></i></button>
             <button mat-button [matMenuTriggerFor]="userMenu"><i
                     class="bi bi-person-circle icon-button-large"></i></button>
-            <button mat-button [matMenuTriggerFor]="langMenu">{{i18n.trl(i18n.curr)}}</button>
+            <button mat-button [matMenuTriggerFor]="langMenu">{{i18n.trl("", i18n.curr)}}</button>
         </div>
 
 
@@ -20,8 +20,9 @@
                 *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:server:maintenance','vfm:server:maintenance')">Admin</button>
             <button mat-menu-item [matMenuTriggerFor]="user">User</button>
             <button mat-menu-item [matMenuTriggerFor]="site" *ngIf="hasRes('basic-user')">Site</button>
-            <button mat-menu-item [matMenuTriggerFor]="file" *ngIf="hasRes('manage-files')">File & Gallery</button>
-            <button mat-menu-item [matMenuTriggerFor]="doc" *ngIf="hasRes('manage-bookmarks')">Documents</button>
+            <button mat-menu-item [matMenuTriggerFor]="file"
+                *ngIf="hasRes('manage-files')">{{trl('fileAndGallery')}}</button>
+            <button mat-menu-item [matMenuTriggerFor]="doc" *ngIf="hasRes('manage-bookmarks')">{{trl('doc')}}</button>
             <button mat-menu-item [matMenuTriggerFor]="fin" *ngIf="hasAnyRes('acct:ManageCashflows')">Finance</button>
             <button mat-menu-item [matMenuTriggerFor]="droneMenu" *ngIf="hasAnyRes('drone-manage-task')">Drone</button>
         </mat-menu>
@@ -65,17 +66,19 @@
         </mat-menu>
 
         <mat-menu #file="matMenu">
-            <button mat-menu-item routerLink="/manage-files" routerLinkActive="active">Manage Files</button>
-            <button mat-menu-item routerLink="/gallery" routerLinkActive="active">Galleries</button>
-            <button mat-menu-item routerLink="/folders" routerLinkActive="active">Virtual Folders</button>
-            <button mat-menu-item routerLink="/versioned-files" routerLinkActive="active">Versioned Files</button>
-            <button mat-menu-item routerLink="/browse-history" routerLinkActive="active">Browse History</button>
+            <button mat-menu-item routerLink="/manage-files" routerLinkActive="active">{{trl('manageFiles')}}</button>
+            <button mat-menu-item routerLink="/gallery" routerLinkActive="active">{{trl('galleries')}}</button>
+            <button mat-menu-item routerLink="/folders" routerLinkActive="active">{{trl('virtualFolders')}}</button>
+            <button mat-menu-item routerLink="/versioned-files"
+                routerLinkActive="active">{{trl('versionedFiles')}}</button>
+            <button mat-menu-item routerLink="/browse-history"
+                routerLinkActive="active">{{trl('browseHistory')}}</button>
         </mat-menu>
 
         <mat-menu #doc="matMenu">
-            <button mat-menu-item routerLink="/manage-bookmarks" routerLinkActive="active">Bookmarks</button>
-            <button mat-menu-item routerLink="/manage-bookmark-blacklist" routerLinkActive="active">Bookmark
-                Blacklist</button>
+            <button mat-menu-item routerLink="/manage-bookmarks" routerLinkActive="active">{{trl('bookmarks')}}</button>
+            <button mat-menu-item routerLink="/manage-bookmark-blacklist" routerLinkActive="active">
+                {{trl('bookmarkBlacklist')}}</button>
         </mat-menu>
 
         <mat-menu #fin="matMenu">
@@ -87,7 +90,7 @@
         <mat-menu #userMenu="matMenu" class="m-2">
             <button mat-menu-item routerLink="/user-details">{{userInfo.username}}</button>
             <button mat-menu-item>{{userInfo.roleName}}</button>
-            <button mat-menu-item (click)="logout()">Logout <i class="ms-2 bi bi-box-arrow-right"></i> </button>
+            <button mat-menu-item (click)="logout()">{{trl('logout')}} <i class="ms-2 bi bi-box-arrow-right"></i> </button>
         </mat-menu>
 
         <mat-menu #moonMenu="matMenu" class="m-2">

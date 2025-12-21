@@ -26,7 +26,10 @@ export class I18n {
     }
   }
 
-  trl(v: string) {
-    return this.dicts[this.curr][v] ?? v;
+  trl(mod: string, name: string) {
+    if (mod == "") {
+      return this.dicts[this.curr][name] ?? name;
+    }
+    return this.dicts[this.curr][mod][name] ?? name;
   }
 }

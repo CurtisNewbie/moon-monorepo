@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, ParamMap } from "@angular/router";
 import { PdfJsViewerComponent } from "ng2-pdfjs-viewer";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-viewer",
@@ -9,13 +10,20 @@ import { PdfJsViewerComponent } from "ng2-pdfjs-viewer";
   styleUrls: ["./pdf-viewer.component.css"],
 })
 export class PdfViewerComponent implements OnInit {
+  trl = (k) => {
+    return this.i18n.trl("pdf-viewer", k);
+  };
   uuid: string;
   name: string;
 
   @ViewChild("pdfViewer", { static: true })
   pdfViewer: PdfJsViewerComponent;
 
-  constructor(private route: ActivatedRoute, private httpClient: HttpClient) { }
+  constructor(
+    private route: ActivatedRoute,
+    private httpClient: HttpClient,
+    public i18n: I18n
+  ) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe((params: ParamMap) => {
