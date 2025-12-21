@@ -1,7 +1,8 @@
 <ng-container *ngIf="userInfo">
     <div class="d-flex align-self-stretch justify-content-between">
         <div>
-            <button mat-button [matMenuTriggerFor]="menu"><i class="bi bi-list icon-button-large"></i></button>
+            <!-- <button mat-button [matMenuTriggerFor]="menu"><i class="bi bi-list icon-button-large"></i></button> -->
+            <button mat-button [matMenuTriggerFor]="menu">{{trl('menu')}}</button>
             <button mat-button [matMenuTriggerFor]="moonMenu">Moon <img src="../../favicon.ico" width="30px"
                     class="invertcolor" /></button>
         </div>

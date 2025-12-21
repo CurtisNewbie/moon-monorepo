@@ -25,6 +25,7 @@ export const enUSDict = {
     defaultTitle: "Directory Tree Navigation",
   },
   nav: {
+    menu: "Menu",
     fileAndGallery: "File & Gallery",
     manageFiles: "Manage Files",
     galleries: "Galleries",
@@ -80,6 +81,7 @@ export const zhCNDict = {
     defaultTitle: "文件夹快速跳转",
   },
   nav: {
+    menu: "菜单",
     fileAndGallery: "文件 & 画廊",
     manageFiles: "文件管理",
     galleries: "画廊",
