@@ -72,7 +72,8 @@
 
             <mat-form-field style="width: 100%;">
                 <mat-label>Directory Name</mat-label>
-                <input #newDirNameInput matInput type="text" (keyup)="isEnterKeyPressed($event) && mkdir()" [(ngModel)]="newDirName">
+                <input #newDirNameInput matInput type="text" (keyup)="isEnterKeyPressed($event) && mkdir()"
+                    [(ngModel)]="newDirName">
                 <button *ngIf="newDirName" class="btn-close" matSuffix aria-label="Clear"
                     (click)="newDirName=''"></button>
             </mat-form-field>
@@ -188,9 +189,9 @@
             <ng-container matColumnDef="thumbnail">
                 <th mat-header-cell *matHeaderCellDef> <b>Preview</b> </th>
                 <td mat-cell *matCellDef="let f">
-                    <img style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="f.thumbnailUrl"
-                        [src]="f.thumbnailUrl" />
-                    <i style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="!f.thumbnailUrl"
+                    <img style="max-height:50px; padding: 5px 0px 5px 0px;"
+                        *ngIf="f.fileType != 'DIR' && f.thumbnailUrl" [src]="f.thumbnailUrl" />
+                    <i style="max-height:50px; padding: 5px 0px 5px 0px;" *ngIf="f.fileType == 'DIR' || !f.thumbnailUrl"
                         [ngClass]="['bi', 'icon-button-large', guessFileIcon(f)]"></i>
                 </td>
             </ng-container>
