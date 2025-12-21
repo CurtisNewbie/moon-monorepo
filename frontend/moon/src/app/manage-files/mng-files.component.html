@@ -22,7 +22,7 @@
 
             <ng-container *ngIf="uploadParam.files != null && uploadParam.files.length > 0">
                 <mat-form-field class="mt-1 mb-1" style="width:100%">
-                    <mat-label>Name</mat-label>
+                    <mat-label>{{i18n.trl('manage-files.name')}}</mat-label>
                     <input matInput type="text" id="filenameInput" [(ngModel)]="displayedUploadName"
                         [disabled]="isFileNameInputDisabled()">
                     <button *ngIf="displayedUploadName" matSuffix aria-label="Clear" (click)="displayedUploadName=''"
@@ -42,7 +42,7 @@
                     <div>
                         <section *ngIf="this.uploadParam.files">
                             <mat-checkbox class="m-1" [disabled]="isUploading" [(ngModel)]="ignoreOnDupName">
-                                Skip Uploaded Files (By Name)
+                                {{i18n.trl('manage-files.skip-by-name')}}
                             </mat-checkbox>
                         </section>
                     </div>
@@ -55,7 +55,8 @@
                                 Cancel
                             </button>
                         </div>
-                        <small style="color: cadetblue;" *ngIf="progress != null">Progress: {{progress}}</small>
+                        <small style="color: cadetblue;" *ngIf="progress != null">{{i18n.trl('manage-files.progress')}}
+                            {{progress}}</small>
                     </div>
                 </div>
             </div>
@@ -125,11 +126,8 @@
                         </mat-select>
                     </mat-form-field>
 
-                    <!-- <mat-checkbox matTooltip="Whether sensitive content should be shown" matTooltipPosition="above"
-                        [(ngModel)]="inSensitiveMode" (ngModelChange)="fetchFileInfoList()">Sensitive
-                        Mode</mat-checkbox> -->
-                    <mat-checkbox [(ngModel)]="orderByName" (ngModelChange)="fetchFileInfoList()">Order By
-                        Name</mat-checkbox>
+                    <mat-checkbox [(ngModel)]="orderByName"
+                        (ngModelChange)="fetchFileInfoList()">{{i18n.trl('manage-files.order-by-name')}}</mat-checkbox>
                 </ng-container>
             </div>
         </div>

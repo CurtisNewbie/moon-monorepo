@@ -6,7 +6,7 @@ import { PlatformNotificationService } from "../platform-notification.service";
 import { HttpClient } from "@angular/common/http";
 import { Version } from "../version";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { getToken } from "src/common/api-util";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-nav",
@@ -24,6 +24,7 @@ export class NavComponent implements OnInit, OnDestroy {
   fetching = false;
 
   constructor(
+    public i18n: I18n,
     private userService: UserService,
     private http: HttpClient,
     private platformNotification: PlatformNotificationService,

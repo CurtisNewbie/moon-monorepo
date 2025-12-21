@@ -11,7 +11,9 @@
                 matBadgeSize="small"><i class="bi bi-bell icon-button-large"></i></button>
             <button mat-button [matMenuTriggerFor]="userMenu"><i
                     class="bi bi-person-circle icon-button-large"></i></button>
+            <button mat-button [matMenuTriggerFor]="langMenu">{{i18n.trl(i18n.curr)}}</button>
         </div>
+
 
         <mat-menu #menu="matMenu">
             <button mat-menu-item [matMenuTriggerFor]="admin"
@@ -96,6 +98,12 @@
 
         <mat-menu #droneMenu="matMenu" class="m-2">
             <button mat-menu-item routerLink="/drone-task">Drone Tasks</button>
+        </mat-menu>
+
+        <mat-menu #langMenu="matMenu" class="m-2">
+            <div *ngFor="let f of i18n.optionsLabels">
+                <button mat-menu-item (click)="i18n.change(f.value)">{{f.name}}</button>
+            </div>
         </mat-menu>
     </div>
 </ng-container>

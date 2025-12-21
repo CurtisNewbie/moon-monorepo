@@ -48,6 +48,7 @@ import { FileBookmark } from "src/common/file-bookmark";
 import { FileBookmarkDialogComponent } from "../file-bookmark-dialog/file-bookmark-dialog.component";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Paging } from "src/common/paging";
+import { I18n } from "../i18n.service";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -190,6 +191,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   setSearchFileType = (fileType) => (this.searchParam.fileType = fileType);
 
   constructor(
+    public i18n: I18n,
     private dialog: MatDialog,
     private fileService: FileInfoService,
     private nav: NavigationService,
