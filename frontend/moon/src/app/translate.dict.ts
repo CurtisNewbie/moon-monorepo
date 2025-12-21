@@ -1,6 +1,6 @@
 export const enUSDict = {
-  "zh-CN": "Chinese",
-  "en-US": "English",
+  "zh-CN": "中文",
+  "en-US": "En",
   "manage-files": {
     name: "Name",
     skipByName: "Skip Uploaded Files (By Name)",
@@ -55,7 +55,7 @@ export const enUSDict = {
 
 export const zhCNDict = {
   "zh-CN": "中文",
-  "en-US": "英文",
+  "en-US": "En",
   "manage-files": {
     name: "文件名",
     skipByName: "忽略名称重复文件",
