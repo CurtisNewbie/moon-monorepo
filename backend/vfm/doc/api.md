@@ -54,7 +54,7 @@
 - [GET /history/list-browse-history](#get-historylist-browse-history)
 - [POST /history/record-browse-history](#post-historyrecord-browse-history)
 - [GET /maintenance/status](#get-maintenancestatus)
-- [GET /open/api/file/dir-thumbnail](#get-openapifiledir-thumbnail)
+- [POST /open/api/file/dir-thumbnail](#post-openapifiledir-thumbnail)
 - [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
@@ -5070,10 +5070,12 @@
   }
   ```
 
-## GET /open/api/file/dir-thumbnail
+## POST /open/api/file/dir-thumbnail
 
 - Description: Fetch Directory Thumbnail
 - Bound to Resource: `"manage-files"`
+- JSON Request:
+    - "dirFileKey": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5082,20 +5084,26 @@
       - "fstoreToken": (string) 
 - cURL:
   ```sh
-  curl -X GET 'http://localhost:8086/open/api/file/dir-thumbnail'
+  curl -X POST 'http://localhost:8086/open/api/file/dir-thumbnail' \
+    -H 'Content-Type: application/json' \
+    -d '{"dirFileKey":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
+  type FetchDirThumbnailReq struct {
+  	DirFileKey string `json:"dirFileKey"` // Required.
+  }
+
   type FetchDirThumbnailRes struct {
   	FstoreToken string `json:"fstoreToken,omitzero"`
   }
 
   // Fetch Directory Thumbnail
-  func ApiFetchDirThumbnail(rail miso.Rail) (FetchDirThumbnailRes, error) {
+  func ApiFetchDirThumbnail(rail miso.Rail, req FetchDirThumbnailReq) (FetchDirThumbnailRes, error) {
   	var res miso.GnResp[FetchDirThumbnailRes]
   	err := miso.NewDynClient(rail, "/open/api/file/dir-thumbnail", "vfm").
-  		Get().
+  		PostJson(req).
   		Json(&res)
   	if err != nil {
   		rail.Errorf("Request failed, %v", err)
@@ -5112,6 +5120,10 @@
 
 - JSON Request / Response Object In TypeScript:
   ```ts
+  export interface FetchDirThumbnailReq {
+    dirFileKey?: string;           // Required.
+  }
+
   export interface Resp {
     errorCode?: string;            // error code
     msg?: string;                  // message
@@ -5135,7 +5147,8 @@
   ) {}
 
   fetchDirThumbnail() {
-    this.http.get<any>(`/vfm/open/api/file/dir-thumbnail`)
+    let req: FetchDirThumbnailReq | null = null;
+    this.http.post<any>(`/vfm/open/api/file/dir-thumbnail`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
