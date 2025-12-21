@@ -32,6 +32,7 @@ import {
   resolveSize,
   isWebpage,
   guessFileIconClz,
+  isDocx,
 } from "src/common/file";
 import { MediaStreamerComponent } from "../media-streamer/media-streamer.component";
 import { Option } from "src/common/select-util";
@@ -633,6 +634,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     return (
       isPdf(filename) ||
+      isDocx(filename) ||
       isImageByName(filename) ||
       isStreamableVideo(filename) ||
       isTxt(filename) ||
@@ -773,6 +775,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           } else if (isWebpage(u.name)) {
             this.nav.navigateTo(NavType.WEBPAGE_VIEWER, [
               { name: u.name, url: getDownloadUrl(), uuid: u.uuid },
+            ]);
+          } else if (isDocx(u.name)) {
+            this.nav.navigateTo(NavType.DOCX_VIEWER, [
+              { name: u.name, url: getDownloadUrl() },
             ]);
           } else {
             // image

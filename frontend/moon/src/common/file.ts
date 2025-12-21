@@ -36,6 +36,7 @@ const textSuffix = new Set([
   "go",
 ]);
 const webpageSuffix = new Set(["html"]);
+const docxSuffix = new Set(["doc", "docx"]);
 
 const suffixIcon: [Set<string>, string][] = [
   [new Set(["pdf"]), "bi-filetype-pdf"],
@@ -112,6 +113,10 @@ export function guessFileIconClz(f: any): string {
 
 export function isWebpage(fname: string): boolean {
   return fileSuffixAnyMatch(fname, webpageSuffix);
+}
+
+export function isDocx(fname: string): boolean {
+  return fileSuffixAnyMatch(fname, docxSuffix);
 }
 
 export function isTxt(fname: string): boolean {

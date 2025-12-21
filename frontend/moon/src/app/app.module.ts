@@ -105,6 +105,7 @@ import {
 } from "./drone-task/drone-task.component";
 import { MngNoteComponent } from "./mng-note/mng-note.component";
 import { EditNoteDialogComponent } from "./edit-note-dialog/edit-note-dialog.component";
+import { DocxPreviewComponent } from './docx-preview-comp/docx-preview.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -165,6 +166,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     DroneTaskComponent,
     MngNoteComponent,
     EditNoteDialogComponent,
+    DocxPreviewComponent,
   ],
   imports: [
     PlotlyModule,

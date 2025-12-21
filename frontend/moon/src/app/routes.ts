@@ -31,5 +31,6 @@ export enum NavType {
     CASHFLOWS = "cashflows",
     CASHFLOWS_STATISTICS = "cashflows-statistics",
     WEBPAGE_VIEWER = "webpage-viewer",
+    DOCX_VIEWER = "docx-viewer",
 }
 
