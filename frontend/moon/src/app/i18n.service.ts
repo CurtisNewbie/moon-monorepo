@@ -15,12 +15,18 @@ export class I18n {
     "zh-CN": zhCNDict,
     "en-US": enUSDict,
   };
-  constructor() {}
+  constructor() {
+    let prev = localStorage.getItem("i18n.lang");
+    if (prev) {
+      this.change(prev);
+    }
+  }
 
   change(op) {
     for (let v of this.options) {
       if (op === v) {
         this.curr = op;
+        localStorage.setItem("i18n.lang", op);
         return;
       }
     }
