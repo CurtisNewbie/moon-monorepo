@@ -14,7 +14,6 @@ export interface DocxPreviewDat {
 export class DocxPreviewComponent implements OnInit {
   url: string;
   name: string;
-  docHtml: string;
 
   @ViewChild("docxdoc", { static: true })
   docxdoc: ElementRef;
