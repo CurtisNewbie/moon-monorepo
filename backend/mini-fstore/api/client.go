@@ -10,7 +10,7 @@ import (
 
 var (
 	ErrFileNotFound  = errs.NewErrfCode(FileNotFound, "File is not found")
-	ErrFileDeleted   = errs.NewErrfCode(FileDeleted, "File deleted")
+	ErrFileDeleted   = errs.NewErrfCode(FileDeleted, "File has been deleted")
 	ErrIllegalFormat = errs.NewErrfCode(IllegalFormat, "Illegal format")
 )
 

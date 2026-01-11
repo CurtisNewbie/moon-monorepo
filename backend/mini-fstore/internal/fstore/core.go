@@ -52,9 +52,9 @@ const (
 )
 
 var (
-	ErrServerMaintenance = errs.NewErrf("Server in maintenance, please try again later").WithCode("SERVER_MAINTENANCE")
 	ErrFileNotFound      = api.ErrFileNotFound
-	ErrFileDeleted       = errs.NewErrf("File has been deleted already").WithCode(api.FileDeleted)
+	ErrFileDeleted       = api.ErrFileDeleted
+	ErrServerMaintenance = errs.NewErrf("Server in maintenance, please try again later").WithCode("SERVER_MAINTENANCE")
 	ErrUnknownError      = errs.NewErrf("Unknown error").WithCode(api.UnknownError)
 	ErrFileIdRequired    = errs.NewErrf("fileId is required").WithCode(api.InvalidRequest)
 	ErrFilenameRequired  = errs.NewErrf("filename is required").WithCode(api.InvalidRequest)
