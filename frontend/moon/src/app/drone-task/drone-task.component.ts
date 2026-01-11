@@ -412,8 +412,8 @@ export class DroneTaskComponent implements OnInit {
     <h1 mat-dialog-title>Update Drone Task</h1>
     <div mat-dialog-content>
       <mat-form-field style="width: 400px">
-        <mat-label>URL</mat-label>
-        <input readonly matInput [(ngModel)]="data.taskId" />
+        <mat-label>TaskID</mat-label>
+        <input readonly disabled matInput [(ngModel)]="data.taskId" />
       </mat-form-field>
       <mat-form-field style="width: 400px">
         <mat-label>URL</mat-label>
