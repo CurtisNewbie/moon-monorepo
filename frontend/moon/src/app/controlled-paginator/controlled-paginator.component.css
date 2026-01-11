@@ -1,0 +1,15 @@
+/* Original */
+.go-to-container {
+  display: flex;
+  align-items: baseline;
+  mat-form-field {
+    width: 56px;
+    margin: 6px 4px 0 4px;
+    font-size: 12px;
+  }
+  .go-to-label {
+    margin: 0 4px;
+    font-size: 12px;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+  }
+}

@@ -20,6 +20,7 @@ import { Paging, PagingConst } from "src/common/paging";
 export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   PAGE_LIMIT_OPTIONS: number[] = PagingConst.getPagingLimitOptions();
   disableMobileOpts: boolean = false;
+  pageNumbers = [];
   paging: Paging = {
     page: 1,
     limit: 10,
@@ -32,6 +33,7 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   @Input("showGotoPageOnMobile")
   showGotoPageOnMobile = false;
 
+  goton = 1;
   goto: string = "1";
   maxPage: number = 1;
 
@@ -50,8 +52,13 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
       this.paging.page = evt.pageIndex + 1;
       this.paging.limit = evt.pageSize;
       this.goto = String(evt.pageIndex + 1);
+      this.goton = evt.pageIndex + 1;
       this.pageChangedEmitter.emit(this.paging);
     });
+
+    if (this.env.isMobile()) {
+      this.paginator.hidePageSize = true;
+    }
 
     if (!this.disableMobileOpts && this.env.isMobile()) {
       this.setPageLimitOptions([5, 10, 30], false);
@@ -140,6 +147,10 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   private _updatePages(total: number): void {
     this.paging.total = total;
     this.maxPage = Math.ceil(total / this.paging.limit);
+    this.pageNumbers = [];
+    for (let i = 1; i <= this.maxPage; i++) {
+      this.pageNumbers.push(i);
+    }
   }
 
   /** set page limit */
@@ -154,5 +165,9 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
     this.PAGE_LIMIT_OPTIONS = opts;
     this.paging.limit =
       this.PAGE_LIMIT_OPTIONS.length > 0 ? this.PAGE_LIMIT_OPTIONS[0] : 5;
+  }
+
+  goToChange() {
+    this.goToPage(this.goton);
   }
 }
