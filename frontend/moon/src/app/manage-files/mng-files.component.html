@@ -93,50 +93,45 @@
     </div>
 
     <div class="d-flex flex-wrap justify-content-between">
-        <!-- search param start -->
-        <div>
-            <div *ngIf="!inFolderNo && !makingDir && !expandUploadPanel"
-                class="d-flex flex-wrap align-items-center gap-4">
 
-                <div class="" *ngIf="searchParam.fileKey">
-                    <mat-form-field style="width: 300px; max-width: 80vw;">
-                        <mat-label>File Key</mat-label>
-                        <input matInput type="text" disabled="true" [(ngModel)]="searchParam.fileKey"
-                            (keyup)="onSearchFileKeyKeyUp($event)">
+        <!-- search param start -->
+        <div *ngIf="!inFolderNo && !makingDir && !expandUploadPanel" class="d-flex flex-wrap align-items-center gap-4">
+            <div class="" *ngIf="searchParam.fileKey">
+                <mat-form-field style="width: 300px; max-width: 80vw;">
+                    <mat-label>File Key</mat-label>
+                    <input matInput type="text" disabled="true" [(ngModel)]="searchParam.fileKey"
+                        (keyup)="onSearchFileKeyKeyUp($event)">
+                </mat-form-field>
+            </div>
+
+            <ng-container *ngIf="!searchParam.fileKey">
+                <div>
+                    <mat-form-field style="width: 300px;" [ngStyle]="{'width': env.isMobile()?'150px':'300px'}">
+                        <mat-label>{{trl('name')}}</mat-label>
+                        <input matInput type="text" id="searchFilenameInput" [(ngModel)]="searchParam.name"
+                            (keyup)="onSearchNameKeyUp($event)" #searchFilenameInput>
+                        <button *ngIf="searchParam.name" matSuffix aria-label="Clear" (click)="searchParam.name=''"
+                            class="btn-close">
+                        </button>
                     </mat-form-field>
                 </div>
+                <mat-form-field style="width: 100px;">
+                    <mat-label>{{trl('fileType')}}</mat-label>
+                    <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
+                        <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
+                            {{trl(option.name.toLowerCase())}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
 
-                <ng-container *ngIf="!searchParam.fileKey">
-                    <div>
-                        <mat-form-field style="width: 300px;">
-                            <mat-label>{{trl('name')}}</mat-label>
-                            <input matInput type="text" id="searchFilenameInput" [(ngModel)]="searchParam.name"
-                                (keyup)="onSearchNameKeyUp($event)" #searchFilenameInput>
-                            <button *ngIf="searchParam.name" matSuffix aria-label="Clear" (click)="searchParam.name=''"
-                                class="btn-close">
-                            </button>
-                        </mat-form-field>
-                    </div>
-                    <mat-form-field>
-                        <mat-label>{{trl('fileType')}}</mat-label>
-                        <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
-                            <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
-                                {{trl(option.name.toLowerCase())}}
-                            </mat-option>
-                        </mat-select>
-                    </mat-form-field>
-
-                    <mat-checkbox [(ngModel)]="orderByName"
-                        (ngModelChange)="fetchFileInfoList()">{{trl('orderByName')}}</mat-checkbox>
-                </ng-container>
-            </div>
+                <mat-checkbox [(ngModel)]="orderByName"
+                    (ngModelChange)="fetchFileInfoList()">{{trl('orderByName')}}</mat-checkbox>
+            </ng-container>
         </div>
-        <!-- search param eed -->
+        <!-- search param end -->
 
         <div class="d-flex justify-content-end">
-
             <div class="d-flex justify-content-end flex-wrap">
-
                 <ng-container *ngIf="!inFolderName">
                     <ng-container *ngIf="!fileBookmark.isEmpty()">
                         <button mat-icon-button class="m-1 icon-button-large"
@@ -319,7 +314,7 @@
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
                 [class.expanded-row]="curr != null && row.id == curr.id" (click)="onRowClicked($event, row, i)"
-                matTooltipShowDelay="1000"
+                matTooltipShowDelay="200"
                 [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
             </tr>
             <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
