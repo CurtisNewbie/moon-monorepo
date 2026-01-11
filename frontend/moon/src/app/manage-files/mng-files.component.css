@@ -21,3 +21,15 @@
 .shakebutton {
   animation: tilt-shaking 0.25s linear infinite;
 }
+
+.mat-column-name {
+  max-width: 150px;
+}
+
+.mat-column-operation {
+  max-width: 100px;
+}
+
+.mat-column-parentFileName {
+  max-width: 150px;
+}

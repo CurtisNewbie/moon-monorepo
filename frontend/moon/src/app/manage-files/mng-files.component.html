@@ -233,7 +233,7 @@
                 <th mat-header-cell *matHeaderCellDef> <b>{{trl('operation')}}</b> </th>
                 <td mat-cell *matCellDef="let f">
                     <ng-container *ngIf="!inFolderNo">
-                        <button mat-icon-button class="m-1" [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
+                        <button mat-icon-button  [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
                             [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''" matBadgeColor="warn"
                             matBadgeOverlap="true" matBadgeSize="small"
                             matTooltip="Bookmark file for batch operation. Click row with meta key for convenience."
@@ -241,14 +241,14 @@
                                 class="bi icon-button-large"
                                 [class]="this.fileBookmark.has(f.uuid) ? 'bi-bag-x': 'bi-bag-plus'"></i></button>
 
-                        <button class="icon-button-large m-1" mat-icon-button matTooltipShowDelay="500"
+                        <button class="icon-button-large" mat-icon-button matTooltipShowDelay="500"
                             (click)="$event.stopPropagation() || selectExpanded(f)">
                             <i class="bi bi-gear"></i>
                         </button>
                     </ng-container>
 
                     <ng-container *ngIf="f.isFile">
-                        <button class="icon-button-large m-1" mat-icon-button
+                        <button class="icon-button-large" mat-icon-button
                             (click)="$event.stopPropagation() || jumpToDownloadUrl(f.uuid)">
                             <i class="bi bi-cloud-download"></i>
                         </button>
