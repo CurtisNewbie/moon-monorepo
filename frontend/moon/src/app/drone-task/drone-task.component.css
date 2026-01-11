@@ -1,0 +1,12 @@
+
+.mat-column-operation {
+  max-width: 70px;
+}
+
+.mat-column-dirName {
+  max-width: 150px;
+}
+
+.mat-column-remark {
+  max-width: 90px;
+}

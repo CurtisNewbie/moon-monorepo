@@ -7,9 +7,10 @@
             </mat-form-field>
         </div>
     </ng-container> -->
-    <div class="go-to-container">
-        <div class="go-to-label">Go To: </div>
-        <mat-form-field>
+
+    <div style="display: flex; align-items: baseline; margin-right: 8px;">
+        <div style="margin: 0 4px; font-size: 12px;">Go To: </div>
+        <mat-form-field style="width: 45px; margin: 6px 4px 2px 4px; font-size: 12px;">
             <mat-select [(ngModel)]="goton" (selectionChange)="goToChange()">
                 <mat-option *ngFor="let pageNumber of pageNumbers" [value]="pageNumber">{{pageNumber}}</mat-option>
             </mat-select>

@@ -110,7 +110,7 @@ export class DroneTaskComponent implements OnInit {
 
   ngOnInit(): void {
     this.headers = this.env.isMobile()
-      ? ["status", "platform", "dirName", "operation"]
+      ? ["thumbnail", "status", "dirName", "operation"]
       : [
           "thumbnail",
           "taskId",
