@@ -683,7 +683,7 @@
   func SendRequest(rail miso.Rail, duration string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "acct").
-  		AddQueryParams("duration", duration).
+  		AddQuery("duration", duration).
   		Get().
   		Json(&res)
   	if err != nil {

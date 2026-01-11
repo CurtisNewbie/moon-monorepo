@@ -3,11 +3,11 @@ package vfm
 import (
 	ep "github.com/curtisnewbie/event-pump/client"
 	fstore "github.com/curtisnewbie/mini-fstore/api"
+	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util/errs"
 	"gorm.io/gorm"
 )
 

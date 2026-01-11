@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/event-pump/client"
+	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
-	"github.com/curtisnewbie/miso/util/errs"
 	"github.com/curtisnewbie/miso/util/slutil"
 	"github.com/curtisnewbie/miso/util/snowflake"
 	"github.com/curtisnewbie/user-vault/api"

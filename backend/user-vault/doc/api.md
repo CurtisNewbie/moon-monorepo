@@ -62,6 +62,8 @@
 - [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
 - [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
 - [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
+- [POST /debug/task/disable-workers](#post-debugtaskdisable-workers)
+- [POST /debug/task/enable-workers](#post-debugtaskenable-workers)
 
 ## POST /open/api/user/login
 
@@ -976,7 +978,7 @@
   func ApiGetTokenUserInfo(rail miso.Rail, token string) (UserInfoBrief, error) {
   	var res miso.GnResp[UserInfoBrief]
   	err := miso.NewDynClient(rail, "/open/api/token/user", "user-vault").
-  		AddQueryParams("token", token).
+  		AddQuery("token", token).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -1678,7 +1680,7 @@
   func ApiListResCandidates(rail miso.Rail, roleNo string) ([]ResBrief, error) {
   	var res miso.GnResp[[]ResBrief]
   	err := miso.NewDynClient(rail, "/open/api/resource/brief/candidates", "user-vault").
-  		AddQueryParams("roleNo", roleNo).
+  		AddQuery("roleNo", roleNo).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -3530,7 +3532,7 @@
   func ApiFetchUserIdByName(rail miso.Rail, username string) (int, error) {
   	var res miso.GnResp[int]
   	err := miso.NewDynClient(rail, "/remote/user/id", "user-vault").
-  		AddQueryParams("username", username).
+  		AddQuery("username", username).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5708,7 +5710,7 @@
   func SendRequest(rail miso.Rail, curr string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/open/api/v2/notification/count", "user-vault").
-  		AddQueryParams("curr", curr).
+  		AddQuery("curr", curr).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5763,7 +5765,7 @@
   func SendRequest(rail miso.Rail, duration string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "user-vault").
-  		AddQueryParams("duration", duration).
+  		AddQuery("duration", duration).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5895,6 +5897,168 @@
     this.http.get<any>(`/user-vault/debug/trace/recorder/stop`)
       .subscribe({
         next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /debug/task/disable-workers
+
+- Description: Manually Disable Distributed Task Worker By Name. Use '*' as a special placeholder for all tasks currently registered. For debugging only.
+- JSON Request:
+    - "tasks": ([]string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/debug/task/disable-workers' \
+    -H 'Content-Type: application/json' \
+    -d '{"tasks":[]}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type disableTaskWorkerReq struct {
+  	Tasks []string `json:"tasks"`
+  }
+
+  // Manually Disable Distributed Task Worker By Name. Use '*' as a special placeholder for all tasks currently registered. For debugging only.
+  func SendDisableTaskWorkerReq(rail miso.Rail, req disableTaskWorkerReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/task/disable-workers", "user-vault").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface disableTaskWorkerReq {
+    tasks?: string[];
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendDisableTaskWorkerReq() {
+    let req: disableTaskWorkerReq | null = null;
+    this.http.post<any>(`/user-vault/debug/task/disable-workers`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /debug/task/enable-workers
+
+- Description: Manually enable previously disabled Distributed Task Worker By Name. Use '*' as a special placeholder for all tasks currently registered. For debugging only.
+- JSON Request:
+    - "tasks": ([]string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/debug/task/enable-workers' \
+    -H 'Content-Type: application/json' \
+    -d '{"tasks":[]}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type disableTaskWorkerReq struct {
+  	Tasks []string `json:"tasks"`
+  }
+
+  // Manually enable previously disabled Distributed Task Worker By Name. Use '*' as a special placeholder for all tasks currently registered. For debugging only.
+  func SendDisableTaskWorkerReq(rail miso.Rail, req disableTaskWorkerReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/debug/task/enable-workers", "user-vault").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  		return err
+  	}
+  	err = res.Err()
+  	if err != nil {
+  		rail.Errorf("Request failed, %v", err)
+  	}
+  	return err
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface disableTaskWorkerReq {
+    tasks?: string[];
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendDisableTaskWorkerReq() {
+    let req: disableTaskWorkerReq | null = null;
+    this.http.post<any>(`/user-vault/debug/task/enable-workers`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
         },
         error: (err) => {
           console.log(err)

@@ -40,7 +40,7 @@
   func ApiTempKeyStreamFile(rail miso.Rail, key string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/file/stream", "fstore").
-  		AddQueryParams("key", key).
+  		AddQuery("key", key).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -96,7 +96,7 @@
   func ApiTempKeyDownloadFile(rail miso.Rail, key string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/file/raw", "fstore").
-  		AddQueryParams("key", key).
+  		AddQuery("key", key).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -258,8 +258,8 @@
   func ApiGetFileInfo(rail miso.Rail, fileId string, uploadFileId string) (FstoreFile, error) {
   	var res miso.GnResp[FstoreFile]
   	err := miso.NewDynClient(rail, "/file/info", "fstore").
-  		AddQueryParams("fileId", fileId).
-  		AddQueryParams("uploadFileId", uploadFileId).
+  		AddQuery("fileId", fileId).
+  		AddQuery("uploadFileId", uploadFileId).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -348,8 +348,8 @@
   func ApiGenFileKey(rail miso.Rail, fileId string, filename string) (string, error) {
   	var res miso.GnResp[string]
   	err := miso.NewDynClient(rail, "/file/key", "fstore").
-  		AddQueryParams("fileId", fileId).
-  		AddQueryParams("filename", filename).
+  		AddQuery("fileId", fileId).
+  		AddQuery("filename", filename).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -420,7 +420,7 @@
   func ApiDirectDownloadFile(rail miso.Rail, fileId string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/file/direct", "fstore").
-  		AddQueryParams("fileId", fileId).
+  		AddQuery("fileId", fileId).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -479,7 +479,7 @@
   func ApiDeleteFile(rail miso.Rail, fileId string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/file", "fstore").
-  		AddQueryParams("fileId", fileId).
+  		AddQuery("fileId", fileId).
   		Delete().
   		Json(&res)
   	if err != nil {
@@ -770,7 +770,7 @@
   func ApiBackupDownFile(rail miso.Rail, fileId string, authorization string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/backup/file/raw", "fstore").
-  		AddQueryParams("fileId", fileId).
+  		AddQuery("fileId", fileId).
   		AddHeader("authorization", authorization).
   		Get().
   		Json(&res)
@@ -1431,7 +1431,7 @@
   func SendRequest(rail miso.Rail, duration string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "fstore").
-  		AddQueryParams("duration", duration).
+  		AddQuery("duration", duration).
   		Get().
   		Json(&res)
   	if err != nil {

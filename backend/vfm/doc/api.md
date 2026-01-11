@@ -90,8 +90,8 @@
   func ApiPreflightCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string) (bool, error) {
   	var res miso.GnResp[bool]
   	err := miso.NewDynClient(rail, "/open/api/file/upload/duplication/preflight", "vfm").
-  		AddQueryParams("fileName", fileName).
-  		AddQueryParams("parentFileKey", parentFileKey).
+  		AddQuery("fileName", fileName).
+  		AddQuery("parentFileKey", parentFileKey).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -175,7 +175,7 @@
   func ApiGetParentFile(rail miso.Rail, fileKey string) (*ParentFileInfo, error) {
   	var res miso.GnResp[*ParentFileInfo]
   	err := miso.NewDynClient(rail, "/open/api/file/parent", "vfm").
-  		AddQueryParams("fileKey", fileKey).
+  		AddQuery("fileKey", fileKey).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -1557,7 +1557,7 @@
   func ApiGenFileTknQRCode(rail miso.Rail, token string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/open/api/file/token/qrcode", "vfm").
-  		AddQueryParams("token", token).
+  		AddQuery("token", token).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5281,9 +5281,9 @@
   func ApiItnCheckDuplicate(rail miso.Rail, fileName string, parentFileKey string, userNo string) (bool, error) {
   	var res miso.GnResp[bool]
   	err := miso.NewDynClient(rail, "/internal/file/upload/duplication/preflight", "vfm").
-  		AddQueryParams("fileName", fileName).
-  		AddQueryParams("parentFileKey", parentFileKey).
-  		AddQueryParams("userNo", userNo).
+  		AddQuery("fileName", fileName).
+  		AddQuery("parentFileKey", parentFileKey).
+  		AddQuery("userNo", userNo).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5930,7 +5930,7 @@
   func SendRequest(rail miso.Rail, duration string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "vfm").
-  		AddQueryParams("duration", duration).
+  		AddQuery("duration", duration).
   		Get().
   		Json(&res)
   	if err != nil {

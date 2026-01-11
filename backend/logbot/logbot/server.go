@@ -3,7 +3,6 @@ package logbot
 import (
 	"time"
 
-	"github.com/curtisnewbie/miso/middleware/logbot"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/middleware/task"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
@@ -19,7 +18,6 @@ func BeforeServerBootstrap(rail miso.Rail) error {
 
 	rail.Infof("logbot (monorepo) version: %v", Version)
 
-	logbot.EnableLogbotErrLogReport()
 	common.LoadBuiltinPropagationKeys()
 
 	auth.ExposeResourceInfo([]auth.Resource{
