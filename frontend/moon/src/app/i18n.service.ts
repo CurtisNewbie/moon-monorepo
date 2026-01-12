@@ -8,7 +8,7 @@ export class I18n {
   public options: string[] = ["zh-CN", "en-US"];
   public optionsLabels = [
     { value: "zh-CN", name: "中文" },
-    { value: "en-US", name: "En" },
+    { value: "en-US", name: "Eng" },
   ];
   public curr: string = "en-US";
   private dicts = {

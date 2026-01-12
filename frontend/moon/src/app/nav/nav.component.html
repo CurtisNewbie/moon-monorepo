@@ -18,52 +18,50 @@
 
         <mat-menu #menu="matMenu">
             <button mat-menu-item [matMenuTriggerFor]="admin"
-                *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:server:maintenance','vfm:server:maintenance')">Admin</button>
-            <button mat-menu-item [matMenuTriggerFor]="user">User</button>
-            <button mat-menu-item [matMenuTriggerFor]="site" *ngIf="hasRes('basic-user')">Site</button>
+                *ngIf="hasAnyRes('manage-users', 'manage-resources', 'operate-logs', 'manage-logbot', 'fstore:server:maintenance','vfm:server:maintenance')">{{trl('admin')}}</button>
+            <button mat-menu-item [matMenuTriggerFor]="user">{{trl('user')}}</button>
+            <button mat-menu-item [matMenuTriggerFor]="site" *ngIf="hasRes('basic-user')">{{trl('site')}}</button>
             <button mat-menu-item [matMenuTriggerFor]="file"
                 *ngIf="hasRes('manage-files')">{{trl('fileAndGallery')}}</button>
             <button mat-menu-item [matMenuTriggerFor]="doc" *ngIf="hasRes('manage-bookmarks')">{{trl('doc')}}</button>
-            <button mat-menu-item [matMenuTriggerFor]="fin" *ngIf="hasAnyRes('acct:ManageCashflows')">Finance</button>
-            <button mat-menu-item [matMenuTriggerFor]="droneMenu" *ngIf="hasAnyRes('drone-manage-task')">Drone</button>
+            <button mat-menu-item [matMenuTriggerFor]="fin"
+                *ngIf="hasAnyRes('acct:ManageCashflows')">{{trl('finance')}}</button>
+            <button mat-menu-item [matMenuTriggerFor]="droneMenu"
+                *ngIf="hasAnyRes('drone-manage-task')">{{trl('drone')}}</button>
         </mat-menu>
 
         <mat-menu #user="matMenu">
-            <button mat-menu-item routerLink="/user-details" routerLinkActive="active" *ngIf="hasRes('basic-user')">User
-                Details</button>
+            <button mat-menu-item routerLink="/user-details" routerLinkActive="active"
+                *ngIf="hasRes('basic-user')">{{trl('userDetails')}}</button>
             <button mat-menu-item routerLink="/manage-keys" routerLinkActive="active"
-                *ngIf="hasRes('basic-user')">Manage
-                Keys</button>
-            <button mat-menu-item routerLink="/access-log" routerLinkActive="active" *ngIf="hasRes('basic-user')">Login
-                History</button>
+                *ngIf="hasRes('basic-user')">{{trl('manageKeys')}}</button>
+            <button mat-menu-item routerLink="/access-log" routerLinkActive="active"
+                *ngIf="hasRes('basic-user')">{{trl('loginHistory')}}</button>
             <button mat-menu-item routerLink="/note" routerLinkActive="active"
-                *ngIf="hasRes('basic-user')">Notes</button>
+                *ngIf="hasRes('basic-user')">{{trl('notes')}}</button>
         </mat-menu>
 
         <mat-menu #site="matMenu">
             <button mat-menu-item routerLink="/site-passwords" routerLinkActive="active"
-                *ngIf="hasRes('basic-user')">Website Passwords</button>
+                *ngIf="hasRes('basic-user')">{{trl('websitePasswords')}}</button>
         </mat-menu>
 
         <mat-menu #admin="matMenu">
             <button mat-menu-item routerLink="/manage-user" routerLinkActive="active"
-                *ngIf="hasRes('manage-users')">Manage
-                Users</button>
+                *ngIf="hasRes('manage-users')">{{trl('manageUsers')}}</button>
             <button mat-menu-item routerLink="/manage-roles" routerLinkActive="active"
-                *ngIf="hasRes('manage-resources')">Manage Roles</button>
+                *ngIf="hasRes('manage-resources')">{{trl('manageRoles')}}</button>
             <button mat-menu-item routerLink="/manage-paths" routerLinkActive="active"
-                *ngIf="hasRes('manage-resources')">Manage Paths</button>
+                *ngIf="hasRes('manage-resources')">{{trl('managePaths')}}</button>
             <button mat-menu-item routerLink="/manage-resources" routerLinkActive="active"
-                *ngIf="hasRes('manage-resources')">Manage Resources</button>
+                *ngIf="hasRes('manage-resources')">{{trl('manageResources')}}</button>
             <button mat-menu-item routerLink="/manage-logs" routerLinkActive="active"
-                *ngIf="hasRes('manage-logbot')">System
-                Error Logs</button>
+                *ngIf="hasRes('manage-logbot')">{{trl('systemErrLogs')}}</button>
             <button mat-menu-item routerLink="/fstore-storage" routerLinkActive="active"
                 *ngIf="hasAnyRes('fstore:server:maintenance','vfm:server:maintenance')">
-                File Storage
-                Storage</button>
+                {{trl('systemStorage')}}</button>
             <button mat-menu-item routerLink="/event-pump-dashboard" routerLinkActive="active"
-                *ngIf="hasAnyRes('event-pump-dashboard')">Event-Pump Dashboard</button>
+                *ngIf="hasAnyRes('event-pump-dashboard')">{{trl('eventPumpDashboard')}}</button>
         </mat-menu>
 
         <mat-menu #file="matMenu">
@@ -83,15 +81,16 @@
         </mat-menu>
 
         <mat-menu #fin="matMenu">
-            <button mat-menu-item routerLink="/cashflows" routerLinkActive="active">Cashflows</button>
-            <button mat-menu-item routerLink="/cashflows-statistics" routerLinkActive="active">Cashflow
-                Statistics</button>
+            <button mat-menu-item routerLink="/cashflows" routerLinkActive="active">{{trl('cashflows')}}</button>
+            <button mat-menu-item routerLink="/cashflows-statistics"
+                routerLinkActive="active">{{trl('cashflowsStats')}}</button>
         </mat-menu>
 
         <mat-menu #userMenu="matMenu" class="m-2">
             <button mat-menu-item routerLink="/user-details">{{userInfo.username}}</button>
             <button mat-menu-item>{{userInfo.roleName}}</button>
-            <button mat-menu-item (click)="logout()">{{trl('logout')}} <i class="ms-2 bi bi-box-arrow-right"></i> </button>
+            <button mat-menu-item (click)="logout()">{{trl('logout')}} <i class="ms-2 bi bi-box-arrow-right"></i>
+            </button>
         </mat-menu>
 
         <mat-menu #moonMenu="matMenu" class="m-2">
@@ -101,7 +100,7 @@
         </mat-menu>
 
         <mat-menu #droneMenu="matMenu" class="m-2">
-            <button mat-menu-item routerLink="/drone-task">Drone Tasks</button>
+            <button mat-menu-item routerLink="/drone-task">{{trl('droneTasks')}}</button>
         </mat-menu>
 
         <mat-menu #langMenu="matMenu" class="m-2">
