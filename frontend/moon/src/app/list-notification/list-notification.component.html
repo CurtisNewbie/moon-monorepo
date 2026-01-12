@@ -1,13 +1,12 @@
 <div>
-    <h3 class="mt-2 mb-3">Platform Notifications</h3>
+    <h3 class="mt-2 mb-3">{{trl('platformNotification')}}</h3>
 </div>
 
 <!-- search param  -->
 <div>
     <div class="d-flex flex-row justify-content-end mb-3">
         <button mat-raised-button class="m-2" id="reloadBtn"
-            *ngIf="query.onlyInitMessage && this.data != null && this.data.length > 0" (click)="markAllOpened()">Mark
-            All Opened</button>
+            *ngIf="query.onlyInitMessage && this.data != null && this.data.length > 0" (click)="markAllOpened()">{{trl('markAllOpened')}}</button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="fetchList()"><i
                 class="bi bi-arrow-clockwise"></i></button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="reset()"><i
@@ -15,7 +14,7 @@
     </div>
     <div class="d-flex flex-row justify-content-end mb-3">
         <mat-checkbox class="m-2" [(ngModel)]="query.onlyInitMessage" (change)="fetchList()">
-            Unread Only
+            {{trl('unreadOnly')}}
         </mat-checkbox>
     </div>
 </div>
@@ -23,33 +22,28 @@
 <div class="mt-3 mb-5">
     <table mat-table [dataSource]="data" class="mat-elevation-z8 mb-4" style="width: 100%;" multiTemplateDataRows>
 
-        <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef> ID </th>
-            <td mat-cell *matCellDef="let u" style="flex: none; width: 150px;"> {{u.id}} </td>
-        </ng-container>
-
         <ng-container matColumnDef="notifiNo">
-            <th mat-header-cell *matHeaderCellDef> Notification No </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('notificationNo')}} </th>
             <td mat-cell *matCellDef="let u" style="flex: none; width: 250px;"> {{u.notifiNo}} </td>
         </ng-container>
 
         <ng-container matColumnDef="title">
-            <th mat-header-cell *matHeaderCellDef> Title </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('title')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.title}} </td>
         </ng-container>
 
         <ng-container matColumnDef="brief">
-            <th mat-header-cell *matHeaderCellDef> Brief </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('brief')}}</th>
             <td mat-cell *matCellDef="let u"> {{u.brief}} </td>
         </ng-container>
 
         <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('status')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.status && u.status == 'OPENED' ? 'Read' : 'Unread' }} </td>
         </ng-container>
 
         <ng-container matColumnDef="createTime">
-            <th mat-header-cell *matHeaderCellDef> Create Time </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('createTime')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.createTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
         </ng-container>
 

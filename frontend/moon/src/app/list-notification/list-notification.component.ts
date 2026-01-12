@@ -10,6 +10,7 @@ import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 export interface ShowNatificationDialogData {
   title: string;
@@ -60,7 +61,7 @@ export interface Notification {
 export class ListNotificationComponent implements OnInit {
   readonly columns: string[] = this.env.isMobile()
     ? ["title", "status", "createTime"]
-    : ["id", "notifiNo", "title", "brief", "status", "createTime"];
+    : ["notifiNo", "title", "brief", "status", "createTime"];
   query = {
     onlyInitMessage: true,
   };
@@ -69,7 +70,12 @@ export class ListNotificationComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
+  trl = (k) => {
+    return this.i18n.trl("list-notification", k)
+  }
+
   constructor(
+    public i18n: I18n,
     private http: HttpClient,
     private dialog: MatDialog,
     private platformNotification: PlatformNotificationService,

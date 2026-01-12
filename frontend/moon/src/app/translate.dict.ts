@@ -24,6 +24,16 @@ export const enUSDict = {
     searchDirName: "Search Dir Name",
     defaultTitle: "Directory Tree Navigation",
   },
+  "list-notification": {
+    platformNotification: "Platform Notifications",
+    unreadOnly: "Unread Only",
+    markAllOpened: "Mark All Opened",
+    notificationNo: "Notification No",
+    title: "Title",
+    brief: "Brief",
+    status: "Status",
+    createTime: "Create Time",
+  },
   nav: {
     menu: "Menu",
     fileAndGallery: "File & Gallery",
@@ -79,6 +89,16 @@ export const zhCNDict = {
   "dir-tree-nav": {
     searchDirName: "搜索文件夹名称",
     defaultTitle: "文件夹快速跳转",
+  },
+  "list-notification": {
+    platformNotification: "站内通知",
+    unreadOnly: "未读通知",
+    markAllOpened: "全部已读",
+    notificationNo: "通知标题",
+    title: "标题",
+    brief: "内容",
+    status: "状态",
+    createTime: "创建时间",
   },
   nav: {
     menu: "菜单",
