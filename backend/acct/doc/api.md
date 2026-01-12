@@ -89,15 +89,10 @@
   		PostJson(req).
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		var dat miso.PageRes[ListCashFlowRes]
   		return dat, err
   	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
+  	return res.Data, nil
   }
   ```
 
@@ -202,14 +197,9 @@
   		Post(nil).
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
@@ -270,15 +260,10 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		var dat []string
   		return dat, err
   	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
+  	return res.Data, nil
   }
   ```
 
@@ -375,15 +360,10 @@
   		PostJson(req).
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		var dat miso.PageRes[ApiListStatisticsRes]
   		return dat, err
   	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
+  	return res.Data, nil
   }
   ```
 
@@ -476,7 +456,7 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/plot-statistics' \
     -H 'Content-Type: application/json' \
-    -d '{"aggType":"","currency":"","endTime":0,"startTime":0}'
+    -d '{"aggType":"","currency":"","endTime":1768184753983,"startTime":1768184753983}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -499,15 +479,10 @@
   		PostJson(req).
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		var dat []ApiPlotStatisticsRes
   		return dat, err
   	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
+  	return res.Data, nil
   }
   ```
 
@@ -610,15 +585,10 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		var dat ResourceInfoRes
   		return dat, err
   	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
+  	return res.Data, nil
   }
   ```
 
@@ -687,14 +657,9 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
@@ -739,14 +704,9 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
@@ -790,14 +750,9 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 

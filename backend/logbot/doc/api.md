@@ -75,15 +75,10 @@
   		PostJson(req).
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		var dat ListErrorLogResp
   		return dat, err
   	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
+  	return res.Data, nil
   }
   ```
 
@@ -207,15 +202,10 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		var dat ResourceInfoRes
   		return dat, err
   	}
-  	dat, err := res.Res()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return dat, err
+  	return res.Data, nil
   }
   ```
 
@@ -284,14 +274,9 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
@@ -336,14 +321,9 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
@@ -387,14 +367,9 @@
   		Get().
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
@@ -450,14 +425,9 @@
   		PostJson(req).
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
@@ -531,14 +501,9 @@
   		PostJson(req).
   		Json(&res)
   	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
   		return err
   	}
-  	err = res.Err()
-  	if err != nil {
-  		rail.Errorf("Request failed, %v", err)
-  	}
-  	return err
+  	return nil
   }
   ```
 
