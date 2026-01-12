@@ -38,7 +38,7 @@ export class GalleryComponent implements OnInit {
     "updateTime",
     "createBy",
   ];
-  readonly MOBILE_COLUMNS = ["thumbnail", "name", "createBy"];
+  readonly MOBILE_COLUMNS = ["thumbnail", "name"];
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
