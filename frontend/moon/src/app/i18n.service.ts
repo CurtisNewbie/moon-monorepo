@@ -36,10 +36,11 @@ export class I18n {
     let p: string;
     if (mod == "") {
       p = this.dicts[this.curr][name] ?? name;
+    } else {
+      p = this.dicts[this.curr][mod][name] ?? name;
     }
-    p = this.dicts[this.curr][mod][name] ?? name;
     if (args && args.length > 0) {
-      this.NamedSprintfkv(p, ...args);
+      return this.NamedSprintfkv(p, ...args);
     }
     return p;
   }

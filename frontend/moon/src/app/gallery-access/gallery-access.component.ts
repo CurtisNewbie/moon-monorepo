@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 export type GalleryAccessGranted = {
   id: number;
@@ -37,8 +38,13 @@ export class GalleryAccessComponent implements OnInit {
       GalleryAccessComponent,
       GrantGalleryAccessDialogData
     >,
-    @Inject(MAT_DIALOG_DATA) public data: GrantGalleryAccessDialogData
+    @Inject(MAT_DIALOG_DATA) public data: GrantGalleryAccessDialogData,
+    public i18n: I18n
   ) {}
+
+  trl(k, ...args) {
+    return this.i18n.trl("gallery-access", k, ...args);
+  }
 
   ngOnInit() {}
 
@@ -48,7 +54,7 @@ export class GalleryAccessComponent implements OnInit {
 
   grantFolderAccess() {
     if (!this.grantedTo) {
-      this.snackBar.open("Enter username first", "ok", { duration: 3000 });
+      this.snackBar.open(this.trl('enterUsernameFirst'), "ok", { duration: 3000 });
       return;
     }
 
@@ -63,7 +69,7 @@ export class GalleryAccessComponent implements OnInit {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
-          this.snackBar.open("Access granted", "ok", { duration: 3000 });
+          this.snackBar.open(this.trl('accessGranted'), "ok", { duration: 3000 });
           this.fetchFolderAccessGranted();
         },
       });

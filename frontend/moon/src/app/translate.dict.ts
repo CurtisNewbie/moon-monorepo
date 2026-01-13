@@ -308,6 +308,20 @@ export const enUSDict = {
     delete: "Delete",
     update: "Update",
   },
+  "gallery-access": {
+    grantAccess: "Grant Access",
+    grantingAccessTo: "Granting access to '${name}'",
+    username: "Username",
+    submit: "Submit",
+    noAccessGrantedYet: "You haven't granted access to any one yet",
+    usersGrantedAccess: "Users Granted Access To This Gallery:",
+    dateGranted: "Date Granted",
+    removeAccess: "Remove Access",
+    remove: "Remove",
+    close: "Close",
+    enterUsernameFirst: "Enter username first",
+    accessGranted: "Access granted",
+  },
 };
 
 export const zhCNDict = {
@@ -618,5 +632,19 @@ export const zhCNDict = {
     share: "分享",
     delete: "删除",
     update: "更新",
+  },
+  "gallery-access": {
+    grantAccess: "授权访问",
+    grantingAccessTo: "正在授权访问 '${name}'",
+    username: "用户名",
+    submit: "提交",
+    noAccessGrantedYet: "您尚未向任何人授予访问权限",
+    usersGrantedAccess: "已授予此画廊访问权限的用户:",
+    dateGranted: "授权日期",
+    removeAccess: "移除访问权限",
+    remove: "移除",
+    close: "关闭",
+    enterUsernameFirst: "请先输入用户名",
+    accessGranted: "访问权限已授予",
   },
 };
