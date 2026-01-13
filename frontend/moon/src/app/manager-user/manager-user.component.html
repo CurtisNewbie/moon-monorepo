@@ -9,15 +9,14 @@
 <!-- New User Panel  -->
 <div class="container bootstrap p-3 mt-3 mb-5 shadow" *ngIf="addUserPanelDisplayed">
     <h4 class="mt-2 mb-2">{{trl('newUser')}}</h4>
-
-    <mat-form-field style="width: 250px;">
+    <mat-form-field style="width: 100%;">
         <mat-label>{{trl('username')}}</mat-label>
         <input matInput type="text" [(ngModel)]="usernameToBeAdded" autocomplete="one-time-code">
         <button *ngIf="usernameToBeAdded" matSuffix aria-label="Clear" (click)="usernameToBeAdded=''" class="btn-close">
         </button>
     </mat-form-field>
 
-    <mat-form-field style="width: 250px;">
+    <mat-form-field style="width: 100%;">
         <mat-label>{{trl('password')}}</mat-label>
         <input matInput type="password" [(ngModel)]="passswordToBeAdded" autocomplete="one-time-code">
         <button *ngIf="passswordToBeAdded" matSuffix aria-label="Clear" (click)="passswordToBeAdded=''"
@@ -25,7 +24,7 @@
         </button>
     </mat-form-field>
 
-    <mat-form-field>
+    <mat-form-field style="width: 100%;">
         <mat-label>{{trl('userRole')}}</mat-label>
         <mat-select [(value)]="userRoleOfAddedUser">
             <mat-option [value]="option.roleNo" *ngFor="let option of roleBriefs">
@@ -33,6 +32,7 @@
             </mat-option>
         </mat-select>
     </mat-form-field>
+
     <div class="justify-content-end d-flex">
         <button mat-raised-button class="mt-2" (click)="addUser()">{{trl('add')}}</button>
     </div>
