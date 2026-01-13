@@ -294,6 +294,7 @@ export const enUSDict = {
   },
   "pdf-viewer": {
     noFileSelected: "No PDF selected. Consider picking one to read?",
+    importCashflows: "Import ${importType} Cashflows:"
   },
   gallery: {
     createNew: "Create New Gallery",
