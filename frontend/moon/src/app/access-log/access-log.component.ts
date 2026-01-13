@@ -36,8 +36,8 @@ export class AccessLogComponent implements OnInit {
     public i18n: I18n
   ) {}
 
-  trl(k) {
-    return this.i18n.trl("access-log", k);
+  trl(k, ...args) {
+    return this.i18n.trl("access-log", k, ...args);
   }
 
   ngOnInit() {}
