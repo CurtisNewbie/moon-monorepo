@@ -7,6 +7,7 @@ import { Paging } from "src/common/paging";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { EditNoteDialogComponent } from "../edit-note-dialog/edit-note-dialog.component";
 import { Env } from "src/common/env-util";
+import { I18n } from "../i18n.service";
 
 export interface SaveNoteReq {
   title?: string; // Required.
@@ -49,8 +50,13 @@ export class MngNoteComponent implements OnInit {
     public env: Env,
     private snackBar: MatSnackBar,
     private http: HttpClient,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("mng-note", k);
+  }
 
   ngOnInit(): void {
     this.fetchList();
@@ -70,7 +76,7 @@ export class MngNoteComponent implements OnInit {
       },
       error: (err) => {
         console.log(err);
-        this.snackBar.open("Request failed, unknown error", "ok", {
+        this.snackBar.open(this.trl("requestFailedUnknownError"), "ok", {
           duration: 3000,
         });
       },
@@ -91,7 +97,7 @@ export class MngNoteComponent implements OnInit {
       },
       error: (err) => {
         console.log(err);
-        this.snackBar.open("Request failed, unknown error", "ok", {
+        this.snackBar.open(this.trl("requestFailedUnknownError"), "ok", {
           duration: 3000,
         });
       },

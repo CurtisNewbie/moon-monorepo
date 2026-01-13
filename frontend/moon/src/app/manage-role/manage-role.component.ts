@@ -7,6 +7,7 @@ import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 export interface ERole {
   id?: number;
@@ -40,8 +41,13 @@ export class ManageRoleComponent implements OnInit {
     private http: HttpClient,
     private dialog: MatDialog,
     public env: Env,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("manage-role", k);
+  }
 
   reset() {
     this.newRoleDialog = false;
@@ -93,7 +99,7 @@ export class ManageRoleComponent implements OnInit {
 
   createNewRole() {
     if (!this.newRoleName) {
-      this.snackBar.open("Please enter new role name", "ok", {
+      this.snackBar.open(this.trl("pleaseEnterNewRoleName"), "ok", {
         duration: 3000,
       });
       return;

@@ -1,24 +1,24 @@
 <div>
-    <h3 class="mt-2 mb-3">Manage Resources</h3>
+    <h3 class="mt-2 mb-3">{{trl('manageResources')}}</h3>
 </div>
 
 <!-- new resource -->
 <ng-container *ngIf="newResDialog">
     <div class="container bootstrap p-3 mt-3 mb-5 shadow">
         <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Resource Name</mat-label>
+            <mat-label>{{trl('resourceName')}}</mat-label>
             <input matInput type="text" [(ngModel)]="newResName">
             <button *ngIf="newResName" matSuffix aria-label="Clear" (click)="newResName=''" class="btn-close">
             </button>
         </mat-form-field>
         <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Resource Code</mat-label>
+            <mat-label>{{trl('resourceCode')}}</mat-label>
             <input matInput type="text" [(ngModel)]="newResCode">
             <button *ngIf="newResCode" matSuffix aria-label="Clear" (click)="newResCode=''" class="btn-close">
             </button>
         </mat-form-field>
         <div class="justify-content-end d-flex">
-            <button mat-raised-button class="mt-2" (click)="createNewRes()">Create</button>
+            <button mat-raised-button class="mt-2" (click)="createNewRes()">{{trl('create')}}</button>
         </div>
     </div>
 </ng-container>
@@ -27,8 +27,7 @@
 <!-- search param  -->
 <div>
     <div class="gap-2 d-flex justify-content-end mb-3">
-        <button mat-raised-button class="m-2" (click)="newResDialog = !newResDialog">New
-            Resource</button>
+        <button mat-raised-button class="m-2" (click)="newResDialog = !newResDialog">{{trl('newResource')}}</button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="fetchList()"><i
                 class="bi bi-arrow-clockwise"></i></button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="reset()"><i
@@ -41,37 +40,37 @@
     <table mat-table [dataSource]="resources" class="mat-elevation-z8 mb-4" style="width: 100%;" multiTemplateDataRows>
 
         <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef> ID </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('id')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.id}} </td>
         </ng-container>
 
         <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef> Name </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('name')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.name}} </td>
         </ng-container>
 
         <ng-container matColumnDef="code">
-            <th mat-header-cell *matHeaderCellDef> Code </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('code')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.code}} </td>
         </ng-container>
 
         <ng-container matColumnDef="createBy">
-            <th mat-header-cell *matHeaderCellDef> Create By </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('createBy')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.createBy}} </td>
         </ng-container>
 
         <ng-container matColumnDef="createTime">
-            <th mat-header-cell *matHeaderCellDef> Create Time </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('createTime')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.createTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
         </ng-container>
 
         <ng-container matColumnDef="updateBy">
-            <th mat-header-cell *matHeaderCellDef> Update By </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('updateBy')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.createBy}} </td>
         </ng-container>
 
         <ng-container matColumnDef="updateTime">
-            <th mat-header-cell *matHeaderCellDef> Update Time </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('updateTime')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.updateTime | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
         </ng-container>
 

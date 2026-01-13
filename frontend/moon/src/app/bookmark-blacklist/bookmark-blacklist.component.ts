@@ -4,6 +4,7 @@ import { ConfirmDialog } from "src/common/dialog";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-bookmark-blacklist",
@@ -27,8 +28,13 @@ export class BookmarkBlacklistComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private confirmDialog: ConfirmDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("bookmark-blacklist", k);
+  }
 
   ngOnInit(): void {}
 
@@ -53,8 +59,8 @@ export class BookmarkBlacklistComponent implements OnInit {
 
   popToRemove(id, name) {
     this.confirmDialog.show(
-      "Remove Bookmark Blacklist",
-      [`Removing Bookmark Blacklist ${name}`],
+      this.trl("removeBookmarkBlacklist"),
+      [`${this.trl("removingBookmarkBlacklist")} ${name}`],
       () => {
         this.remove(id);
       }

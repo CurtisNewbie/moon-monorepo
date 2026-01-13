@@ -7,6 +7,7 @@ import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 export interface WRes {
   id?: number;
@@ -53,8 +54,13 @@ export class ManageResourcesComponent implements OnInit {
     private http: HttpClient,
     private dialog: MatDialog,
     public env: Env,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("manage-resources", k);
+  }
 
   reset() {
     this.expandedElement = null;
@@ -92,13 +98,13 @@ export class ManageResourcesComponent implements OnInit {
 
   createNewRes() {
     if (!this.newResName) {
-      this.snackBar.open("Please enter new resource name", "ok", {
+      this.snackBar.open(this.trl("pleaseEnterNewResourceName"), "ok", {
         duration: 3000,
       });
       return;
     }
     if (!this.newResCode) {
-      this.snackBar.open("Please enter new resource code", "ok", {
+      this.snackBar.open(this.trl("pleaseEnterNewResourceCode"), "ok", {
         duration: 3000,
       });
       return;

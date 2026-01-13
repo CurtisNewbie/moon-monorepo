@@ -5,6 +5,7 @@ import { UserService } from "../user.service";
 import { setToken } from "src/common/api-util";
 import { PlatformNotificationService } from "../platform-notification.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-login",
@@ -19,8 +20,13 @@ export class LoginComponent implements OnInit {
     private userService: UserService,
     private nav: NavigationService,
     private platformNotification: PlatformNotificationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("login", k);
+  }
 
   ngOnInit() {
     this.userService.userInfoObservable.subscribe((user) => {
@@ -36,7 +42,7 @@ export class LoginComponent implements OnInit {
    */
   public login(): void {
     if (!this.usernameInput || !this.passwordInput) {
-      this.snackBar.open("Please enter username and password", "ok", {
+      this.snackBar.open(this.trl("pleaseEnterUsernameAndPassword"), "ok", {
         duration: 3000,
       });
       return;

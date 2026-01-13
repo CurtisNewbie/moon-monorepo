@@ -6,6 +6,7 @@ import { ConfirmDialog } from "src/common/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Env } from "src/common/env-util";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-manage-bookmarks",
@@ -35,8 +36,13 @@ export class ManageBookmarksComponent implements OnInit {
     private env: Env,
     private http: HttpClient,
     private confirmDialog: ConfirmDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("manage-bookmarks", k);
+  }
 
   ngOnInit(): void {}
 
@@ -69,7 +75,7 @@ export class ManageBookmarksComponent implements OnInit {
         if (this.uploadFileInput) {
           this.uploadFileInput.nativeElement.value = null;
         }
-        this.snackBar.open("Bookmarks uploaded", "ok", { duration: 3000 });
+        this.snackBar.open(this.trl("bookmarksUploaded"), "ok", { duration: 3000 });
         this.showUploadPanel = false;
       },
     });
@@ -77,7 +83,7 @@ export class ManageBookmarksComponent implements OnInit {
 
   onFileSelected(files: File[]) {
     if (files == null || files.length < 1) {
-      this.snackBar.open("Please select file", "ok", { duration: 3000 });
+      this.snackBar.open(this.trl("pleaseSelectFile"), "ok", { duration: 3000 });
       return;
     }
     this.file = files[0];
@@ -85,8 +91,8 @@ export class ManageBookmarksComponent implements OnInit {
 
   popToRemove(id, name) {
     this.confirmDialog.show(
-      "Remove Bookmark",
-      [`Removing Bookmark ${name}`],
+      this.trl("removeBookmark"),
+      [`${this.trl("removingBookmark")} ${name}`],
       () => {
         this.remove(id);
       }

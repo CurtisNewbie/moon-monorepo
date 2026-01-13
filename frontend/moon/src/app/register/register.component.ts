@@ -4,6 +4,7 @@ import { UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
 import { NavType } from "../routes";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-register",
@@ -18,14 +19,19 @@ export class RegisterComponent implements OnInit {
   constructor(
     private userService: UserService,
     private nav: NavigationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("register", k);
+  }
 
   ngOnInit() {}
 
   register(): void {
     if (!this.usernameInput || !this.passwordInput) {
-      this.snackBar.open("Please enter username and password", "ok", {
+      this.snackBar.open(this.trl("pleaseEnterUsernameAndPassword"), "ok", {
         duration: 3000,
       });
       return;
@@ -40,7 +46,7 @@ export class RegisterComponent implements OnInit {
           }
 
           this.snackBar.open(
-            "Registered, please wait for administrator's approval",
+            this.trl("registeredWaitForApproval"),
             "ok",
             { duration: 5000 }
           );

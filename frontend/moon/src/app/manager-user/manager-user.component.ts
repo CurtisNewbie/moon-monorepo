@@ -18,6 +18,7 @@ import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 export interface ClearUserFailedLoginAttemptsReq {
   userNo?: string;
@@ -70,8 +71,13 @@ export class ManagerUserComponent implements OnInit {
     private http: HttpClient,
     private userService: UserService,
     public env: Env,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("manager-user", k);
+  }
 
   ngOnInit() {
     this.fetchRoleBriefs();
@@ -82,7 +88,7 @@ export class ManagerUserComponent implements OnInit {
    */
   addUser(): void {
     if (!this.usernameToBeAdded || !this.passswordToBeAdded) {
-      this.snackBar.open("Please enter username and password", "ok", {
+      this.snackBar.open(this.trl("pleaseEnterUsernameAndPassword"), "ok", {
         duration: 3000,
       });
       return;
@@ -188,9 +194,9 @@ export class ManagerUserComponent implements OnInit {
       this.dialog.open(ConfirmDialogComponent, {
         width: "500px",
         data: {
-          title: "Delete User",
+          title: this.trl("deleteUser"),
           msg: [
-            `You sure you want to delete user '${this.expandedElement.username}'`,
+            `${this.trl("sureToDeleteUser")} '${this.expandedElement.username}'`,
           ],
         },
       });
@@ -260,7 +266,7 @@ export class ManagerUserComponent implements OnInit {
         },
         error: (err) => {
           console.log(err);
-          this.snackBar.open("Request failed, unknown error", "ok", {
+          this.snackBar.open(this.trl("requestFailedUnknownError"), "ok", {
             duration: 3000,
           });
         },

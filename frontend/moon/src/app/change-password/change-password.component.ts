@@ -8,6 +8,7 @@ import { UserService } from "../user.service";
 import { hasText } from "src/common/str-util";
 import { NavType } from "../routes";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-change-password",
@@ -21,8 +22,13 @@ export class ChangePasswordComponent implements OnInit {
   constructor(
     private nav: NavigationService,
     private userService: UserService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("change-password", k);
+  }
 
   ngOnInit() {}
 
@@ -32,12 +38,12 @@ export class ChangePasswordComponent implements OnInit {
       !hasText(this.changePasswordParam.newPassword) ||
       !hasText(this.newPasswordConfirm)
     ) {
-      this.snackBar.open("Please enter passwords", "ok", { duration: 3000 });
+      this.snackBar.open(this.trl("pleaseEnterPasswords"), "ok", { duration: 3000 });
       return;
     }
 
     if (this.changePasswordParam.newPassword !== this.newPasswordConfirm) {
-      this.snackBar.open("Confirmed password is not matched", "ok", {
+      this.snackBar.open(this.trl("confirmedPasswordNotMatched"), "ok", {
         duration: 3000,
       });
       return;
@@ -47,7 +53,7 @@ export class ChangePasswordComponent implements OnInit {
       this.changePasswordParam.prevPassword ===
       this.changePasswordParam.newPassword
     ) {
-      this.snackBar.open("new password must be different", "ok", {
+      this.snackBar.open(this.trl("newPasswordMustBeDifferent"), "ok", {
         duration: 3000,
       });
       return;
@@ -59,7 +65,7 @@ export class ChangePasswordComponent implements OnInit {
           this.snackBar.open(result.msg, "ok", { duration: 6000 });
           return;
         }
-        this.snackBar.open("Password changed", "ok", { duration: 3000 });
+        this.snackBar.open(this.trl("passwordChanged"), "ok", { duration: 3000 });
         this.nav.navigateTo(NavType.MANAGE_USER);
       },
       complete: () => {

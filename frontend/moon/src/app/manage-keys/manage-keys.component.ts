@@ -10,6 +10,7 @@ import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Env } from "src/common/env-util";
+import { I18n } from "../i18n.service";
 
 export interface UserToken {
   id: number;
@@ -65,8 +66,13 @@ export class ManageKeysComponent implements OnInit {
   constructor(
     public env: Env,
     private http: HttpClient,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("manage-keys", k);
+  }
 
   ngOnInit() {}
 
@@ -113,11 +119,11 @@ export class ManageKeysComponent implements OnInit {
 
   generateRandomKey() {
     if (!this.password) {
-      this.snackBar.open("Please enter password", "ok", { duration: 3000 });
+      this.snackBar.open(this.trl("pleaseEnterPassword"), "ok", { duration: 3000 });
       return;
     }
     if (!this.newUserKeyName) {
-      this.snackBar.open("Please enter key name", "ok", { duration: 3000 });
+      this.snackBar.open(this.trl("pleaseEnterKeyName"), "ok", { duration: 3000 });
       return;
     }
 

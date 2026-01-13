@@ -5,6 +5,7 @@ import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 export interface ListedErrorLog {
   id?: number;
@@ -47,8 +48,13 @@ export class ManageLogsComponent implements OnInit {
   constructor(
     private http: HttpClient,
     public env: Env,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("manage-logs", k);
+  }
 
   ngOnInit(): void {}
 

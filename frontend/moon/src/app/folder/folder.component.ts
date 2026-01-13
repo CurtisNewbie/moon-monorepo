@@ -23,6 +23,7 @@ import { isEnterKey } from "src/common/condition";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
+import { I18n } from "../i18n.service";
 
 @Component({
   selector: "app-folder",
@@ -54,8 +55,13 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
     private navi: NavigationService,
     private dialog: MatDialog,
     private userService: UserService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("folder", k);
+  }
 
   ngOnInit(): void {
     this.userSub = this.userService.userInfoObservable.subscribe((u) => {
@@ -88,8 +94,8 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
       this.dialog.open(ConfirmDialogComponent, {
         width: "700px",
         data: {
-          title: "Delete Virtual Folder",
-          msg: [`You sure you want to delete '${f.name}'`],
+          title: this.trl("deleteVirtualFolder"),
+          msg: [`${this.trl("sureToDelete")} '${f.name}'`],
           isNoBtnDisplayed: true,
         },
       });
@@ -113,7 +119,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
-          this.snackBar.open("Virtual Folder Removed", "ok", {
+          this.snackBar.open(this.trl("virtualFolderRemoved"), "ok", {
             duration: 3000,
           });
           this.fetchFolders();
@@ -176,7 +182,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
   createFolder(): void {
     if (!this.newFolderName) {
-      this.snackBar.open("Please enter folder name", "ok", { duration: 3000 });
+      this.snackBar.open(this.trl("pleaseEnterFolderName"), "ok", { duration: 3000 });
       return;
     }
 

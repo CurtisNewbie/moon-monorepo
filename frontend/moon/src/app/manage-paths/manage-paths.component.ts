@@ -7,6 +7,7 @@ import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Env } from "src/common/env-util";
+import { I18n } from "../i18n.service";
 
 export interface CreatePathReq {
   type?: string; // path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible
@@ -86,8 +87,13 @@ export class ManagePathsComponent implements OnInit {
     private env: Env,
     private http: HttpClient,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public i18n: I18n
   ) {}
+
+  trl(k) {
+    return this.i18n.trl("manage-paths", k);
+  }
 
   reset() {
     this.expandedElement = null;
@@ -157,7 +163,7 @@ export class ManagePathsComponent implements OnInit {
         },
         error: (err) => {
           console.log(err);
-          this.snackBar.open("Request failed, unknown error", "ok", {
+          this.snackBar.open(this.trl("requestFailedUnknownError"), "ok", {
             duration: 3000,
           });
         },

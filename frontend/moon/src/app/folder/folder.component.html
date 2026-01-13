@@ -1,20 +1,20 @@
 <div class="container bootstrap p-3 mt-3 mb-5 shadow" *ngIf="creatingFolder">
-    <h4 class="mt-2 mb-2">New Folder</h4>
+    <h4 class="mt-2 mb-2">{{trl('newFolder')}}</h4>
 
     <mat-form-field style="width: 100%;">
-        <mat-label>Folder Name</mat-label>
+        <mat-label>{{trl('folderName')}}</mat-label>
         <input matInput type="text" [(ngModel)]="newFolderName">
         <button *ngIf="newFolderName" class="btn-close" matSuffix aria-label="Clear" (click)="newFolderName=''">
         </button>
     </mat-form-field>
 
     <div class="justify-content-end d-flex">
-        <button mat-raised-button class="mt-2" (click)="createFolder()">Create</button>
+        <button mat-raised-button class="mt-2" (click)="createFolder()">{{trl('create')}}</button>
     </div>
 </div>
 
 <mat-form-field style="width: 100%;" class="mb-1 mt-3">
-    <mat-label>Virtual Folder Name:</mat-label>
+    <mat-label>{{trl('virtualFolderName')}}</mat-label>
     <input matInput type="text" [(ngModel)]="searchParam.name" (keyup)="onEnterPressed($event) && fetchFolders()">
     <button *ngIf="searchParam.name" matSuffix aria-label="Clear" (click)="searchParam.name=''" class="btn-close">
     </button>
@@ -22,13 +22,13 @@
 
 
 <div class="d-grid gap-2 d-flex flex-wrap justify-content-end mb-3">
-    <button mat-raised-button class="m-2" *ngIf="isOneSelected" (click)="selectFolder(selected[0])">Open Folder</button>
+    <button mat-raised-button class="m-2" *ngIf="isOneSelected" (click)="selectFolder(selected[0])">{{trl('openFolder')}}</button>
     <button mat-raised-button class="m-2" *ngIf="isOneSelected && isOwner(selected[0])"
-        (click)="popToGrantAccess(selected[0])">List Granted Access</button>
+        (click)="popToGrantAccess(selected[0])">{{trl('listGrantedAccess')}}</button>
     <button mat-raised-button class="m-2" *ngIf="isOneSelected && isOwner(selected[0])"
-        (click)="popToRemoveVFolder(selected[0])">Delete Folder</button>
+        (click)="popToRemoveVFolder(selected[0])">{{trl('deleteFolder')}}</button>
     <button mat-raised-button class="m-2" [class.status-green]="creatingFolder"
-        (click)="creatingFolder=!creatingFolder">Create Folder</button>
+        (click)="creatingFolder=!creatingFolder">{{trl('createFolder')}}</button>
     <button mat-icon-button class="m-1 icon-button-large" (click)="fetchFolders()"><i
             class="bi bi-arrow-clockwise"></i></button>
     <button mat-icon-button class="m-1 icon-button-large" (click)="resetSearchParam()"><i
