@@ -1,6 +1,18 @@
 export const enUSDict = {
   "zh-CN": "中文",
   "en-US": "Eng",
+  "access-log": {
+    loginHistory: "Login History",
+    id: "Id",
+    user: "User",
+    accessTime: "Access time",
+    success: "Success",
+    ipAddress: "IP Address",
+    userAgent: "User Agent",
+    url: "URL",
+    true: "True",
+    false: "False",
+  },
   "manage-files": {
     name: "Name",
     skipByName: "Skip Uploaded Files (By Name)",
@@ -103,6 +115,18 @@ export const enUSDict = {
 export const zhCNDict = {
   "zh-CN": "中文",
   "en-US": "Eng",
+  "access-log": {
+    loginHistory: "登陆历史",
+    id: "ID",
+    user: "用户",
+    accessTime: "访问时间",
+    success: "成功",
+    ipAddress: "IP 地址",
+    userAgent: "用户代理",
+    url: "URL",
+    true: "是",
+    false: "否",
+  },
   "manage-files": {
     name: "文件名",
     skipByName: "忽略名称重复文件",
