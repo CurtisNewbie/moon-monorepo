@@ -62,11 +62,11 @@
 <div class="mt-3 mb-5">
     <table mat-table [dataSource]="tabdata" class="mb-4" style="width: 100%;">
         <ng-container matColumnDef="taskId">
-            <th mat-header-cell *matHeaderCellDef> Task Id </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('taskId')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.taskId}} </td>
         </ng-container>
         <ng-container matColumnDef="thumbnail">
-            <th mat-header-cell *matHeaderCellDef> Thumbnail </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('thumbnail')}} </th>
             <td mat-cell *matCellDef="let u">
                 <div *ngIf="u.thumbnail">
                     <img style="max-height:60px; padding: 5px 0px 5px 0px;" [src]="u.thumbnail" />
@@ -77,62 +77,62 @@
             </td>
         </ng-container>
         <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('status')}} </th>
             <td mat-cell *matCellDef="let u">
                 <span
                     [ngClass]="{ 'status-green' : u.status == 'COMPLETED', 'status-yellow' : u.status != 'COMPLETED'}">{{u.statusLabel}}</span>
             </td>
         </ng-container>
         <ng-container matColumnDef="attempt">
-            <th mat-header-cell *matHeaderCellDef> Attempt </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('attempt')}} </th>
             <td mat-cell *matCellDef="let u"> {{u.attempt}} </td>
         </ng-container>
         <ng-container matColumnDef="url">
-            <th mat-header-cell *matHeaderCellDef> Url </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('url')}} </th>
             <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'p-2':''" style="overflow-wrap: anywhere;">
                 <a style="color: whitesmoke" href="{{u.url}}" target="_blank">{{u.url}}</a>
             </td>
         </ng-container>
         <ng-container matColumnDef="platform">
-            <th mat-header-cell *matHeaderCellDef style="min-width: 45px;"> Platform </th>
+            <th mat-header-cell *matHeaderCellDef style="min-width: 45px;"> {{trl('platform')}} </th>
             <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'p-2 m-1':''" style="overflow-wrap: anywhere;">
                 {{u.platform}} </td>
         </ng-container>
         <ng-container matColumnDef="dirName">
-            <th mat-header-cell *matHeaderCellDef> Directory </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('directory')}} </th>
             <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'p-2':''" style="overflow-wrap: anywhere;">
                 {{ u.trimmedDirName }} </td>
         </ng-container>
         <ng-container matColumnDef="fileCount">
-            <th mat-header-cell *matHeaderCellDef> File Count </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('fileCount')}} </th>
             <td mat-cell *matCellDef="let u"> {{ u.fileCount }} </td>
         </ng-container>
         <ng-container matColumnDef="updatedAt">
-            <th mat-header-cell *matHeaderCellDef> Update Time </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('updateTime')}} </th>
             <td mat-cell *matCellDef="let u"> {{ u.updatedAt | date: 'yyyy-MM-dd HH:mm:ss'}} </td>
         </ng-container>
         <ng-container matColumnDef="remark">
-            <th mat-header-cell *matHeaderCellDef> Remark </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('remark')}} </th>
             <td mat-cell *matCellDef="let u">
                 <pre class="ms-1" style="word-wrap: break-word; white-space: pre-wrap;" [matTooltip]="u.remark"
                     [matTooltipPosition]="'left'">{{ u.remarkShort }}</pre>
             </td>
         </ng-container>
         <ng-container matColumnDef="operation">
-            <th mat-header-cell *matHeaderCellDef> Operation </th>
+            <th mat-header-cell *matHeaderCellDef> {{trl('operation')}} </th>
             <td mat-cell *matCellDef="let u">
                 <div class="d-flex gap-2 flex-wrap m-2">
                     <ng-container *ngIf="u.dirFileKey">
-                        <button class="mat-raised-button small-btn" (click)="gotoDir(u.dirFileKey)">Open</button>
+                        <button class="mat-raised-button small-btn" (click)="gotoDir(u.dirFileKey)">{{trl('open')}}</button>
                     </ng-container>
                     <ng-container *ngIf="u.status == 'PENDING'">
-                        <button class="mat-raised-button small-btn" (click)="cancelTask(u.taskId)">Cancel</button>
+                        <button class="mat-raised-button small-btn" (click)="cancelTask(u.taskId)">{{trl('cancel')}}</button>
                     </ng-container>
                     <ng-container *ngIf="u.status != 'PENDING' && u.dirFileKey">
-                        <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">Retry</button>
+                        <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">{{trl('retry')}}</button>
                     </ng-container>
                     <ng-container *ngIf="u.status == 'COMPLETED' && u.dirFileKey">
-                        <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">Update</button>
+                        <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">{{trl('update')}}</button>
                     </ng-container>
                 </div>
             </td>

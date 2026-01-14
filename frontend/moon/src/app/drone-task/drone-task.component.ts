@@ -13,6 +13,7 @@ import {
   MatDialog,
   MatDialogRef,
 } from "@angular/material/dialog";
+import { I18n } from "../i18n.service";
 
 export interface ApiDetectTitleReq {
   url?: string;
@@ -131,7 +132,8 @@ export class DroneTaskComponent implements OnInit {
     private http: HttpClient,
     private nav: NavigationService,
     public env: Env,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public i18n: I18n
   ) {}
 
   listTasks() {
@@ -404,31 +406,44 @@ export class DroneTaskComponent implements OnInit {
         }
       });
   }
+
+  trl(k, ...args) {
+    return this.i18n.trl("drone-task", k, ...args);
+  }
 }
 
 @Component({
   selector: "update-drone-task-component",
   template: `
-    <h1 mat-dialog-title>Update Drone Task</h1>
+    <h1 mat-dialog-title>{{ trl("updateDroneTask") }}</h1>
     <div mat-dialog-content>
       <mat-form-field style="width: 400px">
-        <mat-label>TaskID</mat-label>
+        <mat-label>{{ trl("taskId") }}</mat-label>
         <input readonly disabled matInput [(ngModel)]="data.taskId" />
       </mat-form-field>
       <mat-form-field style="width: 400px">
-        <mat-label>URL</mat-label>
+        <mat-label>{{ trl("url") }}</mat-label>
         <input matInput [(ngModel)]="data.url" />
       </mat-form-field>
     </div>
     <div mat-dialog-actions class="d-flex justify-content-end">
-      <button mat-button [mat-dialog-close]="data.url">Update</button>
-      <button mat-button [mat-dialog-close]="''" cdkFocusInitial>No</button>
+      <button mat-button [mat-dialog-close]="data.url">
+        {{ trl("update") }}
+      </button>
+      <button mat-button [mat-dialog-close]="''" cdkFocusInitial>
+        {{ trl("no") }}
+      </button>
     </div>
   `,
 })
 export class UpdateDroneTaskDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<UpdateDroneTaskDialogComponent, any>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    public i18n: I18n
   ) {}
+
+  trl(k, ...args) {
+    return this.i18n.trl("drone-task", k, ...args);
+  }
 }
