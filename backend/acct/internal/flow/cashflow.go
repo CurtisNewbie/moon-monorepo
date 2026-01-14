@@ -90,7 +90,7 @@ func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFl
 					}
 				}
 			}
-			q = q.EqNotEmpty("direction = ?", req.Direction)
+			q = q.EqNotEmpty("direction", req.Direction)
 			return q
 		}).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
