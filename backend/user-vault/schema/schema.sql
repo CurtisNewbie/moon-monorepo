@@ -1,6 +1,6 @@
 create database if not exists user_vault;
 
-CREATE TABLE `user` (
+CREATE TABLE user_vault.user (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `username` varchar(50) NOT NULL COMMENT 'username',
   `password` varchar(255) NOT NULL COMMENT 'password in hash',
@@ -20,7 +20,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `user_no` (`user_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User';
 
-CREATE TABLE `user_key` (
+CREATE TABLE user_vault.user_key (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_id` int(10) unsigned NOT NULL COMMENT 'user.id',
   `name` varchar(255) NOT NULL DEFAULT '' COMMENT 'name of the key',
@@ -38,7 +38,7 @@ CREATE TABLE `user_key` (
   KEY `user_no_idx` (`user_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='user key';
 
-CREATE TABLE `access_log` (
+CREATE TABLE user_vault.access_log (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `access_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'when the user signed in',
   `ip_address` varchar(255) NOT NULL COMMENT 'ip address',
@@ -57,7 +57,7 @@ CREATE TABLE `access_log` (
   KEY `username_idx` (`username`,`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='access log';
 
-CREATE TABLE `path` (
+CREATE TABLE user_vault.path (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `pgroup` varchar(20) NOT NULL DEFAULT '' COMMENT 'path group',
   `path_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'path no',
@@ -75,7 +75,7 @@ CREATE TABLE `path` (
   KEY `path_no` (`path_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Paths'
 
-CREATE TABLE `path_resource` (
+CREATE TABLE user_vault.path_resource (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `path_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'path no',
   `res_code` varchar(128) NOT NULL DEFAULT '' COMMENT 'resource code',
@@ -89,7 +89,7 @@ CREATE TABLE `path_resource` (
   KEY `path_no` (`path_no`,`res_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Path Resource';
 
-CREATE TABLE `resource` (
+CREATE TABLE user_vault.resource (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `code` varchar(128) NOT NULL DEFAULT '' COMMENT 'resource code',
   `name` varchar(128) NOT NULL DEFAULT '' COMMENT 'resource name',
@@ -103,7 +103,7 @@ CREATE TABLE `resource` (
   KEY `code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Resources';
 
-CREATE TABLE `role` (
+CREATE TABLE user_vault.role (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT 'name of role',
@@ -117,7 +117,7 @@ CREATE TABLE `role` (
   KEY `role_no` (`role_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Roles';
 
-CREATE TABLE `role_resource` (
+CREATE TABLE user_vault.role_resource (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `role_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'role no',
   `res_code` varchar(128) NOT NULL DEFAULT '' COMMENT 'resource code',
@@ -131,7 +131,7 @@ CREATE TABLE `role_resource` (
   KEY `role_no` (`role_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Role resources'
 
-CREATE TABLE `notification` (
+CREATE TABLE user_vault.notification (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `notifi_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'notification no',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
@@ -149,7 +149,7 @@ CREATE TABLE `notification` (
   KEY `user_no_status_idx` (`user_no`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Platform Notification';
 
-CREATE TABLE `site_password` (
+CREATE TABLE user_vault.site_password (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `record_id` varchar(32) NOT NULL DEFAULT '' COMMENT 'record unique id',
   `site` varchar(64) NOT NULL DEFAULT '' COMMENT 'site',
@@ -170,7 +170,7 @@ CREATE TABLE `site_password` (
   KEY `user_username_idx` (`user_no`,`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Personal passwords for different sites';
 
-CREATE TABLE note (
+CREATE TABLE user_vault.note (
     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
     `record_id` varchar(40) NOT NULL DEFAULT '' COMMENT 'record_id',
     `title` text NULL DEFAULT NULL COMMENT 'title',
