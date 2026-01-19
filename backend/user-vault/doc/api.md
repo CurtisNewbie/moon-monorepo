@@ -5072,12 +5072,12 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/postbox.ListedNotification]) response data
+    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/repo.ListedNotification]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]postbox.ListedNotification) payload values in current page
+      - "payload": ([]repo.ListedNotification) payload values in current page
         - "id": (int) 
         - "notifiNo": (string) 
         - "title": (string) 

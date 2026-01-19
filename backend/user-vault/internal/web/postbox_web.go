@@ -6,6 +6,7 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/curtisnewbie/user-vault/internal/postbox"
+	"github.com/curtisnewbie/user-vault/internal/repo"
 	"github.com/spf13/cast"
 )
 
@@ -18,51 +19,51 @@ func RegisterPostboxRoutes(rail miso.Rail) {
 
 	miso.BaseRoute("/open/api/v1/notification").Group(
 
-		miso.HttpPost("/create", miso.AutoHandler(CreateNotificationEp)).
+		miso.HttpPost("/create", miso.AutoHandler(ApiCreateNotification)).
 			Desc("Create platform notification").
 			Resource(ResourceCreateNotification),
 
-		miso.HttpPost("/query", miso.AutoHandler(QueryNotificationEp)).
+		miso.HttpPost("/query", miso.AutoHandler(ApiQueryNotification)).
 			Desc("Query platform notification").
 			Resource(ResourceQueryNotification),
 
-		miso.HttpGet("/count", miso.ResHandler(CountNotificationEp)).
+		miso.HttpGet("/count", miso.ResHandler(ApiCountNotification)).
 			Desc("Count received platform notification").
 			Resource(ResourceQueryNotification),
 
-		miso.HttpPost("/open", miso.AutoHandler(OpenNotificationEp)).
+		miso.HttpPost("/open", miso.AutoHandler(ApiOpenNotification)).
 			Desc("Record user opened platform notification").
 			Resource(ResourceQueryNotification),
 
-		miso.HttpPost("/open-all", miso.AutoHandler(OpenAllNotificationEp)).
+		miso.HttpPost("/open-all", miso.AutoHandler(ApiOpenAllNotification)).
 			Desc("Mark all notifications opened").
 			Resource(ResourceQueryNotification),
 	)
 
 	miso.BaseRoute("/open/api/v2/notification").Group(
-		miso.HttpGet("/count", miso.RawHandler(CountNotificationV2Ep)).
+		miso.HttpGet("/count", miso.RawHandler(ApiV2CountNotification)).
 			Desc("Count received platform notification using long polling").
 			DocQueryParam("curr", "Current count (used to implement long polling)").
 			Resource(ResourceQueryNotification),
 	)
 }
 
-func CreateNotificationEp(inb *miso.Inbound, req api.CreateNotificationReq) (any, error) {
+func ApiCreateNotification(inb *miso.Inbound, req api.CreateNotificationReq) (any, error) {
 	rail := inb.Rail()
 	return nil, postbox.CreateNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
-func QueryNotificationEp(inb *miso.Inbound, req postbox.QueryNotificationReq) (miso.PageRes[postbox.ListedNotification], error) {
+func ApiQueryNotification(inb *miso.Inbound, req repo.QueryNotificationReq) (miso.PageRes[repo.ListedNotification], error) {
 	rail := inb.Rail()
-	return postbox.QueryNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return repo.QueryNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
-func CountNotificationEp(inb *miso.Inbound) (int, error) {
+func ApiCountNotification(inb *miso.Inbound) (int, error) {
 	rail := inb.Rail()
 	return postbox.CachedCountNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
 }
 
-func CountNotificationV2Ep(inb *miso.Inbound) {
+func ApiV2CountNotification(inb *miso.Inbound) {
 	rail := inb.Rail()
 	user := common.GetUser(rail)
 	w, _ := inb.Unwrap()
@@ -73,12 +74,12 @@ func CountNotificationV2Ep(inb *miso.Inbound) {
 	postbox.Poll(rail, user, mysql.GetMySQL(), w, curr)
 }
 
-func OpenNotificationEp(inb *miso.Inbound, req postbox.OpenNotificationReq) (any, error) {
+func ApiOpenNotification(inb *miso.Inbound, req repo.OpenNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, postbox.OpenNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return nil, repo.OpenNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }
 
-func OpenAllNotificationEp(inb *miso.Inbound, req postbox.OpenNotificationReq) (any, error) {
+func ApiOpenAllNotification(inb *miso.Inbound, req repo.OpenNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, postbox.OpenAllNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return nil, repo.OpenAllNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
 }

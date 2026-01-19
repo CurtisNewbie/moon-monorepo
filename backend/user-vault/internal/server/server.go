@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
@@ -14,11 +13,6 @@ func BootstrapServer(args []string) {
 	common.LoadBuiltinPropagationKeys()
 
 	miso.PreServerBootstrap(
-		func(rail miso.Rail) error {
-			dbquery.PrepareCreateModelHook()
-			dbquery.PrepareUpdateModelHook()
-			return nil
-		},
 		vault.SubscribeBinlogEvent,
 		postbox.PrepareLongPollHandler,
 		func(rail miso.Rail) error {
