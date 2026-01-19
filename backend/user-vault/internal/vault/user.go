@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/jwt"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/hash"
@@ -388,7 +388,7 @@ type AdminUpdateUserReq struct {
 	IsDisabled int    `json:"isDisabled"`
 }
 
-func AdminUpdateUser(rail miso.Rail, db *gorm.DB, req AdminUpdateUserReq, operator common.User) error {
+func AdminUpdateUser(rail miso.Rail, db *gorm.DB, req AdminUpdateUserReq, operator flow.User) error {
 	if operator.UserNo == req.UserNo {
 		return errs.NewErrf("You cannot update yourself")
 	}

@@ -3,9 +3,9 @@ package postbox
 import (
 	"time"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/curtisnewbie/user-vault/internal/vault"
@@ -24,7 +24,7 @@ func InitPipeline(rail miso.Rail) error {
 			rail.Errorf("Invalid event, %#v, %v", evt, err)
 			return nil
 		}
-		return CreateNotification(rail, mysql.GetMySQL(), api.CreateNotificationReq(evt), common.NilUser())
+		return CreateNotification(rail, mysql.GetMySQL(), api.CreateNotificationReq(evt), flow.NilUser())
 	})
 
 	api.CreateNotifiByAccessPipeline.Listen(2, func(rail miso.Rail, evt api.CreateNotifiByAccessEvent) error {
@@ -58,7 +58,7 @@ func InitPipeline(rail miso.Rail) error {
 			Title:           evt.Title,
 			Message:         evt.Message,
 			ReceiverUserNos: un,
-		}, common.NilUser())
+		}, flow.NilUser())
 	})
 	return nil
 }

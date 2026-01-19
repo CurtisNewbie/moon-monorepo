@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/curtisnewbie/miso/flow"
 	red "github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/async"
 	"github.com/curtisnewbie/miso/util/json"
@@ -93,7 +93,7 @@ func (l *LongPolling) Notify(userNo string) {
 	}
 }
 
-func (l *LongPolling) Poll(rail miso.Rail, user common.User, db *gorm.DB, w http.ResponseWriter, curr int) {
+func (l *LongPolling) Poll(rail miso.Rail, user flow.User, db *gorm.DB, w http.ResponseWriter, curr int) {
 	userNo := user.UserNo
 	lps := NewLongPollSub(user.UserNo, w)
 	rail.Infof("User %v subscribes notifications using LongPolling, %v", userNo, lps.id)
@@ -218,6 +218,6 @@ func NewLongPollSub(userId string, w http.ResponseWriter) *LPSub {
 	}
 }
 
-func Poll(rail miso.Rail, user common.User, db *gorm.DB, w http.ResponseWriter, curr int) {
+func Poll(rail miso.Rail, user flow.User, db *gorm.DB, w http.ResponseWriter, curr int) {
 	longPollingHandler.Poll(rail, user, db, w, curr)
 }

@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/jwt"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/sirupsen/logrus"
@@ -120,7 +120,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		UserNo:     "",
 		RoleNo:     "role_628043111874560208429",
 		IsDisabled: 0,
-	}, common.NilUser())
+	}, flow.NilUser())
 	if err != nil {
 		t.Fatal(err)
 	}

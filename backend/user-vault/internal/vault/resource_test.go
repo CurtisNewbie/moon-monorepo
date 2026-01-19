@@ -3,9 +3,9 @@ package vault
 import (
 	"testing"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
 )
@@ -56,7 +56,7 @@ func TestCreatePathIfNotExist(t *testing.T) {
 		Url:   "/goauth/open/api/role/resource/add",
 		Group: "goauth",
 	}
-	e := CreatePath(miso.EmptyRail(), req, common.NilUser())
+	e := CreatePath(miso.EmptyRail(), req, flow.NilUser())
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -82,7 +82,7 @@ func TestCreateRes(t *testing.T) {
 		Name: "GoAuth Test  ",
 	}
 
-	e := CreateResourceIfNotExist(miso.EmptyRail(), req, common.NilUser())
+	e := CreateResourceIfNotExist(miso.EmptyRail(), req, flow.NilUser())
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -152,7 +152,7 @@ func TestAddRole(t *testing.T) {
 		Name: "Guest",
 	}
 
-	e := AddRole(miso.EmptyRail(), req, common.NilUser())
+	e := AddRole(miso.EmptyRail(), req, flow.NilUser())
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -166,7 +166,7 @@ func TestAddResToRole(t *testing.T) {
 		ResCode: "res_555323073019904208429",
 	}
 
-	e := AddResToRoleIfNotExist(miso.EmptyRail(), req, common.NilUser())
+	e := AddResToRoleIfNotExist(miso.EmptyRail(), req, flow.NilUser())
 	if e != nil {
 		t.Fatal(e)
 	}

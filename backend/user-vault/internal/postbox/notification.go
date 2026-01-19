@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/event-pump/client"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/slutil"
 	"github.com/curtisnewbie/user-vault/api"
@@ -18,7 +18,7 @@ var (
 	userNotifCountCache = redis.NewRCache[int]("postbox:notification:count", redis.RCacheConfig{Exp: time.Minute * 30})
 )
 
-func CreateNotification(rail miso.Rail, db *gorm.DB, req api.CreateNotificationReq, user common.User) error {
+func CreateNotification(rail miso.Rail, db *gorm.DB, req api.CreateNotificationReq, user flow.User) error {
 	if len(req.ReceiverUserNos) < 1 {
 		return nil
 	}
@@ -40,7 +40,7 @@ func CreateNotification(rail miso.Rail, db *gorm.DB, req api.CreateNotificationR
 	return nil
 }
 
-func CachedCountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
+func CachedCountNotification(rail miso.Rail, db *gorm.DB, user flow.User) (int, error) {
 	v, err := userNotifCountCache.GetValElse(rail, user.UserNo, func() (int, error) {
 		return repo.CountNotification(rail, db, user)
 	})
@@ -61,4 +61,8 @@ func evictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {
 		rail.Errorf("Failed to publish user notification count change to %v, %v, %v", userNotifCountChangedChannel, userNo, c.Err())
 	}
 	return nil
+}
+
+func QueryNotification(rail miso.Rail, db *gorm.DB, req repo.QueryNotificationReq, user flow.User) (miso.PageRes[repo.ListedNotification], error) {
+	return repo.QueryNotification(rail, db, req, user)
 }

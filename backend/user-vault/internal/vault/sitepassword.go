@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/crypto"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/snowflake"
@@ -28,7 +28,7 @@ type ListSitePasswordRes struct {
 	CreateTime atom.Time `gorm:"column:created_at" json:"createTime"`
 }
 
-func ListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user common.User, db *gorm.DB) (miso.PageRes[ListSitePasswordRes], error) {
+func ListSitePasswords(rail miso.Rail, req ListSitePasswordReq, user flow.User, db *gorm.DB) (miso.PageRes[ListSitePasswordRes], error) {
 	return dbquery.NewPagedQuery[ListSitePasswordRes](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Table("site_password").
@@ -51,7 +51,7 @@ type AddSitePasswordReq struct {
 	LoginPassword string `valid:"notEmpty" json:"loginPassword"`
 }
 
-func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user common.User, db *gorm.DB) error {
+func AddSitePassword(rail miso.Rail, req AddSitePasswordReq, user flow.User, db *gorm.DB) error {
 	u, err := loadUser(rail, db, user.Username)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ type RemoveSitePasswordRes struct {
 	RecordId string `valid:"notEmpty" json:"recordId"`
 }
 
-func RemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes, user common.User, db *gorm.DB) error {
+func RemoveSitePassword(rail miso.Rail, req RemoveSitePasswordRes, user flow.User, db *gorm.DB) error {
 	_, err := loadBasicSitePassword(rail, db, user.UserNo, req.RecordId)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ type DecryptSitePasswordRes struct {
 	Decrypted string `json:"decrypted"`
 }
 
-func DecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq, user common.User, db *gorm.DB) (DecryptSitePasswordRes, error) {
+func DecryptSitePassword(rail miso.Rail, req DecryptSitePasswordReq, user flow.User, db *gorm.DB) (DecryptSitePasswordRes, error) {
 	bsp, err := loadBasicSitePassword(rail, db, user.UserNo, req.RecordId)
 	if err != nil {
 		return DecryptSitePasswordRes{}, err
@@ -176,7 +176,7 @@ type EditSitePasswordReq struct {
 	LoginPassword string `desc:"only used when site password is provided" json:"loginPassword"`
 }
 
-func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user common.User, db *gorm.DB) error {
+func EditSitePassword(rail miso.Rail, req EditSitePasswordReq, user flow.User, db *gorm.DB) error {
 	_, err := loadBasicSitePassword(rail, db, user.UserNo, req.RecordId)
 	if err != nil {
 		return err

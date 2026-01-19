@@ -7,7 +7,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/async"
 	"github.com/spf13/cast"
@@ -81,7 +81,7 @@ func QueryResourcePathAsync(rail miso.Rail, server miso.Server, m MonitoredServi
 			rail.Errorf("monitor service %v failed, %v", m.Service, err)
 		} else {
 			rail.Debugf("service %v (%v:%v), returned resouces/paths: %+v", m.Service, server.Address, server.Port, res)
-			user := common.NilUser() // just to satisfy the method, it's always a zero value
+			user := flow.NilUser() // just to satisfy the method, it's always a zero value
 			for _, r := range res.Resources {
 				if err := CreateResourceIfNotExist(rail, r, user); err != nil {
 					rail.Errorf("failed to create resource, req: %+v, %v", r, err)

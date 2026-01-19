@@ -8,11 +8,11 @@ import (
 
 	doublestar "github.com/bmatcuk/doublestar/v4"
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/slutil"
@@ -365,7 +365,7 @@ func GetRoleInfo(rail miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) 
 	return resp, err
 }
 
-func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user common.User) error {
+func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user flow.User) error {
 	req.Name = strings.TrimSpace(req.Name)
 	req.Code = strings.TrimSpace(req.Code)
 
@@ -403,7 +403,7 @@ func genPathNo(group string, url string, method string) string {
 	return "path_" + base64.StdEncoding.EncodeToString(cksum[:])
 }
 
-func CreatePath(rail miso.Rail, req CreatePathReq, user common.User) error {
+func CreatePath(rail miso.Rail, req CreatePathReq, user flow.User) error {
 	req.Url = preprocessUrl(req.Url)
 	req.Group = strings.TrimSpace(req.Group)
 	req.Method = strings.ToUpper(strings.TrimSpace(req.Method))
@@ -594,7 +594,7 @@ func ListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
 	}, nil
 }
 
-func AddRole(rail miso.Rail, req AddRoleReq, user common.User) error {
+func AddRole(rail miso.Rail, req AddRoleReq, user flow.User) error {
 	_, e := redis.RLockRun(rail, "user-vault:role:add"+req.Name, func() (any, error) {
 		return nil, dbquery.NewQuery(rail).
 			Table("role").
@@ -619,7 +619,7 @@ func RemoveResFromRole(rail miso.Rail, req RemoveRoleResReq) error {
 	return e
 }
 
-func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user common.User) error {
+func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user flow.User) error {
 
 	_, e := redis.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) { // lock for role
 		return lockResourceGlobal(rail, func() (any, error) {
@@ -1014,7 +1014,7 @@ func RegisterInternalPathResourcesOnBootstrapped(res []auth.Resource) {
 
 	miso.PostServerBootstrap(func(rail miso.Rail) error {
 
-		user := common.NilUser()
+		user := flow.NilUser()
 
 		app := miso.GetPropStr(miso.PropAppName)
 		for _, res := range res {

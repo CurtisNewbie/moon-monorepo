@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/snowflake"
@@ -27,7 +27,7 @@ type SaveNotifiReq struct {
 	Message string
 }
 
-func SaveNotification(rail miso.Rail, db *gorm.DB, req SaveNotifiReq, user common.User) error {
+func SaveNotification(rail miso.Rail, db *gorm.DB, req SaveNotifiReq, user flow.User) error {
 	notifiNo := NotifiNo()
 	err := dbquery.NewQuery(rail, db).
 		NotLogSQL().
@@ -67,7 +67,7 @@ type QueryNotificationReq struct {
 	Status string      `json:"status"`
 }
 
-func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, user common.User) (miso.PageRes[ListedNotification], error) {
+func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, user flow.User) (miso.PageRes[ListedNotification], error) {
 	return dbquery.NewPagedQuery[ListedNotification](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Table(TableNotification).
@@ -83,7 +83,7 @@ func QueryNotification(rail miso.Rail, db *gorm.DB, req QueryNotificationReq, us
 		Scan(rail, req.Page)
 }
 
-func CountNotification(rail miso.Rail, db *gorm.DB, user common.User) (int, error) {
+func CountNotification(rail miso.Rail, db *gorm.DB, user flow.User) (int, error) {
 	count, err := dbquery.NewQuery(rail, db).
 		Table(TableNotification).
 		Eq("user_no", user.UserNo).
@@ -96,7 +96,7 @@ type OpenNotificationReq struct {
 	NotifiNo string `valid:"notEmpty" json:"notifiNo"`
 }
 
-func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
+func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user flow.User) error {
 	err := dbquery.NewQuery(rail, db).
 		Table(TableNotification).
 		Set("status", StatusOpened).
@@ -106,7 +106,7 @@ func OpenNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user
 	return err
 }
 
-func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user common.User) error {
+func OpenAllNotification(rail miso.Rail, db *gorm.DB, req OpenNotificationReq, user flow.User) error {
 	var id int
 	n, err := dbquery.NewQuery(rail, db).
 		Table("notification").

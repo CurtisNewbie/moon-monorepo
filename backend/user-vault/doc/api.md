@@ -3276,6 +3276,12 @@
   	Username *string `json:"username"`
   }
 
+  type User struct {
+  	UserNo string `json:"userNo"`
+  	Username string `json:"username"`
+  	RoleNo string `json:"roleNo"`
+  }
+
   // System fetch user info as common.User
   func ApiSysFetchUserInfo(rail miso.Rail, req FindUserReq) (miso.User, error) {
   	var res miso.GnResp[miso.User]

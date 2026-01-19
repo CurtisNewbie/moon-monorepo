@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/internal/postbox"
 	"github.com/curtisnewbie/user-vault/internal/vault"
@@ -10,7 +9,6 @@ import (
 )
 
 func BootstrapServer(args []string) {
-	common.LoadBuiltinPropagationKeys()
 
 	miso.PreServerBootstrap(
 		vault.SubscribeBinlogEvent,

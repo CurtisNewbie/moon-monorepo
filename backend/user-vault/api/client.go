@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/miso"
 )
 
@@ -111,14 +111,14 @@ type FindUserCommonReq struct {
 	UserNo string `json:"userNo"`
 }
 
-func FindUserCommon(rail miso.Rail, req FindUserCommonReq) (common.User, error) {
-	var res miso.GnResp[common.User]
+func FindUserCommon(rail miso.Rail, req FindUserCommonReq) (flow.User, error) {
+	var res miso.GnResp[flow.User]
 	err := miso.NewDynClient(rail, "/internal/v1/user/info/common", "user-vault").
 		PostJson(req).
 		Json(&res)
 	if err != nil {
 		rail.Errorf("Request failed, %v", err)
-		var dat common.User
+		var dat flow.User
 		return dat, err
 	}
 	dat, err := res.Res()

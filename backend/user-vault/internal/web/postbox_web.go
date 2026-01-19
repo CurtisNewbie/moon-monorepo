@@ -1,8 +1,8 @@
 package web
 
 import (
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/curtisnewbie/user-vault/internal/postbox"
@@ -50,22 +50,22 @@ func RegisterPostboxRoutes(rail miso.Rail) {
 
 func ApiCreateNotification(inb *miso.Inbound, req api.CreateNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, postbox.CreateNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return nil, postbox.CreateNotification(rail, mysql.GetMySQL(), req, flow.GetUser(rail))
 }
 
 func ApiQueryNotification(inb *miso.Inbound, req repo.QueryNotificationReq) (miso.PageRes[repo.ListedNotification], error) {
 	rail := inb.Rail()
-	return repo.QueryNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return repo.QueryNotification(rail, mysql.GetMySQL(), req, flow.GetUser(rail))
 }
 
 func ApiCountNotification(inb *miso.Inbound) (int, error) {
 	rail := inb.Rail()
-	return postbox.CachedCountNotification(rail, mysql.GetMySQL(), common.GetUser(rail))
+	return postbox.CachedCountNotification(rail, mysql.GetMySQL(), flow.GetUser(rail))
 }
 
 func ApiV2CountNotification(inb *miso.Inbound) {
 	rail := inb.Rail()
-	user := common.GetUser(rail)
+	user := flow.GetUser(rail)
 	w, _ := inb.Unwrap()
 	curr := cast.ToInt(inb.Query("curr"))
 	if curr < 0 {
@@ -76,10 +76,10 @@ func ApiV2CountNotification(inb *miso.Inbound) {
 
 func ApiOpenNotification(inb *miso.Inbound, req repo.OpenNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, repo.OpenNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return nil, repo.OpenNotification(rail, mysql.GetMySQL(), req, flow.GetUser(rail))
 }
 
 func ApiOpenAllNotification(inb *miso.Inbound, req repo.OpenNotificationReq) (any, error) {
 	rail := inb.Rail()
-	return nil, repo.OpenAllNotification(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return nil, repo.OpenAllNotification(rail, mysql.GetMySQL(), req, flow.GetUser(rail))
 }

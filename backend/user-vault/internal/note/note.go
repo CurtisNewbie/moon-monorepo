@@ -2,9 +2,9 @@ package note
 
 import (
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/idutil"
@@ -28,7 +28,7 @@ type SaveNoteReq struct {
 	Content string `json:"content"`
 }
 
-func DBSaveNote(rail miso.Rail, db *gorm.DB, snr SaveNoteReq, user common.User) error {
+func DBSaveNote(rail miso.Rail, db *gorm.DB, snr SaveNoteReq, user flow.User) error {
 	return dbquery.NewQuery(rail, db).
 		Table(TableNote).
 		CreateAny(struct {
@@ -52,7 +52,7 @@ type UpdateNoteReq struct {
 	Content  string `json:"content"`
 }
 
-func DBUpdateNote(rail miso.Rail, db *gorm.DB, unr UpdateNoteReq, user common.User) error {
+func DBUpdateNote(rail miso.Rail, db *gorm.DB, unr UpdateNoteReq, user flow.User) error {
 	return dbquery.NewQuery(rail, db).
 		Table(TableNote).
 		SetCols(struct {
@@ -69,7 +69,7 @@ func DBUpdateNote(rail miso.Rail, db *gorm.DB, unr UpdateNoteReq, user common.Us
 		UpdateAny()
 }
 
-func DBDeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user common.User) error {
+func DBDeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user flow.User) error {
 	return dbquery.NewQuery(rail, db).
 		Table(TableNote).
 		SetCols(struct {
@@ -117,7 +117,7 @@ type ListNoteReq struct {
 	Paging   miso.Paging `json:"paging"`
 }
 
-func ListNotes(rail miso.Rail, db *gorm.DB, req ListNoteReq, user common.User) (miso.PageRes[Note], error) {
+func ListNotes(rail miso.Rail, db *gorm.DB, req ListNoteReq, user flow.User) (miso.PageRes[Note], error) {
 	return dbquery.NewPagedQuery[Note](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Table(TableNote).
@@ -131,7 +131,7 @@ func ListNotes(rail miso.Rail, db *gorm.DB, req ListNoteReq, user common.User) (
 		Scan(rail, req.Paging)
 }
 
-func UpdateNote(rail miso.Rail, db *gorm.DB, req UpdateNoteReq, user common.User) error {
+func UpdateNote(rail miso.Rail, db *gorm.DB, req UpdateNoteReq, user flow.User) error {
 	lock := NewNoteLock(rail, req.RecordId)
 	if err := lock.Lock(); err != nil {
 		return err
@@ -145,7 +145,7 @@ func UpdateNote(rail miso.Rail, db *gorm.DB, req UpdateNoteReq, user common.User
 	return DBUpdateNote(rail, db, req, user)
 }
 
-func DeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user common.User) error {
+func DeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user flow.User) error {
 	lock := NewNoteLock(rail, recordId)
 	if err := lock.Lock(); err != nil {
 		return err

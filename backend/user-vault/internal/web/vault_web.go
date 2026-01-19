@@ -3,8 +3,8 @@ package web
 import (
 	"strings"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/user-vault/api"
@@ -129,7 +129,7 @@ func ApiAdminListUsers(inb *miso.Inbound, req vault.ListUserReq) (miso.PageRes[v
 // misoapi-resource: ref(ResourceManagerUser)
 func ApiAdminUpdateUser(inb *miso.Inbound, req vault.AdminUpdateUserReq) (any, error) {
 	rail := inb.Rail()
-	return nil, vault.AdminUpdateUser(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return nil, vault.AdminUpdateUser(rail, mysql.GetMySQL(), req, flow.GetUser(rail))
 }
 
 // misoapi-http: POST /open/api/user/registration/review
@@ -147,7 +147,7 @@ func ApiUserGetUserInfo(inb *miso.Inbound) (UserInfoRes, error) {
 	rail := inb.Rail()
 	timer := miso.NewHistTimer(metrics.FetchUserInfoHisto)
 	defer timer.ObserveDuration()
-	u := common.GetUser(rail)
+	u := flow.GetUser(rail)
 	if u.UserNo == "" {
 		return UserInfoRes{}, nil
 	}
@@ -173,7 +173,7 @@ func ApiUserGetUserInfo(inb *miso.Inbound) (UserInfoRes, error) {
 // misoapi-resource: ref(ResourceBasicUser)
 func ApiUserUpdatePassword(inb *miso.Inbound, req vault.UpdatePasswordReq) (any, error) {
 	rail := inb.Rail()
-	u := common.GetUser(rail)
+	u := flow.GetUser(rail)
 	return nil, vault.UpdatePassword(rail, mysql.GetMySQL(), u.Username, req)
 }
 
@@ -200,7 +200,7 @@ func ApiGetTokenUserInfo(inb *miso.Inbound, req GetTokenUserReq) (vault.UserInfo
 // misoapi-resource: ref(ResourceBasicUser)
 func ApiUserListAccessHistory(inb *miso.Inbound, req vault.ListAccessLogReq) (miso.PageRes[vault.ListedAccessLog], error) {
 	rail := inb.Rail()
-	return vault.ListAccessLogs(rail, mysql.GetMySQL(), common.GetUser(rail), req)
+	return vault.ListAccessLogs(rail, mysql.GetMySQL(), flow.GetUser(rail), req)
 }
 
 // misoapi-http: POST /open/api/user/key/generate
@@ -208,7 +208,7 @@ func ApiUserListAccessHistory(inb *miso.Inbound, req vault.ListAccessLogReq) (mi
 // misoapi-resource: ref(ResourceBasicUser)
 func ApiUserGenUserKey(inb *miso.Inbound, req vault.GenUserKeyReq) (any, error) {
 	rail := inb.Rail()
-	return nil, vault.GenUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).Username)
+	return nil, vault.GenUserKey(rail, mysql.GetMySQL(), req, flow.GetUser(rail).Username)
 }
 
 // misoapi-http: POST /open/api/user/key/list
@@ -216,7 +216,7 @@ func ApiUserGenUserKey(inb *miso.Inbound, req vault.GenUserKeyReq) (any, error) 
 // misoapi-resource: ref(ResourceBasicUser)
 func ApiUserListUserKeys(inb *miso.Inbound, req vault.ListUserKeysReq) (miso.PageRes[vault.ListedUserKey], error) {
 	rail := inb.Rail()
-	return vault.ListUserKeys(rail, mysql.GetMySQL(), req, common.GetUser(rail))
+	return vault.ListUserKeys(rail, mysql.GetMySQL(), req, flow.GetUser(rail))
 }
 
 // misoapi-http: POST /open/api/user/key/delete
@@ -224,7 +224,7 @@ func ApiUserListUserKeys(inb *miso.Inbound, req vault.ListUserKeysReq) (miso.Pag
 // misoapi-resource: ref(ResourceBasicUser)
 func ApiUserDeleteUserKey(inb *miso.Inbound, req vault.DeleteUserKeyReq) (any, error) {
 	rail := inb.Rail()
-	return nil, vault.DeleteUserKey(rail, mysql.GetMySQL(), req, common.GetUser(rail).UserNo)
+	return nil, vault.DeleteUserKey(rail, mysql.GetMySQL(), req, flow.GetUser(rail).UserNo)
 }
 
 // misoapi-http: POST /open/api/resource/add
@@ -232,7 +232,7 @@ func ApiUserDeleteUserKey(inb *miso.Inbound, req vault.DeleteUserKeyReq) (any, e
 // misoapi-resource: ref(ResourceManageResources)
 func ApiAdminAddResource(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
 	rail := inb.Rail()
-	user := common.GetUser(rail)
+	user := flow.GetUser(rail)
 	return nil, vault.CreateResourceIfNotExist(rail, req, user)
 }
 
@@ -265,7 +265,7 @@ func ApiAdminListRes(inb *miso.Inbound, req vault.ListResReq) (vault.ListResResp
 // misoapi-scope: PUBLIC
 func ApiListUserAccessibleRes(inb *miso.Inbound) ([]vault.ResBrief, error) {
 	rail := inb.Rail()
-	u := common.GetUser(rail)
+	u := flow.GetUser(rail)
 	if u.IsNil {
 		return []vault.ResBrief{}, nil
 	}
@@ -285,7 +285,7 @@ func ApiListAllResBrief(inb *miso.Inbound) ([]vault.ResBrief, error) {
 // misoapi-resource: ref(ResourceManageResources)
 func ApiAdminBindRoleRes(inb *miso.Inbound, req vault.AddRoleResReq) (any, error) {
 	rail := inb.Rail()
-	user := common.GetUser(rail)
+	user := flow.GetUser(rail)
 	return nil, vault.AddResToRoleIfNotExist(rail, req, user)
 }
 
@@ -302,7 +302,7 @@ func ApiAdminUnbindRoleRes(inb *miso.Inbound, req vault.RemoveRoleResReq) (any, 
 // misoapi-resource: ref(ResourceManageResources)
 func ApiAdminAddRole(inb *miso.Inbound, req vault.AddRoleReq) (any, error) {
 	rail := inb.Rail()
-	user := common.GetUser(rail)
+	user := flow.GetUser(rail)
 	return nil, vault.AddRole(rail, req, user)
 }
 
@@ -387,13 +387,13 @@ func ApiFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (vault.UserInfo, e
 
 // misoapi-http: POST /internal/v1/user/info/common
 // misoapi-desc: System fetch user info as common.User
-func ApiSysFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (common.User, error) {
+func ApiSysFetchUserInfo(inb *miso.Inbound, req api.FindUserReq) (flow.User, error) {
 	rail := inb.Rail()
 	v, err := vault.ItnFindUserInfo(rail, mysql.GetMySQL(), req)
 	if err != nil {
-		return common.User{}, err
+		return flow.User{}, err
 	}
-	return common.User{
+	return flow.User{
 		UserNo:   v.UserNo,
 		Username: v.Username,
 		RoleNo:   v.RoleNo,
@@ -434,7 +434,7 @@ func ApiFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceR
 // misoapi-desc: Report resource. This endpoint should be used internally by another backend service.
 func ApiReportResourceEp(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
 	rail := inb.Rail()
-	user := common.GetUser(rail)
+	user := flow.GetUser(rail)
 	return nil, vault.CreateResourceIfNotExist(rail, req, user)
 }
 
@@ -452,42 +452,42 @@ func ApiCheckResourceAccessEp(inb *miso.Inbound, req api.CheckResAccessReq) (api
 // misoapi-resource: ref(ResourceManageResources)
 func ApiReportPath(inb *miso.Inbound, req vault.CreatePathReq) (any, error) {
 	rail := inb.Rail()
-	user := common.GetUser(rail)
+	user := flow.GetUser(rail)
 	return nil, vault.CreatePath(rail, req, user)
 }
 
 // misoapi-http: POST /open/api/password/list-site-passwords
 // misoapi-desc: List site password records
 // misoapi-resource: ref(ResourceBasicUser)
-func ApiListSitePasswords(rail miso.Rail, req vault.ListSitePasswordReq, user common.User, db *gorm.DB) (miso.PageRes[vault.ListSitePasswordRes], error) {
+func ApiListSitePasswords(rail miso.Rail, req vault.ListSitePasswordReq, user flow.User, db *gorm.DB) (miso.PageRes[vault.ListSitePasswordRes], error) {
 	return vault.ListSitePasswords(rail, req, user, db)
 }
 
 // misoapi-http: POST /open/api/password/add-site-password
 // misoapi-desc: Add site password record
 // misoapi-resource: ref(ResourceBasicUser)
-func ApiAddSitePassword(rail miso.Rail, req vault.AddSitePasswordReq, user common.User, db *gorm.DB) (any, error) {
+func ApiAddSitePassword(rail miso.Rail, req vault.AddSitePasswordReq, user flow.User, db *gorm.DB) (any, error) {
 	return nil, vault.AddSitePassword(rail, req, user, db)
 }
 
 // misoapi-http: POST /open/api/password/remove-site-password
 // misoapi-desc: Remove site password record
 // misoapi-resource: ref(ResourceBasicUser)
-func ApiRemoveSitePassword(rail miso.Rail, req vault.RemoveSitePasswordRes, user common.User, db *gorm.DB) (any, error) {
+func ApiRemoveSitePassword(rail miso.Rail, req vault.RemoveSitePasswordRes, user flow.User, db *gorm.DB) (any, error) {
 	return nil, vault.RemoveSitePassword(rail, req, user, db)
 }
 
 // misoapi-http: POST /open/api/password/decrypt-site-password
 // misoapi-desc: Decrypt site password
 // misoapi-resource: ref(ResourceBasicUser)
-func ApiDecryptSitePassword(rail miso.Rail, req vault.DecryptSitePasswordReq, user common.User, db *gorm.DB) (vault.DecryptSitePasswordRes, error) {
+func ApiDecryptSitePassword(rail miso.Rail, req vault.DecryptSitePasswordReq, user flow.User, db *gorm.DB) (vault.DecryptSitePasswordRes, error) {
 	return vault.DecryptSitePassword(rail, req, user, db)
 }
 
 // misoapi-http: POST /open/api/password/edit-site-password
 // misoapi-desc: Edit site password
 // misoapi-resource: ref(ResourceBasicUser)
-func ApiEditSitePassword(rail miso.Rail, req vault.EditSitePasswordReq, user common.User, db *gorm.DB) (any, error) {
+func ApiEditSitePassword(rail miso.Rail, req vault.EditSitePasswordReq, user flow.User, db *gorm.DB) (any, error) {
 	return nil, vault.EditSitePassword(rail, req, user, db)
 }
 
@@ -505,7 +505,7 @@ func ApiClearUserFailedLoginAttempts(rail miso.Rail, req vault.ClearUserFailedLo
 //   - misoapi-http: POST /open/api/note/list-notes
 //   - misoapi-resource: ref(ResourceBasicUser)
 //   - misoapi-ngtable
-func ApiListNotes(rail miso.Rail, db *gorm.DB, req note.ListNoteReq, user common.User) (miso.PageRes[note.Note], error) {
+func ApiListNotes(rail miso.Rail, db *gorm.DB, req note.ListNoteReq, user flow.User) (miso.PageRes[note.Note], error) {
 	return note.ListNotes(rail, db, req, user)
 }
 
@@ -513,7 +513,7 @@ func ApiListNotes(rail miso.Rail, db *gorm.DB, req note.ListNoteReq, user common
 //
 //   - misoapi-http: POST /open/api/note/save-note
 //   - misoapi-resource: ref(ResourceBasicUser)
-func ApiSaveNote(rail miso.Rail, db *gorm.DB, req note.SaveNoteReq, user common.User) error {
+func ApiSaveNote(rail miso.Rail, db *gorm.DB, req note.SaveNoteReq, user flow.User) error {
 	return note.DBSaveNote(rail, db, req, user)
 }
 
@@ -521,7 +521,7 @@ func ApiSaveNote(rail miso.Rail, db *gorm.DB, req note.SaveNoteReq, user common.
 //
 //   - misoapi-http: POST /open/api/note/update-note
 //   - misoapi-resource: ref(ResourceBasicUser)
-func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req note.UpdateNoteReq, user common.User) error {
+func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req note.UpdateNoteReq, user flow.User) error {
 	return note.UpdateNote(rail, db, req, user)
 }
 
@@ -533,6 +533,6 @@ type ApiDeleteNoteReq struct {
 //
 //   - misoapi-http: POST /open/api/note/delete-note
 //   - misoapi-resource: ref(ResourceBasicUser)
-func ApiDeleteNote(rail miso.Rail, db *gorm.DB, req ApiDeleteNoteReq, user common.User) error {
+func ApiDeleteNote(rail miso.Rail, db *gorm.DB, req ApiDeleteNoteReq, user flow.User) error {
 	return note.DeleteNote(rail, db, req.RecordId, user)
 }

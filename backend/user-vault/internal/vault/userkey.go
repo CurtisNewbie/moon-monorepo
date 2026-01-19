@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/randutil"
@@ -67,7 +67,7 @@ type ListedUserKey struct {
 	CreateTime     atom.Time `json:"createTime" gorm:"column:created_at"`
 }
 
-func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user common.User) (miso.PageRes[ListedUserKey], error) {
+func ListUserKeys(rail miso.Rail, tx *gorm.DB, req ListUserKeysReq, user flow.User) (miso.PageRes[ListedUserKey], error) {
 	return dbquery.NewPagedQuery[ListedUserKey](tx).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.Table("user_key").

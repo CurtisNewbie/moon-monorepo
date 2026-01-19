@@ -1,8 +1,8 @@
 package vault
 
 import (
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"gorm.io/gorm"
@@ -37,7 +37,7 @@ type ListAccessLogReq struct {
 	Paging miso.Paging `json:"paging"`
 }
 
-func ListAccessLogs(rail miso.Rail, tx *gorm.DB, user common.User, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
+func ListAccessLogs(rail miso.Rail, tx *gorm.DB, user flow.User, req ListAccessLogReq) (miso.PageRes[ListedAccessLog], error) {
 	return dbquery.NewPagedQuery[ListedAccessLog](tx).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.SelectCols(ListedAccessLog{}).
