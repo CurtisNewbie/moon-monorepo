@@ -7,25 +7,18 @@ import (
 )
 
 func ScheduleTasks(rail miso.Rail) error {
-	err := task.ScheduleDistributedTask(miso.Job{
-		Cron: "*/30 * * * *",
-
-		Name:                   "LoadRoleAccessCacheTask",
-		TriggeredOnBoostrapped: true,
-		Run:                    vault.BatchLoadRoleAccessCache,
-	})
-	if err != nil {
-		return err
-	}
-	err = task.ScheduleDistributedTask(miso.Job{
-		Cron: "*/30 * * * *",
-
-		Name:                   "LoadPublicAccessCacheTask",
-		TriggeredOnBoostrapped: true,
-		Run:                    vault.LoadPublicAccessCache,
-	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return task.ScheduleDistributedTask(
+		miso.Job{
+			Cron:                   "*/30 * * * *",
+			Name:                   "LoadRoleAccessCacheTask",
+			TriggeredOnBoostrapped: true,
+			Run:                    vault.BatchLoadRoleAccessCache,
+		},
+		miso.Job{
+			Cron:                   "*/30 * * * *",
+			Name:                   "LoadPublicAccessCacheTask",
+			TriggeredOnBoostrapped: true,
+			Run:                    vault.LoadPublicAccessCache,
+		},
+	)
 }
