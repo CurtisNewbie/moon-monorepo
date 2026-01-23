@@ -9,13 +9,13 @@ import (
 func ScheduleTasks(rail miso.Rail) error {
 	return task.ScheduleDistributedTask(
 		miso.Job{
-			Cron:                   "*/30 * * * *",
+			Cron:                   miso.CronExprEveryXMin(30),
 			Name:                   "LoadRoleAccessCacheTask",
 			TriggeredOnBoostrapped: true,
 			Run:                    vault.BatchLoadRoleAccessCache,
 		},
 		miso.Job{
-			Cron:                   "*/30 * * * *",
+			Cron:                   miso.CronExprEveryXMin(30),
 			Name:                   "LoadPublicAccessCacheTask",
 			TriggeredOnBoostrapped: true,
 			Run:                    vault.LoadPublicAccessCache,
