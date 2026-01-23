@@ -1,8 +1,9 @@
-package vault
+package task
 
 import (
 	"github.com/curtisnewbie/miso/middleware/task"
 	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/user-vault/internal/vault"
 )
 
 func ScheduleTasks(rail miso.Rail) error {
@@ -11,7 +12,7 @@ func ScheduleTasks(rail miso.Rail) error {
 
 		Name:                   "LoadRoleAccessCacheTask",
 		TriggeredOnBoostrapped: true,
-		Run:                    BatchLoadRoleAccessCache,
+		Run:                    vault.BatchLoadRoleAccessCache,
 	})
 	if err != nil {
 		return err
@@ -21,7 +22,7 @@ func ScheduleTasks(rail miso.Rail) error {
 
 		Name:                   "LoadPublicAccessCacheTask",
 		TriggeredOnBoostrapped: true,
-		Run:                    LoadPublicAccessCache,
+		Run:                    vault.LoadPublicAccessCache,
 	})
 	if err != nil {
 		return err

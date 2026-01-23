@@ -5,13 +5,19 @@ import (
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/internal/binlog"
 	"github.com/curtisnewbie/user-vault/internal/postbox"
+	"github.com/curtisnewbie/user-vault/internal/task"
 	"github.com/curtisnewbie/user-vault/internal/vault"
 	"github.com/curtisnewbie/user-vault/internal/web"
 )
 
 func BootstrapServer(args []string) {
 	miso.PreServerBootstrap(
+		printVersion,
 		postbox.PrepareLongPollHandler,
+		task.ScheduleTasks,
+		web.PrepareWebServer,
+		postbox.InitPipeline,
+		binlog.SubscribeBinlogEvents,
 		func(rail miso.Rail) error {
 			vault.RegisterInternalPathResourcesOnBootstrapped([]auth.Resource{
 				{Code: web.ResourceManageResources, Name: "Manage Resources Access"},
@@ -22,11 +28,6 @@ func BootstrapServer(args []string) {
 			})
 			return nil
 		},
-		printVersion,
-		vault.ScheduleTasks,
-		web.PrepareWebServer,
-		postbox.InitPipeline,
-		binlog.SubscribeBinlogEvents,
 	)
 
 	miso.PostServerBootstrap(vault.CreateMonitoredServiceWatches)
