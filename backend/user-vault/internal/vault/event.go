@@ -5,6 +5,7 @@ import (
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
+	"github.com/curtisnewbie/user-vault/internal/repo"
 )
 
 var (
@@ -12,7 +13,7 @@ var (
 		LogPayload().
 		MaxRetry(2).
 		Listen(2, func(rail miso.Rail, evt AccessLogEvent) error {
-			return SaveAccessLogEvent(rail, mysql.GetMySQL(), SaveAccessLogParam(evt))
+			return repo.SaveAccessLogEvent(rail, mysql.GetMySQL(), repo.SaveAccessLogParam(evt))
 		})
 )
 

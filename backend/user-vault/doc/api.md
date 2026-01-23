@@ -1005,12 +1005,12 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/vault.ListedAccessLog]) response data
+    - "data": (PageRes[github.com/curtisnewbie/user-vault/internal/repo.ListedAccessLog]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.ListedAccessLog) payload values in current page
+      - "payload": ([]repo.ListedAccessLog) payload values in current page
         - "id": (int) 
         - "userAgent": (string) 
         - "ipAddress": (string) 
@@ -1581,7 +1581,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]vault.ResBrief) response data
+    - "data": ([]repo.ResBrief) response data
       - "code": (string) 
       - "name": (string) 
 - cURL:
@@ -1673,7 +1673,7 @@
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.WRes) 
+      - "payload": ([]repo.WRes) 
         - "id": (int) 
         - "code": (string) 
         - "name": (string) 
@@ -1801,7 +1801,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]vault.ResBrief) response data
+    - "data": ([]repo.ResBrief) response data
       - "code": (string) 
       - "name": (string) 
 - cURL:
@@ -1881,7 +1881,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]vault.ResBrief) response data
+    - "data": ([]repo.ResBrief) response data
       - "code": (string) 
       - "name": (string) 
 - cURL:
@@ -2204,7 +2204,7 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (ListRoleResp) response data
-      - "payload": ([]vault.WRole) 
+      - "payload": ([]repo.WRole) 
         - "id": (int) 
         - "roleNo": (string) 
         - "name": (string) 
@@ -2336,7 +2336,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]vault.RoleBrief) response data
+    - "data": ([]repo.RoleBrief) response data
       - "roleNo": (string) 
       - "name": (string) 
 - cURL:
@@ -2427,7 +2427,7 @@
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.ListedRoleRes) 
+      - "payload": ([]repo.ListedRoleRes) 
         - "id": (int) 
         - "resCode": (string) 
         - "resName": (string) 
@@ -2658,7 +2658,7 @@
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]vault.WPath) 
+      - "payload": ([]repo.WPath) 
         - "id": (int) 
         - "pgroup": (string) 
         - "pathNo": (string) 

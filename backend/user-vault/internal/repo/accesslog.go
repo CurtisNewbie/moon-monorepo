@@ -1,4 +1,4 @@
-package vault
+package repo
 
 import (
 	"github.com/curtisnewbie/miso/flow"

@@ -47,7 +47,7 @@ func CachedCountNotification(rail miso.Rail, db *gorm.DB, user flow.User) (int, 
 	return v, err
 }
 
-func evictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {
+func EvictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {
 	userNo, ok := t.ColumnAfter("user_no")
 	if !ok {
 		return nil

@@ -1,13 +1,17 @@
-package vault
+package binlog
 
 import (
 	"fmt"
 
-	binlog "github.com/curtisnewbie/event-pump/binlog"
-	pump "github.com/curtisnewbie/event-pump/client"
+	"github.com/curtisnewbie/event-pump/binlog"
+	"github.com/curtisnewbie/event-pump/client"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/user-vault/api"
+	"github.com/curtisnewbie/user-vault/internal/postbox"
+	"github.com/curtisnewbie/user-vault/internal/vault"
+
+	pump "github.com/curtisnewbie/event-pump/client"
 )
 
 const (
@@ -15,7 +19,20 @@ const (
 	BinlogStreamReloadAccessCache = "user-vault:binlog:reload-access-cache"
 )
 
-func SubscribeBinlogEvent(rail miso.Rail) error {
+func SubscribeBinlogEvents(rail miso.Rail) error {
+	binlog.SubscribeBinlogEventsOnBootstrapV2(binlog.SubscribeBinlogOption{
+		Pipeline: client.Pipeline{
+			Schema:     miso.GetPropStr(mysql.PropMySQLSchema),
+			Table:      "notification",
+			EventTypes: []client.EventType{client.EventTypeInsert, client.EventTypeUpdate},
+			Stream:     "event.bus.postbox.notification.count.changed",
+		},
+		Concurrency:        2,
+		ContinueOnErr:      true,
+		Listener:           postbox.EvictNotifCountCache,
+		ListenerLogPayload: false,
+	})
+
 	binlog.SubscribeBinlogEventsOnBootstrapV2(
 		binlog.SubscribeBinlogOption{
 			ContinueOnErr: true,
@@ -65,10 +82,10 @@ func SubscribeBinlogEvent(rail miso.Rail) error {
 			},
 			Concurrency: 1,
 			Listener: func(rail miso.Rail, t pump.StreamEvent) error {
-				if err := BatchLoadRoleAccessCache(rail); err != nil {
+				if err := vault.BatchLoadRoleAccessCache(rail); err != nil {
 					rail.Errorf("Failed to BatchLoadRoleAccessCache, %v", err)
 				}
-				if err := LoadPublicAccessCache(rail); err != nil {
+				if err := vault.LoadPublicAccessCache(rail); err != nil {
 					rail.Errorf("Failed to LoadPublicAccessCache, %v", err)
 				}
 				return nil

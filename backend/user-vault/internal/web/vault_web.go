@@ -199,9 +199,9 @@ func ApiGetTokenUserInfo(inb *miso.Inbound, req GetTokenUserReq) (vault.UserInfo
 // misoapi-http: POST /open/api/access/history
 // misoapi-desc: User list access logs
 // misoapi-resource: ref(ResourceBasicUser)
-func ApiUserListAccessHistory(inb *miso.Inbound, req vault.ListAccessLogReq) (miso.PageRes[vault.ListedAccessLog], error) {
+func ApiUserListAccessHistory(inb *miso.Inbound, req repo.ListAccessLogReq) (miso.PageRes[repo.ListedAccessLog], error) {
 	rail := inb.Rail()
-	return vault.ListAccessLogs(rail, mysql.GetMySQL(), flow.GetUser(rail), req)
+	return repo.ListAccessLogs(rail, mysql.GetMySQL(), flow.GetUser(rail), req)
 }
 
 // misoapi-http: POST /open/api/user/key/generate
@@ -231,7 +231,7 @@ func ApiUserDeleteUserKey(inb *miso.Inbound, req vault.DeleteUserKeyReq) (any, e
 // misoapi-http: POST /open/api/resource/add
 // misoapi-desc: Admin add resource
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminAddResource(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
+func ApiAdminAddResource(inb *miso.Inbound, req repo.CreateResReq) (any, error) {
 	rail := inb.Rail()
 	user := flow.GetUser(rail)
 	return nil, vault.CreateResourceIfNotExist(rail, req, user)
@@ -240,7 +240,7 @@ func ApiAdminAddResource(inb *miso.Inbound, req vault.CreateResReq) (any, error)
 // misoapi-http: POST /open/api/resource/remove
 // misoapi-desc: Admin remove resource
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminRemoveResource(inb *miso.Inbound, req vault.DeleteResourceReq) (any, error) {
+func ApiAdminRemoveResource(inb *miso.Inbound, req repo.DeleteResourceReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.DeleteResource(rail, req)
 }
@@ -248,7 +248,7 @@ func ApiAdminRemoveResource(inb *miso.Inbound, req vault.DeleteResourceReq) (any
 // misoapi-http: GET /open/api/resource/brief/candidates
 // misoapi-desc: List all resource candidates for role
 // misoapi-resource: ref(ResourceManageResources)
-func ApiListResCandidates(inb *miso.Inbound, req ListResCandidatesReq) ([]vault.ResBrief, error) {
+func ApiListResCandidates(inb *miso.Inbound, req ListResCandidatesReq) ([]repo.ResBrief, error) {
 	rail := inb.Rail()
 	return vault.ListResourceCandidatesForRole(rail, req.RoleNo)
 }
@@ -256,7 +256,7 @@ func ApiListResCandidates(inb *miso.Inbound, req ListResCandidatesReq) ([]vault.
 // misoapi-http: POST /open/api/resource/list
 // misoapi-desc: Admin list resources
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminListRes(inb *miso.Inbound, req vault.ListResReq) (vault.ListResResp, error) {
+func ApiAdminListRes(inb *miso.Inbound, req repo.ListResReq) (repo.ListResResp, error) {
 	rail := inb.Rail()
 	return vault.ListResources(rail, req)
 }
@@ -264,11 +264,11 @@ func ApiAdminListRes(inb *miso.Inbound, req vault.ListResReq) (vault.ListResResp
 // misoapi-http: GET /open/api/resource/brief/user
 // misoapi-desc: List resources that are accessible to current user
 // misoapi-scope: PUBLIC
-func ApiListUserAccessibleRes(inb *miso.Inbound) ([]vault.ResBrief, error) {
+func ApiListUserAccessibleRes(inb *miso.Inbound) ([]repo.ResBrief, error) {
 	rail := inb.Rail()
 	u := flow.GetUser(rail)
 	if u.IsNil {
-		return []vault.ResBrief{}, nil
+		return []repo.ResBrief{}, nil
 	}
 	return vault.ListAllResBriefsOfRole(rail, u.RoleNo)
 }
@@ -276,7 +276,7 @@ func ApiListUserAccessibleRes(inb *miso.Inbound) ([]vault.ResBrief, error) {
 // misoapi-http: GET /open/api/resource/brief/all
 // misoapi-desc: List all resource brief info
 // misoapi-scope: PUBLIC
-func ApiListAllResBrief(inb *miso.Inbound) ([]vault.ResBrief, error) {
+func ApiListAllResBrief(inb *miso.Inbound) ([]repo.ResBrief, error) {
 	rail := inb.Rail()
 	return vault.ListAllResBriefs(rail)
 }
@@ -284,7 +284,7 @@ func ApiListAllResBrief(inb *miso.Inbound) ([]vault.ResBrief, error) {
 // misoapi-http: POST /open/api/role/resource/add
 // misoapi-desc: Admin add resource to role
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminBindRoleRes(inb *miso.Inbound, req vault.AddRoleResReq) (any, error) {
+func ApiAdminBindRoleRes(inb *miso.Inbound, req repo.AddRoleResReq) (any, error) {
 	rail := inb.Rail()
 	user := flow.GetUser(rail)
 	return nil, vault.AddResToRoleIfNotExist(rail, req, user)
@@ -293,7 +293,7 @@ func ApiAdminBindRoleRes(inb *miso.Inbound, req vault.AddRoleResReq) (any, error
 // misoapi-http: POST /open/api/role/resource/remove
 // misoapi-desc: Admin remove resource from role
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminUnbindRoleRes(inb *miso.Inbound, req vault.RemoveRoleResReq) (any, error) {
+func ApiAdminUnbindRoleRes(inb *miso.Inbound, req repo.RemoveRoleResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.RemoveResFromRole(rail, req)
 }
@@ -301,7 +301,7 @@ func ApiAdminUnbindRoleRes(inb *miso.Inbound, req vault.RemoveRoleResReq) (any, 
 // misoapi-http: POST /open/api/role/add
 // misoapi-desc: Admin add role
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminAddRole(inb *miso.Inbound, req vault.AddRoleReq) (any, error) {
+func ApiAdminAddRole(inb *miso.Inbound, req repo.AddRoleReq) (any, error) {
 	rail := inb.Rail()
 	user := flow.GetUser(rail)
 	return nil, vault.AddRole(rail, req, user)
@@ -310,7 +310,7 @@ func ApiAdminAddRole(inb *miso.Inbound, req vault.AddRoleReq) (any, error) {
 // misoapi-http: POST /open/api/role/list
 // misoapi-desc: Admin list roles
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminListRoles(inb *miso.Inbound, req vault.ListRoleReq) (vault.ListRoleResp, error) {
+func ApiAdminListRoles(inb *miso.Inbound, req repo.ListRoleReq) (repo.ListRoleResp, error) {
 	rail := inb.Rail()
 	return vault.ListRoles(rail, req)
 }
@@ -318,7 +318,7 @@ func ApiAdminListRoles(inb *miso.Inbound, req vault.ListRoleReq) (vault.ListRole
 // misoapi-http: GET /open/api/role/brief/all
 // misoapi-desc: Admin list role brief info
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminListRoleBriefs(inb *miso.Inbound) ([]vault.RoleBrief, error) {
+func ApiAdminListRoleBriefs(inb *miso.Inbound) ([]repo.RoleBrief, error) {
 	rail := inb.Rail()
 	return vault.ListAllRoleBriefs(rail)
 }
@@ -326,7 +326,7 @@ func ApiAdminListRoleBriefs(inb *miso.Inbound) ([]vault.RoleBrief, error) {
 // misoapi-http: POST /open/api/role/resource/list
 // misoapi-desc: Admin list resources of role
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminListRoleRes(inb *miso.Inbound, req vault.ListRoleResReq) (vault.ListRoleResResp, error) {
+func ApiAdminListRoleRes(inb *miso.Inbound, req repo.ListRoleResReq) (repo.ListRoleResResp, error) {
 	rail := inb.Rail()
 	return vault.ListRoleRes(rail, req)
 }
@@ -342,7 +342,7 @@ func ApiGetRoleInfo(inb *miso.Inbound, req api.RoleInfoReq) (api.RoleInfoResp, e
 // misoapi-http: POST /open/api/path/list
 // misoapi-desc: Admin list paths
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminListPaths(inb *miso.Inbound, req vault.ListPathReq) (vault.ListPathResp, error) {
+func ApiAdminListPaths(inb *miso.Inbound, req repo.ListPathReq) (repo.ListPathResp, error) {
 	rail := inb.Rail()
 	return vault.ListPaths(rail, req)
 }
@@ -350,7 +350,7 @@ func ApiAdminListPaths(inb *miso.Inbound, req vault.ListPathReq) (vault.ListPath
 // misoapi-http: POST /open/api/path/resource/bind
 // misoapi-desc: Admin bind resource to path
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminBindResPath(inb *miso.Inbound, req vault.BindPathResReq) (any, error) {
+func ApiAdminBindResPath(inb *miso.Inbound, req repo.BindPathResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.BindPathRes(rail, req)
 }
@@ -358,7 +358,7 @@ func ApiAdminBindResPath(inb *miso.Inbound, req vault.BindPathResReq) (any, erro
 // misoapi-http: POST /open/api/path/resource/unbind
 // misoapi-desc: Admin unbind resource and path
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminUnbindResPath(inb *miso.Inbound, req vault.UnbindPathResReq) (any, error) {
+func ApiAdminUnbindResPath(inb *miso.Inbound, req repo.UnbindPathResReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.UnbindPathRes(rail, req)
 }
@@ -366,7 +366,7 @@ func ApiAdminUnbindResPath(inb *miso.Inbound, req vault.UnbindPathResReq) (any, 
 // misoapi-http: POST /open/api/path/delete
 // misoapi-desc: Admin delete path
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminDeletePath(inb *miso.Inbound, req vault.DeletePathReq) (any, error) {
+func ApiAdminDeletePath(inb *miso.Inbound, req repo.DeletePathReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.DeletePath(rail, req)
 }
@@ -374,7 +374,7 @@ func ApiAdminDeletePath(inb *miso.Inbound, req vault.DeletePathReq) (any, error)
 // misoapi-http: POST /open/api/path/update
 // misoapi-desc: Admin update path
 // misoapi-resource: ref(ResourceManageResources)
-func ApiAdminUpdatePath(inb *miso.Inbound, req vault.UpdatePathReq) (any, error) {
+func ApiAdminUpdatePath(inb *miso.Inbound, req repo.UpdatePathReq) (any, error) {
 	rail := inb.Rail()
 	return nil, vault.UpdatePath(rail, req)
 }
@@ -433,7 +433,7 @@ func ApiFindUserWithResourceEp(inb *miso.Inbound, req api.FetchUserWithResourceR
 
 // misoapi-http: POST /remote/resource/add
 // misoapi-desc: Report resource. This endpoint should be used internally by another backend service.
-func ApiReportResourceEp(inb *miso.Inbound, req vault.CreateResReq) (any, error) {
+func ApiReportResourceEp(inb *miso.Inbound, req repo.CreateResReq) (any, error) {
 	rail := inb.Rail()
 	user := flow.GetUser(rail)
 	return nil, vault.CreateResourceIfNotExist(rail, req, user)
@@ -451,7 +451,7 @@ func ApiCheckResourceAccessEp(inb *miso.Inbound, req api.CheckResAccessReq) (api
 // misoapi-http: POST /remote/path/add
 // misoapi-desc: Report endpoint info
 // misoapi-resource: ref(ResourceManageResources)
-func ApiReportPath(inb *miso.Inbound, req vault.CreatePathReq) (any, error) {
+func ApiReportPath(inb *miso.Inbound, req repo.CreatePathReq) (any, error) {
 	rail := inb.Rail()
 	user := flow.GetUser(rail)
 	return nil, vault.CreatePath(rail, req, user)

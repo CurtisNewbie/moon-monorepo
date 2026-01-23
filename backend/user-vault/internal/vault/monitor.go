@@ -10,6 +10,7 @@ import (
 	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/async"
+	"github.com/curtisnewbie/user-vault/internal/repo"
 	"github.com/spf13/cast"
 )
 
@@ -45,8 +46,8 @@ func LoadMonitoredServices() []MonitoredService {
 }
 
 type QueryResourcePathRes struct {
-	Resources []CreateResReq
-	Paths     []CreatePathReq
+	Resources []repo.CreateResReq
+	Paths     []repo.CreatePathReq
 }
 
 func QueryResourcePath(rail miso.Rail, server miso.Server, service string, path string) (QueryResourcePathRes, error) {

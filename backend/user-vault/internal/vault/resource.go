@@ -7,18 +7,15 @@ import (
 	"time"
 
 	doublestar "github.com/bmatcuk/doublestar/v4"
-	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/slutil"
-	"github.com/curtisnewbie/miso/util/snowflake"
 	"github.com/curtisnewbie/user-vault/api"
-	"gorm.io/gorm"
+	"github.com/curtisnewbie/user-vault/internal/repo"
 )
 
 var (
@@ -46,76 +43,6 @@ const (
 	PathTypePublic    string = "PUBLIC"
 )
 
-type ExtendedPathRes struct {
-	Id         int       // id
-	Pgroup     string    // path group
-	PathNo     string    // path no
-	ResCode    string    // resource code
-	Desc       string    // description
-	Url        string    // url
-	Method     string    // http method
-	Ptype      string    // path type: PROTECTED, PUBLIC
-	CreateTime atom.Time `gorm:"column:created_at"`
-	CreateBy   string    `gorm:"column:created_by"`
-	UpdateTime atom.Time `gorm:"column:updated_at"`
-	UpdateBy   string    `gorm:"column:updated_by"`
-}
-
-type WRole struct {
-	Id         int       `json:"id"`
-	RoleNo     string    `json:"roleNo"`
-	Name       string    `json:"name"`
-	CreateTime atom.Time `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string    `json:"createBy" gorm:"column:created_by"`
-	UpdateTime atom.Time `json:"updateTime" gorm:"column:updated_at"`
-	UpdateBy   string    `json:"updateBy" gorm:"column:updated_by"`
-}
-
-type ResBrief struct {
-	Code string `json:"code"`
-	Name string `json:"name"`
-}
-
-type AddRoleReq struct {
-	Name string `json:"name" valid:"notEmpty,maxLen:32"` // role name
-}
-
-type ListRoleReq struct {
-	Paging miso.Paging `json:"paging"`
-}
-
-type ListRoleResp struct {
-	Payload []WRole     `json:"payload"`
-	Paging  miso.Paging `json:"paging"`
-}
-
-type RoleBrief struct {
-	RoleNo string `json:"roleNo"`
-	Name   string `json:"name"`
-}
-
-type ListPathReq struct {
-	ResCode string      `json:"resCode"`
-	Pgroup  string      `json:"pgroup"`
-	Url     string      `json:"url"`
-	Ptype   string      `json:"ptype" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	Paging  miso.Paging `json:"paging"`
-}
-
-type WPath struct {
-	Id         int       `json:"id"`
-	Pgroup     string    `json:"pgroup"`
-	PathNo     string    `json:"pathNo"`
-	Method     string    `json:"method"`
-	Desc       string    `json:"desc"`
-	Url        string    `json:"url"`
-	Ptype      string    `json:"ptype" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible"`
-	CreateTime atom.Time `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string    `json:"createBy" gorm:"column:created_by"`
-	UpdateTime atom.Time `json:"updateTime" gorm:"column:updated_at"`
-	UpdateBy   string    `json:"updateBy" gorm:"column:updated_by"`
-}
-
 type WRes struct {
 	Id         int       `json:"id"`
 	Code       string    `json:"code"`
@@ -126,71 +53,9 @@ type WRes struct {
 	UpdateBy   string    `json:"updateBy" gorm:"column:updated_by"`
 }
 
-type ListPathResp struct {
-	Paging  miso.Paging `json:"paging"`
-	Payload []WPath     `json:"payload"`
-}
-
-type BindPathResReq struct {
-	PathNo  string `json:"pathNo" validation:"notEmpty"`
-	ResCode string `json:"resCode" validation:"notEmpty"`
-}
-
 type UnbindPathResReq struct {
 	PathNo  string `json:"pathNo" validation:"notEmpty"`
 	ResCode string `json:"resCode" validation:"notEmpty"`
-}
-
-type ListRoleResReq struct {
-	Paging miso.Paging `json:"paging"`
-	RoleNo string      `json:"roleNo" validation:"notEmpty"`
-}
-
-type RemoveRoleResReq struct {
-	RoleNo  string `json:"roleNo" validation:"notEmpty"`
-	ResCode string `json:"resCode" validation:"notEmpty"`
-}
-
-type AddRoleResReq struct {
-	RoleNo  string `json:"roleNo" validation:"notEmpty"`
-	ResCode string `json:"resCode" validation:"notEmpty"`
-}
-
-type ListRoleResResp struct {
-	Paging  miso.Paging     `json:"paging"`
-	Payload []ListedRoleRes `json:"payload"`
-}
-
-type ListedRoleRes struct {
-	Id         int       `json:"id"`
-	ResCode    string    `json:"resCode"`
-	ResName    string    `json:"resName"`
-	CreateTime atom.Time `json:"createTime" gorm:"column:created_at"`
-	CreateBy   string    `json:"createBy" gorm:"column:created_by"`
-}
-
-type GenResScriptReq struct {
-	ResCodes []string `json:"resCodes" validation:"notEmpty"`
-}
-
-type UpdatePathReq struct {
-	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible" json:"type"`
-	PathNo  string `valid:"notEmpty" json:"pathNo"`
-	Group   string `valid:"notEmpty,maxLen:20" json:"group"`
-	ResCode string `json:"resCode"`
-}
-
-type CreatePathReq struct {
-	Type    string `valid:"notEmpty,member:PROTECTED|PUBLIC" desc:"path type: 'PROTECTED' - authorization required, 'PUBLIC' - publicly accessible" json:"type"`
-	Url     string `valid:"notEmpty,maxLen:128" json:"url"`
-	Group   string `valid:"notEmpty,maxLen:20" json:"group"`
-	Method  string `valid:"notEmpty,maxLen:10" json:"method"`
-	Desc    string `valid:"maxLen:255" json:"desc"`
-	ResCode string `json:"resCode"`
-}
-
-type DeletePathReq struct {
-	PathNo string `json:"pathNo" validation:"notEmpty"`
 }
 
 type ListResReq struct {
@@ -202,198 +67,49 @@ type ListResResp struct {
 	Payload []WRes      `json:"payload"`
 }
 
-type CreateResReq struct {
-	Name string `json:"name" validation:"notEmpty,maxLen:32"`
-	Code string `json:"code" validation:"notEmpty,maxLen:32"`
-}
-
-type DeleteResourceReq struct {
-	ResCode string `json:"resCode" validation:"notEmpty"`
-}
-
-func DeleteResource(rail miso.Rail, req DeleteResourceReq) error {
-
+func DeleteResource(rail miso.Rail, req repo.DeleteResourceReq) error {
 	_, err := lockResourceGlobal(rail, func() (any, error) {
-		return nil, mysql.GetMySQL().Transaction(func(tx *gorm.DB) error {
-			q := dbquery.NewQuery(rail, tx)
-			if _, err := q.Exec(`delete from resource where code = ?`, req.ResCode); err != nil {
-				return err
-			}
-			if _, err := q.Exec(`delete from role_resource where res_code = ?`, req.ResCode); err != nil {
-				return err
-			}
-			_, err := q.Exec(`delete from path_resource where res_code = ?`, req.ResCode)
-			return err
-		})
+		return nil, repo.DeleteResource(rail, req)
 	})
 	return err
 }
 
-func ListResourceCandidatesForRole(rail miso.Rail, roleNo string) ([]ResBrief, error) {
-	if roleNo == "" {
-		return []ResBrief{}, nil
-	}
-
-	var res []ResBrief
-	_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
-		Select("r.name, r.code").
-		Table("resource r").
-		Where("NOT EXISTS (SELECT * FROM role_resource WHERE role_no = ? and res_code = r.code)", roleNo).
-		Scan(&res)
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		res = []ResBrief{}
-	}
-	return res, nil
+func ListResourceCandidatesForRole(rail miso.Rail, roleNo string) ([]repo.ResBrief, error) {
+	return repo.ListResourceCandidatesForRole(rail, roleNo)
 }
 
-func ListAllResBriefsOfRole(rail miso.Rail, roleNo string) ([]ResBrief, error) {
-	var res []ResBrief
-
-	if isDefAdmin(roleNo) {
-		return ListAllResBriefs(rail)
-	}
-
-	_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
-		Select(`r.name, r.code`).
-		Table(`role_resource rr`).
-		Joins(`LEFT JOIN resource r ON r.code = rr.res_code`).
-		Where(`rr.role_no = ?`, roleNo).
-		Scan(&res)
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		res = []ResBrief{}
-	}
-	return res, nil
+func ListAllResBriefsOfRole(rail miso.Rail, roleNo string) ([]repo.ResBrief, error) {
+	return repo.ListAllResBriefsOfRole(rail, roleNo)
 }
 
-func ListAllResBriefs(rail miso.Rail) ([]ResBrief, error) {
-	var res []ResBrief
-	_, err := dbquery.NewQuery(rail).
-		Table("resource").
-		SelectCols(ResBrief{}).
-		Scan(&res)
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		res = []ResBrief{}
-	}
-	return res, nil
+func ListAllResBriefs(rail miso.Rail) ([]repo.ResBrief, error) {
+	return repo.ListAllResBriefs(rail)
 }
 
-func ListResources(rail miso.Rail, req ListResReq) (ListResResp, error) {
-	var resources []WRes
-	_, err := dbquery.NewQuery(rail, mysql.GetMySQL()).
-		Table("resource").
-		SelectCols(WRes{}).
-		OrderDesc("id").
-		Limit(req.Paging.GetLimit()).
-		Offset(req.Paging.GetOffset()).
-		Scan(&resources)
-	if err != nil {
-		return ListResResp{}, err
-	}
-	if resources == nil {
-		resources = []WRes{}
-	}
-
-	count, err := dbquery.NewQuery(rail).Table("resource").Count()
-	if err != nil {
-		return ListResResp{}, err
-	}
-
-	return ListResResp{Paging: miso.RespPage(req.Paging, int(count)), Payload: resources}, nil
+func ListResources(rail miso.Rail, req repo.ListResReq) (repo.ListResResp, error) {
+	return repo.ListResources(rail, req)
 }
 
-func UpdatePath(rail miso.Rail, req UpdatePathReq) error {
+func UpdatePath(rail miso.Rail, req repo.UpdatePathReq) error {
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
-		return nil, mysql.GetMySQL().Transaction(func(tx *gorm.DB) error {
-			err := dbquery.NewQuery(rail, tx).
-				Table("path").
-				Set("pgroup", req.Group).
-				Set("ptype", req.Type).
-				Eq("path_no", req.PathNo).
-				UpdateAny()
-			if err != nil {
-				return err
-			}
-
-			ok, err := dbquery.NewQuery(rail, tx).
-				Table("path_resource").
-				Eq("path_no", req.PathNo).
-				Eq("res_code", req.ResCode).
-				HasAny()
-			if err != nil {
-				return err
-			}
-			if !ok {
-				err = dbquery.NewQuery(rail, tx).
-					Table("path_resource").
-					CreateAny(struct {
-						PathNo  string
-						ResCode string
-					}{req.PathNo, req.ResCode})
-				return err
-			}
-			return nil
-		})
+		return nil, repo.UpdatePath(rail, req)
 	})
 	return e
 }
 
 func GetRoleInfo(rail miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) {
 	resp, err := roleInfoCache.GetValElse(rail, req.RoleNo, func() (api.RoleInfoResp, error) {
-		var resp api.RoleInfoResp
-		n, err := dbquery.NewQuery(rail).
-			Table("role").
-			Eq("role_no", req.RoleNo).
-			SelectCols(resp).
-			Scan(&resp)
-		if err != nil {
-			return resp, err
-		}
-		if n < 1 {
-			return resp, errs.NewErrf("Role not found").WithCode(ErrCodeRoleNotFound)
-		}
-		return resp, nil
+		return repo.GetRoleInfo(rail, req)
 	})
 	return resp, err
 }
 
-func CreateResourceIfNotExist(rail miso.Rail, req CreateResReq, user flow.User) error {
+func CreateResourceIfNotExist(rail miso.Rail, req repo.CreateResReq, user flow.User) error {
 	req.Name = strings.TrimSpace(req.Name)
 	req.Code = strings.TrimSpace(req.Code)
 
 	_, e := lockResourceGlobal(rail, func() (any, error) {
-		ok, err := dbquery.NewQuery(rail).
-			Table("resource").
-			Eq("code", req.Code).
-			HasAny()
-		if err != nil {
-			return nil, err
-		}
-
-		if ok {
-			rail.Debugf("Resource '%s' (%s) already exist", req.Code, req.Name)
-			return nil, nil
-		}
-
-		res := struct {
-			Code string
-			Name string
-		}{
-			Name: req.Name,
-			Code: req.Code,
-		}
-		_, err = dbquery.NewQuery(rail, mysql.GetMySQL()).
-			Table("resource").
-			Create(&res)
-		return nil, err
+		return nil, repo.CreateResourceIfNotExist(rail, req, user)
 	})
 	return e
 }
@@ -403,343 +119,92 @@ func genPathNo(group string, url string, method string) string {
 	return "path_" + base64.StdEncoding.EncodeToString(cksum[:])
 }
 
-func CreatePath(rail miso.Rail, req CreatePathReq, user flow.User) error {
+func CreatePath(rail miso.Rail, req repo.CreatePathReq, user flow.User) error {
 	req.Url = preprocessUrl(req.Url)
 	req.Group = strings.TrimSpace(req.Group)
 	req.Method = strings.ToUpper(strings.TrimSpace(req.Method))
 	pathNo := genPathNo(req.Group, req.Url, req.Method)
 
-	type path struct {
-		Id     int
-		Pgroup string
-		PathNo string
-		Desc   string
-		Url    string
-		Method string
-		Ptype  string
-	}
-
-	_, err := lockPath(rail, pathNo, func() (bool, error) {
-		db := mysql.GetMySQL()
-		var prev path
-		ok, err := dbquery.NewQuery(rail, db).
-			Table("path").
-			Eq("path_no", pathNo).
-			ScanAny(&prev)
-		if err != nil {
-			return false, err
-		}
-		if ok { // exists already
-			rail.Debugf("Path '%s %s' (%s) already exists", req.Method, req.Url, pathNo)
-			if prev.Ptype != req.Type {
-				err := dbquery.NewQuery(rail, db).
-					Table("path").
-					Set("ptype", req.Type).
-					Eq("path_no", pathNo).
-					UpdateAny()
-				if err != nil {
-					rail.Errorf("Failed to update path.ptype, pathNo: %v, %v", pathNo, err)
-					return false, err
-				}
-			}
-			return false, nil
-		}
-
-		ep := path{
-			Url:    req.Url,
-			Desc:   req.Desc,
-			Ptype:  req.Type,
-			Pgroup: req.Group,
-			Method: req.Method,
-			PathNo: pathNo,
-		}
-		_, err = dbquery.NewQuery(rail, db).
-			Table("path").
-			Omit("Id").
-			Create(&ep)
-		if err != nil {
-			return false, err
-		}
-
-		rail.Infof("Created path (%s) '%s {%s}'", pathNo, req.Method, req.Url)
-		return true, nil
+	_, err := lockPath(rail, pathNo, func() (any, error) {
+		return nil, repo.CreatePath(rail, req, pathNo, user)
 	})
 	if err != nil {
 		return err
 	}
 
 	if req.ResCode != "" { // rebind path and resource
-		return BindPathRes(rail, BindPathResReq{PathNo: pathNo, ResCode: req.ResCode})
+		return BindPathRes(rail, repo.BindPathResReq{PathNo: pathNo, ResCode: req.ResCode})
 	}
 
 	return nil
 }
 
-func DeletePath(rail miso.Rail, req DeletePathReq) error {
+func DeletePath(rail miso.Rail, req repo.DeletePathReq) error {
 	req.PathNo = strings.TrimSpace(req.PathNo)
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
-		er := mysql.GetMySQL().Transaction(func(tx *gorm.DB) error {
-			_, err := dbquery.NewQuery(rail, tx).Exec(`delete from path where path_no = ?`, req.PathNo)
-			if err != nil {
-				return err
-			}
-
-			_, err = dbquery.NewQuery(rail, tx).Exec(`delete from path_resource where path_no = ?`, req.PathNo)
-			return err
-		})
-
-		return nil, er
+		return nil, repo.DeletePath(rail, req)
 	})
 	return e
 }
 
-func UnbindPathRes(rail miso.Rail, req UnbindPathResReq) error {
+func UnbindPathRes(rail miso.Rail, req repo.UnbindPathResReq) error {
 	req.PathNo = strings.TrimSpace(req.PathNo)
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
-		_, err := dbquery.NewQuery(rail).
-			Exec(`delete from path_resource where path_no = ?`, req.PathNo)
-		return nil, err
+		return nil, repo.UnbindPathRes(rail, req)
 	})
 	return e
 }
 
-func BindPathRes(rail miso.Rail, req BindPathResReq) error {
+func BindPathRes(rail miso.Rail, req repo.BindPathResReq) error {
 	req.PathNo = strings.TrimSpace(req.PathNo)
 	e := lockPathExec(rail, req.PathNo, func() error { // lock for path
 		return lockResourceGlobalExec(rail, func() error {
-			db := mysql.GetMySQL()
-
-			// check if resource exist
-			ok, err := dbquery.NewQuery(rail, db).
-				Table("resource").Eq("code", req.ResCode).
-				HasAny()
-			if err != nil {
-				return err
-			}
-			if !ok {
-				rail.Errorf("Resource %v not found", req.ResCode)
-				return errs.NewErrf("Resource not found")
-			}
-
-			// check if the path is already bound to current resource
-			ok, err = dbquery.NewQuery(rail, db).
-				Table("path_resource").
-				Eq("path_no", req.PathNo).
-				Eq("res_code", req.ResCode).
-				HasAny()
-
-			if err != nil {
-				rail.Errorf("Failed to bind path %v to resource %v, %v", req.PathNo, req.ResCode, err)
-				return err
-			}
-			if ok {
-				rail.Debugf("Path %v already bound to resource %v", req.PathNo, req.ResCode)
-				return err
-			}
-
-			// bind resource to path
-			return dbquery.NewQuery(rail, db).
-				Table("path_resource").
-				CreateAny(struct {
-					PathNo  string
-					ResCode string
-				}(req))
+			return repo.BindPathRes(rail, dbquery.GetDB(), req)
 		})
 	})
 
 	return e
 }
 
-func ListPaths(rail miso.Rail, req ListPathReq) (ListPathResp, error) {
-
-	applyCond := func(t *dbquery.Query) *dbquery.Query {
-		if req.Pgroup != "" {
-			t = t.Where("p.pgroup = ?", req.Pgroup)
-		}
-		if req.ResCode != "" {
-			t = t.Joins("LEFT JOIN path_resource pr ON p.path_no = pr.path_no").
-				Where("pr.res_code = ?", req.ResCode)
-		}
-		if req.Url != "" {
-			t = t.Where("p.url LIKE ?", "%"+req.Url+"%")
-		}
-		if req.Ptype != "" {
-			t = t.Where("p.ptype = ?", req.Ptype)
-		}
-		return t
-	}
-
-	var paths []WPath
-	err := applyCond(dbquery.NewQuery(rail).
-		Table("path p").
-		Select("p.*").
-		Order("id DESC")).
-		Offset(req.Paging.GetOffset()).
-		Limit(req.Paging.GetLimit()).
-		ScanVal(&paths)
-	if err != nil {
-		return ListPathResp{}, err
-	}
-
-	count, err := applyCond(dbquery.NewQuery(rail).
-		Table("path p")).
-		Count()
-	if err != nil {
-		return ListPathResp{}, err
-	}
-
-	return ListPathResp{
-		Payload: paths,
-		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: int(count)},
-	}, nil
+func ListPaths(rail miso.Rail, req repo.ListPathReq) (repo.ListPathResp, error) {
+	return repo.ListPaths(rail, req)
 }
 
-func AddRole(rail miso.Rail, req AddRoleReq, user flow.User) error {
+func AddRole(rail miso.Rail, req repo.AddRoleReq, user flow.User) error {
 	_, e := redis.RLockRun(rail, "user-vault:role:add"+req.Name, func() (any, error) {
-		return nil, dbquery.NewQuery(rail).
-			Table("role").
-			CreateAny(struct {
-				RoleNo string
-				Name   string
-			}{
-				RoleNo: snowflake.IdPrefix("role_"),
-				Name:   req.Name,
-			})
+		return nil, repo.AddRole(rail, req, user)
 	})
 	return e
 }
 
-func RemoveResFromRole(rail miso.Rail, req RemoveRoleResReq) error {
+func RemoveResFromRole(rail miso.Rail, req repo.RemoveRoleResReq) error {
 	_, e := redis.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) {
-		_, err := dbquery.NewQuery(rail, dbquery.GetDB()).
-			Exec(`delete from role_resource where role_no = ? and res_code = ?`, req.RoleNo, req.ResCode)
-		return nil, err
+		return nil, repo.RemoveResFromRole(rail, req)
 	})
 
 	return e
 }
 
-func AddResToRoleIfNotExist(rail miso.Rail, req AddRoleResReq, user flow.User) error {
+func AddResToRoleIfNotExist(rail miso.Rail, req repo.AddRoleResReq, user flow.User) error {
 
 	_, e := redis.RLockRun(rail, "user-vault:role:"+req.RoleNo, func() (any, error) { // lock for role
 		return lockResourceGlobal(rail, func() (any, error) {
-			// check if resource exist
-			var resId int
-			_, err := dbquery.NewQuery(rail).
-				Raw(`select id from resource where code = ?`, req.ResCode).
-				Scan(&resId)
-			if err != nil {
-				return false, err
-			}
-			if resId < 1 {
-				return false, errs.NewErrf("Resource not found")
-			}
-
-			// check if role-resource relation exists
-			ok, err := dbquery.NewQuery(rail).
-				Table("role_resource").
-				Eq("role_no", req.RoleNo).
-				Eq("res_code", req.ResCode).
-				HasAny()
-			if err != nil {
-				return false, err
-			}
-			if ok { // relation exists already
-				return false, nil
-			}
-
-			// create role-resource relation
-			rr := struct {
-				RoleNo  string // role no
-				ResCode string // resource code
-			}{
-				RoleNo:  req.RoleNo,
-				ResCode: req.ResCode,
-			}
-			err = dbquery.NewQuery(rail).
-				Table("role_resource").
-				CreateAny(&rr)
-			return true, err
+			return nil, repo.AddResToRoleIfNotExist(rail, req, user)
 		})
 	})
 	return e
 }
 
-func ListRoleRes(rail miso.Rail, req ListRoleResReq) (ListRoleResResp, error) {
-	var res []ListedRoleRes
-	err := dbquery.NewQuery(rail).
-		Table("role_resource rr").
-		Joins("LEFT JOIN resource r on rr.res_code = r.code").
-		Select(`rr.id, rr.res_code, rr.created_at, rr.created_by, r.name 'res_name'`).
-		Eq("rr.role_no", req.RoleNo).
-		OrderDesc("rr.id").
-		Offset(req.Paging.GetOffset()).
-		Limit(req.Paging.GetLimit()).
-		ScanVal(&res)
-
-	if err != nil {
-		return ListRoleResResp{}, err
-	}
-
-	if res == nil {
-		res = []ListedRoleRes{}
-	}
-
-	count, err := dbquery.NewQuery(rail).
-		Table("role_resource rr").
-		Joins("LEFT JOIN resource r on rr.res_code = r.code").
-		Eq("rr.role_no", req.RoleNo).
-		Count()
-
-	if err != nil {
-		return ListRoleResResp{}, err
-	}
-
-	return ListRoleResResp{Payload: res,
-		Paging: miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: int(count)}}, nil
+func ListRoleRes(rail miso.Rail, req repo.ListRoleResReq) (repo.ListRoleResResp, error) {
+	return repo.ListRoleRes(rail, req)
 }
 
-func ListAllRoleBriefs(rail miso.Rail) ([]RoleBrief, error) {
-	var roles []RoleBrief
-	err := dbquery.NewQuery(rail).
-		Table("role").
-		SelectCols(RoleBrief{}).
-		ScanVal(&roles)
-	if err != nil {
-		return nil, err
-	}
-	if roles == nil {
-		roles = []RoleBrief{}
-	}
-	return roles, nil
+func ListAllRoleBriefs(rail miso.Rail) ([]repo.RoleBrief, error) {
+	return repo.ListAllRoleBriefs(rail)
 }
 
-func ListRoles(rail miso.Rail, req ListRoleReq) (ListRoleResp, error) {
-	var roles []WRole
-	err := dbquery.NewQuery(rail).
-		Table("role").
-		SelectCols(WRole{}).
-		OrderDesc("id").
-		AtPage(req.Paging).
-		ScanVal(&roles)
-	if err != nil {
-		return ListRoleResp{}, err
-	}
-	if roles == nil {
-		roles = []WRole{}
-	}
-
-	count, err := dbquery.NewQuery(rail).
-		Table("role").
-		Count()
-	if err != nil {
-		return ListRoleResp{}, err
-	}
-
-	return ListRoleResp{
-		Payload: roles,
-		Paging:  miso.Paging{Limit: req.Paging.Limit, Page: req.Paging.Page, Total: int(count)},
-	}, nil
+func ListRoles(rail miso.Rail, req repo.ListRoleReq) (repo.ListRoleResp, error) {
+	return repo.ListRoles(rail, req)
 }
 
 // Test access to resource
@@ -813,22 +278,6 @@ func TestResourceAccess(rail miso.Rail, req api.CheckResAccessReq) (api.CheckRes
 	return forbidden, nil
 }
 
-func listRoleNos(rail miso.Rail) ([]string, error) {
-	var ern []string
-	err := dbquery.NewQuery(rail).
-		Table("role").
-		Select("role_no").
-		ScanVal(&ern)
-	if err != nil {
-		return nil, err
-	}
-
-	if ern == nil {
-		ern = []string{}
-	}
-	return ern, nil
-}
-
 // preprocess url, the processed url will always starts with '/' and never ends with '/'
 func preprocessUrl(url string) string {
 	ru := []rune(strings.TrimSpace(url))
@@ -899,7 +348,7 @@ func BatchLoadRoleAccessCache(rail miso.Rail) error {
 
 	_, e := lockRoleAccessCache(rail, func() (any, error) {
 
-		lr, e := listRoleNos(rail)
+		lr, e := repo.ListRoleNos(rail)
 		if e != nil {
 			return nil, e
 		}
@@ -917,47 +366,32 @@ func BatchLoadRoleAccessCache(rail miso.Rail) error {
 }
 
 func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
-	var paths []ExtendedPathRes
-
+	var paths []repo.ExtendedPathRes
 	if isDefAdmin(roleNo) {
-		err := dbquery.NewQuery(rail).
-			Raw(`SELECT p.*, pr.res_code
-				FROM path_resource pr
-				LEFT JOIN path p ON p.path_no = pr.path_no`).
-			ScanVal(&paths)
+		p, err := repo.ListAllPathRes(rail, dbquery.GetDB())
 		if err != nil {
 			return err
 		}
+		paths = p
 	} else {
-		err := dbquery.NewQuery(rail).
-			Raw(`SELECT p.*, pr.res_code
-		FROM role_resource rr
-		LEFT JOIN path_resource pr ON rr.res_code = pr.res_code
-		LEFT JOIN path p ON p.path_no = pr.path_no
-		WHERE rr.role_no = ?
-		`, roleNo).
-			ScanVal(&paths)
+		p, err := repo.ListRolePathRes(rail, dbquery.GetDB(), roleNo)
 		if err != nil {
 			return err
 		}
+		paths = p
 	}
 	if paths == nil {
 		return nil
 	}
 
-	var public []ExtendedPathRes
-	err := dbquery.NewQuery(rail).
-		Raw(`SELECT p.* FROM path p WHERE p.ptype = ?`, PathTypePublic).
-		ScanVal(&public)
+	public, err := repo.ListPublicPathRes(rail, dbquery.GetDB())
 	if err != nil {
 		return err
 	}
-	if len(public) > 0 {
-		paths = append(paths, public...)
-	}
+	paths = append(paths, public...)
 
 	var pai []PathAccessInfo = slutil.MapTo(paths,
-		func(t ExtendedPathRes) PathAccessInfo {
+		func(t repo.ExtendedPathRes) PathAccessInfo {
 			return PathAccessInfo{
 				ResCode: t.ResCode,
 				Url:     preprocessUrl(t.Url),
@@ -977,10 +411,7 @@ func LoadOneRoleAccessCache(rail miso.Rail, roleNo string) error {
 }
 
 func LoadPublicAccessCache(rail miso.Rail) error {
-	var public []ExtendedPathRes
-	err := dbquery.NewQuery(rail).
-		Raw(`SELECT p.* FROM path p WHERE p.ptype = ?`, PathTypePublic).
-		ScanVal(&public)
+	public, err := repo.ListPublicPathRes(rail, dbquery.GetDB())
 	if err != nil {
 		return err
 	}
@@ -989,7 +420,7 @@ func LoadPublicAccessCache(rail miso.Rail) error {
 	}
 
 	var pai []PathAccessInfo = slutil.MapTo(public,
-		func(t ExtendedPathRes) PathAccessInfo {
+		func(t repo.ExtendedPathRes) PathAccessInfo {
 			return PathAccessInfo{
 				ResCode: t.ResCode,
 				Url:     preprocessUrl(t.Url),
@@ -1021,7 +452,7 @@ func RegisterInternalPathResourcesOnBootstrapped(res []auth.Resource) {
 			if res.Code == "" || res.Name == "" {
 				continue
 			}
-			if e := CreateResourceIfNotExist(rail, CreateResReq(res), user); e != nil {
+			if e := CreateResourceIfNotExist(rail, repo.CreateResReq(res), user); e != nil {
 				return e
 			}
 		}
@@ -1041,7 +472,7 @@ func RegisterInternalPathResourcesOnBootstrapped(res []auth.Resource) {
 				url = "/" + url
 			}
 
-			r := CreatePathReq{
+			r := repo.CreatePathReq{
 				Method:  route.Method,
 				Group:   app,
 				Url:     "/" + app + url,
