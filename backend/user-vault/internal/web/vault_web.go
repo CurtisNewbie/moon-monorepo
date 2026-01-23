@@ -10,6 +10,7 @@ import (
 	"github.com/curtisnewbie/user-vault/api"
 	"github.com/curtisnewbie/user-vault/internal/metrics"
 	"github.com/curtisnewbie/user-vault/internal/note"
+	"github.com/curtisnewbie/user-vault/internal/repo"
 	"github.com/curtisnewbie/user-vault/internal/vault"
 	"gorm.io/gorm"
 )
@@ -505,7 +506,7 @@ func ApiClearUserFailedLoginAttempts(rail miso.Rail, req vault.ClearUserFailedLo
 //   - misoapi-http: POST /open/api/note/list-notes
 //   - misoapi-resource: ref(ResourceBasicUser)
 //   - misoapi-ngtable
-func ApiListNotes(rail miso.Rail, db *gorm.DB, req note.ListNoteReq, user flow.User) (miso.PageRes[note.Note], error) {
+func ApiListNotes(rail miso.Rail, db *gorm.DB, req repo.ListNoteReq, user flow.User) (miso.PageRes[repo.Note], error) {
 	return note.ListNotes(rail, db, req, user)
 }
 
@@ -513,15 +514,15 @@ func ApiListNotes(rail miso.Rail, db *gorm.DB, req note.ListNoteReq, user flow.U
 //
 //   - misoapi-http: POST /open/api/note/save-note
 //   - misoapi-resource: ref(ResourceBasicUser)
-func ApiSaveNote(rail miso.Rail, db *gorm.DB, req note.SaveNoteReq, user flow.User) error {
-	return note.DBSaveNote(rail, db, req, user)
+func ApiSaveNote(rail miso.Rail, db *gorm.DB, req repo.SaveNoteReq, user flow.User) error {
+	return note.SaveNote(rail, db, req, user)
 }
 
 // User Update Note
 //
 //   - misoapi-http: POST /open/api/note/update-note
 //   - misoapi-resource: ref(ResourceBasicUser)
-func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req note.UpdateNoteReq, user flow.User) error {
+func ApiUpdateNote(rail miso.Rail, db *gorm.DB, req repo.UpdateNoteReq, user flow.User) error {
 	return note.UpdateNote(rail, db, req, user)
 }
 

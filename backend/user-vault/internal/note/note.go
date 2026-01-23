@@ -1,148 +1,33 @@
 package note
 
 import (
-	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/flow"
-	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
-	"github.com/curtisnewbie/miso/util/atom"
-	"github.com/curtisnewbie/miso/util/idutil"
+	"github.com/curtisnewbie/user-vault/internal/repo"
 	"gorm.io/gorm"
-)
-
-const (
-	TableNote = "note"
-)
-
-var (
-	ErrNoteNotFound = errs.NewErrfCode("NOTE_NOT_FOUND", "Note not found")
 )
 
 func NewNoteLock(rail miso.Rail, recordId string) *redis.RLock {
 	return redis.NewRLockf(rail, "user-vault:note:record-id:%v", recordId)
 }
 
-type SaveNoteReq struct {
-	Title   string `valid:"trim,notEmpty" json:"title"`
-	Content string `json:"content"`
+func ListNotes(rail miso.Rail, db *gorm.DB, req repo.ListNoteReq, user flow.User) (miso.PageRes[repo.Note], error) {
+	return repo.ListNotes(rail, db, req, user)
 }
 
-func DBSaveNote(rail miso.Rail, db *gorm.DB, snr SaveNoteReq, user flow.User) error {
-	return dbquery.NewQuery(rail, db).
-		Table(TableNote).
-		CreateAny(struct {
-			RecordId  string
-			Title     string
-			Content   string
-			UserNo    string
-			CreatedBy string
-		}{
-			idutil.Id("note_"),
-			snr.Title,
-			snr.Content,
-			user.UserNo,
-			user.Username,
-		})
-}
-
-type UpdateNoteReq struct {
-	RecordId string `valid:"notEmpty" json:"recordId"`
-	Title    string `valid:"trim,notEmpty" json:"title"`
-	Content  string `json:"content"`
-}
-
-func DBUpdateNote(rail miso.Rail, db *gorm.DB, unr UpdateNoteReq, user flow.User) error {
-	return dbquery.NewQuery(rail, db).
-		Table(TableNote).
-		SetCols(struct {
-			Title     string
-			Content   string
-			UpdatedBy string
-		}{
-			unr.Title,
-			unr.Content,
-			user.Username,
-		}).
-		Eq("record_id", unr.RecordId).
-		Eq("user_no", user.UserNo).
-		UpdateAny()
-}
-
-func DBDeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user flow.User) error {
-	return dbquery.NewQuery(rail, db).
-		Table(TableNote).
-		SetCols(struct {
-			Deleted   bool
-			UpdatedBy string
-		}{
-			true,
-			user.Username,
-		}).
-		Eq("record_id", recordId).
-		Eq("user_no", user.UserNo).
-		Eq("deleted", false).
-		UpdateAny()
-}
-
-type Note struct {
-	RecordId  string    `json:"recordId"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	UserNo    string    `json:"userNo"`
-	CreatedAt atom.Time `json:"createdAt"`
-	UpdatedAt atom.Time `json:"updatedAt"`
-}
-
-func FindNote(rail miso.Rail, db *gorm.DB, recordId string, userNo string) (Note, error) {
-	var n Note
-	ok, err := dbquery.NewQuery(rail, db).
-		Table(TableNote).
-		SelectCols(n).
-		Eq("record_id", recordId).
-		Eq("user_no", userNo).
-		Eq("deleted", false).
-		ScanAny(&n)
-	if err != nil {
-		return n, err
-	}
-	if !ok {
-		return n, ErrNoteNotFound.New()
-	}
-	return n, nil
-}
-
-type ListNoteReq struct {
-	Keywords string      `json:"keywords"`
-	Paging   miso.Paging `json:"paging"`
-}
-
-func ListNotes(rail miso.Rail, db *gorm.DB, req ListNoteReq, user flow.User) (miso.PageRes[Note], error) {
-	return dbquery.NewPagedQuery[Note](db).
-		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
-			return q.Table(TableNote).
-				Eq("user_no", user.UserNo).
-				Eq("deleted", false).
-				WhereIf(req.Keywords != "", "MATCH (title, content) AGAINST (? IN BOOLEAN MODE)", req.Keywords)
-		}).
-		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
-			return q.SelectCols(Note{})
-		}).
-		Scan(rail, req.Paging)
-}
-
-func UpdateNote(rail miso.Rail, db *gorm.DB, req UpdateNoteReq, user flow.User) error {
+func UpdateNote(rail miso.Rail, db *gorm.DB, req repo.UpdateNoteReq, user flow.User) error {
 	lock := NewNoteLock(rail, req.RecordId)
 	if err := lock.Lock(); err != nil {
 		return err
 	}
 	defer lock.Unlock()
 
-	_, err := FindNote(rail, db, req.RecordId, user.UserNo)
+	_, err := repo.FindNote(rail, db, req.RecordId, user.UserNo)
 	if err != nil {
 		return err
 	}
-	return DBUpdateNote(rail, db, req, user)
+	return repo.UpdateNote(rail, db, req, user)
 }
 
 func DeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user flow.User) error {
@@ -152,9 +37,13 @@ func DeleteNote(rail miso.Rail, db *gorm.DB, recordId string, user flow.User) er
 	}
 	defer lock.Unlock()
 
-	_, err := FindNote(rail, db, recordId, user.UserNo)
+	_, err := repo.FindNote(rail, db, recordId, user.UserNo)
 	if err != nil {
 		return err
 	}
-	return DBDeleteNote(rail, db, recordId, user)
+	return repo.DeleteNote(rail, db, recordId, user)
+}
+
+func SaveNote(rail miso.Rail, db *gorm.DB, snr repo.SaveNoteReq, user flow.User) error {
+	return repo.SaveNote(rail, db, snr, user)
 }
