@@ -106,12 +106,14 @@ import {
 import { MngNoteComponent } from "./mng-note/mng-note.component";
 import { EditNoteDialogComponent } from "./edit-note-dialog/edit-note-dialog.component";
 import { DocxPreviewComponent } from './docx-preview-comp/docx-preview.component';
+import { TrlPipe } from './trl.pipe';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
 @NgModule({
   exports: [],
   declarations: [
+    TrlPipe,
     ShowNotificationDialogComponent,
     PdfViewerComponent,
     AppComponent,

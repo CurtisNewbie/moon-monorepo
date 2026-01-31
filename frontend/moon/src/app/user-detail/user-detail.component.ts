@@ -4,7 +4,6 @@ import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { I18n } from "../i18n.service";
 
 export interface UserDetail {
   id?: string;
@@ -23,11 +22,7 @@ export interface UserDetail {
 })
 export class UserDetailComponent implements OnInit {
   userDetail: UserDetail = {};
-  constructor(private nav: NavigationService, private http: HttpClient, private snackBar: MatSnackBar, public i18n: I18n) {}
-
-  trl(k) {
-    return this.i18n.trl("user-detail", k);
-  }
+  constructor(private nav: NavigationService, private http: HttpClient, private snackBar: MatSnackBar) {}
 
   ngOnInit() {
     this.http.get<any>(`user-vault/open/api/user/info`).subscribe({

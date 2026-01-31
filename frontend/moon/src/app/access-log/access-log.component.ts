@@ -3,7 +3,6 @@ import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Env } from "src/common/env-util";
-import { I18n } from "../i18n.service";
 
 export interface AccessLog {
   id: number;
@@ -33,12 +32,7 @@ export class AccessLogComponent implements OnInit {
     private env: Env,
     private http: HttpClient,
     private snackBar: MatSnackBar,
-    public i18n: I18n
   ) {}
-
-  trl(k, ...args) {
-    return this.i18n.trl("access-log", k, ...args);
-  }
 
   ngOnInit() {}
 

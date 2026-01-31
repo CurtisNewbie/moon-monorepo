@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
-import { I18n } from "../i18n.service";
 
 export interface OperateLog {
   /** name of operation */
@@ -43,11 +42,7 @@ export class OperateHistoryComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
-  constructor(private http: HttpClient, private snackBar: MatSnackBar, public i18n: I18n) {}
-
-  trl(k) {
-    return this.i18n.trl("operate-history", k);
-  }
+  constructor(private http: HttpClient, private snackBar: MatSnackBar) {}
 
   ngOnInit() {}
 
