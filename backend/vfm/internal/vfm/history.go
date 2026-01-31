@@ -5,8 +5,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/curtisnewbie/miso/flow"
 	red "github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/json"
@@ -35,7 +35,7 @@ type BrowseRecord struct {
 
 type BrowseHistory struct {
 	lock  *red.RLock
-	user  common.User
+	user  flow.User
 	c     *redis.Client
 	limit int64
 	ttl   time.Duration
@@ -125,7 +125,7 @@ func (b BrowseHistory) List(rail miso.Rail) ([]BrowseRecord, error) {
 	return br, nil
 }
 
-func NewBrowseHistory(rail miso.Rail, user common.User) BrowseHistory {
+func NewBrowseHistory(rail miso.Rail, user flow.User) BrowseHistory {
 	bh := BrowseHistory{
 		user:  user,
 		lock:  red.NewRLockf(rail, "vfm:browse:history:lock:%v", user.UserNo),
@@ -136,7 +136,7 @@ func NewBrowseHistory(rail miso.Rail, user common.User) BrowseHistory {
 	return bh
 }
 
-func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User) ([]ListBrowseRecordRes, error) {
+func ListBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]ListBrowseRecordRes, error) {
 	l, err := NewBrowseHistory(rail, user).List(rail)
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ type RecordBrowseHistoryReq struct {
 	FileKey string `valid:"notEmpty" json:"fileKey"`
 }
 
-func RecordBrowseHistory(rail miso.Rail, db *gorm.DB, user common.User, req RecordBrowseHistoryReq) error {
+func RecordBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User, req RecordBrowseHistoryReq) error {
 	f, ok, err := findFile(rail, db, req.FileKey)
 	if err != nil {
 		return err

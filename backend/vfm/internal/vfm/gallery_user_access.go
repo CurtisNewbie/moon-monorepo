@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	vault "github.com/curtisnewbie/user-vault/api"
@@ -146,7 +146,7 @@ type PermitGalleryAccessCmd struct {
 	Username  string `validation:"notEmpty" json:"username"`
 }
 
-func ListedGrantedGalleryAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedGalleryAccessCmd, user common.User) (miso.PageRes[ListedGalleryAccessRes], error) {
+func ListedGrantedGalleryAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedGalleryAccessCmd, user flow.User) (miso.PageRes[ListedGalleryAccessRes], error) {
 	gallery, e := FindGallery(rail, tx, req.GalleryNo)
 	if e != nil {
 		return miso.PageRes[ListedGalleryAccessRes]{}, e
@@ -179,7 +179,7 @@ func ListedGrantedGalleryAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedGall
 		Scan(rail, req.Paging)
 }
 
-func RemoveGalleryAccess(rail miso.Rail, tx *gorm.DB, cmd RemoveGalleryAccessCmd, user common.User) error {
+func RemoveGalleryAccess(rail miso.Rail, tx *gorm.DB, cmd RemoveGalleryAccessCmd, user flow.User) error {
 	gallery, e := FindGallery(rail, tx, cmd.GalleryNo)
 	if e != nil {
 		return e
@@ -199,7 +199,7 @@ func RemoveGalleryAccess(rail miso.Rail, tx *gorm.DB, cmd RemoveGalleryAccessCmd
 }
 
 // Grant user's access to the gallery, only the owner can do so
-func GrantGalleryAccessToUser(rail miso.Rail, tx *gorm.DB, cmd PermitGalleryAccessCmd, user common.User) error {
+func GrantGalleryAccessToUser(rail miso.Rail, tx *gorm.DB, cmd PermitGalleryAccessCmd, user flow.User) error {
 	gallery, e := FindGallery(rail, tx, cmd.GalleryNo)
 	if e != nil {
 		return e

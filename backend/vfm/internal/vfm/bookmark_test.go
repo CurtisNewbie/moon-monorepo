@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 )
 
@@ -44,7 +44,7 @@ func TestProcessUploadedBookmarkFile(t *testing.T) {
 	}
 
 	testFile := "bookmarks_2023_10_13.html"
-	user := common.User{
+	user := flow.User{
 		UserNo:   "UE202205142310076187414",
 		Username: "zhuangyongj",
 	}

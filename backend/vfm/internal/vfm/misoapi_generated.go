@@ -2,15 +2,15 @@
 package vfm
 
 import (
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 )
 
 func init() {
 	miso.HttpGet("/open/api/file/upload/duplication/preflight", miso.AutoHandler(
 		func(inb *miso.Inbound, req PreflightCheckReq) (bool, error) {
-			return ApiPreflightCheckDuplicate(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiPreflightCheckDuplicate(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiPreflightCheckDuplicate").
 		Desc(`Preflight check for duplicate file uploads`).
@@ -18,7 +18,7 @@ func init() {
 
 	miso.HttpGet("/open/api/file/parent", miso.AutoHandler(
 		func(inb *miso.Inbound, req FetchParentFileReq) (*ParentFileInfo, error) {
-			return ApiGetParentFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiGetParentFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiGetParentFile").
 		Desc(`User fetch parent file info`).
@@ -26,7 +26,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/move-to-dir", miso.AutoHandler(
 		func(inb *miso.Inbound, req MoveIntoDirReq) (any, error) {
-			return nil, ApiMoveFileToDir(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiMoveFileToDir(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiMoveFileToDir").
 		Desc(`User move file into directory`).
@@ -34,7 +34,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/batch-move-to-dir", miso.AutoHandler(
 		func(inb *miso.Inbound, req BatchMoveIntoDirReq) (any, error) {
-			return nil, ApiBatchMoveFileToDir(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiBatchMoveFileToDir(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiBatchMoveFileToDir").
 		Desc(`User move files into directory`).
@@ -42,7 +42,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/make-dir", miso.AutoHandler(
 		func(inb *miso.Inbound, req MakeDirReq) (string, error) {
-			return ApiMakeDir(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiMakeDir(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiMakeDir").
 		Desc(`User make directory`).
@@ -50,7 +50,7 @@ func init() {
 
 	miso.HttpGet("/open/api/file/dir/list", miso.ResHandler(
 		func(inb *miso.Inbound) ([]ListedDir, error) {
-			return ApiListDir(inb.Rail(), dbquery.GetDB(), common.GetUser(inb.Rail()))
+			return ApiListDir(inb.Rail(), dbquery.GetDB(), flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListDir").
 		Desc(`User list directories`).
@@ -58,7 +58,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListFileReq) (miso.PageRes[ListedFile], error) {
-			return ApiListFiles(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListFiles(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListFiles").
 		Desc(`User list files`).
@@ -66,7 +66,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/delete", miso.AutoHandler(
 		func(inb *miso.Inbound, req DeleteFileReq) (any, error) {
-			return nil, ApiDeleteFiles(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiDeleteFiles(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiDeleteFiles").
 		Desc(`User delete file`).
@@ -74,7 +74,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/dir/truncate", miso.AutoHandler(
 		func(inb *miso.Inbound, req DeleteFileReq) (any, error) {
-			return nil, ApiTruncateDir(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiTruncateDir(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiTruncateDir").
 		Desc(`User delete truncate directory recursively`).
@@ -82,7 +82,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/dir/bottom-up-tree", miso.AutoHandler(
 		func(inb *miso.Inbound, req FetchDirTreeReq) (*DirBottomUpTreeNode, error) {
-			return ApiFetchDirBottomUpTree(inb, dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiFetchDirBottomUpTree(inb, dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiFetchDirBottomUpTree").
 		Desc(`Fetch directory tree bottom up.`).
@@ -90,7 +90,7 @@ func init() {
 
 	miso.HttpGet("/open/api/file/dir/top-down-tree", miso.ResHandler(
 		func(inb *miso.Inbound) (*DirTopDownTreeNode, error) {
-			return ApiFetchDirTopDownTree(inb, dbquery.GetDB(), common.GetUser(inb.Rail()))
+			return ApiFetchDirTopDownTree(inb, dbquery.GetDB(), flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiFetchDirTopDownTree").
 		Desc(`Fetch directory tree top down.`).
@@ -98,7 +98,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/delete/batch", miso.AutoHandler(
 		func(inb *miso.Inbound, req BatchDeleteFileReq) (any, error) {
-			return nil, ApiBatchDeleteFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiBatchDeleteFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiBatchDeleteFile").
 		Desc(`User delete file in batch`).
@@ -106,7 +106,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/create", miso.AutoHandler(
 		func(inb *miso.Inbound, req CreateFileReq) (any, error) {
-			return nil, ApiCreateFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiCreateFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiCreateFile").
 		Desc(`User create file`).
@@ -114,7 +114,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/info/update", miso.AutoHandler(
 		func(inb *miso.Inbound, req UpdateFileReq) (any, error) {
-			return nil, ApiUpdateFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiUpdateFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiUpdateFile").
 		Desc(`User update file`).
@@ -122,7 +122,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/token/generate", miso.AutoHandler(
 		func(inb *miso.Inbound, req GenerateTempTokenReq) (string, error) {
-			return ApiGenFileTkn(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiGenFileTkn(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiGenFileTkn").
 		Desc(`User generate temporary token`).
@@ -130,7 +130,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/unpack", miso.AutoHandler(
 		func(inb *miso.Inbound, req UnpackZipReq) (any, error) {
-			return nil, ApiUnpackZip(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiUnpackZip(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiUnpackZip").
 		Desc(`User unpack zip`).
@@ -144,7 +144,7 @@ func init() {
 
 	miso.HttpGet("/open/api/vfolder/brief/owned", miso.ResHandler(
 		func(inb *miso.Inbound) ([]VFolderBrief, error) {
-			return ApiListVFolderBrief(inb.Rail(), dbquery.GetDB(), common.GetUser(inb.Rail()))
+			return ApiListVFolderBrief(inb.Rail(), dbquery.GetDB(), flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListVFolderBrief").
 		Desc(`User list virtual folder briefs`).
@@ -152,7 +152,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListVFolderReq) (ListVFolderRes, error) {
-			return ApiListVFolders(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListVFolders(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListVFolders").
 		Desc(`User list virtual folders`).
@@ -160,7 +160,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/create", miso.AutoHandler(
 		func(inb *miso.Inbound, req CreateVFolderReq) (string, error) {
-			return ApiCreateVFolder(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiCreateVFolder(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiCreateVFolder").
 		Desc(`User create virtual folder`).
@@ -168,7 +168,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/file/add", miso.AutoHandler(
 		func(inb *miso.Inbound, req AddFileToVfolderReq) (any, error) {
-			return nil, ApiVFolderAddFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiVFolderAddFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiVFolderAddFile").
 		Desc(`User add file to virtual folder`).
@@ -176,7 +176,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/file/remove", miso.AutoHandler(
 		func(inb *miso.Inbound, req RemoveFileFromVfolderReq) (any, error) {
-			return nil, ApiVFolderRemoveFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiVFolderRemoveFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiVFolderRemoveFile").
 		Desc(`User remove file from virtual folder`).
@@ -184,7 +184,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/share", miso.AutoHandler(
 		func(inb *miso.Inbound, req ShareVfolderReq) (any, error) {
-			return nil, ApiShareVFolder(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiShareVFolder(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiShareVFolder").
 		Desc(`Share access to virtual folder`).
@@ -192,7 +192,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/access/remove", miso.AutoHandler(
 		func(inb *miso.Inbound, req RemoveGrantedFolderAccessReq) (any, error) {
-			return nil, ApiRemoveVFolderAccess(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiRemoveVFolderAccess(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiRemoveVFolderAccess").
 		Desc(`Remove granted access to virtual folder`).
@@ -200,7 +200,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/granted/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListGrantedFolderAccessReq) (ListGrantedFolderAccessRes, error) {
-			return ApiListVFolderAccess(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListVFolderAccess(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListVFolderAccess").
 		Desc(`List granted access to virtual folder`).
@@ -208,7 +208,7 @@ func init() {
 
 	miso.HttpPost("/open/api/vfolder/remove", miso.AutoHandler(
 		func(inb *miso.Inbound, req RemoveVFolderReq) (any, error) {
-			return nil, ApiRemoveVFolder(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiRemoveVFolder(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiRemoveVFolder").
 		Desc(`Remove virtual folder`).
@@ -216,7 +216,7 @@ func init() {
 
 	miso.HttpGet("/open/api/gallery/brief/owned", miso.ResHandler(
 		func(inb *miso.Inbound) ([]VGalleryBrief, error) {
-			return ApiListGalleryBriefs(inb.Rail(), dbquery.GetDB(), common.GetUser(inb.Rail()))
+			return ApiListGalleryBriefs(inb.Rail(), dbquery.GetDB(), flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListGalleryBriefs").
 		Desc(`List owned gallery brief info`).
@@ -224,7 +224,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/new", miso.AutoHandler(
 		func(inb *miso.Inbound, req CreateGalleryCmd) (*Gallery, error) {
-			return ApiCreateGallery(inb.Rail(), req, dbquery.GetDB(), common.GetUser(inb.Rail()))
+			return ApiCreateGallery(inb.Rail(), req, dbquery.GetDB(), flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiCreateGallery").
 		Desc(`Create new gallery`).
@@ -232,7 +232,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/update", miso.AutoHandler(
 		func(inb *miso.Inbound, req UpdateGalleryCmd) (any, error) {
-			return nil, ApiUpdateGallery(inb.Rail(), req, dbquery.GetDB(), common.GetUser(inb.Rail()))
+			return nil, ApiUpdateGallery(inb.Rail(), req, dbquery.GetDB(), flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiUpdateGallery").
 		Desc(`Update gallery`).
@@ -240,7 +240,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/delete", miso.AutoHandler(
 		func(inb *miso.Inbound, req DeleteGalleryCmd) (any, error) {
-			return nil, ApiDeleteGallery(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiDeleteGallery(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiDeleteGallery").
 		Desc(`Delete gallery`).
@@ -248,7 +248,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListGalleriesCmd) (miso.PageRes[VGallery], error) {
-			return ApiListGalleries(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListGalleries(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListGalleries").
 		Desc(`List galleries`).
@@ -256,7 +256,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/access/grant", miso.AutoHandler(
 		func(inb *miso.Inbound, req PermitGalleryAccessCmd) (any, error) {
-			return nil, ApiGranteGalleryAccess(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiGranteGalleryAccess(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiGranteGalleryAccess").
 		Desc(`Grant access to the galleries`).
@@ -264,7 +264,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/access/remove", miso.AutoHandler(
 		func(inb *miso.Inbound, req RemoveGalleryAccessCmd) (any, error) {
-			return nil, ApiRemoveGalleryAccess(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiRemoveGalleryAccess(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiRemoveGalleryAccess").
 		Desc(`Remove access to the galleries`).
@@ -272,7 +272,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/access/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListGrantedGalleryAccessCmd) (miso.PageRes[ListedGalleryAccessRes], error) {
-			return ApiListGalleryAccess(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListGalleryAccess(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListGalleryAccess").
 		Desc(`List granted access to the galleries`).
@@ -280,7 +280,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/images", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListGalleryImagesCmd) (*ListGalleryImagesResp, error) {
-			return ApiListGalleryImages(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListGalleryImages(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListGalleryImages").
 		Desc(`List images of gallery`).
@@ -288,7 +288,7 @@ func init() {
 
 	miso.HttpPost("/open/api/gallery/image/transfer", miso.AutoHandler(
 		func(inb *miso.Inbound, req TransferGalleryImageReq) (any, error) {
-			return nil, ApiTransferGalleryImage(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiTransferGalleryImage(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiTransferGalleryImage").
 		Desc(`Host selected images on gallery`).
@@ -296,7 +296,7 @@ func init() {
 
 	miso.HttpPost("/open/api/versioned-file/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ApiListVerFileReq) (miso.PageRes[ApiListVerFileRes], error) {
-			return ApiListVersionedFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListVersionedFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListVersionedFile").
 		Desc(`List versioned files`).
@@ -304,7 +304,7 @@ func init() {
 
 	miso.HttpPost("/open/api/versioned-file/history", miso.AutoHandler(
 		func(inb *miso.Inbound, req ApiListVerFileHistoryReq) (miso.PageRes[ApiListVerFileHistoryRes], error) {
-			return ApiListVersionedFileHistory(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListVersionedFileHistory(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListVersionedFileHistory").
 		Desc(`List versioned file history`).
@@ -312,7 +312,7 @@ func init() {
 
 	miso.HttpPost("/open/api/versioned-file/accumulated-size", miso.AutoHandler(
 		func(inb *miso.Inbound, req ApiQryVerFileAccuSizeReq) (ApiQryVerFileAccuSizeRes, error) {
-			return ApiQryVersionedFileAccuSize(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiQryVersionedFileAccuSize(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiQryVersionedFileAccuSize").
 		Desc(`Query versioned file log accumulated size`).
@@ -320,7 +320,7 @@ func init() {
 
 	miso.HttpPost("/open/api/versioned-file/create", miso.AutoHandler(
 		func(inb *miso.Inbound, req ApiCreateVerFileReq) (ApiCreateVerFileRes, error) {
-			return ApiCreateVersionedFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiCreateVersionedFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiCreateVersionedFile").
 		Desc(`Create versioned file`).
@@ -328,7 +328,7 @@ func init() {
 
 	miso.HttpPost("/open/api/versioned-file/update", miso.AutoHandler(
 		func(inb *miso.Inbound, req ApiUpdateVerFileReq) (any, error) {
-			return nil, ApiUpdateVersionedFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiUpdateVersionedFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiUpdateVersionedFile").
 		Desc(`Update versioned file`).
@@ -336,7 +336,7 @@ func init() {
 
 	miso.HttpPost("/open/api/versioned-file/delete", miso.AutoHandler(
 		func(inb *miso.Inbound, req ApiDelVerFileReq) (any, error) {
-			return nil, ApiDelVersionedFile(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiDelVersionedFile(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiDelVersionedFile").
 		Desc(`Delete versioned file`).
@@ -360,7 +360,7 @@ func init() {
 
 	miso.HttpPut("/bookmark/file/upload", miso.ResHandler(
 		func(inb *miso.Inbound) (any, error) {
-			return nil, ApiUploadBookmarkFile(inb, common.GetUser(inb.Rail()))
+			return nil, ApiUploadBookmarkFile(inb, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiUploadBookmarkFile").
 		Desc(`Upload bookmark file`).
@@ -368,7 +368,7 @@ func init() {
 
 	miso.HttpPost("/bookmark/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListBookmarksReq) (miso.PageRes[ListedBookmark], error) {
-			return ApiListBookmarks(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListBookmarks(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListBookmarks").
 		Desc(`List bookmarks`).
@@ -376,7 +376,7 @@ func init() {
 
 	miso.HttpPost("/bookmark/remove", miso.AutoHandler(
 		func(inb *miso.Inbound, req RemoveBookmarkReq) (any, error) {
-			return nil, ApiRemoveBookmark(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiRemoveBookmark(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiRemoveBookmark").
 		Desc(`Remove bookmark`).
@@ -384,7 +384,7 @@ func init() {
 
 	miso.HttpPost("/bookmark/blacklist/list", miso.AutoHandler(
 		func(inb *miso.Inbound, req ListBookmarksReq) (miso.PageRes[ListedBookmark], error) {
-			return ApiListBlacklistedBookmarks(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiListBlacklistedBookmarks(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListBlacklistedBookmarks").
 		Desc(`List bookmark blacklist`).
@@ -392,7 +392,7 @@ func init() {
 
 	miso.HttpPost("/bookmark/blacklist/remove", miso.AutoHandler(
 		func(inb *miso.Inbound, req RemoveBookmarkReq) (any, error) {
-			return nil, ApiRemoveBookmarkBlacklist(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return nil, ApiRemoveBookmarkBlacklist(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiRemoveBookmarkBlacklist").
 		Desc(`Remove bookmark blacklist`).
@@ -400,7 +400,7 @@ func init() {
 
 	miso.HttpGet("/history/list-browse-history", miso.ResHandler(
 		func(inb *miso.Inbound) ([]ListBrowseRecordRes, error) {
-			return ApiListBrowseHistory(inb.Rail(), dbquery.GetDB(), common.GetUser(inb.Rail()))
+			return ApiListBrowseHistory(inb.Rail(), dbquery.GetDB(), flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiListBrowseHistory").
 		Desc(`List user browse history`).
@@ -408,7 +408,7 @@ func init() {
 
 	miso.HttpPost("/history/record-browse-history", miso.AutoHandler(
 		func(inb *miso.Inbound, req RecordBrowseHistoryReq) (any, error) {
-			return nil, ApiRecordBrowseHistory(inb.Rail(), dbquery.GetDB(), common.GetUser(inb.Rail()), req)
+			return nil, ApiRecordBrowseHistory(inb.Rail(), dbquery.GetDB(), flow.GetUser(inb.Rail()), req)
 		})).
 		Extra(miso.ExtraName, "ApiRecordBrowseHistory").
 		Desc(`Record user browse history, only files that are directly owned by the user is recorded`).
@@ -424,7 +424,7 @@ func init() {
 
 	miso.HttpPost("/open/api/file/dir-thumbnail", miso.AutoHandler(
 		func(inb *miso.Inbound, req FetchDirThumbnailReq) (FetchDirThumbnailRes, error) {
-			return ApiFetchDirThumbnail(inb.Rail(), dbquery.GetDB(), req, common.GetUser(inb.Rail()))
+			return ApiFetchDirThumbnail(inb.Rail(), dbquery.GetDB(), req, flow.GetUser(inb.Rail()))
 		})).
 		Extra(miso.ExtraName, "ApiFetchDirThumbnail").
 		Desc(`Fetch Directory Thumbnail`).

@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/snowflake"
@@ -42,7 +42,7 @@ type ApiCreateVerFileRes struct {
 	VerFileId string `desc:"Versioned File Id" json:"verFileId"`
 }
 
-func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user common.User) (ApiCreateVerFileRes, error) {
+func CreateVerFile(rail miso.Rail, db *gorm.DB, req ApiCreateVerFileReq, user flow.User) (ApiCreateVerFileRes, error) {
 	var res ApiCreateVerFileRes
 
 	fk, err := CreateFile(rail, db, CreateFileReq{Filename: req.Filename, FakeFstoreFileId: req.FakeFstoreFileId, Hidden: true}, user)
@@ -98,7 +98,7 @@ func NewVerFileLock(rail miso.Rail, verFileId string) *redis.RLock {
 	return redis.NewRLockf(rail, "rlock:version_file:%v", verFileId)
 }
 
-func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user common.User) error {
+func UpdateVerFile(rail miso.Rail, db *gorm.DB, req ApiUpdateVerFileReq, user flow.User) error {
 	lock := NewVerFileLock(rail, req.VerFileId)
 	if err := lock.Lock(); err != nil {
 		return err
@@ -182,7 +182,7 @@ type ApiListVerFileRes struct {
 	Thumbnail   string    `desc:"thumbnail token" json:"thumbnail"`
 }
 
-func ListVerFile(rail miso.Rail, db *gorm.DB, req ApiListVerFileReq, user common.User) (miso.PageRes[ApiListVerFileRes], error) {
+func ListVerFile(rail miso.Rail, db *gorm.DB, req ApiListVerFileReq, user flow.User) (miso.PageRes[ApiListVerFileRes], error) {
 	return dbquery.NewPagedQuery[ApiListVerFileRes](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.Table(`versioned_file f`).
@@ -233,7 +233,7 @@ type ApiDelVerFileReq struct {
 	VerFileId string `desc:"Versioned File Id" valid:"notEmpty" json:"verFileId"`
 }
 
-func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.User) error {
+func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user flow.User) error {
 	lock := NewVerFileLock(rail, req.VerFileId)
 	if err := lock.Lock(); err != nil {
 		return err
@@ -284,7 +284,7 @@ func DelVerFile(rail miso.Rail, db *gorm.DB, req ApiDelVerFileReq, user common.U
 	})
 }
 
-func ListVerFileHistory(rail miso.Rail, db *gorm.DB, req ApiListVerFileHistoryReq, user common.User) (miso.PageRes[ApiListVerFileHistoryRes], error) {
+func ListVerFileHistory(rail miso.Rail, db *gorm.DB, req ApiListVerFileHistoryReq, user flow.User) (miso.PageRes[ApiListVerFileHistoryRes], error) {
 	if err := checkVerFileAccess(rail, db, user.UserNo, req.VerFileId); err != nil {
 		return miso.PageRes[ApiListVerFileHistoryRes]{}, err
 	}
@@ -314,7 +314,7 @@ func ListVerFileHistory(rail miso.Rail, db *gorm.DB, req ApiListVerFileHistoryRe
 		Scan(rail, req.Paging)
 }
 
-func CalcVerFileAccuSize(rail miso.Rail, db *gorm.DB, req ApiQryVerFileAccuSizeReq, user common.User) (ApiQryVerFileAccuSizeRes, error) {
+func CalcVerFileAccuSize(rail miso.Rail, db *gorm.DB, req ApiQryVerFileAccuSizeReq, user flow.User) (ApiQryVerFileAccuSizeRes, error) {
 	if err := checkVerFileAccess(rail, db, user.UserNo, req.VerFileId); err != nil {
 		return ApiQryVerFileAccuSizeRes{}, err
 	}

@@ -3,12 +3,11 @@ package vfm
 import (
 	"os"
 
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 )
 
 func PrepareServer() {
-	common.LoadBuiltinPropagationKeys()
+
 	miso.PreServerBootstrap(SubscribeBinlogChanges)
 	miso.PreServerBootstrap(PrintVersion)
 	miso.PreServerBootstrap(PrepareEventBus)

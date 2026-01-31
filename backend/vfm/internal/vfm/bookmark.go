@@ -9,9 +9,9 @@ import (
 	"os"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/randutil"
 	"golang.org/x/net/html"
@@ -121,7 +121,7 @@ func TransferTmpFile(rail miso.Rail, reader io.Reader) (string, error) {
 	return path, nil
 }
 
-func ProcessUploadedBookmarkFile(rail miso.Rail, path string, user common.User) error {
+func ProcessUploadedBookmarkFile(rail miso.Rail, path string, user flow.User) error {
 	rail.Infof("User '%v' parse bookmark file, tmpFile: %v", user.Username, path)
 	file, err := os.Open(path)
 	if err != nil {
@@ -151,7 +151,7 @@ type NewBookmark struct {
 	Md5    string
 }
 
-func SaveBookmarks(rail miso.Rail, tx *gorm.DB, bookmarkFile NetscapeBookmarkFile, user common.User) error {
+func SaveBookmarks(rail miso.Rail, tx *gorm.DB, bookmarkFile NetscapeBookmarkFile, user flow.User) error {
 
 	bookmarks := make([]NewBookmark, 0, len(bookmarkFile.Bookmarks))
 	for i := range bookmarkFile.Bookmarks {

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/randutil"
 	"github.com/curtisnewbie/miso/util/strutil"
@@ -18,8 +18,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func testUser() common.User {
-	return common.User{
+func testUser() flow.User {
+	return flow.User{
 		UserNo:   "UE202205142310076187414",
 		Username: "zhuangyongj",
 	}
@@ -333,7 +333,7 @@ func TestFetchDirTreeBottomUp(t *testing.T) {
 	corePreTest(t)
 	rail := miso.EmptyRail()
 	dirParentCache.DelAll(rail)
-	n, err := FetchDirTreeBottomUp(rail, mysql.GetMySQL(), FetchDirTreeReq{FileKey: "ZZZ1471280777216000148288"}, common.User{})
+	n, err := FetchDirTreeBottomUp(rail, mysql.GetMySQL(), FetchDirTreeReq{FileKey: "ZZZ1471280777216000148288"}, flow.User{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -350,7 +350,7 @@ func TestFetchDirTreeTopDown(t *testing.T) {
 	corePreTest(t)
 	rail := miso.EmptyRail()
 	dirParentCache.DelAll(rail)
-	root, err := FetchDirTreeTopDown(rail, mysql.GetMySQL(), common.User{UserNo: "UE1049787455160320075953"})
+	root, err := FetchDirTreeTopDown(rail, mysql.GetMySQL(), flow.User{UserNo: "UE1049787455160320075953"})
 	if err != nil {
 		t.Fatal(err)
 	}

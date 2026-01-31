@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/async"
 	"github.com/curtisnewbie/miso/util/atom"
@@ -78,7 +78,7 @@ type VGallery struct {
 }
 
 // List owned gallery briefs
-func ListOwnedGalleryBriefs(rail miso.Rail, user common.User, tx *gorm.DB) ([]VGalleryBrief, error) {
+func ListOwnedGalleryBriefs(rail miso.Rail, user flow.User, tx *gorm.DB) ([]VGalleryBrief, error) {
 	var briefs []VGalleryBrief
 	err := dbquery.NewQuery(rail, tx).
 		Raw(`select gallery_no, name from gallery where user_no = ? AND is_del = 0`, user.UserNo).
@@ -94,7 +94,7 @@ func ListOwnedGalleryBriefs(rail miso.Rail, user common.User, tx *gorm.DB) ([]VG
 }
 
 /* List Galleries */
-func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user common.User, db *gorm.DB) (miso.PageRes[VGallery], error) {
+func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user flow.User, db *gorm.DB) (miso.PageRes[VGallery], error) {
 	return dbquery.NewPagedQuery[VGallery](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Table("gallery g").
@@ -210,7 +210,7 @@ func CreateGalleryForDir(rail miso.Rail, cmd CreateGalleryForDirCmd, db *gorm.DB
 }
 
 // Create a new Gallery
-func CreateGallery(rail miso.Rail, cmd CreateGalleryCmd, user common.User, tx *gorm.DB) (*Gallery, error) {
+func CreateGallery(rail miso.Rail, cmd CreateGalleryCmd, user flow.User, tx *gorm.DB) (*Gallery, error) {
 	rail.Infof("Creating gallery, cmd: %#v, user: %#v", cmd, user)
 
 	gal, er := redis.RLockRun(rail, "fantahsea:gallery:create:"+user.UserNo, func() (*Gallery, error) {
@@ -243,7 +243,7 @@ func CreateGallery(rail miso.Rail, cmd CreateGalleryCmd, user common.User, tx *g
 }
 
 /* Update a Gallery */
-func UpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, user common.User, tx *gorm.DB) error {
+func UpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, user flow.User, tx *gorm.DB) error {
 	galleryNo := cmd.GalleryNo
 
 	gallery, e := FindGallery(rail, tx, galleryNo)
@@ -309,7 +309,7 @@ func FindGallery(rail miso.Rail, tx *gorm.DB, galleryNo string) (*Gallery, error
 }
 
 /* Delete a gallery */
-func DeleteGallery(rail miso.Rail, tx *gorm.DB, cmd DeleteGalleryCmd, user common.User) error {
+func DeleteGallery(rail miso.Rail, tx *gorm.DB, cmd DeleteGalleryCmd, user flow.User) error {
 	galleryNo := cmd.GalleryNo
 	if access, err := HasAccessToGallery(rail, tx, user.UserNo, galleryNo); !access || err != nil {
 		if err != nil {

@@ -8,9 +8,9 @@ import (
 
 	fstore "github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/hash"
@@ -199,7 +199,7 @@ type UserVFolder struct {
 	UpdateBy   string
 }
 
-func listFilesInVFolder(rail miso.Rail, db *gorm.DB, page miso.Paging, folderNo string, user common.User) (miso.PageRes[ListedFile], error) {
+func listFilesInVFolder(rail miso.Rail, db *gorm.DB, page miso.Paging, folderNo string, user flow.User) (miso.PageRes[ListedFile], error) {
 	return dbquery.NewPagedQuery[ListedFile](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
@@ -251,7 +251,7 @@ func (q ListFileReq) IsEmpty() bool {
 	return (q.ParentFile == nil || *q.ParentFile == "") && (q.Filename == nil || *q.Filename == "") && (q.FileKey == nil || *q.FileKey == "")
 }
 
-func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
+func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (miso.PageRes[ListedFile], error) {
 	var res miso.PageRes[ListedFile]
 	var e error
 
@@ -302,7 +302,7 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user common.User) (
 	return res, e
 }
 
-func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user common.User) (miso.PageRes[ListedFile], error) {
+func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (miso.PageRes[ListedFile], error) {
 
 	//  If parentFile is empty, and filename are not queried, then we only return the top level file or dir.
 	if req.IsEmpty() {
@@ -398,7 +398,7 @@ type FetchParentFileReq struct {
 	FileKey string `form:"fileKey"`
 }
 
-func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user common.User) (ParentFileInfo, bool, error) {
+func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user flow.User) (ParentFileInfo, bool, error) {
 	f, ok, err := findFile(c, db, req.FileKey)
 	if err != nil {
 		return ParentFileInfo{}, false, err
@@ -432,7 +432,7 @@ type MakeDirReq struct {
 	Name       string `json:"name" validation:"notEmpty"` // name of the directory
 }
 
-func MakeDir(rail miso.Rail, tx *gorm.DB, req MakeDirReq, user common.User) (string, error) {
+func MakeDir(rail miso.Rail, tx *gorm.DB, req MakeDirReq, user flow.User) (string, error) {
 	rail.Infof("Making dir, req: %+v", req)
 
 	var dir FileInfo
@@ -459,7 +459,7 @@ type MoveIntoDirReq struct {
 	ParentFileUuid string `json:"parentFileUuid"`
 }
 
-func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.User) error {
+func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user flow.User) error {
 	if req.Uuid == "" || req.Uuid == req.ParentFileUuid {
 		return nil
 	}
@@ -549,7 +549,7 @@ func MoveFileToDir(rail miso.Rail, db *gorm.DB, req MoveIntoDirReq, user common.
 	return err
 }
 
-func _saveFile(rail miso.Rail, db *gorm.DB, f FileInfo, user common.User) error {
+func _saveFile(rail miso.Rail, db *gorm.DB, f FileInfo, user flow.User) error {
 	uname := user.Username
 	now := atom.Now()
 
@@ -580,7 +580,7 @@ type CreateVFolderReq struct {
 	Name string `json:"name"`
 }
 
-func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.User) (string, error) {
+func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user flow.User) (string, error) {
 	userNo := user.UserNo
 
 	return redis.RLockRun(rail, "vfolder:user:"+userNo, func() (string, error) {
@@ -634,7 +634,7 @@ func CreateVFolder(rail miso.Rail, db *gorm.DB, r CreateVFolderReq, user common.
 	})
 }
 
-func ListDirs(r miso.Rail, db *gorm.DB, user common.User) ([]ListedDir, error) {
+func ListDirs(r miso.Rail, db *gorm.DB, user flow.User) ([]ListedDir, error) {
 	var dirs []ListedDir
 	_, e := dbquery.NewQuery(r, db).
 		Table("file_info").
@@ -671,7 +671,7 @@ func _lockFolderExec(c miso.Rail, folderNo string, r redis.Runnable) error {
 	return redis.RLockExec(c, "vfolder:"+folderNo, r)
 }
 
-func ShareVFolder(rail miso.Rail, db *gorm.DB, sharedTo vault.UserInfo, folderNo string, user common.User) error {
+func ShareVFolder(rail miso.Rail, db *gorm.DB, sharedTo vault.UserInfo, folderNo string, user flow.User) error {
 	if user.UserNo == sharedTo.UserNo {
 		return nil
 	}
@@ -722,7 +722,7 @@ type RemoveGrantedFolderAccessReq struct {
 	UserNo   string `json:"userNo"`
 }
 
-func RemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAccessReq, user common.User) error {
+func RemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAccessReq, user flow.User) error {
 	if user.UserNo == req.UserNo {
 		return nil
 	}
@@ -741,7 +741,7 @@ func RemoveVFolderAccess(rail miso.Rail, db *gorm.DB, req RemoveGrantedFolderAcc
 	})
 }
 
-func ListVFolderBrief(rail miso.Rail, tx *gorm.DB, user common.User) ([]VFolderBrief, error) {
+func ListVFolderBrief(rail miso.Rail, tx *gorm.DB, user flow.User) ([]VFolderBrief, error) {
 	var vfb []VFolderBrief
 	err := dbquery.NewQuery(rail, tx).
 		Select("f.folder_no, f.name").
@@ -864,7 +864,7 @@ func HandleAddFileToVFolderEvent(rail miso.Rail, db *gorm.DB, evt AddFileToVfold
 	return nil
 }
 
-func AddFileToVFolder(rail miso.Rail, db *gorm.DB, req AddFileToVfolderReq, user common.User) error {
+func AddFileToVFolder(rail miso.Rail, db *gorm.DB, req AddFileToVfolderReq, user flow.User) error {
 
 	if len(req.FileKeys) < 1 {
 		return nil
@@ -897,7 +897,7 @@ type RemoveFileFromVfolderReq struct {
 	FileKeys []string `json:"fileKeys"`
 }
 
-func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolderReq, user common.User) error {
+func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolderReq, user flow.User) error {
 	if len(req.FileKeys) < 1 {
 		return nil
 	}
@@ -958,7 +958,7 @@ type ListVFolderReq struct {
 	Name string      `json:"name"`
 }
 
-func ListVFolders(rail miso.Rail, tx *gorm.DB, req ListVFolderReq, user common.User) (ListVFolderRes, error) {
+func ListVFolders(rail miso.Rail, tx *gorm.DB, req ListVFolderReq, user flow.User) (ListVFolderRes, error) {
 	var lvf []ListedVFolder
 	err := newListVFoldersQuery(rail, tx, req, user.UserNo).
 		Select("f.id, f.create_time, f.create_by, f.update_time, f.update_by, f.folder_no, f.name, uv.ownership").
@@ -1012,7 +1012,7 @@ type ListedFolderAccess struct {
 	CreateTime atom.Time `json:"createTime"`
 }
 
-func ListGrantedFolderAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedFolderAccessReq, user common.User) (ListGrantedFolderAccessRes, error) {
+func ListGrantedFolderAccess(rail miso.Rail, tx *gorm.DB, req ListGrantedFolderAccessReq, user flow.User) (ListGrantedFolderAccessRes, error) {
 	folderNo := req.FolderNo
 	vfo, err := findVFolder(rail, tx, folderNo, user.UserNo)
 	if err != nil {
@@ -1054,7 +1054,7 @@ type UpdateFileReq struct {
 	SensitiveMode string `json:"sensitiveMode"`
 }
 
-func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user common.User) error {
+func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user flow.User) error {
 	f, ok, e := findFileById(rail, tx, r.Id)
 	if e != nil {
 		return e
@@ -1089,7 +1089,7 @@ type CreateFileReq struct {
 	Hidden           bool   `json:"-"`
 }
 
-func CreateFile(rail miso.Rail, tx *gorm.DB, r CreateFileReq, user common.User) (string, error) {
+func CreateFile(rail miso.Rail, tx *gorm.DB, r CreateFileReq, user flow.User) (string, error) {
 	fsf, e := fstore.FetchFileInfo(rail, fstore.FetchFileInfoReq{
 		UploadFileId: r.FakeFstoreFileId,
 	})
@@ -1127,7 +1127,7 @@ type SaveFileReq struct {
 	Hidden     bool
 }
 
-func SaveFileRecord(rail miso.Rail, tx *gorm.DB, r SaveFileReq, user common.User) (string, error) {
+func SaveFileRecord(rail miso.Rail, tx *gorm.DB, r SaveFileReq, user flow.User) (string, error) {
 	var f FileInfo
 	f.Name = r.Filename
 	f.Uuid = snowflake.IdPrefix("ZZZ")
@@ -1172,7 +1172,7 @@ type DeleteFileReq struct {
 	Uuid string `json:"uuid"`
 }
 
-func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user common.User, condition func(FileInfo) bool) error {
+func DeleteFile(rail miso.Rail, tx *gorm.DB, req DeleteFileReq, user flow.User, condition func(FileInfo) bool) error {
 	lock := fileLock(rail, req.Uuid)
 	if err := lock.Lock(); err != nil {
 		return err
@@ -1286,7 +1286,7 @@ type GenerateTempTokenReq struct {
 	FileKey string `json:"fileKey"`
 }
 
-func GenTempToken(rail miso.Rail, tx *gorm.DB, r GenerateTempTokenReq, user common.User) (string, error) {
+func GenTempToken(rail miso.Rail, tx *gorm.DB, r GenerateTempTokenReq, user flow.User) (string, error) {
 	f, err := validateFileAccess(rail, tx, r.FileKey, user.UserNo)
 	if err != nil {
 		return "", errs.Wrapf(err, "failed to validate file access, user: %+v", user)
@@ -1392,7 +1392,7 @@ type RemoveVFolderReq struct {
 	FolderNo string `json:"folderNo"`
 }
 
-func RemoveVFolder(rail miso.Rail, db *gorm.DB, user common.User, req RemoveVFolderReq) error {
+func RemoveVFolder(rail miso.Rail, db *gorm.DB, user flow.User, req RemoveVFolderReq) error {
 	lock := NewVFolderLock(rail, req.FolderNo)
 	if err := lock.Lock(); err != nil {
 		return err
@@ -1442,7 +1442,7 @@ type UnpackZipExtra struct {
 	Username      string
 }
 
-func UnpackZip(rail miso.Rail, db *gorm.DB, user common.User, req UnpackZipReq) error {
+func UnpackZip(rail miso.Rail, db *gorm.DB, user flow.User, req UnpackZipReq) error {
 	flock := fileLock(rail, req.FileKey)
 	if err := flock.Lock(); err != nil {
 		return err
@@ -1510,7 +1510,7 @@ func HandleZipUnpackResult(rail miso.Rail, db *gorm.DB, evt fstore.UnzipFileRepl
 			FileId:     ze.FileId,
 			Size:       ze.Size,
 			ParentFile: extra.ParentFileKey,
-		}, common.User{
+		}, flow.User{
 			UserNo:   extra.UserNo,
 			Username: extra.Username,
 		})
@@ -1521,7 +1521,7 @@ func HandleZipUnpackResult(rail miso.Rail, db *gorm.DB, evt fstore.UnzipFileRepl
 	return nil
 }
 
-func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user common.User, async bool) error {
+func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user flow.User, async bool) error {
 	rail.Infof("Truncating dir %v", req.Uuid)
 
 	dir, ok, e := findFile(rail, db, req.Uuid)
@@ -1621,7 +1621,7 @@ type CachedDirTreeNode struct {
 	FileKey string
 }
 
-func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user common.User) (*DirBottomUpTreeNode, error) {
+func FetchDirTreeBottomUp(rail miso.Rail, db *gorm.DB, req FetchDirTreeReq, user flow.User) (*DirBottomUpTreeNode, error) {
 	if strutil.IsBlankStr(req.FileKey) {
 		return nil, nil
 	}
@@ -1708,7 +1708,7 @@ func findDirName(rail miso.Rail, q *dbquery.Query, fileKey string) (string, erro
 	return name, nil
 }
 
-func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user common.User) (*DirTopDownTreeNode, error) {
+func FetchDirTreeTopDown(rail miso.Rail, db *gorm.DB, user flow.User) (*DirTopDownTreeNode, error) {
 	v, err := userDirTreeCache.GetValElse(rail, user.UserNo, func() (*DirTopDownTreeNode, error) {
 		root := &DirTopDownTreeNode{
 			FileKey: "",
@@ -1727,7 +1727,7 @@ type TopDownTreeNodeBrief struct {
 	Name string
 }
 
-func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user common.User, seen hash.Set[string]) error {
+func dfsDirTree(rail miso.Rail, db *gorm.DB, root *DirTopDownTreeNode, user flow.User, seen hash.Set[string]) error {
 	var cl []TopDownTreeNodeBrief
 	n, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
@@ -1830,7 +1830,7 @@ type CheckDirExistsReq struct {
 	Name       string `valid:"notEmpty"`
 }
 
-func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user common.User) (string, error) {
+func CheckDirExists(rail miso.Rail, db *gorm.DB, req CheckDirExistsReq, user flow.User) (string, error) {
 	dirLock := fileLock(rail, req.ParentFile)
 	if err := dirLock.Lock(); err != nil {
 		return "", miso.UnknownErrf(err, "Unable to lock dir: %v", req.ParentFile)
@@ -1885,7 +1885,7 @@ type FetchDirThumbnailRes struct {
 	FstoreToken string `json:"fstoreToken,omitzero"`
 }
 
-func FetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq, user common.User) (FetchDirThumbnailRes, error) {
+func FetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq, user flow.User) (FetchDirThumbnailRes, error) {
 	f, ok, err := findFile(rail, db, req.DirFileKey)
 	if err != nil {
 		return FetchDirThumbnailRes{}, err

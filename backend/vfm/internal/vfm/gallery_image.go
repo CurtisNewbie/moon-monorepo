@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/async"
 	"github.com/curtisnewbie/miso/util/atom"
@@ -220,7 +220,7 @@ func GenFstoreTknAsync(rail miso.Rail, fileId string, name string) async.Future[
 }
 
 // List gallery images
-func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, user common.User) (*ListGalleryImagesResp, error) {
+func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, user flow.User) (*ListGalleryImagesResp, error) {
 	if hasAccess, err := HasAccessToGallery(rail, tx, user.UserNo, cmd.GalleryNo); err != nil || !hasAccess {
 		if err != nil {
 			return nil, errs.Wrapf(err, "check HasAccessToGallery failed")
@@ -310,7 +310,7 @@ func ListGalleryImages(rail miso.Rail, tx *gorm.DB, cmd ListGalleryImagesCmd, us
 	return &ListGalleryImagesResp{Images: images, Paging: miso.RespPage(cmd.Paging, total)}, nil
 }
 
-func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user common.User, tx *gorm.DB) error {
+func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user flow.User, tx *gorm.DB) error {
 	if len(cmd.Images) < 1 {
 		return nil
 	}
@@ -366,7 +366,7 @@ func BatchTransferAsync(rail miso.Rail, cmd TransferGalleryImageReq, user common
 }
 
 // Transfer images in dir
-func TransferImagesInDir(rail miso.Rail, cmd TransferGalleryImageInDirReq, user common.User, tx *gorm.DB) error {
+func TransferImagesInDir(rail miso.Rail, cmd TransferGalleryImageInDirReq, user flow.User, tx *gorm.DB) error {
 	fi, ok, e := findFile(rail, tx, cmd.FileKey)
 	if e != nil {
 		return e
