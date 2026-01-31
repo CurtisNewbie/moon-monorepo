@@ -48,7 +48,6 @@ func prepareServer(rail miso.Rail) error {
 	miso.Infof("gatekeeper (monorepo) version: %v", Version)
 
 	// disable trace propagation, we are the entry point
-	common.LoadBuiltinPropagationKeys()
 	miso.SetProp(miso.PropServerPropagateInboundTrace, false)
 
 	// whitelisted path patterns
