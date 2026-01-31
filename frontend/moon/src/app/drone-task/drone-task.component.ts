@@ -133,7 +133,7 @@ export class DroneTaskComponent implements OnInit {
     private nav: NavigationService,
     public env: Env,
     private dialog: MatDialog,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
 
   listTasks() {
@@ -407,31 +407,28 @@ export class DroneTaskComponent implements OnInit {
       });
   }
 
-  trl(k, ...args) {
-    return this.i18n.trl("drone-task", k, ...args);
   }
-}
 
 @Component({
   selector: "update-drone-task-component",
   template: `
-    <h1 mat-dialog-title>{{ trl("updateDroneTask") }}</h1>
+    <h1 mat-dialog-title>{{ 'drone-task' | trl:'updateDroneTask' }}</h1>
     <div mat-dialog-content>
       <mat-form-field style="width: 400px">
-        <mat-label>{{ trl("taskId") }}</mat-label>
+        <mat-label>{{ 'drone-task' | trl:'taskId' }}</mat-label>
         <input readonly disabled matInput [(ngModel)]="data.taskId" />
       </mat-form-field>
       <mat-form-field style="width: 400px">
-        <mat-label>{{ trl("url") }}</mat-label>
+        <mat-label>{{ 'drone-task' | trl:'url' }}</mat-label>
         <input matInput [(ngModel)]="data.url" />
       </mat-form-field>
     </div>
     <div mat-dialog-actions class="d-flex justify-content-end">
       <button mat-button [mat-dialog-close]="data.url">
-        {{ trl("update") }}
+        {{ 'drone-task' | trl:'update' }}
       </button>
       <button mat-button [mat-dialog-close]="''" cdkFocusInitial>
-        {{ trl("no") }}
+        {{ 'drone-task' | trl:'no' }}
       </button>
     </div>
   `,
@@ -439,11 +436,6 @@ export class DroneTaskComponent implements OnInit {
 export class UpdateDroneTaskDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<UpdateDroneTaskDialogComponent, any>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    public i18n: I18n
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
-
-  trl(k, ...args) {
-    return this.i18n.trl("drone-task", k, ...args);
-  }
 }

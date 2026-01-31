@@ -14,7 +14,6 @@ import { I18n } from "../i18n.service";
   styleUrls: ["./nav.component.css"],
 })
 export class NavComponent implements OnInit, OnDestroy {
-  trl = (k) => {return this.i18n.trl("nav", k)}
   version = Version;
   userInfo: UserInfo = null;
   copyToClipboard = (s) => {

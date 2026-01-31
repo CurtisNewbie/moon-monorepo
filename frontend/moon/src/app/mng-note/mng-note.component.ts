@@ -51,12 +51,8 @@ export class MngNoteComponent implements OnInit {
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private dialog: MatDialog,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("mng-note", k);
-  }
 
   ngOnInit(): void {
     this.fetchList();
@@ -76,7 +72,7 @@ export class MngNoteComponent implements OnInit {
       },
       error: (err) => {
         console.log(err);
-        this.snackBar.open(this.trl("requestFailedUnknownError"), "ok", {
+        this.snackBar.open(this.i18n.trl("mng-note", "requestFailedUnknownError"), "ok", {
           duration: 3000,
         });
       },
@@ -97,7 +93,7 @@ export class MngNoteComponent implements OnInit {
       },
       error: (err) => {
         console.log(err);
-        this.snackBar.open(this.trl("requestFailedUnknownError"), "ok", {
+        this.snackBar.open(this.i18n.trl("mng-note", "requestFailedUnknownError"), "ok", {
           duration: 3000,
         });
       },

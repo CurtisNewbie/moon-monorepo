@@ -67,12 +67,8 @@ export class ManageKeysComponent implements OnInit {
     public env: Env,
     private http: HttpClient,
     private snackBar: MatSnackBar,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("manage-keys", k);
-  }
 
   ngOnInit() {}
 
@@ -119,11 +115,11 @@ export class ManageKeysComponent implements OnInit {
 
   generateRandomKey() {
     if (!this.password) {
-      this.snackBar.open(this.trl("pleaseEnterPassword"), "ok", { duration: 3000 });
+      this.snackBar.open(this.i18n.trl("manage-keys", "pleaseEnterPassword"), "ok", { duration: 3000 });
       return;
     }
     if (!this.newUserKeyName) {
-      this.snackBar.open(this.trl("pleaseEnterKeyName"), "ok", { duration: 3000 });
+      this.snackBar.open(this.i18n.trl("manage-keys", "pleaseEnterKeyName"), "ok", { duration: 3000 });
       return;
     }
 

@@ -55,12 +55,8 @@ export class ManageResourcesComponent implements OnInit {
     private dialog: MatDialog,
     public env: Env,
     private snackBar: MatSnackBar,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("manage-resources", k);
-  }
 
   reset() {
     this.expandedElement = null;
@@ -98,13 +94,13 @@ export class ManageResourcesComponent implements OnInit {
 
   createNewRes() {
     if (!this.newResName) {
-      this.snackBar.open(this.trl("pleaseEnterNewResourceName"), "ok", {
+      this.snackBar.open(this.i18n.trl("manage-resources", "pleaseEnterNewResourceName"), "ok", {
         duration: 3000,
       });
       return;
     }
     if (!this.newResCode) {
-      this.snackBar.open(this.trl("pleaseEnterNewResourceCode"), "ok", {
+      this.snackBar.open(this.i18n.trl("manage-resources", "pleaseEnterNewResourceCode"), "ok", {
         duration: 3000,
       });
       return;

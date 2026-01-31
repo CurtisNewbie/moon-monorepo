@@ -21,12 +21,8 @@ export class LoginComponent implements OnInit {
     private nav: NavigationService,
     private platformNotification: PlatformNotificationService,
     private snackBar: MatSnackBar,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("login", k);
-  }
 
   ngOnInit() {
     this.userService.userInfoObservable.subscribe((user) => {
@@ -42,7 +38,7 @@ export class LoginComponent implements OnInit {
    */
   public login(): void {
     if (!this.usernameInput || !this.passwordInput) {
-      this.snackBar.open(this.trl("pleaseEnterUsernameAndPassword"), "ok", {
+      this.snackBar.open(this.i18n.trl("login", "pleaseEnterUsernameAndPassword"), "ok", {
         duration: 3000,
       });
       return;

@@ -23,12 +23,8 @@ export class ChangePasswordComponent implements OnInit {
     private nav: NavigationService,
     private userService: UserService,
     private snackBar: MatSnackBar,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("change-password", k);
-  }
 
   ngOnInit() {}
 
@@ -38,12 +34,12 @@ export class ChangePasswordComponent implements OnInit {
       !hasText(this.changePasswordParam.newPassword) ||
       !hasText(this.newPasswordConfirm)
     ) {
-      this.snackBar.open(this.trl("pleaseEnterPasswords"), "ok", { duration: 3000 });
+      this.snackBar.open(this.i18n.trl("change-password", "pleaseEnterPasswords"), "ok", { duration: 3000 });
       return;
     }
 
     if (this.changePasswordParam.newPassword !== this.newPasswordConfirm) {
-      this.snackBar.open(this.trl("confirmedPasswordNotMatched"), "ok", {
+      this.snackBar.open(this.i18n.trl("change-password", "confirmedPasswordNotMatched"), "ok", {
         duration: 3000,
       });
       return;
@@ -53,7 +49,7 @@ export class ChangePasswordComponent implements OnInit {
       this.changePasswordParam.prevPassword ===
       this.changePasswordParam.newPassword
     ) {
-      this.snackBar.open(this.trl("newPasswordMustBeDifferent"), "ok", {
+      this.snackBar.open(this.i18n.trl("change-password", "newPasswordMustBeDifferent"), "ok", {
         duration: 3000,
       });
       return;
@@ -65,7 +61,7 @@ export class ChangePasswordComponent implements OnInit {
           this.snackBar.open(result.msg, "ok", { duration: 6000 });
           return;
         }
-        this.snackBar.open(this.trl("passwordChanged"), "ok", { duration: 3000 });
+        this.snackBar.open(this.i18n.trl("change-password", "passwordChanged"), "ok", { duration: 3000 });
         this.nav.navigateTo(NavType.MANAGE_USER);
       },
       complete: () => {

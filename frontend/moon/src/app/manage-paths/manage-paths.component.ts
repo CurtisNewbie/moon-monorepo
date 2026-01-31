@@ -88,12 +88,8 @@ export class ManagePathsComponent implements OnInit {
     private http: HttpClient,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("manage-paths", k);
-  }
 
   reset() {
     this.expandedElement = null;
@@ -163,7 +159,7 @@ export class ManagePathsComponent implements OnInit {
         },
         error: (err) => {
           console.log(err);
-          this.snackBar.open(this.trl("requestFailedUnknownError"), "ok", {
+          this.snackBar.open(this.i18n.trl("manage-paths", "requestFailedUnknownError"), "ok", {
             duration: 3000,
           });
         },

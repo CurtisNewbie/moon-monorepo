@@ -29,12 +29,8 @@ export class BookmarkBlacklistComponent implements OnInit {
     private http: HttpClient,
     private confirmDialog: ConfirmDialog,
     private snackBar: MatSnackBar,
-    public i18n: I18n
+    private i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("bookmark-blacklist", k);
-  }
 
   ngOnInit(): void {}
 
@@ -59,8 +55,8 @@ export class BookmarkBlacklistComponent implements OnInit {
 
   popToRemove(id, name) {
     this.confirmDialog.show(
-      this.trl("removeBookmarkBlacklist"),
-      [`${this.trl("removingBookmarkBlacklist")} ${name}`],
+      this.i18n.trl("bookmark-blacklist", "removeBookmarkBlacklist"),
+      [`${this.i18n.trl("bookmark-blacklist", "removingBookmarkBlacklist")} ${name}`],
       () => {
         this.remove(id);
       }
