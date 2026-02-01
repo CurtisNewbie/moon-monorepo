@@ -16,16 +16,16 @@ export class RegisterComponent implements OnInit {
   passwordInput: string = "";
   isEnter = isEnterKey;
 
+  trl(k) {
+    return this.i18n.trl("register", k);
+  }
+
   constructor(
     private userService: UserService,
     private nav: NavigationService,
     private snackBar: MatSnackBar,
     public i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("register", k);
-  }
 
   ngOnInit() {}
 

@@ -31,6 +31,10 @@ export class GalleryAccessComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
+  trl(k, ...args) {
+    return this.i18n.trl("gallery-access", k, ...args);
+  }
+
   constructor(
     private http: HttpClient,
     private snackBar: MatSnackBar,
@@ -41,10 +45,6 @@ export class GalleryAccessComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: GrantGalleryAccessDialogData,
     public i18n: I18n
   ) {}
-
-  trl(k, ...args) {
-    return this.i18n.trl("gallery-access", k, ...args);
-  }
 
   ngOnInit() {}
 

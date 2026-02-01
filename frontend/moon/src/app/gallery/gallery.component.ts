@@ -48,9 +48,6 @@ export class GalleryComponent implements OnInit {
   newGalleryName: string = "";
   showCreateGalleryDiv: boolean = false;
 
-  trl = (k) => {
-    return this.i18n.trl("gallery", k);
-  };
   idEquals = isIdEqual;
   getExpandedEle = (row) => getExpanded(row, this.expandedElement);
 
@@ -59,8 +56,7 @@ export class GalleryComponent implements OnInit {
     private http: HttpClient,
     private navigation: NavigationService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    public i18n: I18n
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {}

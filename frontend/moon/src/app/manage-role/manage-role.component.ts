@@ -37,6 +37,10 @@ export class ManageRoleComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
+  trl(k) {
+    return this.i18n.trl("manage-role", k);
+  }
+
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
@@ -44,10 +48,6 @@ export class ManageRoleComponent implements OnInit {
     private snackBar: MatSnackBar,
     public i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("manage-role", k);
-  }
 
   reset() {
     this.newRoleDialog = false;

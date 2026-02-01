@@ -71,7 +71,7 @@ export class ListNotificationComponent implements OnInit {
   pagingController: ControlledPaginatorComponent;
 
   trl = (k) => {
-    return this.i18n.trl("list-notification", k)
+    return this.i18n.trl("list-notification", k);
   }
 
   constructor(

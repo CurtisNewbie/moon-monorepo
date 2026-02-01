@@ -45,16 +45,16 @@ export class ManageLogsComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
+  trl(k) {
+    return this.i18n.trl("manage-logs", k);
+  }
+
   constructor(
     private http: HttpClient,
     public env: Env,
     private snackBar: MatSnackBar,
     public i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("manage-logs", k);
-  }
 
   ngOnInit(): void {}
 

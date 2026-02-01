@@ -63,6 +63,10 @@ export class ManagerUserComponent implements OnInit {
   getExpandedEle = (row) => getExpanded(row, this.expandedElement);
   isEnter = isEnterKey;
 
+  trl(k) {
+    return this.i18n.trl("manager-user", k);
+  }
+
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
@@ -74,10 +78,6 @@ export class ManagerUserComponent implements OnInit {
     private snackBar: MatSnackBar,
     public i18n: I18n
   ) {}
-
-  trl(k) {
-    return this.i18n.trl("manager-user", k);
-  }
 
   ngOnInit() {
     this.fetchRoleBriefs();
