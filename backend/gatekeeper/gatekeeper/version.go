@@ -1,5 +1,5 @@
 package gatekeeper
 
-const (
-	Version = "v0.0.3"
+var (
+	Version = "v0.0.4"
 )
