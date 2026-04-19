@@ -2,13 +2,11 @@ package gatekeeper
 
 import (
 	"net/http"
-	"net/http/pprof"
 	"strings"
-	"time"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/jwt"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/hash"
 	"github.com/curtisnewbie/miso/util/strutil"
@@ -26,8 +24,7 @@ var (
 )
 
 const (
-	AttrAuthInfo           = "gk.auth.info"
-	AttrPprofAuthenticated = "gk.pprof.auth.pass"
+	AttrAuthInfo = "gk.auth.info"
 
 	HeaderAuthorization = "Authorization"
 	CookieAuthorization = "Gatekeeper_Authorization"
@@ -55,46 +52,25 @@ func prepareServer(rail miso.Rail) error {
 
 	// create proxy
 	proxy := miso.NewHttpProxy("/", miso.NewDynProxyTargetResolver())
-	proxy.AddFilter(ReqTimeLogFilter)
+	proxy.AddReqTimeLogFilter(func(path string) bool {
+		return timerExclPath.Has(path)
+	})
 	proxy.AddFilter(IpFilter)
 
 	// healthcheck filter
-	healthcheckPath := miso.GetPropStr(miso.PropHealthCheckUrl)
-	if !strutil.IsBlankStr(healthcheckPath) {
-		miso.PerfLogExclPath(healthcheckPath)
-		proxy.AddFilter(HealthcheckFilter)
-	}
+	proxy.AddHealthcheckFilter()
 
 	// metrics filter
-	metricsEndpoint := miso.GetPropStr(miso.PropMetricsRoute)
-	if !strutil.IsBlankStr(metricsEndpoint) {
-		miso.PerfLogExclPath(metricsEndpoint)
-		if miso.GetPropBool(miso.PropMetricsEnabled) {
-			proxy.AddFilter(MetricsFilter)
-		}
-	}
+	proxy.AddMetricsFilter(timerHisto, func(path string) bool {
+		return timerExclPath.Has(path)
+	})
 
 	// pprof filter for gatekeeper itself
-	if !miso.IsProdMode() || miso.GetPropBool(miso.PropServerPprofEnabled) {
-		bearer := ""
-		if miso.IsProdMode() {
-			bearer = miso.GetPropStr(miso.PropServerPprofAuthBearer)
-			if bearer == "" {
-				return errs.NewErrf("Configuration '%v' for pprof authentication is missing, but pprof authentication is enabled", miso.PropServerPprofAuthBearer)
-			}
-		}
-		miso.PerfLogExclPath("/debug/pprof")
-		miso.PerfLogExclPath("/debug/pprof/cmdline")
-		miso.PerfLogExclPath("/debug/pprof/profile")
-		miso.PerfLogExclPath("/debug/pprof/symbol")
-		miso.PerfLogExclPath("/debug/pprof/trace")
-		miso.PerfLogExclPath("/debug/trace/recorder/run")
-		miso.PerfLogExclPath("/debug/trace/recorder/stop")
-		proxy.AddFilter(DebugFilter(bearer))
-		rail.Infof("Enabled pprof/trace api for gatekeeper")
+	if err := proxy.AddDebugFilter(true); err != nil {
+		return err
 	}
+	rail.Infof("Enabled pprof/trace api for gatekeeper")
 
-	proxy.AddFilter(ProxyPprofAuthFilter)
 	proxy.AddFilter(AuthFilter)
 	proxy.AddFilter(AccessFilter)
 	proxy.AddFilter(TraceFilter)
@@ -104,102 +80,6 @@ func prepareServer(rail miso.Rail) error {
 	timerExclPath.Add(miso.GetPropStr(miso.PropMetricsRoute))
 	rail.Infof("Timer excluded paths: %v", timerExclPath)
 	return nil
-}
-
-func HealthcheckFilter(pc *miso.ProxyContext, next func()) {
-	healthcheckPath := miso.GetPropStr(miso.PropHealthCheckUrl)
-
-	// check if it's a healthcheck endpoint (for consul), we don't really return anything, so it's fine to expose it
-	if pc.ProxyPath == healthcheckPath {
-		w, _ := pc.Inb.Unwrap()
-		if miso.IsHealthcheckPass(*pc.Rail) {
-			w.WriteHeader(http.StatusOK)
-		} else {
-			w.WriteHeader(http.StatusServiceUnavailable)
-		}
-		return
-	}
-
-	next()
-}
-
-func MetricsFilter(pc *miso.ProxyContext, next func()) {
-
-	metricsEndpoint := miso.GetPropStr(miso.PropMetricsRoute)
-
-	w, r := pc.Inb.Unwrap()
-	if r.URL.Path == metricsEndpoint {
-		miso.PrometheusHandler().ServeHTTP(w, r)
-		return
-	}
-
-	if timerExclPath.Has(r.URL.Path) {
-		next()
-		return
-	}
-
-	timer := miso.NewHistTimer(timerHisto)
-	defer timer.ObserveDuration()
-
-	next()
-}
-
-func DebugFilter(bearer string) func(pc *miso.ProxyContext, next func()) {
-	return func(pc *miso.ProxyContext, next func()) {
-		w, r := pc.Inb.Unwrap()
-
-		p := pc.ProxyPath
-		if v, ok := strings.CutPrefix(p, "/gatekeeper"); ok {
-			p = v
-		}
-
-		if strutil.HasAnyPrefix(p, "/debug/pprof", "/debug/trace") {
-			if bearer != "" {
-				token, ok := miso.ParseBearer(r.Header.Get("Authorization"))
-				if !ok || token != bearer {
-					miso.Debugf("Bearer authorization failed, missing bearer token or token mismatch, %v %v", r.Method, r.RequestURI)
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-			}
-		}
-
-		if strings.HasPrefix(p, "/debug/pprof") {
-			switch p {
-			case "/debug/pprof/cmdline":
-				pprof.Cmdline(w, r)
-				return
-			case "/debug/pprof/profile":
-				pprof.Profile(w, r)
-				return
-			case "/debug/pprof/symbol":
-				pprof.Symbol(w, r)
-				return
-			case "/debug/pprof/trace":
-				pprof.Trace(w, r)
-				return
-			default:
-				if name, found := strings.CutPrefix(p, "/debug/pprof/"); found && name != "" {
-					pprof.Handler(name).ServeHTTP(w, r)
-					return
-				}
-				pprof.Index(w, r)
-				return
-			}
-
-		} else if strings.HasPrefix(p, "/debug/trace") {
-			switch p {
-			case "/debug/trace/recorder/run":
-				miso.HandleFlightRecorderRun(pc.Inb)
-				return
-			case "/debug/trace/recorder/stop":
-				miso.HandleFlightRecorderStop(pc.Inb)
-				return
-			}
-		}
-
-		next()
-	}
 }
 
 func AuthFilter(pc *miso.ProxyContext, next func()) {
@@ -243,7 +123,7 @@ func AuthFilter(pc *miso.ProxyContext, next func()) {
 
 	// extract the user info from it
 	claims := tkn.Claims
-	var user common.User
+	var user flow.User
 
 	if v, ok := claims["username"]; ok {
 		user.Username = cast.ToString(v)
@@ -266,18 +146,11 @@ func AccessFilter(pc *miso.ProxyContext, next func()) {
 	w, r := pc.Inb.Unwrap()
 	rail := pc.Rail
 
-	if strings.Contains(r.URL.Path, "/debug/pprof") {
-		if v, ok := pc.GetAttr(AttrPprofAuthenticated); ok && v.(bool) {
-			next()
-			return
-		}
-	}
-
 	var roleNo string
-	var u common.User = common.NilUser()
+	var u flow.User = flow.NilUser()
 
 	if v, ok := pc.GetAttr(AttrAuthInfo); ok && v != nil {
-		u = v.(common.User)
+		u = v.(flow.User)
 		roleNo = u.RoleNo
 	}
 
@@ -328,25 +201,12 @@ func TraceFilter(pc *miso.ProxyContext, next func()) {
 
 	v, ok := pc.GetAttr(AttrAuthInfo)
 	if ok && v != nil {
-		u := v.(common.User)
-		*pc.Rail = common.StoreUser(*pc.Rail, u)
+		u := v.(flow.User)
+		*pc.Rail = flow.StoreUser(*pc.Rail, u)
 		pc.Rail.Debugf("Setup trace for user info, rail: %+v", pc.Rail)
 	}
 
 	next()
-}
-
-func ReqTimeLogFilter(pc *miso.ProxyContext, next func()) {
-	_, r := pc.Inb.Unwrap()
-
-	if timerExclPath.Has(r.URL.Path) {
-		next()
-		return
-	}
-
-	start := time.Now()
-	next()
-	pc.Rail.Infof("%-6v %-60v [%s]", r.Method, r.RequestURI, time.Since(start))
 }
 
 func IpFilter(pc *miso.ProxyContext, next func()) {
@@ -361,30 +221,5 @@ func IpFilter(pc *miso.ProxyContext, next func()) {
 		r.Header.Set("x-forwarded-for", v)
 		pc.Rail.Debugf("Overwrote remote IP: %v", v)
 	}
-	next()
-}
-
-func ProxyPprofAuthFilter(pc *miso.ProxyContext, next func()) {
-	w, r := pc.Inb.Unwrap()
-	if strings.Contains(r.URL.Path, "/debug/pprof") {
-		bearer := miso.GetPropStr(PropProxyPprofBearer)
-
-		if bearer == "" && miso.IsProdMode() { // production must enable pprof authentication
-			pc.Rail.Infof("Attempt to request '%v', authentication for pprof is mandatory in production, rejected", r.RequestURI)
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		if bearer != "" {
-			authorization := r.Header.Get("Authorization")
-			provided, ok := miso.ParseBearer(authorization)
-			if !ok || bearer != provided {
-				pc.Rail.Infof("Attempt to request '%v', but bearer authentication failed, rejected", r.RequestURI)
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-	}
-	pc.SetAttr(AttrPprofAuthenticated, true)
 	next()
 }

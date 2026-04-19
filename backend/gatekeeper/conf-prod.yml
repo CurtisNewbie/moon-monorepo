@@ -38,6 +38,3 @@ gatekeeper:
     - "/metrics"
     - "/health"
     - "/user-vault/open/api/v2/notification/count"
-  proxy:
-    pprof:
-      bearer: "${GATEKEEPER_PPROF_BEARER}"
