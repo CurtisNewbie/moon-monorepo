@@ -7,6 +7,7 @@ server:
   port: 7070
   perf.enabled: false
   pprof:
+    enabled: true
     auth:
       bearer: "${GATEKEEPER_PPROF_BEARER}"
 
