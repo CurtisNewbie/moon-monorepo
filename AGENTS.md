@@ -83,6 +83,27 @@ Production uses Docker Compose:
 
 Config files in `deploy/`: `docker-compose.yml`, `backend.env`, `nginx.conf`, `prometheus.yml`, `grafana_dashboard.json`
 
+## Backend API Documentation
+
+**Always reference backend `doc/api.md` when working on frontend-backend integration.**
+
+Each backend service (vfm, gatekeeper, acct, etc.) maintains auto-generated API documentation in `backend/{service}/doc/api.md`.
+
+This documentation includes:
+- Endpoint paths and HTTP methods
+- Request/response JSON structures
+- Required/optional parameters
+- TypeScript interface definitions
+- Usage examples
+
+**Example - Checking API before frontend implementation:**
+```bash
+# Check VFM API for endpoint details
+cat backend/vfm/doc/api.md | grep -A 20 "dir-thumbnail"
+```
+
+This ensures correct field names (`dirFileKey` vs `fileKey`, `fstoreToken` vs `thumbnailToken`) and request formats.
+
 ## Entry Points
 
 - **Frontend**: `frontend/moon/src/main.ts`

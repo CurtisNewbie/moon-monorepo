@@ -314,8 +314,10 @@
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
                 [class.expanded-row]="curr != null && row.id == curr.id" (click)="onRowClicked($event, row, i)"
-                matTooltipShowDelay="200"
-                [matTooltip]="row.isDir ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')">
+                [appImageTooltip]="row.isDir ? '' : null"
+                [imageUrl]="row.isDir ? dirThumbnailCache.get(row.uuid) : null"
+                [matTooltip]="(row.isDir && !dirThumbnailCache.get(row.uuid)) ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')"
+                matTooltipShowDelay="200">
             </tr>
             <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
         </table>

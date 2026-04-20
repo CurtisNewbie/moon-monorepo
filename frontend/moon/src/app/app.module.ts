@@ -107,12 +107,15 @@ import { MngNoteComponent } from "./mng-note/mng-note.component";
 import { EditNoteDialogComponent } from "./edit-note-dialog/edit-note-dialog.component";
 import { DocxPreviewComponent } from './docx-preview-comp/docx-preview.component';
 import { TrlPipe } from './trl.pipe';
+import { OverlayModule } from "@angular/cdk/overlay";
+import { ImageTooltipDirective } from "./shared/directives/image-tooltip.directive";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
 @NgModule({
   exports: [],
   declarations: [
+    ImageTooltipDirective,
     TrlPipe,
     ShowNotificationDialogComponent,
     PdfViewerComponent,
@@ -202,6 +205,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatTreeModule,
     ScrollingModule,
     HighlightModule,
+    OverlayModule,
   ],
   entryComponents: [
     ConfirmDialogComponent,

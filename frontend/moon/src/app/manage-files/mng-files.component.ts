@@ -101,6 +101,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /** currently displayed columns */
   displayedColumns: string[] = this._selectColumns();
 
+  /** cache for directory thumbnail URLs */
+  dirThumbnailCache: Map<string, string> = new Map();
+
   // isImage = (f: FileInfo): boolean => this._isImage(f);
   idEquals = isIdEqual;
 
@@ -206,7 +209,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   ngDoCheck(): void {}
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.dirThumbnailCache.clear();
+  }
 
   ngOnInit() {
     this.orderByName = false;
@@ -379,6 +384,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
               if (f.thumbnailToken) {
                 f.thumbnailUrl =
                   "fstore/file/raw?key=" + encodeURIComponent(f.thumbnailToken);
+              }
+
+              // Fetch directory thumbnail for directories
+              if (f.isDir) {
+                this.fetchDirThumbnail(f);
               }
             }
           }
@@ -1273,5 +1283,76 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   trl(k) {
     return this.i18n.trl("manage-files", k)
+  }
+
+  /**
+   * Get thumbnail URL for a file/directory
+   * For files: use the cached thumbnailUrl from API response
+   * For directories: fetch and cache the thumbnail URL
+   */
+  getThumbnailUrl(file: FileInfo): string {
+    if (!file) return null;
+
+    // For files, use the existing thumbnailUrl from API
+    if (file.isFile && file.thumbnailUrl) {
+      return file.thumbnailUrl;
+    }
+
+    // For directories, check cache first
+    if (file.isDir) {
+      if (this.dirThumbnailCache.has(file.uuid)) {
+        return this.dirThumbnailCache.get(file.uuid);
+      }
+      // Fetch directory thumbnail asynchronously
+      this.fetchDirThumbnail(file);
+      return null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Fetch directory thumbnail from API
+   */
+  fetchDirThumbnail(file: FileInfo): void {
+    if (!file || !file.isDir) return;
+
+    this.http
+      .post<any>(`vfm/open/api/file/dir-thumbnail`, {
+        dirFileKey: file.uuid
+      })
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            return;
+          }
+          if (resp.data && resp.data.fstoreToken) {
+            const url = "fstore/file/raw?key=" + encodeURIComponent(resp.data.fstoreToken);
+            this.dirThumbnailCache.set(file.uuid, url);
+          }
+        },
+        error: (err) => {
+          // Silently fail if thumbnail fetch fails
+        }
+      });
+  }
+
+  /**
+   * Check if a file/directory has a thumbnail available for tooltip
+   */
+  hasThumbnail(file: FileInfo): boolean {
+    if (!file) return false;
+
+    // For files, check if thumbnailUrl exists
+    if (file.isFile) {
+      return !!file.thumbnailUrl;
+    }
+
+    // For directories, check if we have a cached thumbnail
+    if (file.isDir) {
+      return this.dirThumbnailCache.has(file.uuid);
+    }
+
+    return false;
   }
 }
