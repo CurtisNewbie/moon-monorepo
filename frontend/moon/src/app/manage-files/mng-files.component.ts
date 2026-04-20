@@ -104,6 +104,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /** cache for directory thumbnail URLs */
   dirThumbnailCache: Map<string, string> = new Map();
 
+  /** enable thumbnail tooltips */
+  enableThumbnailTooltip: boolean = true;
+
   // isImage = (f: FileInfo): boolean => this._isImage(f);
   idEquals = isIdEqual;
 
