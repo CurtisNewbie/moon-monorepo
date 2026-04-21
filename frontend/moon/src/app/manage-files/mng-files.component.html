@@ -317,9 +317,9 @@
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
                 [class.expanded-row]="curr != null && row.id == curr.id" (click)="onRowClicked($event, row, i)"
-                [appImageTooltip]="enableThumbnailTooltip && !env.isMobile() ? (row.isDir ? '' : null) : null"
-                [imageUrl]="enableThumbnailTooltip && !env.isMobile() ? (row.isDir ? dirThumbnailCache.get(row.uuid) : null) : null"
-                [matTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((row.isDir && !dirThumbnailCache.get(row.uuid)) ? 'Open \'' + row.name +'\'' : (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '')) : ''"
+                [appImageTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((row.isDir && dirThumbnailCache.has(row.uuid)) || (row.isFile && row.thumbnailUrl) ? '' : null) : null"
+                [imageUrl]="enableThumbnailTooltip && !env.isMobile() ? (row.isDir ? dirThumbnailCache.get(row.uuid) : (row.isFile ? row.thumbnailUrl : null)) : null"
+                [matTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((row.isDir && !dirThumbnailCache.has(row.uuid)) ? 'Open \'' + row.name +'\'' : (row.isFile && !row.thumbnailUrl ? (row.isDisplayable ? 'Preview \'' + row.name + '\'' : '') : '')) : ''"
                 matTooltipShowDelay="200">
             </tr>
             <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
