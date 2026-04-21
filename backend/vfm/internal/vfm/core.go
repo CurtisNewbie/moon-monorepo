@@ -1885,6 +1885,15 @@ type FetchDirThumbnailRes struct {
 	FstoreToken string `json:"fstoreToken,omitzero"`
 }
 
+type BatchFetchDirThumbnailReq struct {
+	DirFileKeys []string `json:"dirFileKeys" valid:"notEmpty"`
+}
+
+type DirThumbnailWithKey struct {
+	DirFileKey  string `json:"dirFileKey"`
+	FstoreToken string `json:"fstoreToken,omitzero"`
+}
+
 func FetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq, user flow.User) (FetchDirThumbnailRes, error) {
 	f, ok, err := findFile(rail, db, req.DirFileKey)
 	if err != nil {
@@ -1908,6 +1917,73 @@ func FetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq, us
 		return FetchDirThumbnailRes{}, err
 	}
 	return FetchDirThumbnailRes{FstoreToken: tkn}, nil
+}
+
+func BatchFetchDirThumbnail(rail miso.Rail, db *gorm.DB, req BatchFetchDirThumbnailReq, user flow.User) ([]DirThumbnailWithKey, error) {
+	if len(req.DirFileKeys) == 0 {
+		return []DirThumbnailWithKey{}, nil
+	}
+
+	// Remove duplicates
+	dirKeys := slutil.FastDistinct(req.DirFileKeys)
+
+	// Single query using correlated subquery for MySQL 5.7 compatibility
+	// This is much more efficient than scanning all files with thumbnails
+	type DirWithThumbnail struct {
+		DirFileKey   string
+		FstoreFileId string
+	}
+	var dirs []DirWithThumbnail
+
+	query := `
+		SELECT
+			d.uuid as dir_file_key,
+			(SELECT f.thumbnail
+			 FROM file_info f
+			 WHERE f.parent_file = d.uuid
+			   AND f.is_del = 0
+			   AND f.thumbnail != ''
+			 ORDER BY f.id DESC
+			 LIMIT 1) as fstore_file_id
+		FROM file_info d
+		WHERE d.uuid IN ?
+			AND d.is_del = 0
+			AND d.uploader_no = ?
+	`
+
+	err := db.Raw(query, dirKeys, user.UserNo).Scan(&dirs).Error
+	if err != nil {
+		return nil, miso.UnknownErrf(err, "failed to batch fetch dir thumbnails")
+	}
+
+	// Build response with all requested keys
+	res := make([]DirThumbnailWithKey, 0, len(dirKeys))
+	keyMap := make(map[string]string, len(dirKeys))
+	for _, d := range dirs {
+		keyMap[d.DirFileKey] = d.FstoreFileId
+	}
+
+	// Collect fileIds that need tokens
+	var tokenReqs []FstoreTmpTokenReq
+	for _, key := range dirKeys {
+		if fileId, exists := keyMap[key]; exists && fileId != "" {
+			tokenReqs = append(tokenReqs, FstoreTmpTokenReq{FileId: fileId})
+		}
+	}
+
+	// Batch get tokens
+	tokenMap := BatchGetFstoreTmpToken(rail, tokenReqs)
+
+	// Build final response
+	for _, key := range dirKeys {
+		item := DirThumbnailWithKey{DirFileKey: key}
+		if fileId, exists := keyMap[key]; exists && fileId != "" {
+			item.FstoreToken = tokenMap[fileId]
+		}
+		res = append(res, item)
+	}
+
+	return res, nil
 }
 
 func findFirstThumbnailFileId(rail miso.Rail, db *gorm.DB, dirFileKey string) (string, bool, error) {

@@ -30,6 +30,7 @@ CREATE TABLE `file_info` (
   KEY `parent_file_type_idx` (`parent_file`,`file_type`),
   KEY `uploader_no_idx` (`uploader_no`),
   KEY `parent_file_create_time_idx` (`parent_file`,`create_time`),
+  KEY `idx_parent_thumbnail` (`parent_file`,`id` DESC),
   FULLTEXT KEY `name_idx` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

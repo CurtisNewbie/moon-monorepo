@@ -55,6 +55,7 @@
 - [POST /history/record-browse-history](#post-historyrecord-browse-history)
 - [GET /maintenance/status](#get-maintenancestatus)
 - [POST /open/api/file/dir-thumbnail](#post-openapifiledir-thumbnail)
+- [POST /open/api/file/dir-thumbnail/batch](#post-openapifiledir-thumbnailbatch)
 - [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
@@ -4891,6 +4892,99 @@
             return;
           }
           let dat: FetchDirThumbnailRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/file/dir-thumbnail/batch
+
+- Description: Batch Fetch Directory Thumbnail
+- Bound to Resource: `"manage-files"`
+- JSON Request:
+    - "dirFileKeys": ([]string) Required.
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": ([]vfm.DirThumbnailWithKey) response data
+      - "dirFileKey": (string) 
+      - "fstoreToken": (string) 
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/open/api/file/dir-thumbnail/batch' \
+    -H 'Content-Type: application/json' \
+    -d '{"dirFileKeys":[]}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type BatchFetchDirThumbnailReq struct {
+  	DirFileKeys []string `json:"dirFileKeys"` // Required.
+  }
+
+  type DirThumbnailWithKey struct {
+  	DirFileKey string `json:"dirFileKey"`
+  	FstoreToken string `json:"fstoreToken,omitzero"`
+  }
+
+  // Batch Fetch Directory Thumbnail
+  func ApiBatchFetchDirThumbnail(rail miso.Rail, req BatchFetchDirThumbnailReq) ([]DirThumbnailWithKey, error) {
+  	var res miso.GnResp[[]DirThumbnailWithKey]
+  	err := miso.NewDynClient(rail, "/open/api/file/dir-thumbnail/batch", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		var dat []DirThumbnailWithKey
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface BatchFetchDirThumbnailReq {
+    dirFileKeys?: string[];        // Required.
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: DirThumbnailWithKey[];
+  }
+
+  export interface DirThumbnailWithKey {
+    dirFileKey?: string;
+    fstoreToken?: string;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  batchFetchDirThumbnail() {
+    let req: BatchFetchDirThumbnailReq | null = null;
+    this.http.post<any>(`/vfm/open/api/file/dir-thumbnail/batch`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: DirThumbnailWithKey[] = resp.data;
         },
         error: (err) => {
           console.log(err)

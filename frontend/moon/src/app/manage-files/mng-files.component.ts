@@ -373,6 +373,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             return;
           }
           this.fileInfoList = [];
+          const dirUuids: string[] = [];
           if (resp.data.payload) {
             for (let f of resp.data.payload) {
               f.isFile = f.fileType == FileType.FILE;
@@ -389,11 +390,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                   "fstore/file/raw?key=" + encodeURIComponent(f.thumbnailToken);
               }
 
-              // Fetch directory thumbnail for directories
-              if (f.isDir) {
-                this.fetchDirThumbnail(f);
+              // Collect directory UUIDs for batch thumbnail fetching
+              if (f.isDir && f.uuid) {
+                dirUuids.push(f.uuid);
               }
             }
+          }
+
+          // Fetch directory thumbnails in batch for better performance
+          if (dirUuids.length > 0) {
+            this.fetchDirThumbnailsBatch(dirUuids);
           }
 
           this.pagingController.onTotalChanged(resp.data.paging);
@@ -1315,7 +1321,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   /**
-   * Fetch directory thumbnail from API
+   * Fetch directory thumbnail from API (single)
+   * @deprecated Use fetchDirThumbnailsBatch for multiple directories
    */
   fetchDirThumbnail(file: FileInfo): void {
     if (!file || !file.isDir) return;
@@ -1336,6 +1343,36 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         },
         error: (err) => {
           // Silently fail if thumbnail fetch fails
+        }
+      });
+  }
+
+  /**
+   * Fetch directory thumbnails in batch from API for better performance
+   */
+  fetchDirThumbnailsBatch(dirUuids: string[]): void {
+    if (!dirUuids || dirUuids.length === 0) return;
+
+    this.http
+      .post<any>(`vfm/open/api/file/dir-thumbnail/batch`, {
+        dirFileKeys: dirUuids
+      })
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            return;
+          }
+          if (resp.data && Array.isArray(resp.data)) {
+            for (const item of resp.data) {
+              if (item.dirFileKey && item.fstoreToken) {
+                const url = "fstore/file/raw?key=" + encodeURIComponent(item.fstoreToken);
+                this.dirThumbnailCache.set(item.dirFileKey, url);
+              }
+            }
+          }
+        },
+        error: (err) => {
+          // Silently fail if batch thumbnail fetch fails
         }
       });
   }

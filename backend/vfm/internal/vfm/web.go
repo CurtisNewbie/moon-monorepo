@@ -664,3 +664,11 @@ func ApiFetchMaintenanceStatus() (MaintenanceStatus, error) {
 func ApiFetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq, user flow.User) (FetchDirThumbnailRes, error) {
 	return FetchDirThumbnail(rail, db, req, user)
 }
+
+// Batch Fetch Directory Thumbnail
+//
+//   - misoapi-http: POST /open/api/file/dir-thumbnail/batch
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiBatchFetchDirThumbnail(rail miso.Rail, db *gorm.DB, req BatchFetchDirThumbnailReq, user flow.User) ([]DirThumbnailWithKey, error) {
+	return BatchFetchDirThumbnail(rail, db, req, user)
+}
