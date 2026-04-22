@@ -1,0 +1,16 @@
+/* Prevent pagination controls from wrapping to second line */
+.mat-paginator-container {
+  flex-wrap: nowrap !important;
+  white-space: nowrap;
+}
+
+/* Ensure Go To section stays on one line */
+.mat-paginator-container > div {
+  flex-shrink: 0;
+}
+
+/* Allow paginator to shrink if needed */
+.mat-paginator {
+  flex-shrink: 1;
+  min-width: 0;
+}
