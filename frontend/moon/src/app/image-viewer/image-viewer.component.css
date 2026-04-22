@@ -19,3 +19,16 @@
     overflow: scroll !important;
   }
 }
+
+/* Align zoom buttons side by side */
+.lb-data .lb-controlContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.lb-data .lb-zoomOut,
+.lb-data .lb-zoomIn {
+  float: none;
+}

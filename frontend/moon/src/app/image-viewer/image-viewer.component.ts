@@ -128,20 +128,53 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
 
                 // image rendered
                 if (img.clientWidth > 0) {
-                  // image too small, zoom in
-                  if (img.clientWidth < 250) {
-                    let zoomIn = this.lightboxdiv.querySelector(".lb-zoomIn");
-                    if (zoomIn) {
-                      let zoomInTimes = 1;
-                      if (img.clientWidth < 200) {
-                        zoomInTimes += 2;
+                  const viewportWidth = window.innerWidth;
+                  const currentWidth = img.clientWidth;
+                  const currentHeight = img.clientHeight;
+                  let targetWidth = currentWidth;
+                  let scale = 1.0;
+
+                  // Check if it's a long portrait image
+                  if (this.isLongPortraitImage(img)) {
+                    // Long portrait images
+                    if (viewportWidth < 600) {
+                      // Mobile: viewport-aware zoom (85-90%)
+                      const targetPercentage = viewportWidth < 400 ? 0.85 : 0.90;
+                      targetWidth = viewportWidth * targetPercentage;
+                      scale = targetWidth / currentWidth;
+                    } else {
+                      // Desktop: 40-50% viewport width
+                      const targetPercentage = 0.40;
+                      targetWidth = viewportWidth * targetPercentage;
+                      scale = targetWidth / currentWidth;
+                    }
+                  } else {
+                    // Normal images
+                    if (viewportWidth < 600) {
+                      // Mobile: 60-70% viewport width (constrained)
+                      const targetPercentage = viewportWidth < 400 ? 0.60 : 0.70;
+                      targetWidth = viewportWidth * targetPercentage;
+                      scale = targetWidth / currentWidth;
+                    } else {
+                      // Desktop: keep pixel thresholds (only scale truly tiny images)
+                      if (currentWidth < 150) {
+                        scale = 2.5;
                       }
-                      if (img.clientWidth < 150) {
-                        zoomInTimes += 1;
-                      }
-                      for (let i = 0; i < zoomInTimes; i++) {
-                        zoomIn.click();
-                      }
+                      targetWidth = currentWidth * scale;
+                    }
+                  }
+
+                  // Apply width adjustment if scaling is needed
+                  if (scale > 1.0) {
+                    const newHeight = currentHeight * scale;
+                    img.style.width = targetWidth + 'px';
+                    img.style.height = newHeight + 'px';
+                    img.style.maxWidth = 'none';
+
+                    // Update container width to match scaled image
+                    const container = this.lightboxdiv.querySelector('.lb-outerContainer');
+                    if (container) {
+                      container.style.width = targetWidth + 'px';
                     }
                   }
                 } else if (resizeRetry < resizeMaxRetry) {
@@ -198,5 +231,22 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
       evt.touches || // browser API
       evt.originalEvent.touches
     ); // jQuery
+  }
+
+  private isLongPortraitImage(img: HTMLImageElement): boolean {
+    const width = img.naturalWidth;
+    const height = img.naturalHeight;
+    const ratio = height / width;
+
+    // Check if natural dimensions are available
+    if (!width || !height || width === 0 || height === 0) {
+      return false;
+    }
+
+    // Long portrait criteria:
+    // 1. Height/width ratio >= 3
+    // OR
+    // 2. Height > 2000px AND ratio > 2
+    return ratio >= 3 || (height > 2000 && ratio > 2);
   }
 }
