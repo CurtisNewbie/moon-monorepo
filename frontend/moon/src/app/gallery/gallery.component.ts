@@ -47,6 +47,7 @@ export class GalleryComponent implements OnInit {
   expandedElement: Gallery = null;
   newGalleryName: string = "";
   showCreateGalleryDiv: boolean = false;
+  
 
   idEquals = isIdEqual;
   getExpandedEle = (row) => getExpanded(row, this.expandedElement);
