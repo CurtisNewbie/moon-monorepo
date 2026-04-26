@@ -22,6 +22,7 @@ export class NavComponent implements OnInit, OnDestroy {
   };
   unreadCount = 0;
   fetching = false;
+  window = window;
 
   constructor(
     public i18n: I18n,

@@ -105,7 +105,7 @@
 
         <mat-menu #langMenu="matMenu" class="m-2">
             <div *ngFor="let f of i18n.optionsLabels">
-                <button mat-menu-item (click)="i18n.change(f.value)">{{f.name}}</button>
+                <button mat-menu-item (click)="i18n.change(f.value); window.location.reload()">{{f.name}}</button>
             </div>
         </mat-menu>
     </div>
