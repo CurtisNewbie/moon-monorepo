@@ -4,13 +4,7 @@ import { Injectable } from "@angular/core";
   providedIn: "root",
 })
 export class Env {
-  private _isMobile: boolean = null;
-
   isMobile(): boolean {
-    if (this._isMobile != null) {
-      return this._isMobile;
-    }
-    this._isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    return this._isMobile;
+    return window.innerWidth < 768;
   }
 }
