@@ -97,7 +97,7 @@ import { BrowseHistoryComponent } from "./browse-history/browse-history.componen
 import { ScrollingModule } from "@angular/cdk/scrolling";
 import { DirTreeNavComponent } from "./dir-tree-nav/dir-tree-nav.component";
 import { HIGHLIGHT_OPTIONS, HighlightModule } from "ngx-highlightjs";
-import { FileBookmarkDialogComponent } from "./file-bookmark-dialog/file-bookmark-dialog.component";
+import { FileTrayComponent } from "./file-tray/file-tray.component";
 import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
 import {
   DroneTaskComponent,
@@ -166,7 +166,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     FstoreStorageComponent,
     BrowseHistoryComponent,
     DirTreeNavComponent,
-    FileBookmarkDialogComponent,
+    FileTrayComponent,
     EventPumpDashboardComponent,
     DroneTaskComponent,
     MngNoteComponent,

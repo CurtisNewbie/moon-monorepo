@@ -46,7 +46,7 @@ import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { copyToClipboard } from "src/common/clipboard";
 import { Env } from "src/common/env-util";
 import { FileBookmark } from "src/common/file-bookmark";
-import { FileBookmarkDialogComponent } from "../file-bookmark-dialog/file-bookmark-dialog.component";
+import { FileTrayComponent } from "../file-tray/file-tray.component";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Paging } from "src/common/paging";
 import { I18n } from "../i18n.service";
@@ -1260,9 +1260,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   showFileBookmark() {
     this.dialog
-      .open(FileBookmarkDialogComponent, {
-        width: "1000px",
-        data: {},
+      .open(FileTrayComponent, {
+        width: "600px",
+        maxWidth: "90vw",
+        autoFocus: false,
       })
       .afterClosed()
       .subscribe(() => {
