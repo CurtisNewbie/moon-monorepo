@@ -6,7 +6,6 @@ import (
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/middleware/task"
 	"github.com/curtisnewbie/miso/middleware/user-vault/auth"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 )
 
@@ -17,8 +16,6 @@ const (
 func BeforeServerBootstrap(rail miso.Rail) error {
 
 	rail.Infof("logbot (monorepo) version: %v", Version)
-
-	common.LoadBuiltinPropagationKeys()
 
 	auth.ExposeResourceInfo([]auth.Resource{
 		{Name: "Manage LogBot", Code: ResourceManageLogbot},
