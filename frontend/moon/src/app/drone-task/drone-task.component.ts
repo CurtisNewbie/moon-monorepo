@@ -8,6 +8,7 @@ import { Env } from "src/common/env-util";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { isEnterKey } from "src/common/condition";
+import { copyToClipboard } from "src/common/clipboard";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -385,6 +386,11 @@ export class DroneTaskComponent implements OnInit {
         });
       },
     });
+  }
+
+  copyRemark(r) {
+    copyToClipboard(r);
+    this.snackBar.open("Copied to clipboard", "ok", { duration: 3000 });
   }
 
   clickUpdateTaskUrl(d) {
