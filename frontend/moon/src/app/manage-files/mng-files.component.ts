@@ -3,6 +3,7 @@ import {
   Component,
   DoCheck,
   ElementRef,
+  HostListener,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -218,7 +219,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   ngOnInit() {
     this.orderByName = false;
-    this.registerSelectAllEventHandler();
+    // select-all is handled by @HostListener
     this.parseRouteParam();
   }
 
@@ -280,37 +281,34 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     });
   }
 
-  registerSelectAllEventHandler() {
-    // window.addEventListener("keydown", (evt) => {
-    //   if (this.inFolderNo) {
-    //     return;
-    //   }
-    //   if (
-    //     this.searchFilenameInput &&
-    //     this.searchFilenameInput.nativeElement == document.activeElement
-    //   ) {
-    //     return;
-    //   }
-    //   if (
-    //     this.uploadFileInput &&
-    //     this.uploadFileInput.nativeElement == document.activeElement
-    //   ) {
-    //     return;
-    //   }
-    //   if (
-    //     this.newDirNameInput &&
-    //     this.newDirNameInput.nativeElement == document.activeElement
-    //   ) {
-    //     return;
-    //   }
-    //   // console.log(document.activeElement);
-    //   if (evt.key == "a" && evt.metaKey) {
-    //     evt.preventDefault();
-    //     for (let f of this.fileInfoList) {
-    //       this.bookmarkFile(f);
-    //     }
-    //   }
-    // });
+  @HostListener("document:keydown", ["$event"])
+  onSelectAll(evt: KeyboardEvent) {
+    if (evt.key !== "a" || !(evt.metaKey || evt.ctrlKey)) {
+      return;
+    }
+    // Don't interfere in virtual folder view
+    if (this.inFolderNo) {
+      return;
+    }
+    // Don't interfere with text inputs and textareas
+    const tag = (evt.target as HTMLElement)?.tagName?.toLowerCase();
+    if (tag === "input" || tag === "textarea") {
+      return;
+    }
+    evt.preventDefault();
+    const allBookmarked = this.fileInfoList.every((f) => this.fileBookmark.has(f.uuid));
+    for (const f of this.fileInfoList) {
+      if (allBookmarked) {
+        this.fileBookmark.del(f.uuid);
+      } else if (!this.fileBookmark.has(f.uuid)) {
+        this.fileBookmark.add({
+          fileType: f.fileType,
+          thumbnailUrl: f.thumbnailUrl,
+          fileKey: f.uuid,
+          name: f.name,
+        });
+      }
+    }
   }
 
   // make dir
