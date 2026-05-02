@@ -79,6 +79,7 @@ type ListedFile struct {
 	UpdateTime     atom.Time `json:"updateTime"`
 	ParentFileName string    `json:"parentFileName"`
 	SensitiveMode  string    `json:"sensitiveMode"`
+	IsComic        bool      `json:"isComic"`
 	ThumbnailToken string    `json:"thumbnailToken"`
 	Thumbnail      string    `json:"-"`
 	ParentFile     string    `json:"-"`
@@ -155,6 +156,7 @@ type FileInfo struct {
 	UpdateBy         string
 	IsDel            int
 	Hidden           bool
+	IsComic          bool
 }
 
 func (f FileInfo) IsZero() bool {
@@ -202,9 +204,9 @@ type UserVFolder struct {
 func listFilesInVFolder(rail miso.Rail, db *gorm.DB, page miso.Paging, folderNo string, user flow.User) (miso.PageRes[ListedFile], error) {
 	return dbquery.NewPagedQuery[ListedFile](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
-			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
-			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.thumbnail`).
-				Order("fi.id DESC")
+		return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
+			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.is_comic, fi.thumbnail`).
+			Order("fi.id DESC")
 		}).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Table("file_info fi").
@@ -258,6 +260,16 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (mi
 	if req.FolderNo != nil && *req.FolderNo != "" {
 		res, e = listFilesInVFolder(rail, db, req.Page, *req.FolderNo, user)
 	} else {
+		// force order by name for comic directories
+		if req.ParentFile != nil && *req.ParentFile != "" && !req.OrderByName {
+			parent, ok, err := findFile(rail, db, *req.ParentFile)
+			if err != nil {
+				return res, err
+			}
+			if ok && parent.FileType == FileTypeDir && parent.IsComic {
+				req.OrderByName = true
+			}
+		}
 		res, e = listFilesSelective(rail, db, req, user)
 	}
 	if e != nil {
@@ -312,7 +324,7 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 	return dbquery.NewPagedQuery[ListedFile](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
-			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.sensitive_mode, fi.thumbnail`)
+			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.sensitive_mode, fi.is_comic, fi.thumbnail`)
 		}).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.From("file_info fi").
@@ -1052,6 +1064,7 @@ type UpdateFileReq struct {
 	Id            int    `json:"id" validation:"positive"`
 	Name          string `json:"name"`
 	SensitiveMode string `json:"sensitiveMode"`
+	IsComic       *bool  `json:"isComic"`
 }
 
 func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user flow.User) error {
@@ -1075,10 +1088,24 @@ func UpdateFile(rail miso.Rail, tx *gorm.DB, r UpdateFileReq, user flow.User) er
 	if r.SensitiveMode != "Y" && r.SensitiveMode != "N" {
 		r.SensitiveMode = "N"
 	}
+	if r.IsComic != nil && f.FileType != FileTypeDir {
+		return errs.NewErrf("is_comic can only be set on directories")
+	}
 
-	_, err := dbquery.NewQuery(rail, tx).
-		Exec("UPDATE file_info SET name = ?, sensitive_mode = ?, update_by = ? WHERE id = ? AND is_logic_deleted = 0 AND is_del = 0",
-			r.Name, r.SensitiveMode, user.Username, r.Id)
+	q := dbquery.NewQuery(rail, tx).
+		Table("file_info").
+		Set("name", r.Name).
+		Set("sensitive_mode", r.SensitiveMode).
+		Set("update_by", user.Username).
+		Eq("id", r.Id).
+		Eq("is_logic_deleted", DelN).
+		Eq("is_del", 0)
+
+	if r.IsComic != nil {
+		q = q.Set("is_comic", *r.IsComic)
+	}
+
+	err := q.UpdateAny()
 	return err
 }
 

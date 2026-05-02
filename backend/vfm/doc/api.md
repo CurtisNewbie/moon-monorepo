@@ -596,6 +596,7 @@
         - "updateTime": (int64) 
         - "parentFileName": (string) 
         - "sensitiveMode": (string) 
+        - "isComic": (bool) 
         - "thumbnailToken": (string) 
 - cURL:
   ```sh
@@ -629,6 +630,7 @@
   	UpdateTime atom.Time `json:"updateTime"`
   	ParentFileName string `json:"parentFileName"`
   	SensitiveMode string `json:"sensitiveMode"`
+  	IsComic bool `json:"isComic"`
   	ThumbnailToken string `json:"thumbnailToken"`
   }
 
@@ -694,6 +696,7 @@
     updateTime?: number;
     parentFileName?: string;
     sensitiveMode?: string;
+    isComic?: boolean;
     thumbnailToken?: string;
   }
   ```
@@ -1226,6 +1229,7 @@
     - "id": (int) 
     - "name": (string) 
     - "sensitiveMode": (string) 
+    - "isComic": (*bool) 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -1234,7 +1238,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/info/update' \
     -H 'Content-Type: application/json' \
-    -d '{"id":0,"name":"","sensitiveMode":""}'
+    -d '{"id":0,"isComic":false,"name":"","sensitiveMode":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -1243,6 +1247,7 @@
   	Id int `json:"id"`
   	Name string `json:"name"`
   	SensitiveMode string `json:"sensitiveMode"`
+  	IsComic *bool `json:"isComic"`
   }
 
   // User update file
@@ -1264,6 +1269,7 @@
     id?: number;
     name?: string;
     sensitiveMode?: string;
+    isComic?: boolean;
   }
 
   export interface Resp {

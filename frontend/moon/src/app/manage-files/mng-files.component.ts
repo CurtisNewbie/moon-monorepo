@@ -618,16 +618,28 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.snackBar.open("File uploading cancelled", "ok", { duration: 3000 });
   }
 
+  /** Toggle comic mark on directory */
+  toggleComic(u: FileInfo): void {
+    if (!u || !u.isDir) return;
+    u.isComic = !u.isComic;
+    this.update(u);
+  }
+
   /** Update file's info */
   update(u: FileInfo): void {
     if (!u) return;
 
+    const body: any = {
+      id: u.id,
+      name: u.name,
+      sensitiveMode: u.sensitiveMode,
+    };
+    if (u.isDir) {
+      body.isComic = u.isComic;
+    }
+
     this.http
-      .post<any>(`vfm/open/api/file/info/update`, {
-        id: u.id,
-        name: u.name,
-        sensitiveMode: u.sensitiveMode,
-      })
+      .post<any>(`vfm/open/api/file/info/update`, body)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

@@ -20,6 +20,8 @@ export interface FileInfo {
     ---------------------------
   */
 
+  isComic: boolean;
+
   /** Label for File Type */
   fileTypeLabel: string;
 

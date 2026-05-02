@@ -178,7 +178,8 @@
 
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef> <b>{{'manage-files' | trl:'name'}}</b> </th>
-                <td mat-cell *matCellDef="let f"> <span class="m-2">{{f.name}}
+                <td mat-cell *matCellDef="let f">                     <span class="m-2">{{f.name}}
+                        <i *ngIf="f.isDir && f.isComic" class="bi bi-journal-album ml-3 text-secondary" style="font-size: 1rem;"></i>
                     </span></td>
             </ng-container>
 
@@ -281,6 +282,13 @@
                                         <div>
                                             <button mat-icon-button [matTooltip]="'manage-files' | trl:'update'" (click)="update(curr)">
                                                 <i class="bi bi-floppy icon-button-large"></i> </button>
+                                        </div>
+                                        <div>
+                                            <button mat-icon-button
+                                                [matTooltip]="curr.isComic ? ('manage-files' | trl:'unmarkComic') : ('manage-files' | trl:'markAsComic')"
+                                                (click)="toggleComic(curr)">
+                                                <i [ngClass]="['bi', 'bi-journal-album']" [class.text-primary]="curr.isComic" style="font-size: 1.4rem;"></i>
+                                            </button>
                                         </div>
                                         <div>
                                             <button mat-icon-button [matTooltip]="'manage-files' | trl:'truncateDir'"

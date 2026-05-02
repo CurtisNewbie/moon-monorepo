@@ -259,6 +259,9 @@ export const enUSDict = {
     shareByLink: "Share By Link",
     shareByQRCode: "Share By QRCode",
     unzipToDir: "Unzip To Directory",
+    comicDir: "Comic",
+    markAsComic: "Mark as Comic",
+    unmarkComic: "Unmark Comic",
   },
   "dir-tree-nav": {
     searchDirName: "Search Dir Name",
@@ -626,6 +629,9 @@ export const zhCNDict = {
     shareByLink: "通过链接分享",
     shareByQRCode: "通过二维码分享",
     unzipToDir: "解压到文件夹",
+    comicDir: "漫画",
+    markAsComic: "标记为漫画",
+    unmarkComic: "取消漫画标记",
   },
   "dir-tree-nav": {
     searchDirName: "搜索文件夹名称",
