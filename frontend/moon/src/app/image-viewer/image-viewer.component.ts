@@ -35,6 +35,24 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
   @Output() swipeLeft = new EventEmitter<boolean>();
   @Output() swipeRight = new EventEmitter<boolean>();
 
+  private _destroyed = false;
+  private _timeoutIds: number[] = [];
+  private _touchStartHandler: ((evt: TouchEvent) => void) | null = null;
+  private _touchMoveHandler: ((evt: TouchEvent) => void) | null = null;
+
+  /** setTimeout wrapper that tracks IDs for cleanup on destroy */
+  private _setTimeout(fn: () => void, ms: number): number {
+    const id = window.setTimeout(() => {
+      if (this._destroyed) return;
+      // Remove from tracking once fired
+      const ix = this._timeoutIds.indexOf(id);
+      if (ix > -1) this._timeoutIds.splice(ix, 1);
+      fn();
+    }, ms);
+    this._timeoutIds.push(id);
+    return id;
+  }
+
   constructor(
     private env: Env,
     private _lightbox: Lightbox,
@@ -87,6 +105,10 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
           yDown = null;
         };
 
+        // Store handler references for cleanup
+        this._touchStartHandler = handleTouchStart;
+        this._touchMoveHandler = handleTouchMove;
+
         this.lightboxdiv.addEventListener(
           "touchstart",
           handleTouchStart,
@@ -95,12 +117,13 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
         this.lightboxdiv.addEventListener("touchmove", handleTouchMove, false);
 
         let checkCompleteInterval = 50;
-        setTimeout(() => {
+        this._setTimeout(() => {
           let imgs = this.lightboxdiv.querySelectorAll("#image");
           console.log(imgs);
-          if (imgs) {
+          if (imgs && imgs.length > 0) {
             let img = imgs[0];
             const checkComplete = () => {
+              if (this._destroyed) return;
               console.log(
                 "img",
                 img.complete,
@@ -108,7 +131,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                 img.clientHeight
               );
               if (!img.complete) {
-                setTimeout(checkComplete, checkCompleteInterval);
+                this._setTimeout(checkComplete, checkCompleteInterval);
                 return;
               }
 
@@ -116,6 +139,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
               const resizeRetryInterval = 50;
               const resizeMaxRetry = 10;
               const resize = () => {
+                if (this._destroyed) return;
                 console.log(
                   "img check zoom-in",
                   img.complete,
@@ -179,11 +203,11 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
                   }
                 } else if (resizeRetry < resizeMaxRetry) {
                   // image not rendered, try again later
-                  setTimeout(resize, resizeRetryInterval);
+                  this._setTimeout(resize, resizeRetryInterval);
                 }
               };
 
-              setTimeout(resize, resizeRetryInterval);
+              this._setTimeout(resize, resizeRetryInterval);
             };
 
             checkComplete();
@@ -222,7 +246,31 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
     );
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this._destroyed = true;
+
+    // Clear all pending timeouts
+    for (const id of this._timeoutIds) {
+      window.clearTimeout(id);
+    }
+    this._timeoutIds = [];
+
+    // Remove touch event listeners
+    if (this.lightboxdiv) {
+      if (this._touchStartHandler) {
+        this.lightboxdiv.removeEventListener("touchstart", this._touchStartHandler, false);
+        this._touchStartHandler = null;
+      }
+      if (this._touchMoveHandler) {
+        this.lightboxdiv.removeEventListener("touchmove", this._touchMoveHandler, false);
+        this._touchMoveHandler = null;
+      }
+    }
+
+    if (this.lbsub && !this.lbsub.closed) {
+      this.lbsub.unsubscribe();
+    }
+  }
 
   ngOnInit() {}
 
