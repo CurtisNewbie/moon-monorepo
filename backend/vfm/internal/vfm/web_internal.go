@@ -92,6 +92,7 @@ type SysMakeDirReq struct {
 	ParentFile string `valid:"trim" json:"parentFile"`
 	UserNo     string `valid:"notEmpty" json:"userNo"`
 	Name       string `valid:"notEmpty" json:"name"`
+	Comic      bool   `json:"comic"`
 }
 
 // Internal endpoint. System make directory.
@@ -118,6 +119,7 @@ func ApiItnMakeDir(rail miso.Rail, db *gorm.DB, req SysMakeDirReq) (string, erro
 	fk, err := MakeDir(rail, db, MakeDirReq{
 		ParentFile: req.ParentFile,
 		Name:       req.Name,
+		Comic:      req.Comic,
 	}, user)
 
 	return fk, err

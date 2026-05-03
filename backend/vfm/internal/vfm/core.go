@@ -442,6 +442,7 @@ func FindParentFile(c miso.Rail, db *gorm.DB, req FetchParentFileReq, user flow.
 type MakeDirReq struct {
 	ParentFile string `json:"parentFile"`                 // Key of parent file
 	Name       string `json:"name" validation:"notEmpty"` // name of the directory
+	Comic      bool   `json:"comic"`                      // mark directory as comic
 }
 
 func MakeDir(rail miso.Rail, tx *gorm.DB, req MakeDirReq, user flow.User) (string, error) {
@@ -452,6 +453,7 @@ func MakeDir(rail miso.Rail, tx *gorm.DB, req MakeDirReq, user flow.User) (strin
 	dir.Uuid = snowflake.IdPrefix("ZZZ")
 	dir.SizeInBytes = 0
 	dir.FileType = FileTypeDir
+	dir.IsComic = req.Comic
 
 	if e := _saveFile(rail, tx, dir, user); e != nil {
 		return "", e

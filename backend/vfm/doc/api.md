@@ -401,6 +401,7 @@
 - JSON Request:
     - "parentFile": (string) 
     - "name": (string) Required.
+    - "comic": (bool) 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -410,7 +411,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/make-dir' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","parentFile":""}'
+    -d '{"comic":false,"name":"","parentFile":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -418,6 +419,7 @@
   type MakeDirReq struct {
   	ParentFile string `json:"parentFile"`
   	Name string `json:"name"`      // Required.
+  	Comic bool `json:"comic"`
   }
 
   // User make directory
@@ -438,6 +440,7 @@
   export interface MakeDirReq {
     parentFile?: string;
     name?: string;                 // Required.
+    comic?: boolean;
   }
 
   export interface Resp {
@@ -5452,6 +5455,7 @@
     - "parentFile": (string) 
     - "userNo": (string) Required.
     - "name": (string) Required.
+    - "comic": (bool) 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5461,7 +5465,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/internal/v1/file/make-dir' \
     -H 'Content-Type: application/json' \
-    -d '{"name":"","parentFile":"","userNo":""}'
+    -d '{"comic":false,"name":"","parentFile":"","userNo":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5470,6 +5474,7 @@
   	ParentFile string `json:"parentFile"`
   	UserNo string `json:"userNo"`  // Required.
   	Name string `json:"name"`      // Required.
+  	Comic bool `json:"comic"`
   }
 
   // Internal endpoint, System make directory.
@@ -5491,6 +5496,7 @@
     parentFile?: string;
     userNo?: string;               // Required.
     name?: string;                 // Required.
+    comic?: boolean;
   }
 
   export interface Resp {
