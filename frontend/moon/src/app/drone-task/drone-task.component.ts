@@ -191,11 +191,16 @@ export class DroneTaskComponent implements OnInit {
                   t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
               }
               t.statusLabel = t.status;
-              if (t.status == 'UNRESOLVED') {
+              if (t.status == 'COMPLETED') {
+                t.statusLabel = this.i18n.trl('drone-task', 'completed');
+              } else if (t.status == 'PENDING') {
+                t.statusLabel = this.i18n.trl('drone-task', 'pending');
+              } else if (t.status == 'UNRESOLVED') {
                 t.statusLabel = this.i18n.trl('drone-task', 'unresolved');
-              }
-              if (t.status == 'RESOLVE_FAILED') {
+              } else if (t.status == 'RESOLVE_FAILED') {
                 t.statusLabel = this.i18n.trl('drone-task', 'resolveFailed');
+              } else if (t.status == 'CANCELLED') {
+                t.statusLabel = this.i18n.trl('drone-task', 'cancelled');
               }
             }
           }

@@ -93,7 +93,7 @@
             <th mat-header-cell *matHeaderCellDef> {{'drone-task' | trl:'status'}} </th>
             <td mat-cell *matCellDef="let u">
                 <span
-                    [ngClass]="{ 'status-green' : u.status == 'COMPLETED', 'status-yellow' : u.status == 'PENDING', 'status-red' : u.status == 'UNRESOLVED' || u.status == 'RESOLVE_FAILED'}">{{u.statusLabel}}</span>
+                    [ngClass]="{ 'status-green' : u.status == 'COMPLETED', 'status-yellow' : u.status == 'PENDING' || u.status == 'UNRESOLVED', 'status-red' : u.status == 'RESOLVE_FAILED'}">{{u.statusLabel}}</span>
             </td>
         </ng-container>
         <ng-container matColumnDef="attempt">
