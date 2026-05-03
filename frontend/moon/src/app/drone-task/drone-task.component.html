@@ -6,6 +6,11 @@
     <div class="container">
         <h4>{{'drone-task' | trl:'newTask'}}</h4>
         <div>
+            <div class="d-flex justify-content-end align-items-center mb-2">
+                <button mat-stroked-button (click)="addUrlField()" style="font-size: 0.8em;">
+                    <i class="bi bi-plus-circle me-1"></i>{{ 'drone-task' | trl:'addUrl' }}
+                </button>
+            </div>
             <div *ngFor="let url of bulkUrlFields; let i = index; trackBy: trackByIndex" class="d-flex align-items-center gap-1 mb-1">
                 <mat-form-field style="width: 100%">
                     <mat-label>{{ 'drone-task' | trl:'url' }} #{{ i + 1 }}</mat-label>
@@ -15,12 +20,8 @@
                     <i class="bi bi-dash-circle"></i>
                 </button>
             </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex mb-2">
                 <span *ngIf="bulkUrlFields.length > 1" style="font-size: 0.85em; color: #aaa;">{{ parsedUrls.length }} URL(s)</span>
-                <span *ngIf="bulkUrlFields.length === 1"></span>
-                <button mat-stroked-button (click)="addUrlField()" style="font-size: 0.8em;">
-                    <i class="bi bi-plus-circle me-1"></i>{{ 'drone-task' | trl:'addUrl' }}
-                </button>
             </div>
             <mat-form-field *ngIf="bulkUrlFields.length === 1" style="width: 100%">
                 <mat-label>{{'drone-task' | trl:'newDirectoryNameOptional'}}</mat-label>
