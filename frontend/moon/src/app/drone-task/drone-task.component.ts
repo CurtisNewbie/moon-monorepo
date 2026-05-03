@@ -1,5 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import { Component, Inject, OnInit, ViewChild } from "@angular/core";
+import { Component, Inject, OnInit, AfterViewInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
@@ -84,7 +84,7 @@ export interface ResolveTaskReq {
   templateUrl: "./drone-task.component.html",
   styleUrls: ["./drone-task.component.css"],
 })
-export class DroneTaskComponent implements OnInit {
+export class DroneTaskComponent implements OnInit, AfterViewInit {
   headers: string[] = [];
   createTaskPanelShown: boolean = false;
   bulkUrlFields: string[] = [""];
@@ -135,8 +135,11 @@ export class DroneTaskComponent implements OnInit {
           "remark",
           "operation",
         ];
-    this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
     this.listPlatforms();
+  }
+
+  ngAfterViewInit(): void {
+    this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
   }
 
   constructor(
@@ -327,12 +330,15 @@ export class DroneTaskComponent implements OnInit {
       });
   }
 
+  onTreeLoaded() {
+    this.fetchLastSelectedDir();
+  }
+
   toggleCreateTaskPanelShown() {
     this.createTaskPanelShown = !this.createTaskPanelShown;
     if (this.createTaskPanelShown) {
       this.prevSelectedFileKey = undefined;
       this.listPlatforms();
-      this.fetchLastSelectedDir();
     }
   }
 

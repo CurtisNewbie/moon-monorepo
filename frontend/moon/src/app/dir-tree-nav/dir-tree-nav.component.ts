@@ -100,13 +100,16 @@ export class DirTreeNavComponent implements OnInit {
   @Input()
   set prevSelectedFileKey(v: string | undefined) {
     this._prevSelectedFileKey = v || undefined;
-    if (this._prevSelectedFileKey && this.dirTreeDataSource.data.length > 0) {
+    if (this._prevSelectedFileKey && this.dirTreeDataSource.data?.length > 0) {
       this.trySelectNode(this._prevSelectedFileKey);
     }
   }
 
   @Output("selected")
   selectedEmiter = new EventEmitter<DirTopDownTreeNode>();
+
+  @Output("treeLoaded")
+  treeLoadedEmiter = new EventEmitter<void>();
 
   constructor(public env: Env, public dirTree: DirTree) {}
 
@@ -122,6 +125,7 @@ export class DirTreeNavComponent implements OnInit {
       if (this._prevSelectedFileKey) {
         this.trySelectNode(this._prevSelectedFileKey);
       }
+      this.treeLoadedEmiter.emit();
     });
   }
 
@@ -134,14 +138,15 @@ export class DirTreeNavComponent implements OnInit {
     const visited = new Set<string>();
     while (children.length > 0) {
       const c = children.shift()!;
+      // Always enqueue children first so we don't lose subtrees when parent has no fileKey
+      if (c.child) {
+        children.push(...c.child);
+      }
       if (!c.fileKey || visited.has(c.fileKey)) continue;
       visited.add(c.fileKey);
       if (c.fileKey === fileKey) {
         this.selectDir(c);
         return;
-      }
-      if (c.child) {
-        children.push(...c.child);
       }
     }
   }
