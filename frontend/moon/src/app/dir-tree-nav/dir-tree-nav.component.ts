@@ -1,5 +1,11 @@
 import { NestedTreeControl } from "@angular/cdk/tree";
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+} from "@angular/core";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
 import { Env } from "src/common/env-util";
@@ -88,6 +94,17 @@ export class DirTreeNavComponent implements OnInit {
   @Input()
   title: string = "defaultTitle";
 
+  // FileKey to auto-select after the tree finishes loading.
+  // Set via @Input — handled regardless of whether the tree is already loaded.
+  private _prevSelectedFileKey?: string;
+  @Input()
+  set prevSelectedFileKey(v: string | undefined) {
+    this._prevSelectedFileKey = v || undefined;
+    if (this._prevSelectedFileKey && this.dirTreeDataSource.data.length > 0) {
+      this.trySelectNode(this._prevSelectedFileKey);
+    }
+  }
+
   @Output("selected")
   selectedEmiter = new EventEmitter<DirTopDownTreeNode>();
 
@@ -102,11 +119,31 @@ export class DirTreeNavComponent implements OnInit {
     this.dirTree.fetchTopDownDirTree((dat) => {
       this.dirTreeDataSource.data = [dat];
       this.dirTreeControl.dataNodes = this.dirTreeDataSource.data;
+      if (this._prevSelectedFileKey) {
+        this.trySelectNode(this._prevSelectedFileKey);
+      }
     });
   }
 
   ngOnInit(): void {
     this.fetchTopDownDirTree();
+  }
+
+  private trySelectNode(fileKey: string): void {
+    const children = this.dirTreeDataSource.data.slice();
+    const visited = new Set<string>();
+    while (children.length > 0) {
+      const c = children.shift()!;
+      if (!c.fileKey || visited.has(c.fileKey)) continue;
+      visited.add(c.fileKey);
+      if (c.fileKey === fileKey) {
+        this.selectDir(c);
+        return;
+      }
+      if (c.child) {
+        children.push(...c.child);
+      }
+    }
   }
 
   selectDir(node) {

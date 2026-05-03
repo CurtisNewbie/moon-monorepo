@@ -107,6 +107,7 @@ export class DroneTaskComponent implements OnInit {
   }
   createTaskDirName: string = "";
   createTaskReq: CreateTaskReq = {};
+  prevSelectedFileKey: string | undefined;
   platforms: string[] = [];
   tabdata: ListedTask[] = [];
   listTaskReq: ListTaskReq = {};
@@ -308,10 +309,30 @@ export class DroneTaskComponent implements OnInit {
     this.dirTreeNav.collapseAll();
   }
 
+  fetchLastSelectedDir() {
+    this.http
+      .get<any>(`/drone/open/api/task/last-selected-dir`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          let dat: { fileKey?: string } = resp.data;
+          this.prevSelectedFileKey = dat?.fileKey || undefined;
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      });
+  }
+
   toggleCreateTaskPanelShown() {
     this.createTaskPanelShown = !this.createTaskPanelShown;
     if (this.createTaskPanelShown) {
+      this.prevSelectedFileKey = undefined;
       this.listPlatforms();
+      this.fetchLastSelectedDir();
     }
   }
 
