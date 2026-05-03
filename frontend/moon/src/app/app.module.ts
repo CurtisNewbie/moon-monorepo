@@ -102,6 +102,7 @@ import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-d
 import {
   DroneTaskComponent,
   UpdateDroneTaskDialogComponent,
+  ResolveDroneTaskDialogComponent,
 } from "./drone-task/drone-task.component";
 import { MngNoteComponent } from "./mng-note/mng-note.component";
 import { EditNoteDialogComponent } from "./edit-note-dialog/edit-note-dialog.component";
@@ -124,6 +125,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     LoginComponent,
     NavComponent,
     UpdateDroneTaskDialogComponent,
+    ResolveDroneTaskDialogComponent,
     ConfirmDialogComponent,
     GrantAccessDialogComponent,
     ImageViewerComponent,
@@ -212,6 +214,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     GrantAccessDialogComponent,
     ShowNotificationDialogComponent,
     UpdateDroneTaskDialogComponent,
+    ResolveDroneTaskDialogComponent,
   ],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy },

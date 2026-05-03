@@ -6,11 +6,23 @@
     <div class="container">
         <h4>{{'drone-task' | trl:'newTask'}}</h4>
         <div>
-            <mat-form-field style="width: 100%">
-                <mat-label>{{'drone-task' | trl:'url'}}</mat-label>
-                <input matInput (keyup)="urlKeyUp()" (keydown)="urlKeyDown()" (paste)="urlKeyUp()" [(ngModel)]="createTaskReq.url" />
-            </mat-form-field>
-            <mat-form-field style="width: 100%">
+            <div *ngFor="let url of bulkUrlFields; let i = index; trackBy: trackByIndex" class="d-flex align-items-center gap-1 mb-1">
+                <mat-form-field style="width: 100%">
+                    <mat-label>{{ 'drone-task' | trl:'url' }} #{{ i + 1 }}</mat-label>
+                    <input matInput [(ngModel)]="bulkUrlFields[i]" />
+                </mat-form-field>
+                <button mat-icon-button (click)="removeUrlField(i)" [disabled]="bulkUrlFields.length <= 1">
+                    <i class="bi bi-dash-circle"></i>
+                </button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span *ngIf="bulkUrlFields.length > 1" style="font-size: 0.85em; color: #aaa;">{{ parsedUrls.length }} URL(s)</span>
+                <span *ngIf="bulkUrlFields.length === 1"></span>
+                <button mat-stroked-button (click)="addUrlField()" style="font-size: 0.8em;">
+                    <i class="bi bi-plus-circle me-1"></i>{{ 'drone-task' | trl:'addUrl' }}
+                </button>
+            </div>
+            <mat-form-field *ngIf="bulkUrlFields.length === 1" style="width: 100%">
                 <mat-label>{{'drone-task' | trl:'newDirectoryNameOptional'}}</mat-label>
                 <input matInput [(ngModel)]="createTaskReq.makeDirName" />
             </mat-form-field>
@@ -31,7 +43,8 @@
             </div>
 
             <div class="justify-content-end d-flex">
-                <button mat-raised-button class="mt-1" (click)="createTask()">{{'drone-task' | trl:'submit'}}</button>
+                <button *ngIf="bulkUrlFields.length === 1" mat-raised-button class="mt-1" (click)="singleSubmit()">{{'drone-task' | trl:'submit'}}</button>
+                <button *ngIf="bulkUrlFields.length > 1" mat-raised-button class="mt-1" (click)="createTasksBatch()">{{'drone-task' | trl:'submit'}}</button>
             </div>
         </div>
     </div>
@@ -80,7 +93,7 @@
             <th mat-header-cell *matHeaderCellDef> {{'drone-task' | trl:'status'}} </th>
             <td mat-cell *matCellDef="let u">
                 <span
-                    [ngClass]="{ 'status-green' : u.status == 'COMPLETED', 'status-yellow' : u.status != 'COMPLETED'}">{{u.statusLabel}}</span>
+                    [ngClass]="{ 'status-green' : u.status == 'COMPLETED', 'status-yellow' : u.status == 'PENDING', 'status-red' : u.status == 'UNRESOLVED' || u.status == 'RESOLVE_FAILED'}">{{u.statusLabel}}</span>
             </td>
         </ng-container>
         <ng-container matColumnDef="attempt">
@@ -125,10 +138,13 @@
                     <ng-container *ngIf="u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="gotoDir(u.dirFileKey)">{{'drone-task' | trl:'open'}}</button>
                     </ng-container>
-                    <ng-container *ngIf="u.status == 'PENDING'">
+                    <ng-container *ngIf="u.status == 'PENDING' || u.status == 'UNRESOLVED'">
                         <button class="mat-raised-button small-btn" (click)="cancelTask(u.taskId)">{{'drone-task' | trl:'cancel'}}</button>
                     </ng-container>
-                    <ng-container *ngIf="u.status != 'PENDING' && u.dirFileKey">
+                    <ng-container *ngIf="u.status == 'UNRESOLVED' || u.status == 'RESOLVE_FAILED'">
+                        <button class="mat-raised-button small-btn" (click)="resolveTask(u)">{{'drone-task' | trl:'resolve'}}</button>
+                    </ng-container>
+                    <ng-container *ngIf="u.status != 'PENDING' && u.status != 'UNRESOLVED' && u.status != 'RESOLVE_FAILED' && u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">{{'drone-task' | trl:'retry'}}</button>
                     </ng-container>
                     <ng-container *ngIf="u.status == 'COMPLETED' && u.dirFileKey">

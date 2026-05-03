@@ -365,6 +365,13 @@ export const enUSDict = {
     update: "Update",
     updateDroneTask: "Update Drone Task",
     no: "No",
+    resolve: "Resolve",
+    unresolved: "Unresolved",
+    resolveFailed: "Resolution Failed",
+    pending: "Pending",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    addUrl: "Add URL",
   },
 };
 
@@ -734,5 +741,12 @@ export const zhCNDict = {
     update: "更新",
     updateDroneTask: "更新 Drone 任务",
     no: "否",
+    resolve: "解析",
+    unresolved: "未解析",
+    resolveFailed: "解析失败",
+    pending: "待处理",
+    completed: "已完成",
+    cancelled: "已取消",
+    addUrl: "添加 URL",
   },
 };

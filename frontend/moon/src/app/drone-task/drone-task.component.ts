@@ -16,37 +16,21 @@ import {
 } from "@angular/material/dialog";
 import { I18n } from "../i18n.service";
 
-export interface ApiDetectTitleReq {
-  url?: string;
-  platform?: string;
-}
-
-export interface ApiDetectTitleRes {
-  title?: string;
-  platform?: string;
-}
-
-export interface GuessUrlPlatformRes {
-  platform?: string;
-}
-
-export interface GuessUrlPlatformReq {
-  url?: string;
-}
-
-export interface FetchLastSelectedDirRes {
-  fileKey?: string;
-}
-
-export interface RetryTaskReq {
-  taskId?: string;
-}
-
 export interface CreateTaskReq {
   dirFileKey?: string;
   platform?: string;
   url?: string;
   makeDirName?: string;
+}
+
+export interface CreateTasksBatchReq {
+  dirFileKey?: string;
+  platform?: string;
+  urls?: string[];
+}
+
+export interface RetryTaskReq {
+  taskId?: string;
 }
 
 export interface CancelTaskReq {
@@ -89,6 +73,12 @@ export interface UpdateTaskURLReq {
   url?: string; // Required.
 }
 
+export interface ResolveTaskReq {
+  taskId?: string;
+  platform?: string;
+  makeDirName?: string;
+}
+
 @Component({
   selector: "app-drone-task",
   templateUrl: "./drone-task.component.html",
@@ -97,6 +87,24 @@ export interface UpdateTaskURLReq {
 export class DroneTaskComponent implements OnInit {
   headers: string[] = [];
   createTaskPanelShown: boolean = false;
+  bulkUrlFields: string[] = [""];
+
+  get parsedUrls(): string[] {
+    const seen = new Set<string>();
+    return this.bulkUrlFields
+      .map((u) => u.trim())
+      .filter((u) => u.length > 0 && !seen.has(u) && seen.add(u));
+  }
+
+  addUrlField() {
+    this.bulkUrlFields.push("");
+  }
+
+  removeUrlField(i: number) {
+    if (this.bulkUrlFields.length > 1) {
+      this.bulkUrlFields.splice(i, 1);
+    }
+  }
   createTaskDirName: string = "";
   createTaskReq: CreateTaskReq = {};
   platforms: string[] = [];
@@ -126,6 +134,8 @@ export class DroneTaskComponent implements OnInit {
           "remark",
           "operation",
         ];
+    this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
+    this.listPlatforms();
   }
 
   constructor(
@@ -181,6 +191,12 @@ export class DroneTaskComponent implements OnInit {
                   t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
               }
               t.statusLabel = t.status;
+              if (t.status == 'UNRESOLVED') {
+                t.statusLabel = this.i18n.trl('drone-task', 'unresolved');
+              }
+              if (t.status == 'RESOLVE_FAILED') {
+                t.statusLabel = this.i18n.trl('drone-task', 'resolveFailed');
+              }
             }
           }
           this.pagingController.onTotalChanged(dat.paging);
@@ -214,7 +230,15 @@ export class DroneTaskComponent implements OnInit {
     });
   }
 
-  createTask() {
+  trackByIndex(i: number) {
+    return i;
+  }
+
+  singleSubmit() {
+    this.createTaskReq.url = (this.bulkUrlFields[0] || "").trim();
+    if (!this.createTaskReq.url) {
+      return;
+    }
     let req: CreateTaskReq = this.createTaskReq;
     this.http.post<any>(`/drone/open/api/create-task`, req).subscribe({
       next: (resp) => {
@@ -224,6 +248,43 @@ export class DroneTaskComponent implements OnInit {
         }
         this.createTaskReq = {};
         this.createTaskDirName = "";
+        this.bulkUrlFields = [""];
+        this.createTaskPanelShown = false;
+        this.listTasks();
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+      });
+  }
+
+  createTasksBatch() {
+    const urls = this.parsedUrls;
+    if (urls.length === 0) {
+      return;
+    }
+    let req: CreateTasksBatchReq = {
+      dirFileKey: this.createTaskReq.dirFileKey,
+      platform: this.createTaskReq.platform,
+      urls: urls,
+    };
+    this.http.post<any>(`/drone/open/api/create-tasks-batch`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.snackBar.open(
+          `Created ${resp.data} tasks`,
+          "ok",
+          { duration: 3000 }
+        );
+        this.createTaskReq = {};
+        this.createTaskDirName = "";
+        this.bulkUrlFields = [""];
         this.createTaskPanelShown = false;
         this.listTasks();
       },
@@ -291,85 +352,6 @@ export class DroneTaskComponent implements OnInit {
     });
   }
 
-  urlTypingTimer = null;
-
-  urlKeyUp() {
-    if (this.urlTypingTimer != null) {
-      window.clearTimeout(this.urlTypingTimer);
-    }
-    this.urlTypingTimer = window.setTimeout(() => {
-      this.createTaskReq.url = this.createTaskReq.url.trim();
-      if (!this.createTaskReq.platform && this.createTaskReq.makeDirName) {
-        this.guessUrlPlatform();
-      } else {
-        this.detectTitle();
-      }
-    }, 500);
-  }
-
-  urlKeyDown() {
-    if (this.urlTypingTimer != null) {
-      window.clearTimeout(this.urlTypingTimer);
-    }
-  }
-
-  guessUrlPlatform() {
-    if (!this.createTaskReq.url) {
-      return;
-    }
-    let req: GuessUrlPlatformReq = { url: this.createTaskReq.url };
-    this.http.post<any>(`/drone/open/api/task/guess-plafrom`, req).subscribe({
-      next: (resp) => {
-        if (resp.error) {
-          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-          return;
-        }
-        let dat: GuessUrlPlatformRes = resp.data;
-        if (dat && dat.platform) {
-          this.createTaskReq.platform = dat.platform;
-        }
-      },
-      error: (err) => {
-        console.log(err);
-        this.snackBar.open("Request failed, unknown error", "ok", {
-          duration: 3000,
-        });
-      },
-    });
-  }
-
-  detectTitle() {
-    if (!this.createTaskReq.url || this.createTaskReq.makeDirName) {
-      return;
-    }
-
-    let req: ApiDetectTitleReq = {
-      url: this.createTaskReq.url,
-      platform: this.createTaskReq.platform,
-    };
-    this.http.post<any>(`/drone/open/api/task/detect-title`, req).subscribe({
-      next: (resp) => {
-        if (resp.error) {
-          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-          return;
-        }
-        let dat: ApiDetectTitleRes = resp.data;
-        if (!this.createTaskReq.makeDirName) {
-          this.createTaskReq.makeDirName = dat.title;
-        }
-        if (!this.createTaskReq.platform) {
-          this.createTaskReq.platform = dat.platform;
-        }
-      },
-      error: (err) => {
-        console.log(err);
-        this.snackBar.open("Request failed, unknown error", "ok", {
-          duration: 3000,
-        });
-      },
-    });
-  }
-
   updateTaskUrl(req: UpdateTaskURLReq) {
     this.http.post<any>(`/drone/open/api/task/update-url`, req).subscribe({
       next: (resp) => {
@@ -413,6 +395,47 @@ export class DroneTaskComponent implements OnInit {
       });
   }
 
+  resolveTask(d) {
+    this.dialog
+      .open(ResolveDroneTaskDialogComponent, {
+        width: "600px",
+        data: {
+          taskId: d.taskId,
+          url: d.url,
+          platform: d.platform,
+          makeDirName: d.makeDirName || "",
+          platforms: this.platforms,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          let req: ResolveTaskReq = {
+            taskId: d.taskId,
+            platform: result.platform,
+            makeDirName: result.makeDirName || undefined,
+          };
+          this.http
+            .post<any>(`/drone/open/api/task/resolve`, req)
+            .subscribe({
+              next: (resp) => {
+                if (resp.error) {
+                  this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+                  return;
+                }
+                this.listTasks();
+              },
+              error: (err) => {
+                console.log(err);
+                this.snackBar.open("Request failed, unknown error", "ok", {
+                  duration: 3000,
+                });
+              },
+            });
+        }
+      });
+  }
+
   }
 
 @Component({
@@ -442,6 +465,49 @@ export class DroneTaskComponent implements OnInit {
 export class UpdateDroneTaskDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<UpdateDroneTaskDialogComponent, any>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
+}
+
+@Component({
+  selector: "resolve-drone-task-component",
+  template: `
+    <h1 mat-dialog-title>{{ 'drone-task' | trl:'resolve' }}</h1>
+    <div mat-dialog-content>
+      <mat-form-field style="width: 400px">
+        <mat-label>{{ 'drone-task' | trl:'taskId' }}</mat-label>
+        <input readonly disabled matInput [ngModel]="data.taskId" />
+      </mat-form-field>
+      <mat-form-field style="width: 400px">
+        <mat-label>{{ 'drone-task' | trl:'url' }}</mat-label>
+        <input readonly disabled matInput [ngModel]="data.url" />
+      </mat-form-field>
+      <mat-form-field style="width: 400px">
+        <mat-label>{{ 'drone-task' | trl:'platform' }}</mat-label>
+        <mat-select [(ngModel)]="data.platform">
+          <mat-option [value]="option" *ngFor="let option of data.platforms">
+            {{option}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field style="width: 400px">
+        <mat-label>{{ 'drone-task' | trl:'newDirectoryNameOptional' }}</mat-label>
+        <input matInput [(ngModel)]="data.makeDirName" />
+      </mat-form-field>
+    </div>
+    <div mat-dialog-actions class="d-flex justify-content-end">
+      <button mat-button [mat-dialog-close]="data.platform && data.makeDirName ? {platform: data.platform, makeDirName: data.makeDirName} : null">
+        {{ 'drone-task' | trl:'resolve' }}
+      </button>
+      <button mat-button [mat-dialog-close]="null" cdkFocusInitial>
+        {{ 'drone-task' | trl:'no' }}
+      </button>
+    </div>
+  `,
+})
+export class ResolveDroneTaskDialogComponent {
+  constructor(
+    public dialogRef: MatDialogRef<ResolveDroneTaskDialogComponent, any>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 }
