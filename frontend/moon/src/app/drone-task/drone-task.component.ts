@@ -58,6 +58,7 @@ export interface ListedTask {
   platform?: string;
   dirFileKey?: string;
   dirName?: string;
+  makeDirName?: string;
   trimmedDirName?: string;
   createdAt?: number;
   updatedAt?: number;
@@ -189,8 +190,11 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
                   "fstore/file/raw?key=" +
                   encodeURIComponent(t.thumbnailFstToken);
               }
+              if (!t.dirFileKey && t.makeDirName) {
+                t.dirName = t.makeDirName;
+              }
               t.trimmedDirName = t.dirName;
-              if (isMob && t.trimmedDirName.length > statusLabelMaxLen) {
+              if (isMob && t.trimmedDirName?.length > statusLabelMaxLen) {
                 t.trimmedDirName =
                   t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
               }
