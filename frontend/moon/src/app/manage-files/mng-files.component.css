@@ -24,6 +24,24 @@
 
 .mat-column-name {
   max-width: 150px;
+  padding-right: 8px;
+}
+
+.mat-column-parentFileName {
+  max-width: 150px;
+  padding-right: 8px;
+}
+
+.overflow-cell {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.overflow-cell::-webkit-scrollbar {
+  display: none;
 }
 
 .mat-column-operation {
@@ -32,4 +50,17 @@
 
 .mat-column-parentFileName {
   max-width: 150px;
+}
+
+.overflow-cell {
+  display: inline-block;
+  max-width: 100%;
+  padding-right: 8px;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.overflow-cell::-webkit-scrollbar {
+  display: none;
 }

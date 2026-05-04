@@ -178,7 +178,7 @@
 
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef> <b>{{'manage-files' | trl:'name'}}</b> </th>
-                <td mat-cell *matCellDef="let f">                     <span class="m-2">{{f.name}}
+                <td mat-cell *matCellDef="let f">                     <span class="overflow-cell m-2">{{f.name}}
                         <i *ngIf="f.isDir && f.isComic" class="bi bi-journal-album ml-3 text-secondary" style="font-size: 1rem;"></i>
                     </span></td>
             </ng-container>
@@ -202,7 +202,7 @@
                     matTooltipShowDelay="300">
                     <b>{{'manage-files' | trl:'inDir'}}</b>
                 </th>
-                <td mat-cell *matCellDef="let f"> <span class="pl-1 pr-1">{{f.parentFileName}}
+                <td mat-cell *matCellDef="let f"> <span class="overflow-cell pl-1 pr-1">{{f.parentFileName}}
                     </span></td>
             </ng-container>
 
