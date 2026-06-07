@@ -58,6 +58,7 @@ export interface ListedTask {
   platform?: string;
   dirFileKey?: string;
   dirName?: string;
+  makeDirName?: string;
   trimmedDirName?: string;
   createdAt?: number;
   updatedAt?: number;
@@ -528,7 +529,7 @@ export class UpdateDroneTaskDialogComponent {
       </mat-form-field>
     </div>
     <div mat-dialog-actions class="d-flex justify-content-end">
-      <button mat-button [mat-dialog-close]="data.platform && data.makeDirName ? {platform: data.platform, makeDirName: data.makeDirName} : null">
+      <button mat-button [mat-dialog-close]="{platform: data.platform, makeDirName: data.makeDirName}">
         {{ 'drone-task' | trl:'resolve' }}
       </button>
       <button mat-button [mat-dialog-close]="null" cdkFocusInitial>
