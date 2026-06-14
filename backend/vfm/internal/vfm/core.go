@@ -204,9 +204,9 @@ type UserVFolder struct {
 func listFilesInVFolder(rail miso.Rail, db *gorm.DB, page miso.Paging, folderNo string, user flow.User) (miso.PageRes[ListedFile], error) {
 	return dbquery.NewPagedQuery[ListedFile](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
-		return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
+			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
 			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.is_comic, fi.thumbnail`).
-			Order("fi.id DESC")
+				Order("fi.id DESC")
 		}).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Table("file_info fi").

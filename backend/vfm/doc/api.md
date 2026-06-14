@@ -63,10 +63,6 @@
 - [POST /internal/file/batch-fetch-info](#post-internalfilebatch-fetch-info)
 - [POST /internal/v1/file/make-dir](#post-internalv1filemake-dir)
 - [POST /internal/file/update-info](#post-internalfileupdate-info)
-- [GET /auth/resource](#get-authresource)
-- [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
-- [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
-- [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## GET /open/api/file/upload/duplication/preflight
 
@@ -583,7 +579,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ListedFile]) response data
+    - "data": (miso.PageRes[ListedFile]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -2711,7 +2707,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.VGallery]) response data
+    - "data": (miso.PageRes[VGallery]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -3018,7 +3014,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ListedGalleryAccessRes]) response data
+    - "data": (miso.PageRes[ListedGalleryAccessRes]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -3369,7 +3365,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ApiListVerFileRes]) response data
+    - "data": (miso.PageRes[ApiListVerFileRes]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -3509,7 +3505,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ApiListVerFileHistoryRes]) response data
+    - "data": (miso.PageRes[ApiListVerFileHistoryRes]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -4175,7 +4171,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ListedBookmark]) response data
+    - "data": (miso.PageRes[ListedBookmark]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -4383,7 +4379,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/vfm/internal/vfm.ListedBookmark]) response data
+    - "data": (miso.PageRes[ListedBookmark]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -5615,244 +5611,29 @@
   }
   ```
 
-## GET /auth/resource
+# Event Pipelines
 
-- Description: Expose resource and endpoint information to other backend service for authorization.
-- Expected Access Scope: PROTECTED
-- JSON Response:
-    - "resources": ([]auth.Resource) 
-      - "name": (string) resource name
-      - "code": (string) resource code, unique identifier
-    - "paths": ([]auth.Endpoint) 
-      - "type": (string) access scope type: PROTECTED/PUBLIC
-      - "url": (string) endpoint url
-      - "group": (string) app name
-      - "desc": (string) description of the endpoint
-      - "resCode": (string) resource code
-      - "method": (string) http method
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8086/auth/resource'
-  ```
+- AddFileToVFolderPipeline
+  - RabbitMQ Queue: `AddFileToVFolderEventBus`
+  - RabbitMQ Exchange: `AddFileToVFolderEventBus`
+  - RabbitMQ RoutingKey: `#`
+  - Event Payload:
+    - "Username": (string) username
+    - "UserNo": (string) 
+    - "FolderNo": (string) 
+    - "FileKeys": ([]string) 
 
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  type ResourceInfoRes struct {
-  	Resources []Resource `json:"resources"`
-  	Paths []Endpoint `json:"paths"`
-  }
+- CompressImgNotifyPipeline
+  - RabbitMQ Queue: `CompressImgNotifyEventBus`
+  - RabbitMQ Exchange: `CompressImgNotifyEventBus`
+  - RabbitMQ RoutingKey: `#`
 
-  type Resource struct {
-  	Name string `json:"name"`      // resource name
-  	Code string `json:"code"`      // resource code, unique identifier
-  }
+- GenVideoThumbnailNotifyPipeline
+  - RabbitMQ Queue: `GenVideoThumbnailNotifyEventBus`
+  - RabbitMQ Exchange: `GenVideoThumbnailNotifyEventBus`
+  - RabbitMQ RoutingKey: `#`
 
-  type Endpoint struct {
-  	Type string `json:"type"`      // access scope type: PROTECTED/PUBLIC
-  	Url string `json:"url"`        // endpoint url
-  	Group string `json:"group"`    // app name
-  	Desc string `json:"desc"`      // description of the endpoint
-  	ResCode string `json:"resCode"` // resource code
-  	Method string `json:"method"`  // http method
-  }
-
-  // Expose resource and endpoint information to other backend service for authorization.
-  func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
-  	var res miso.GnResp[ResourceInfoRes]
-  	err := miso.NewDynClient(rail, "/auth/resource", "vfm").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		var dat ResourceInfoRes
-  		return dat, err
-  	}
-  	return res.Data, nil
-  }
-  ```
-
-- JSON Request / Response Object In TypeScript:
-  ```ts
-  export interface ResourceInfoRes {
-    resources?: Resource[];
-    paths?: Endpoint[];
-  }
-
-  export interface Resource {
-    name?: string;                 // resource name
-    code?: string;                 // resource code, unique identifier
-  }
-
-  export interface Endpoint {
-    type?: string;                 // access scope type: PROTECTED/PUBLIC
-    url?: string;                  // endpoint url
-    group?: string;                // app name
-    desc?: string;                 // description of the endpoint
-    resCode?: string;              // resource code
-    method?: string;               // http method
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<ResourceInfoRes>(`/vfm/auth/resource`)
-      .subscribe({
-        next: (resp) => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /debug/trace/recorder/run
-
-- Description: Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
-- Query Parameter:
-  - "duration": Duration of the flight recording. Required. Duration cannot exceed 30 min.
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8086/debug/trace/recorder/run?duration='
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  // Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
-  func SendRequest(rail miso.Rail, duration string) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "vfm").
-  		AddQuery("duration", duration).
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		return err
-  	}
-  	return nil
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    let duration: any | null = null;
-    this.http.get<any>(`/vfm/debug/trace/recorder/run?duration=${duration}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /debug/trace/recorder/snapshot
-
-- Description: FlightRecorder take snapshot. Recorded result is written to trace.out.
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8086/debug/trace/recorder/snapshot'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  // FlightRecorder take snapshot. Recorded result is written to trace.out.
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynClient(rail, "/debug/trace/recorder/snapshot", "vfm").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		return err
-  	}
-  	return nil
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<any>(`/vfm/debug/trace/recorder/snapshot`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /debug/trace/recorder/stop
-
-- Description: Stop existing FlightRecorder session.
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8086/debug/trace/recorder/stop'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  // Stop existing FlightRecorder session.
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynClient(rail, "/debug/trace/recorder/stop", "vfm").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		return err
-  	}
-  	return nil
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<any>(`/vfm/debug/trace/recorder/stop`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
+- UnzipResultNotifyPipeline
+  - RabbitMQ Queue: `UnzipResultNotifyEventBus`
+  - RabbitMQ Exchange: `UnzipResultNotifyEventBus`
+  - RabbitMQ RoutingKey: `#`
