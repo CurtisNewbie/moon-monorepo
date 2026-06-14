@@ -7,10 +7,6 @@
 - [GET /open/api/v1/cashflow/list-currency](#get-openapiv1cashflowlist-currency)
 - [POST /open/api/v1/cashflow/list-statistics](#post-openapiv1cashflowlist-statistics)
 - [POST /open/api/v1/cashflow/plot-statistics](#post-openapiv1cashflowplot-statistics)
-- [GET /auth/resource](#get-authresource)
-- [GET /debug/trace/recorder/run](#get-debugtracerecorderrun)
-- [GET /debug/trace/recorder/snapshot](#get-debugtracerecordersnapshot)
-- [GET /debug/trace/recorder/stop](#get-debugtracerecorderstop)
 
 ## POST /open/api/v1/cashflow/list
 
@@ -21,8 +17,8 @@
       - "page": (int) page number, 1-based
       - "total": (int) total count
     - "direction": (string) Flow Direction: IN / OUT. Enums: ["IN","OUT",""].
-    - "transTimeStart": (int64) Transaction Time Range Start
-    - "transTimeEnd": (int64) Transaction Time Range End
+    - "transTimeStart": (*int64) Transaction Time Range Start
+    - "transTimeEnd": (*int64) Transaction Time Range End
     - "transId": (string) Transaction ID
     - "category": (string) Category Code
     - "minAmt": (*string) Minimum amount
@@ -30,7 +26,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/acct/internal/flow.ListCashFlowRes]) response data
+    - "data": (miso.PageRes[flow.ListCashFlowRes]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -52,7 +48,7 @@
   ```sh
   curl -X POST 'http://localhost:8093/open/api/v1/cashflow/list' \
     -H 'Content-Type: application/json' \
-    -d '{"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":0,"transTimeStart":0}'
+    -d '{"category":"","direction":"","minAmt":"","paging":{"limit":0,"page":0,"total":0},"transId":"","transTimeEnd":1768184753983,"transTimeStart":1768184753983}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -320,7 +316,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (PageRes[github.com/curtisnewbie/acct/internal/flow.ApiListStatisticsRes]) response data
+    - "data": (miso.PageRes[flow.ApiListStatisticsRes]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
@@ -537,244 +533,14 @@
   }
   ```
 
-## GET /auth/resource
+# Event Pipelines
 
-- Description: Expose resource and endpoint information to other backend service for authorization.
-- Expected Access Scope: PROTECTED
-- JSON Response:
-    - "resources": ([]auth.Resource) 
-      - "name": (string) resource name
-      - "code": (string) resource code, unique identifier
-    - "paths": ([]auth.Endpoint) 
-      - "type": (string) access scope type: PROTECTED/PUBLIC
-      - "url": (string) endpoint url
-      - "group": (string) app name
-      - "desc": (string) description of the endpoint
-      - "resCode": (string) resource code
-      - "method": (string) http method
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8093/auth/resource'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  type ResourceInfoRes struct {
-  	Resources []Resource `json:"resources"`
-  	Paths []Endpoint `json:"paths"`
-  }
-
-  type Resource struct {
-  	Name string `json:"name"`      // resource name
-  	Code string `json:"code"`      // resource code, unique identifier
-  }
-
-  type Endpoint struct {
-  	Type string `json:"type"`      // access scope type: PROTECTED/PUBLIC
-  	Url string `json:"url"`        // endpoint url
-  	Group string `json:"group"`    // app name
-  	Desc string `json:"desc"`      // description of the endpoint
-  	ResCode string `json:"resCode"` // resource code
-  	Method string `json:"method"`  // http method
-  }
-
-  // Expose resource and endpoint information to other backend service for authorization.
-  func SendRequest(rail miso.Rail) (ResourceInfoRes, error) {
-  	var res miso.GnResp[ResourceInfoRes]
-  	err := miso.NewDynClient(rail, "/auth/resource", "acct").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		var dat ResourceInfoRes
-  		return dat, err
-  	}
-  	return res.Data, nil
-  }
-  ```
-
-- JSON Request / Response Object In TypeScript:
-  ```ts
-  export interface ResourceInfoRes {
-    resources?: Resource[];
-    paths?: Endpoint[];
-  }
-
-  export interface Resource {
-    name?: string;                 // resource name
-    code?: string;                 // resource code, unique identifier
-  }
-
-  export interface Endpoint {
-    type?: string;                 // access scope type: PROTECTED/PUBLIC
-    url?: string;                  // endpoint url
-    group?: string;                // app name
-    desc?: string;                 // description of the endpoint
-    resCode?: string;              // resource code
-    method?: string;               // http method
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<ResourceInfoRes>(`/acct/auth/resource`)
-      .subscribe({
-        next: (resp) => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /debug/trace/recorder/run
-
-- Description: Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
-- Query Parameter:
-  - "duration": Duration of the flight recording. Required. Duration cannot exceed 30 min.
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8093/debug/trace/recorder/run?duration='
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  // Start FlightRecorder. Recorded result is written to trace.out when it's finished or stopped.
-  func SendRequest(rail miso.Rail, duration string) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynClient(rail, "/debug/trace/recorder/run", "acct").
-  		AddQuery("duration", duration).
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		return err
-  	}
-  	return nil
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    let duration: any | null = null;
-    this.http.get<any>(`/acct/debug/trace/recorder/run?duration=${duration}`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /debug/trace/recorder/snapshot
-
-- Description: FlightRecorder take snapshot. Recorded result is written to trace.out.
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8093/debug/trace/recorder/snapshot'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  // FlightRecorder take snapshot. Recorded result is written to trace.out.
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynClient(rail, "/debug/trace/recorder/snapshot", "acct").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		return err
-  	}
-  	return nil
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<any>(`/acct/debug/trace/recorder/snapshot`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
-
-## GET /debug/trace/recorder/stop
-
-- Description: Stop existing FlightRecorder session.
-- cURL:
-  ```sh
-  curl -X GET 'http://localhost:8093/debug/trace/recorder/stop'
-  ```
-
-- Miso HTTP Client (experimental, demo may not work):
-  ```go
-  // Stop existing FlightRecorder session.
-  func SendRequest(rail miso.Rail) error {
-  	var res miso.GnResp[any]
-  	err := miso.NewDynClient(rail, "/debug/trace/recorder/stop", "acct").
-  		Get().
-  		Json(&res)
-  	if err != nil {
-  		return err
-  	}
-  	return nil
-  }
-  ```
-
-- Angular HttpClient Demo:
-  ```ts
-  import { MatSnackBar } from "@angular/material/snack-bar";
-  import { HttpClient } from "@angular/common/http";
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
-
-  sendRequest() {
-    this.http.get<any>(`/acct/debug/trace/recorder/stop`)
-      .subscribe({
-        next: () => {
-        },
-        error: (err) => {
-          console.log(err)
-          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
-        }
-      });
-  }
-  ```
+- CalcAggStatPipeline
+  - RabbitMQ Queue: `acct:cashflow:calc-agg-stat`
+  - RabbitMQ Exchange: `acct:cashflow:calc-agg-stat`
+  - RabbitMQ RoutingKey: `#`
+  - Event Payload:
+    - "UserNo": (string) 
+    - "AggType": (string) 
+    - "AggRange": (string) 
+    - "AggTime": (int64) 
