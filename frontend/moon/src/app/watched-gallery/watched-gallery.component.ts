@@ -17,6 +17,7 @@ interface ListedGallery {
   thumbnailToken: string;
   createdAt: string;
   thumbnailUrl?: string;
+  taskCreated?: boolean;
 }
 interface ListGalleryRes {
   data: {
