@@ -1,4 +1,5 @@
 import { HttpClient } from "@angular/common/http";
+import { ActivatedRoute } from "@angular/router";
 import { Component, Inject, OnInit, AfterViewInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Paging } from "src/common/paging";
@@ -137,6 +138,11 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
           "operation",
         ];
     this.listPlatforms();
+    const prefillUrl = this.route.snapshot.queryParams['url'] || '';
+    if (prefillUrl) {
+      this.bulkUrlFields = [prefillUrl];
+      this.createTaskPanelShown = true;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -149,7 +155,8 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
     private nav: NavigationService,
     public env: Env,
     private dialog: MatDialog,
-    private i18n: I18n
+    private i18n: I18n,
+    private route: ActivatedRoute
   ) {}
 
   listTasks() {

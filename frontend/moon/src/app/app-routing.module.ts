@@ -32,6 +32,8 @@ import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.componen
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
 import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
 import { DroneTaskComponent } from "./drone-task/drone-task.component";
+import { GalleryWatchComponent } from "./gallery-watch/gallery-watch.component";
+import { WatchedGalleryComponent } from "./watched-gallery/watched-gallery.component";
 import { MngNoteComponent } from "./mng-note/mng-note.component";
 import { DocxPreviewComponent } from "./docx-preview-comp/docx-preview.component";
 
@@ -164,6 +166,8 @@ const routes: Routes = [
     path: "drone-task",
     component: DroneTaskComponent,
   },
+  { path: "gallery-watch/galleries", component: WatchedGalleryComponent },
+  { path: "gallery-watch", component: GalleryWatchComponent },
   { path: "note", component: MngNoteComponent, },
   { path: "docx-viewer", component: DocxPreviewComponent },
   { path: "**", redirectTo: "/" + NavType.USER_DETAILS },

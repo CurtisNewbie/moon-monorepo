@@ -1,0 +1,71 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mt-2 mb-0">{{'gallery-watch' | trl:'heading'}}</h3>
+    <button mat-raised-button (click)="toggleCreatePanel()">
+        {{'gallery-watch' | trl:'createWatchTask'}}
+    </button>
+</div>
+
+<div class="mt-3 mb-5 mat-elevation-z8 p-3" *ngIf="showCreatePanel">
+    <h4 class="mt-2 mb-3">{{'gallery-watch' | trl:'createWatchTask'}}</h4>
+    <mat-form-field style="width: 100%;">
+        <mat-label>{{'gallery-watch' | trl:'platform'}}</mat-label>
+        <mat-select [(value)]="selectedPlatform">
+            <mat-option [value]="option" *ngFor="let option of platforms">
+                {{option}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field style="width: 100%;">
+        <mat-label>{{'gallery-watch' | trl:'keywords'}}</mat-label>
+        <input matInput type="text" [(ngModel)]="keywords"
+            placeholder="{{'gallery-watch' | trl:'keywordsPlaceholder'}}" />
+    </mat-form-field>
+    <div class="justify-content-end d-flex">
+        <button mat-raised-button class="mt-2" (click)="createWatchTask()">
+            {{'gallery-watch' | trl:'create'}}
+        </button>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap justify-content-end mb-2">
+    <button mat-icon-button class="m-1 icon-button-large" (click)="listWatchTasks()">
+        <i class="bi bi-arrow-clockwise"></i>
+    </button>
+</div>
+
+<div class="mt-3 mb-5">
+    <table mat-table [dataSource]="watchTasks" class="mb-4" style="width: 100%;">
+        <ng-container matColumnDef="platform">
+            <th mat-header-cell *matHeaderCellDef>{{'gallery-watch' | trl:'platform'}}</th>
+            <td mat-cell *matCellDef="let u">{{u.platform}}</td>
+        </ng-container>
+        <ng-container matColumnDef="keywords">
+            <th mat-header-cell *matHeaderCellDef>{{'gallery-watch' | trl:'keywords'}}</th>
+            <td mat-cell *matCellDef="let u">{{u.keywords}}</td>
+        </ng-container>
+        <ng-container matColumnDef="maxItems">
+            <th mat-header-cell *matHeaderCellDef>{{'gallery-watch' | trl:'maxItems'}}</th>
+            <td mat-cell *matCellDef="let u">{{u.maxItems}}</td>
+        </ng-container>
+        <ng-container matColumnDef="enabled">
+            <th mat-header-cell *matHeaderCellDef>{{'gallery-watch' | trl:'enabled'}}</th>
+            <td mat-cell *matCellDef="let u">
+                <button mat-icon-button class="m-1 icon-button-large"
+                        [matTooltip]="u.enabled ? ('gallery-watch' | trl:'enabled') : ('gallery-watch' | trl:'disabled')"
+                        (click)="toggleTaskEnabled(u)">
+                    <i [ngClass]="u.enabled ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+                </button>
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="operation">
+            <th mat-header-cell *matHeaderCellDef>{{'gallery-watch' | trl:'operation'}}</th>
+            <td mat-cell *matCellDef="let u">
+                <button class="mat-raised-button small-btn" (click)="viewGalleries(u.taskId)">
+                    {{'gallery-watch' | trl:'view'}}
+                </button>
+            </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="headers"></tr>
+        <tr mat-row *matRowDef="let row; columns: headers"></tr>
+    </table>
+</div>

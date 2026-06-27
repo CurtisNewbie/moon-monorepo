@@ -110,6 +110,8 @@ import { DocxPreviewComponent } from './docx-preview-comp/docx-preview.component
 import { TrlPipe } from './trl.pipe';
 import { OverlayModule } from "@angular/cdk/overlay";
 import { ImageTooltipDirective } from "./shared/directives/image-tooltip.directive";
+import { GalleryWatchComponent } from './gallery-watch/gallery-watch.component';
+import { WatchedGalleryComponent } from './watched-gallery/watched-gallery.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -174,6 +176,8 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MngNoteComponent,
     EditNoteDialogComponent,
     DocxPreviewComponent,
+    GalleryWatchComponent,
+    WatchedGalleryComponent,
   ],
   imports: [
     PlotlyModule,

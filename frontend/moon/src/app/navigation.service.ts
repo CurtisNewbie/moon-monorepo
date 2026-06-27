@@ -19,4 +19,9 @@ export class NavigationService {
     if (extra != null) arr = arr.concat(extra);
     this.router.navigate(arr);
   }
+
+  /** Navigate with query params (preserving existing query params) */
+  public navigateToWithPreserve(url: string, queryParams: any): void {
+    this.router.navigate([url], { queryParams: queryParams });
+  }
 }
