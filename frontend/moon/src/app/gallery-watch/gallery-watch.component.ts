@@ -23,6 +23,9 @@ interface EnableWatchTaskReq {
   taskId: string;
   enabled: boolean;
 }
+interface TriggerWatchTaskReq {
+  taskId: string;
+}
 
 @Component({
   selector: "app-gallery-watch",
@@ -150,6 +153,25 @@ export class GalleryWatchComponent implements OnInit {
       error: (err) => {
         console.log(err);
         this.snackBar.open('Request failed, unknown error', 'ok', {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  triggerWatchTask(taskId: string): void {
+    const req: TriggerWatchTaskReq = { taskId: taskId };
+    this.http.post<any>(`/drone/open/api/trigger-watch-task`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.snackBar.open("Triggered", "ok", { duration: 3000 });
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
           duration: 3000,
         });
       },

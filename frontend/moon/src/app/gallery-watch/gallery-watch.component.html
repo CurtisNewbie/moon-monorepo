@@ -60,9 +60,14 @@
         <ng-container matColumnDef="operation">
             <th mat-header-cell *matHeaderCellDef>{{'gallery-watch' | trl:'operation'}}</th>
             <td mat-cell *matCellDef="let u">
+                <div class="d-flex gap-2 flex-wrap">
+                <button class="mat-raised-button small-btn" (click)="triggerWatchTask(u.taskId)">
+                    {{'gallery-watch' | trl:'trigger'}}
+                </button>
                 <button class="mat-raised-button small-btn" (click)="viewGalleries(u.taskId)">
                     {{'gallery-watch' | trl:'view'}}
                 </button>
+                </div>
             </td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="headers"></tr>

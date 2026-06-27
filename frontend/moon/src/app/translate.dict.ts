@@ -309,7 +309,7 @@ export const enUSDict = {
     cashflows: "Cashflows",
     cashflowsStats: "Cashflows Statistics",
     droneTasks: "Drone Tasks",
-    galleryWatch: "Gallery Watch",
+    galleryWatch: "Gallery Discovery",
   },
   "pdf-viewer": {
     noFileSelected: "No PDF selected. Consider picking one to read?",
@@ -375,7 +375,7 @@ export const enUSDict = {
     addUrl: "Add URL",
   },
   "gallery-watch": {
-    heading: "Gallery Watch",
+    heading: "Gallery Discovery",
     createWatchTask: "Create Watch Task",
     watchedGalleries: "Watched Galleries",
     platform: "Platform",
@@ -392,6 +392,7 @@ export const enUSDict = {
     maxItems: "Max Items",
     operation: "Operation",
     view: "View",
+    trigger: "Trigger",
     watchedGalleriesFor: "Watched Galleries for task",
     back: "Back",
   },
@@ -790,6 +791,7 @@ export const zhCNDict = {
     maxItems: "最大项数",
     operation: "操作",
     view: "查看",
+    trigger: "触发",
     watchedGalleriesFor: "任务画廊",
     back: "返回",
   },
