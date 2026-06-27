@@ -113,6 +113,7 @@ export class GalleryWatchComponent implements OnInit {
         });
         this.keywords = "";
         this.selectedPlatform = "";
+        this.showCreatePanel = false;
         this.listWatchTasks();
       },
       error: (err) => {
