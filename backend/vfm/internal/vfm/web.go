@@ -71,6 +71,22 @@ func ApiGetParentFile(rail miso.Rail, db *gorm.DB, req FetchParentFileReq, user 
 	return &pf, nil
 }
 
+// Get the page number of a file in its parent directory.
+//
+//   - misoapi-http: POST /open/api/file/position
+//   - misoapi-desc: Get page number of a file in its parent directory under given sort/filter
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiGetFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flow.User) (FilePositionRes, error) {
+	if req.FileKey == "" {
+		return FilePositionRes{Page: 1}, nil
+	}
+	page, err := CalcFilePosition(rail, db, req, user)
+	if err != nil {
+		return FilePositionRes{Page: 1}, nil
+	}
+	return FilePositionRes{Page: page}, nil
+}
+
 // Move file to dir.
 //
 //   - misoapi-http: POST /open/api/file/move-to-dir

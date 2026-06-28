@@ -249,6 +249,18 @@ type ListFileReq struct {
 	OrderByName bool        `json:"orderByName"`
 }
 
+type FilePositionReq struct {
+	FileKey     string `json:"fileKey"`
+	ParentFile  string `json:"parentFile"`
+	Limit       int    `json:"limit"`
+	OrderByName bool   `json:"orderByName"`
+	FileType    string `json:"fileType"`
+}
+
+type FilePositionRes struct {
+	Page int `json:"page"`
+}
+
 func (q ListFileReq) IsEmpty() bool {
 	return (q.ParentFile == nil || *q.ParentFile == "") && (q.Filename == nil || *q.Filename == "") && (q.FileKey == nil || *q.FileKey == "")
 }
@@ -364,6 +376,57 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 			return q
 		}).
 		Scan(rail, req.Page)
+}
+
+// CalcFilePosition returns which page a file appears on in the parent directory
+// under the current sort and filter conditions (excluding fileKey filter).
+func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flow.User) (int, error) {
+	// 1. Look up target file to get its sort attributes
+	f, ok, err := findFile(rail, db, req.FileKey)
+	if err != nil || !ok || f.UploaderNo != user.UserNo {
+		return 1, nil // fallback to first page
+	}
+
+	// 2. Build the same query as listFilesSelective but:
+	//    - remove fileKey filter
+	//    - add ordering-boundary condition to count rows before the target
+	q := dbquery.NewQuery(rail, db).
+		From("file_info fi").
+		Eq("fi.uploader_no", user.UserNo).
+		Eq("fi.is_logic_deleted", DelN).
+		Eq("fi.is_del", 0).
+		Eq("fi.hidden", 0)
+
+	if req.ParentFile != "" {
+		q = q.Eq("fi.parent_file", req.ParentFile)
+	}
+	if req.FileType != "" {
+		q = q.Eq("fi.file_type", req.FileType)
+	}
+
+	// 3. Ordering-boundary condition: count rows that come BEFORE target file
+	if req.OrderByName {
+		// sort: fi.name asc → rows before have name < targetName
+		q = q.Where("fi.name < ?", f.Name)
+	} else {
+		// default: fi.file_type asc, fi.id desc
+		q = q.Where("(fi.file_type < ? OR (fi.file_type = ? AND fi.id > ?))", f.FileType, f.FileType, f.Id)
+	}
+
+	count, err := q.Count()
+	if err != nil {
+		return 1, nil // fallback to first page
+	}
+
+	// 4. Calculate page: ceil((count+1) / limit)
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	page := (int(count) + req.Limit) / req.Limit // int ceiling: (count + 1 + limit - 1) / limit
+	if page < 1 {
+		page = 1
+	}
+	return page, nil
 }
 
 type PreflightCheckReq struct {

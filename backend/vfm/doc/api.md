@@ -4,6 +4,7 @@
 
 - [GET /open/api/file/upload/duplication/preflight](#get-openapifileuploadduplicationpreflight)
 - [GET /open/api/file/parent](#get-openapifileparent)
+- [POST /open/api/file/position](#post-openapifileposition)
 - [POST /open/api/file/move-to-dir](#post-openapifilemove-to-dir)
 - [POST /open/api/file/batch-move-to-dir](#post-openapifilebatch-move-to-dir)
 - [POST /open/api/file/make-dir](#post-openapifilemake-dir)
@@ -212,6 +213,108 @@
             return;
           }
           let dat: ParentFileInfo = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/file/position
+
+- Description: Get page number of a file in its parent directory under given sort/filter
+- Bound to Resource: `"manage-files"`
+- JSON Request:
+    - "fileKey": (string) 
+    - "parentFile": (string) 
+    - "limit": (int) 
+    - "orderByName": (bool) 
+    - "fileType": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (FilePositionRes) response data
+      - "page": (int) 
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/open/api/file/position' \
+    -H 'Content-Type: application/json' \
+    -d '{"fileKey":"","fileType":"","limit":0,"orderByName":false,"parentFile":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type FilePositionReq struct {
+  	FileKey string `json:"fileKey"`
+  	ParentFile string `json:"parentFile"`
+  	Limit int `json:"limit"`
+  	OrderByName bool `json:"orderByName"`
+  	FileType string `json:"fileType"`
+  }
+
+  type FilePositionRes struct {
+  	Page int `json:"page"`
+  }
+
+  // Get page number of a file in its parent directory under given sort/filter
+  func ApiGetFilePosition(rail miso.Rail, req FilePositionReq) (FilePositionRes, error) {
+  	var res miso.GnResp[FilePositionRes]
+  	err := miso.NewDynClient(rail, "/open/api/file/position", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		var dat FilePositionRes
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface FilePositionReq {
+    fileKey?: string;
+    parentFile?: string;
+    limit?: number;
+    orderByName?: boolean;
+    fileType?: string;
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: FilePositionRes;
+  }
+
+  export interface FilePositionRes {
+    page?: number;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  getFilePosition() {
+    let req: FilePositionReq | null = null;
+    this.http.post<any>(`/vfm/open/api/file/position`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: FilePositionRes = resp.data;
         },
         error: (err) => {
           console.log(err)

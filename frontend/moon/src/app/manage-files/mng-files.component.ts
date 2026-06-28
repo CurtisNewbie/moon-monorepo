@@ -118,6 +118,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
   orderByName = false;
+  private targetPage: number | null = null;
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -269,12 +270,14 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         if (page > -1) {
           this.pagingController.goToPage(page);
         } else {
-          if (!this.pagingController.atFirstPage()) {
+          if (this.targetPage && this.targetPage > 0) {
+            const tp = this.targetPage;
+            this.targetPage = null;
+            this.pagingController.goToPage(tp); // triggers pageChanged → fetchFileInfoList
+          } else if (!this.pagingController.atFirstPage()) {
             this.pagingController.firstPage(); // this also triggers fetchFileInfoList
-            // console.log("ngOnInit.firstPage", time())
           } else {
             this.fetchFileInfoList();
-            // console.log("ngOnInit.fetchFileInfoList", time())
           }
         }
       }
@@ -344,6 +347,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.expandUploadPanel = false;
     this.curr = null;
     this.resetSearchParam(false, false);
+    this.nav.navigateTo(NavType.MANAGE_FILES, [
+      { parentDirKey: fileKey, orderByName: this.orderByName },
+    ]);
+  }
+
+  goToDirAtPage(fileKey: string, page: number) {
+    this.expandUploadPanel = false;
+    this.curr = null;
+    this.searchParam = {};
+    this.targetPage = page;
     this.nav.navigateTo(NavType.MANAGE_FILES, [
       { parentDirKey: fileKey, orderByName: this.orderByName },
     ]);
@@ -518,14 +531,36 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
               return;
             }
             if (resp.data) {
-              this.searchParam.fileKey = null;
-              this.goToDir(resp.data.fileKey);
-            } else {
-              this.resetSearchParam();
-            }
-          },
-        });
+              const parentFileKey = resp.data.fileKey;
+              const fileKey = this.searchParam.fileKey!;
 
+              // Ask backend which page the file is on under current sort/filter
+              const body: any = {
+                fileKey: fileKey,
+                parentFile: parentFileKey,
+                limit: this.pagingController.paging.limit,
+                orderByName: this.orderByName,
+              };
+              if (this.searchParam.fileType) body.fileType = this.searchParam.fileType;
+
+              this.http.post<any>(`vfm/open/api/file/position`, body)
+                .subscribe({
+                  next: (posResp) => {
+                    this.searchParam.fileKey = null;
+                    if (posResp.error || !posResp.data) {
+                      this.goToDir(parentFileKey); // fallback to page 1
+                      return;
+                    }
+                    this.goToDirAtPage(parentFileKey, posResp.data.page);
+                  },
+                  error: () => {
+                    this.searchParam.fileKey = null;
+                    this.goToDir(parentFileKey); // fallback to page 1
+                  }
+                });
+              return;
+            }
+          }});
       return;
     }
 
