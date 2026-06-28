@@ -264,6 +264,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         // load recorded last page as baseline for sequential-turn guard
         this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(page => {
           this.lastRecordedPage = page;
+          // if no previous record (< 1), no need for streak guard
+          if (page <= 1) {
+            this.readingStreakConfirmed = true;
+          }
         });
       } else {
         this.inDirFileName = "";
