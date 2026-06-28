@@ -202,7 +202,7 @@ func ApiBatchDeleteFile(rail miso.Rail, db *gorm.DB, req BatchDeleteFileReq, use
 	for i := range req.FileKeys {
 		fk := req.FileKeys[i]
 		vfmPool.Go(func() {
-			rrail := rail.NextSpan()
+			rrail := rail.NewCtx().NextSpanId()
 			if err := DeleteFile(rrail, db, DeleteFileReq{fk}, user, nil); err != nil {
 				rrail.Errorf("failed to delete file, fileKey: %v, %v", fk, err)
 			}

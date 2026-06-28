@@ -194,7 +194,7 @@ type FstoreTmpToken struct {
 
 func GenFstoreTknBatch(rail miso.Rail, futures *async.AwaitFutures[FstoreTmpToken], fileId string, name string) {
 	futures.SubmitAsync(func() (FstoreTmpToken, error) {
-		tkn, err := GetFstoreTmpToken(rail.NextSpan(), fileId, name)
+		tkn, err := GetFstoreTmpToken(rail.NewCtx().NextSpanId(), fileId, name)
 		if err != nil {
 			return FstoreTmpToken{FileId: fileId}, err
 		}
@@ -208,7 +208,7 @@ func GenFstoreTknBatch(rail miso.Rail, futures *async.AwaitFutures[FstoreTmpToke
 func GenFstoreTknAsync(rail miso.Rail, fileId string, name string) async.Future[FstoreTmpToken] {
 	return async.Submit[FstoreTmpToken](vfmPool,
 		func() (FstoreTmpToken, error) {
-			tkn, err := GetFstoreTmpToken(rail.NextSpan(), fileId, name)
+			tkn, err := GetFstoreTmpToken(rail.NewCtx().NextSpanId(), fileId, name)
 			if err != nil {
 				return FstoreTmpToken{}, err
 			}

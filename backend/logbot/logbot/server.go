@@ -58,7 +58,7 @@ func AfterServerBootstrapped(rail miso.Rail) error {
 			if e := WatchLogFile(nextRail, w, logBotConfig.NodeName); e != nil {
 				nextRail.Errorf("WatchLogFile, app: %v, file: %v, %v", w.App, w.File, e)
 			}
-		}(wc, rail.NextSpan())
+		}(wc, rail.NewCtx().NextSpanId())
 	}
 	return nil
 }

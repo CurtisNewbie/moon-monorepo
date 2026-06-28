@@ -129,7 +129,7 @@ func ListGalleries(rail miso.Rail, cmd ListGalleriesCmd, user flow.User, db *gor
 				if err != nil {
 					rail.Errorf("Failed to find thumbnail file_key for gallery: %v, %v", g.GalleryNo, err)
 				} else if ok {
-					tkn, err := GetFstoreTmpToken(rail.NextSpan(), thumbnailFileId, "thumbnail.jpg")
+					tkn, err := GetFstoreTmpToken(rail.NewCtx().NextSpanId(), thumbnailFileId, "thumbnail.jpg")
 					if err != nil {
 						rail.Errorf("Failed to generate tmp token for gallery thumbnail, galleryNo: %v, thumbnailFileId: %v, %v",
 							g.GalleryNo, thumbnailFileId, err)

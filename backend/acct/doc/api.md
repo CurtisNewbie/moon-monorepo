@@ -26,12 +26,12 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (miso.PageRes[flow.ListCashFlowRes]) response data
+    - "data": (miso.PageRes[mflow.ListCashFlowRes]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]flow.ListCashFlowRes) payload values in current page
+      - "payload": ([]mflow.ListCashFlowRes) payload values in current page
         - "direction": (string) Flow Direction: IN / OUT
         - "transTime": (int64) Transaction Time
         - "transId": (string) Transaction ID
@@ -316,12 +316,12 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": (miso.PageRes[flow.ApiListStatisticsRes]) response data
+    - "data": (miso.PageRes[mflow.ApiListStatisticsRes]) response data
       - "paging": (Paging) pagination parameters
         - "limit": (int) page limit
         - "page": (int) page number, 1-based
         - "total": (int) total count
-      - "payload": ([]flow.ApiListStatisticsRes) payload values in current page
+      - "payload": ([]mflow.ApiListStatisticsRes) payload values in current page
         - "aggType": (string) Aggregation Type.
         - "aggRange": (string) Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
         - "aggValue": (string) Aggregation Value.
@@ -445,7 +445,7 @@
     - "errorCode": (string) error code
     - "msg": (string) message
     - "error": (bool) whether the request was successful
-    - "data": ([]flow.ApiPlotStatisticsRes) response data
+    - "data": ([]mflow.ApiPlotStatisticsRes) response data
       - "aggRange": (string) Aggregation Range. The corresponding year (YYYY), month (YYYYMM), sunday of the week (YYYYMMDD).
       - "aggValue": (string) Aggregation Value.
 - cURL:

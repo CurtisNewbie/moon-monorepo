@@ -15,7 +15,7 @@ require (
 require (
 	github.com/curtisnewbie/event-pump v0.1.2-0.20251119144226-d61861c13d3b
 	github.com/curtisnewbie/mini-fstore v0.0.0-00010101000000-000000000000
-	github.com/curtisnewbie/miso v0.4.13-beta.1
+	github.com/curtisnewbie/miso v0.4.15-beta.2
 	github.com/curtisnewbie/user-vault v0.0.0-00010101000000-000000000000
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
@@ -99,11 +99,9 @@ require (
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	golang.org/x/crypto v0.44.0 // indirect
 	golang.org/x/exp v0.0.0-20251002181428-27f1f14c8bb9 // indirect
-	golang.org/x/mod v0.30.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
-	golang.org/x/tools v0.39.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

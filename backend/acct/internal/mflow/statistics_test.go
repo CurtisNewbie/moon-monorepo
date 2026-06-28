@@ -1,13 +1,13 @@
-package flow
+package mflow
 
 import (
 	"testing"
 	"time"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/slutil"
@@ -142,7 +142,7 @@ func TestPlotCashflowStatistics(t *testing.T) {
 			EndTime:   end,
 			AggType:   ta,
 			Currency:  "CNY",
-		}, common.User{UserNo: "UE1049787455160320075953"})
+		}, flow.User{UserNo: "UE1049787455160320075953"})
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -134,7 +134,7 @@ func ProcessUploadedBookmarkFile(rail miso.Rail, path string, user flow.User) er
 	}
 
 	go func() {
-		rail := rail.NextSpan()
+		rail := rail.NewCtx().NextSpanId()
 		err := SaveBookmarks(rail, mysql.GetMySQL(), bookmarkFile, user)
 		if err != nil {
 			rail.Errorf("failed to save bookmark, user: %s, %v", user.Username, err)

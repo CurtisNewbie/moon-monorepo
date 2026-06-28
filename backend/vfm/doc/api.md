@@ -5618,7 +5618,7 @@
   - RabbitMQ Exchange: `AddFileToVFolderEventBus`
   - RabbitMQ RoutingKey: `#`
   - Event Payload:
-    - "Username": (string) username
+    - "Username": (string) 
     - "UserNo": (string) 
     - "FolderNo": (string) 
     - "FileKeys": ([]string) 

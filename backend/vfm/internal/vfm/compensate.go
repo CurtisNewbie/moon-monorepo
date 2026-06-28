@@ -189,7 +189,7 @@ func EnterMaintenance(rail miso.Rail) (bool, error) {
 	}
 
 	serverMaintainanceTicker = miso.NewTickRuner(time.Second*5, func() {
-		rail := rail.NextSpan()
+		rail := rail.NewCtx().NextSpanId()
 		c := redis.GetRedis().SetXX(rail.Context(), serverMaintainanceKey, 1, time.Second*30)
 		if c.Err() != nil {
 			if !errors.Is(c.Err(), redis.Nil) {

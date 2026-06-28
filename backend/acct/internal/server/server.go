@@ -3,7 +3,7 @@ package server
 import (
 	"os"
 
-	"github.com/curtisnewbie/acct/internal/flow"
+	"github.com/curtisnewbie/acct/internal/mflow"
 	"github.com/curtisnewbie/acct/internal/web"
 	"github.com/curtisnewbie/miso/miso"
 
@@ -26,7 +26,7 @@ func BootstrapServer() {
 func PreServerBootstrap(rail miso.Rail) error {
 	// declare http endpoints, jobs/tasks, and other components here
 	web.PrepareWebServer(rail)
-	flow.LoadCategoryConfs(rail)
+	mflow.LoadCategoryConfs(rail)
 	return nil
 }
 

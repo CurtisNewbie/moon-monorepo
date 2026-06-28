@@ -1583,7 +1583,7 @@ func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user flow.User,
 	doTruncate := func() {
 		rail := rail
 		if async {
-			rail = rail.NextSpan()
+			rail = rail.NewCtx().NextSpanId()
 		}
 		listFilesInDir := func(rail miso.Rail, minId int) ([]ListedFilesInDir, error) {
 			var l []ListedFilesInDir

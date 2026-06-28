@@ -1,13 +1,13 @@
-package flow
+package mflow
 
 import (
 	"net/http"
 	"os"
 
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/money"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/async"
 	"github.com/curtisnewbie/miso/util/atom"
@@ -67,7 +67,7 @@ type ListCashFlowRes struct {
 	CreatedAt     atom.Time `desc:"Create Time" json:"createdAt"`
 }
 
-func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
+func ListCashFlows(rail miso.Rail, db *gorm.DB, user flow.User, req ListCashFlowReq) (miso.PageRes[ListCashFlowRes], error) {
 	return dbquery.NewPagedQuery[ListCashFlowRes](db).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.Table(`cashflow`).
@@ -108,7 +108,7 @@ func ListCashFlows(rail miso.Rail, db *gorm.DB, user common.User, req ListCashFl
 		Scan(rail, req.Paging)
 }
 
-func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user common.User) error {
+func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user flow.User) error {
 	rail.Infof("User %v importing wechat cashflows", user.Username)
 
 	path, err := osutil.SaveTmpFile("/tmp", r.Body)
@@ -118,7 +118,7 @@ func ImportWechatCashflows(r *http.Request, rail miso.Rail, db *gorm.DB, user co
 	rail.Infof("Wechat cashflows saved to temp file: %v", path)
 
 	importPool.Go(func() {
-		rail := rail.NextSpan()
+		rail := rail.NewCtx().NextSpanId()
 		defer func() {
 			os.Remove(path)
 			rail.Infof("Temp file removed, %v", path)
@@ -166,7 +166,7 @@ type NewCashflow struct {
 type SaveCashflowParams struct {
 	Cashflows []NewCashflow
 	Category  string
-	User      common.User
+	User      flow.User
 }
 
 type SavingCashflow struct {
@@ -262,7 +262,7 @@ func userCashflowLock(rail miso.Rail, userNo string) *redis.RLock {
 	return redis.NewRLockf(rail, "acct:cashflow:user:%v", userNo)
 }
 
-func ListCurrencies(rail miso.Rail, db *gorm.DB, user common.User) ([]string, error) {
+func ListCurrencies(rail miso.Rail, db *gorm.DB, user flow.User) ([]string, error) {
 	var ccy []string
 	_, err := dbquery.NewQuery(rail, db).
 		Raw(`SELECT currency FROM cashflow_currency WHERE user_no = ?`, user.UserNo).

@@ -1,4 +1,4 @@
-package flow
+package mflow
 
 import (
 	"encoding/csv"

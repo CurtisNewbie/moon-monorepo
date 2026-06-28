@@ -1,4 +1,4 @@
-package flow
+package mflow
 
 import (
 	"fmt"
@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/dbquery"
 	"github.com/curtisnewbie/miso/middleware/money"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/rabbit"
 	"github.com/curtisnewbie/miso/middleware/redis"
-	"github.com/curtisnewbie/miso/middleware/user-vault/common"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
 	"github.com/curtisnewbie/miso/util/hash"
@@ -113,7 +113,7 @@ func CalcCashflowStatsAsync(rail miso.Rail, req ApiCalcCashflowStatsReq, userNo 
 	if err != nil {
 		return err
 	}
-	rail = rail.NextSpan()
+	rail = rail.NewCtx().NextSpanId()
 	return CalcAggStatPipeline.Send(rail, CalcCashflowStatsEvent{
 		AggType:  req.AggType,
 		AggRange: req.AggRange,
@@ -242,7 +242,7 @@ type ApiListStatisticsRes struct {
 	Currency string `desc:"Currency" json:"currency"`
 }
 
-func ListCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiListStatisticsReq, user common.User) (miso.PageRes[ApiListStatisticsRes], error) {
+func ListCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiListStatisticsReq, user flow.User) (miso.PageRes[ApiListStatisticsRes], error) {
 
 	if req.AggRange != "" {
 		_, err := ParseAggRangeTime(req.AggType, req.AggRange)
@@ -283,7 +283,7 @@ type ApiPlotStatisticsRes struct {
 	AggValue string `desc:"Aggregation Value." json:"aggValue"`
 }
 
-func PlotCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiPlotStatisticsReq, user common.User) ([]ApiPlotStatisticsRes, error) {
+func PlotCashflowStatistics(rail miso.Rail, db *gorm.DB, req ApiPlotStatisticsReq, user flow.User) ([]ApiPlotStatisticsRes, error) {
 	if req.StartTime.After(req.EndTime) {
 		req.StartTime, req.EndTime = req.EndTime, req.StartTime
 	}
