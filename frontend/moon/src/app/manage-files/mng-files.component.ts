@@ -261,10 +261,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       this.inDirFileKey = params.get("parentDirKey");
       if (this.inDirFileKey) {
         this.fetchBottomUpDirTree(this.inDirFileKey);
-        // load recorded last page as baseline for sequential-turn guard
+        // load recorded last page as baseline; if no previous record, skip streak guard
         this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(page => {
           this.lastRecordedPage = page;
-          // if no previous record (< 1), no need for streak guard
           if (page <= 1) {
             this.readingStreakConfirmed = true;
           }
@@ -1357,8 +1356,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       let shouldRecord = false;
 
       if (this.readingStreakConfirmed) {
-        // Already confirmed reading session: single forward step is enough
-        shouldRecord = (page === this.lastRecordedPage + 1);
+        // For fresh dirs record any page; otherwise only forward sequential steps
+        shouldRecord = (this.lastRecordedPage <= 1) ? true : (page === this.lastRecordedPage + 1);
       } else {
         // Need 3+ consecutive pages (2+ forward steps) to confirm reading intent
         let consecutive = 1;
