@@ -285,7 +285,7 @@ export const enUSDict = {
     virtualFolders: "Virtual Folders",
     versionedFiles: "Versioned Files",
     browseHistory: "Browse History",
-    dirBrowseHistory: "Dir Browse History",
+    dirBrowseHistory: "Directory Browse History",
     doc: "Documents",
     bookmarks: "Bookmarks",
     bookmarkBlacklist: "Bookmark Blacklists",
