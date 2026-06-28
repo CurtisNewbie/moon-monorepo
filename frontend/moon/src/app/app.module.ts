@@ -94,6 +94,7 @@ import {
 import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.component";
 import { MatTreeModule } from "@angular/material/tree";
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
+import { DirBrowseHistoryComponent } from "./dir-browse-history/dir-browse-history.component";
 import { ScrollingModule } from "@angular/cdk/scrolling";
 import { DirTreeNavComponent } from "./dir-tree-nav/dir-tree-nav.component";
 import { HIGHLIGHT_OPTIONS, HighlightModule } from "ngx-highlightjs";
@@ -169,6 +170,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     EditSitePasswordDialogComponent,
     FstoreStorageComponent,
     BrowseHistoryComponent,
+    DirBrowseHistoryComponent,
     DirTreeNavComponent,
     FileTrayComponent,
     EventPumpDashboardComponent,

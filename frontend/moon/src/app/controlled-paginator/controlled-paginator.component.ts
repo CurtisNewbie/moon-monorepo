@@ -33,6 +33,8 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   @Input("showGotoPageOnMobile")
   showGotoPageOnMobile = false;
 
+  private _syncSilent: boolean = false;
+
   goton = 1;
   goto: string = "1";
   maxPage: number = 1;
@@ -49,6 +51,7 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.paginator.page.subscribe((evt) => {
+      if (this._syncSilent) return;
       this.paging.page = evt.pageIndex + 1;
       this.paging.limit = evt.pageSize;
       this.goto = String(evt.pageIndex + 1);
@@ -93,6 +96,19 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
   goToPage(n) {
     this.paginator.pageIndex = n - 1;
     this.emitPageEvent();
+  }
+
+  /** Sync paginator display to a page without triggering pageChanged event. */
+  syncPage(n: number) {
+    if (n < 1) n = 1;
+    this.paging.page = n;
+    this.goto = String(n);
+    this.goton = n;
+    if (this.paginator.length > 0) {
+      this._syncSilent = true;
+      this.paginator.pageIndex = n - 1;
+      this._syncSilent = false;
+    }
   }
 
   emitPageEvent() {

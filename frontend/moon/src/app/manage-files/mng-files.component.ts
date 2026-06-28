@@ -1,3 +1,4 @@
+import { Location } from "@angular/common";
 import { HttpClient, HttpEventType } from "@angular/common/http";
 import {
   Component,
@@ -119,6 +120,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inSensitiveMode = false;
   orderByName = false;
   private targetPage: number | null = null;
+  private lastRecordedPage: number = -1;
+  private prevPage: number = -1;
+  private recentPages: number[] = [];
+  private readingStreakConfirmed: boolean = false;
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -206,6 +211,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     private nav: NavigationService,
     private http: HttpClient,
     private route: ActivatedRoute,
+    private location: Location,
     private snackBar: MatSnackBar,
     private browseHistoryRecorder: BrowseHistoryRecorder,
     public fileBookmark: FileBookmark,
@@ -241,10 +247,24 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         this.orderByName = obn == "true";
       }
 
+      const targetPageParam = params.get("targetPage");
+      if (targetPageParam) {
+        this.targetPage = parseInt(targetPageParam, 10);
+      }
+
+      // reset reading streak when entering a new dir
+      this.readingStreakConfirmed = false;
+      this.recentPages = [];
+      this.prevPage = -1;
+
       // directory
       this.inDirFileKey = params.get("parentDirKey");
       if (this.inDirFileKey) {
         this.fetchBottomUpDirTree(this.inDirFileKey);
+        // load recorded last page as baseline for sequential-turn guard
+        this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(page => {
+          this.lastRecordedPage = page;
+        });
       } else {
         this.inDirFileName = "";
       }
@@ -255,30 +275,17 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       }
 
       if (this.pagingController) {
-        let page = -1;
-
-        // TODO: this feature is confusing for users
-        //
-        // if (this.inDirFileKey) {
-        //   let p = sessionStorage.getItem(`mng-files.dir.${this.inDirFileKey}`);
-        //   if (p) {
-        //     page = parseInt(p, 10);
-        //     console.log(`dir ${this.inDirFileKey} prev page: ${page}`);
-        //   }
-        // }
-
-        if (page > -1) {
-          this.pagingController.goToPage(page);
+        if (this.targetPage && this.targetPage > 0) {
+          const tp = this.targetPage;
+          this.targetPage = null;
+          this.pagingController.paging.page = tp;
+          this.fetchFileInfoList(() => {
+            this.pagingController.syncPage(tp);
+          });
+        } else if (!this.pagingController.atFirstPage()) {
+          this.pagingController.firstPage(); // this also triggers fetchFileInfoList
         } else {
-          if (this.targetPage && this.targetPage > 0) {
-            const tp = this.targetPage;
-            this.targetPage = null;
-            this.pagingController.goToPage(tp); // triggers pageChanged → fetchFileInfoList
-          } else if (!this.pagingController.atFirstPage()) {
-            this.pagingController.firstPage(); // this also triggers fetchFileInfoList
-          } else {
-            this.fetchFileInfoList();
-          }
+          this.fetchFileInfoList();
         }
       }
     });
@@ -1328,12 +1335,58 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   pageChanged(evt: Paging) {
     if (this.inDirFileKey) {
-      sessionStorage.setItem(
-        `mng-files.dir.${this.inDirFileKey}`,
-        evt.page.toString()
-      );
+      const page = evt.page;
+
+      // Reset reading streak if user goes backward or jumps from previous runtime page
+      if (this.prevPage >= 0 && page !== this.prevPage + 1) {
+        this.readingStreakConfirmed = false;
+        this.recentPages = [];
+      }
+      this.prevPage = page;
+
+      // Track recent page visits for streak detection
+      this.recentPages.push(page);
+      if (this.recentPages.length > 4) {
+        this.recentPages.shift();
+      }
+
+      let shouldRecord = false;
+
+      if (this.readingStreakConfirmed) {
+        // Already confirmed reading session: single forward step is enough
+        shouldRecord = (page === this.lastRecordedPage + 1);
+      } else {
+        // Need 3+ consecutive pages (2+ forward steps) to confirm reading intent
+        let consecutive = 1;
+        for (let i = this.recentPages.length - 2; i >= 0; i--) {
+          if (this.recentPages[i + 1] === this.recentPages[i] + 1) {
+            consecutive++;
+          } else {
+            break;
+          }
+        }
+        if (consecutive >= 3) {
+          shouldRecord = true;
+          this.readingStreakConfirmed = true;
+        }
+      }
+
+      if (shouldRecord) {
+        this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, page);
+        this.lastRecordedPage = page;
+      }
     }
     this.fetchFileInfoList();
+
+    // keep targetPage in URL synced with current page
+    if (this.inDirFileKey) {
+      const path = this.location.path();
+      const newParam = `;targetPage=${evt.page}`;
+      const cleanPath = path.includes(';targetPage=')
+        ? path.replace(/;targetPage=\d+/, newParam)
+        : path + newParam;
+      this.location.replaceState(cleanPath);
+    }
   }
 
   trl(k) {

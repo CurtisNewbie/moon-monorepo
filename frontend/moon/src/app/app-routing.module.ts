@@ -30,6 +30,7 @@ import { WebpageViewerComponent } from "./webpage-viewer/webpage-viewer.componen
 import { SitePasswordComponent } from "./site-password/site-password.component";
 import { FstoreStorageComponent } from "./fstore-storage/fstore-storage.component";
 import { BrowseHistoryComponent } from "./browse-history/browse-history.component";
+import { DirBrowseHistoryComponent } from "./dir-browse-history/dir-browse-history.component";
 import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-dashboard.component";
 import { DroneTaskComponent } from "./drone-task/drone-task.component";
 import { GalleryWatchComponent } from "./gallery-watch/gallery-watch.component";
@@ -157,6 +158,10 @@ const routes: Routes = [
   {
     path: "browse-history",
     component: BrowseHistoryComponent,
+  },
+  {
+    path: "dir-browse-history",
+    component: DirBrowseHistoryComponent,
   },
   {
     path: "event-pump-dashboard",

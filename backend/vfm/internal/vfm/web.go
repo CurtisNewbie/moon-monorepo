@@ -688,3 +688,30 @@ func ApiFetchDirThumbnail(rail miso.Rail, db *gorm.DB, req FetchDirThumbnailReq,
 func ApiBatchFetchDirThumbnail(rail miso.Rail, db *gorm.DB, req BatchFetchDirThumbnailReq, user flow.User) ([]DirThumbnailWithKey, error) {
 	return BatchFetchDirThumbnail(rail, db, req, user)
 }
+
+// Record directory last viewed page.
+//
+//   - misoapi-http: POST /history/dir/last-page
+//   - misoapi-desc: Record the last viewed page number for a directory
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiRecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req RecordDirLastPageReq) error {
+	return RecordDirLastPage(rail, db, user, req)
+}
+
+// Get directory last viewed page.
+//
+//   - misoapi-http: GET /history/dir/last-page
+//   - misoapi-desc: Get the last viewed page number for a directory
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiGetDirLastPage(rail miso.Rail, user flow.User, dirKey string) (DirLastPageRes, error) {
+	return GetDirLastPage(rail, user, dirKey)
+}
+
+// List directory browse history.
+//
+//   - misoapi-http: GET /history/list-dir-browse
+//   - misoapi-desc: List directory browse history with last viewed page numbers
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiListDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBrowseRecord, error) {
+	return ListDirBrowseHistory(rail, db, user)
+}

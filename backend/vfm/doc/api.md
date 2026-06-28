@@ -57,6 +57,9 @@
 - [GET /maintenance/status](#get-maintenancestatus)
 - [POST /open/api/file/dir-thumbnail](#post-openapifiledir-thumbnail)
 - [POST /open/api/file/dir-thumbnail/batch](#post-openapifiledir-thumbnailbatch)
+- [POST /history/dir/last-page](#post-historydirlast-page)
+- [GET /history/dir/last-page](#get-historydirlast-page)
+- [GET /history/list-dir-browse](#get-historylist-dir-browse)
 - [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
@@ -5093,6 +5096,252 @@
             return;
           }
           let dat: DirThumbnailWithKey[] = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /history/dir/last-page
+
+- Description: Record the last viewed page number for a directory
+- Bound to Resource: `"manage-files"`
+- JSON Request:
+    - "dirKey": (string) Required.
+    - "page": (int) range(1|999999)
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/history/dir/last-page' \
+    -H 'Content-Type: application/json' \
+    -d '{"dirKey":"","page":0}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type RecordDirLastPageReq struct {
+  	DirKey string `json:"dirKey"`  // Required.
+  	Page int `json:"page"`         // range(1|999999)
+  }
+
+  // Record the last viewed page number for a directory
+  func ApiRecordDirLastPage(rail miso.Rail, req RecordDirLastPageReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/history/dir/last-page", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		return err
+  	}
+  	return nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface RecordDirLastPageReq {
+    dirKey?: string;               // Required.
+    page?: number;                 // range(1|999999)
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  recordDirLastPage() {
+    let req: RecordDirLastPageReq | null = null;
+    this.http.post<any>(`/vfm/history/dir/last-page`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /history/dir/last-page
+
+- Description: Get the last viewed page number for a directory
+- Bound to Resource: `"manage-files"`
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (DirLastPageRes) response data
+      - "page": (int) 
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8086/history/dir/last-page'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type DirLastPageRes struct {
+  	Page int `json:"page"`
+  }
+
+  // Get the last viewed page number for a directory
+  func ApiGetDirLastPage(rail miso.Rail) (DirLastPageRes, error) {
+  	var res miso.GnResp[DirLastPageRes]
+  	err := miso.NewDynClient(rail, "/history/dir/last-page", "vfm").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		var dat DirLastPageRes
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: DirLastPageRes;
+  }
+
+  export interface DirLastPageRes {
+    page?: number;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  getDirLastPage() {
+    this.http.get<any>(`/vfm/history/dir/last-page`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: DirLastPageRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /history/list-dir-browse
+
+- Description: List directory browse history with last viewed page numbers
+- Bound to Resource: `"manage-files"`
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": ([]vfm.DirBrowseRecord) response data
+      - "dirKey": (string) 
+      - "name": (string) 
+      - "thumbnailToken": (string) 
+      - "page": (int) 
+      - "time": (int64) 
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8086/history/list-dir-browse'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type DirBrowseRecord struct {
+  	DirKey string `json:"dirKey"`
+  	Name string `json:"name"`
+  	ThumbnailToken string `json:"thumbnailToken,omitempty"`
+  	Page int `json:"page"`
+  	Time atom.Time `json:"time"`
+  }
+
+  // List directory browse history with last viewed page numbers
+  func ApiListDirBrowseHistory(rail miso.Rail) ([]DirBrowseRecord, error) {
+  	var res miso.GnResp[[]DirBrowseRecord]
+  	err := miso.NewDynClient(rail, "/history/list-dir-browse", "vfm").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		var dat []DirBrowseRecord
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: DirBrowseRecord[];
+  }
+
+  export interface DirBrowseRecord {
+    dirKey?: string;
+    name?: string;
+    thumbnailToken?: string;
+    page?: number;
+    time?: number;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  listDirBrowseHistory() {
+    this.http.get<any>(`/vfm/history/list-dir-browse`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: DirBrowseRecord[] = resp.data;
         },
         error: (err) => {
           console.log(err)
