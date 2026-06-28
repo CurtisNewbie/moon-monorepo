@@ -404,8 +404,17 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		q = q.Eq("fi.file_type", req.FileType)
 	}
 
-	// 3. Ordering-boundary condition: count rows that come BEFORE target file
-	if req.OrderByName {
+	// 3. Force name-based ordering for comic directories (same as ListFiles)
+	orderByName := req.OrderByName
+	if !orderByName && req.ParentFile != "" {
+		parent, ok, err := findFile(rail, db, req.ParentFile)
+		if err == nil && ok && parent.FileType == FileTypeDir && parent.IsComic {
+			orderByName = true
+		}
+	}
+
+	// 4. Ordering-boundary condition: count rows that come BEFORE target file
+	if orderByName {
 		// sort: fi.name asc → rows before have name < targetName
 		q = q.Where("fi.name < ?", f.Name)
 	} else {
@@ -418,7 +427,7 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		return 1, nil // fallback to first page
 	}
 
-	// 4. Calculate page: ceil((count+1) / limit)
+	// 5. Calculate page: ceil((count+1) / limit)
 	if req.Limit <= 0 {
 		req.Limit = 10
 	}
