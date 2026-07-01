@@ -335,6 +335,7 @@
     </div>
 
     <app-controlled-paginator [showGotoPageOnMobile]="true"
-        (pageChanged)="pageChanged($event)"></app-controlled-paginator>
+        (pageChanged)="pageChanged($event)"
+        (ready)="onPaginatorReady()"></app-controlled-paginator>
 
 </div>

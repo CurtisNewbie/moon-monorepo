@@ -229,6 +229,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnInit() {
     this.orderByName = false;
     // select-all is handled by @HostListener
+    // parseRouteParam is deferred to onPaginatorReady() — paginator must init first
+  }
+
+  onPaginatorReady() {
     this.parseRouteParam();
   }
 
@@ -1396,7 +1400,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
     // keep targetPage in URL synced with current page
     if (this.inDirFileKey) {
-      const path = this.location.path();
+      let path = this.location.path();
+      // strip consumed one-shot params after initial resume
+      path = path.replace(/;autoPreview=true/g, '');
+      path = path.replace(/;targetFileKey=[^;]*/g, '');
       const newParam = `;targetPage=${evt.page}`;
       const cleanPath = path.includes(';targetPage=')
         ? path.replace(/;targetPage=\d+/, newParam)
