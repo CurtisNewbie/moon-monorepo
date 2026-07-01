@@ -120,10 +120,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inSensitiveMode = false;
   orderByName = false;
   private targetPage: number | null = null;
-  private lastRecordedPage: number = -1;
-  private prevPage: number = -1;
-  private recentPages: number[] = [];
-  private readingStreakConfirmed: boolean = false;
+  private targetFileKey: string | null = null;
+  /** directory reading streak — confirmed after 3+ consecutive file views */
+  private dirReadingConfirmed: boolean = false;
+  /** consecutive file preview count for streak detection */
+  private dirPreviewCount: number = 0;
+  private prevPreviewedKey: string = '';
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -252,20 +254,26 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         this.targetPage = parseInt(targetPageParam, 10);
       }
 
+      const targetFileKeyParam = params.get("targetFileKey");
+      if (targetFileKeyParam) {
+        this.targetFileKey = targetFileKeyParam;
+      }
+
+      const autoPreview = params.get("autoPreview") === "true";
+
       // reset reading streak when entering a new dir
-      this.readingStreakConfirmed = false;
-      this.recentPages = [];
-      this.prevPage = -1;
+      this.dirReadingConfirmed = false;
+      this.dirPreviewCount = 0;
+      this.prevPreviewedKey = '';
 
       // directory
       this.inDirFileKey = params.get("parentDirKey");
       if (this.inDirFileKey) {
         this.fetchBottomUpDirTree(this.inDirFileKey);
         // load recorded last page as baseline; if no previous record, skip streak guard
-        this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(page => {
-          this.lastRecordedPage = page;
-          if (page <= 1) {
-            this.readingStreakConfirmed = true;
+        this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(fileKey => {
+          if (!fileKey) {
+            this.dirReadingConfirmed = true;
           }
         });
       } else {
@@ -278,7 +286,30 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       }
 
       if (this.pagingController) {
-        if (this.targetPage && this.targetPage > 0) {
+        if (this.targetFileKey && this.inDirFileKey) {
+          const fileKey = this.targetFileKey;
+          const parentFile = this.inDirFileKey;
+          this.targetFileKey = null;
+          this.targetPage = null;
+          this.http.post<any>('/vfm/open/api/file/position', {
+            fileKey: fileKey,
+            parentFile: parentFile,
+            limit: this.pagingController.paging.limit,
+            orderByName: this.orderByName,
+          }).subscribe(resp => {
+            const page = resp.data?.page || 1;
+            this.pagingController.paging.page = page;
+            this.fetchFileInfoList(() => {
+              this.pagingController.syncPage(page);
+              if (autoPreview) {
+                const f = this.fileInfoList.find(fi => fi.uuid === fileKey);
+                if (f) {
+                  this.preview(f, this.fileInfoList.indexOf(f));
+                }
+              }
+            });
+          });
+        } else if (this.targetPage && this.targetPage > 0) {
           const tp = this.targetPage;
           this.targetPage = null;
           this.pagingController.paging.page = tp;
@@ -719,6 +750,30 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /** Display the file */
   preview(u: FileInfo, idx: number): void {
     this.browseHistoryRecorder.record(u.uuid);
+
+    // Directory browse history — record after 3+ consecutive file views
+    if (this.inDirFileKey && u.uuid) {
+      if (this.prevPreviewedKey && u.uuid === this.prevPreviewedKey) {
+        // same file: don't count toward streak. still record if already confirmed.
+        if (this.dirReadingConfirmed) {
+          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid);
+        }
+      } else {
+        this.prevPreviewedKey = u.uuid;
+
+        if (!this.dirReadingConfirmed) {
+          this.dirPreviewCount++;
+          // Confirm reading intent after 3+ distinct consecutive file views
+          if (this.dirPreviewCount >= 3) {
+            this.dirReadingConfirmed = true;
+          }
+        }
+
+        if (this.dirReadingConfirmed) {
+          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid);
+        }
+      }
+    }
 
     const isStreaming = isStreamableVideo(u.name);
     this.fileService
@@ -1337,48 +1392,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   pageChanged(evt: Paging) {
-    if (this.inDirFileKey) {
-      const page = evt.page;
-
-      // Reset reading streak if user goes backward or jumps from previous runtime page
-      if (this.prevPage >= 0 && page !== this.prevPage + 1) {
-        this.readingStreakConfirmed = false;
-        this.recentPages = [];
-      }
-      this.prevPage = page;
-
-      // Track recent page visits for streak detection
-      this.recentPages.push(page);
-      if (this.recentPages.length > 4) {
-        this.recentPages.shift();
-      }
-
-      let shouldRecord = false;
-
-      if (this.readingStreakConfirmed) {
-        // For fresh dirs record any page; otherwise only forward sequential steps
-        shouldRecord = (this.lastRecordedPage <= 1) ? true : (page === this.lastRecordedPage + 1);
-      } else {
-        // Need 3+ consecutive pages (2+ forward steps) to confirm reading intent
-        let consecutive = 1;
-        for (let i = this.recentPages.length - 2; i >= 0; i--) {
-          if (this.recentPages[i + 1] === this.recentPages[i] + 1) {
-            consecutive++;
-          } else {
-            break;
-          }
-        }
-        if (consecutive >= 3) {
-          shouldRecord = true;
-          this.readingStreakConfirmed = true;
-        }
-      }
-
-      if (shouldRecord) {
-        this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, page);
-        this.lastRecordedPage = page;
-      }
-    }
     this.fetchFileInfoList();
 
     // keep targetPage in URL synced with current page

@@ -5111,7 +5111,7 @@
 - Bound to Resource: `"manage-files"`
 - JSON Request:
     - "dirKey": (string) Required.
-    - "page": (int) range(1|999999)
+    - "fileKey": (string) Required.
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5120,14 +5120,14 @@
   ```sh
   curl -X POST 'http://localhost:8086/history/dir/last-page' \
     -H 'Content-Type: application/json' \
-    -d '{"dirKey":"","page":0}'
+    -d '{"dirKey":"","fileKey":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type RecordDirLastPageReq struct {
   	DirKey string `json:"dirKey"`  // Required.
-  	Page int `json:"page"`         // range(1|999999)
+  	FileKey string `json:"fileKey"` // Required.
   }
 
   // Record the last viewed page number for a directory
@@ -5147,7 +5147,7 @@
   ```ts
   export interface RecordDirLastPageReq {
     dirKey?: string;               // Required.
-    page?: number;                 // range(1|999999)
+    fileKey?: string;              // Required.
   }
 
   export interface Resp {
@@ -5194,7 +5194,7 @@
     - "msg": (string) message
     - "error": (bool) whether the request was successful
     - "data": (DirLastPageRes) response data
-      - "page": (int) 
+      - "fileKey": (string) 
 - cURL:
   ```sh
   curl -X GET 'http://localhost:8086/history/dir/last-page'
@@ -5203,7 +5203,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type DirLastPageRes struct {
-  	Page int `json:"page"`
+  	FileKey string `json:"fileKey"`
   }
 
   // Get the last viewed page number for a directory
@@ -5230,7 +5230,7 @@
   }
 
   export interface DirLastPageRes {
-    page?: number;
+    fileKey?: string;
   }
   ```
 
@@ -5274,7 +5274,7 @@
       - "dirKey": (string) 
       - "name": (string) 
       - "thumbnailToken": (string) 
-      - "page": (int) 
+      - "fileKey": (string) 
       - "time": (int64) 
 - cURL:
   ```sh
@@ -5287,7 +5287,7 @@
   	DirKey string `json:"dirKey"`
   	Name string `json:"name"`
   	ThumbnailToken string `json:"thumbnailToken,omitempty"`
-  	Page int `json:"page"`
+  	FileKey string `json:"fileKey"`
   	Time atom.Time `json:"time"`
   }
 
@@ -5318,7 +5318,7 @@
     dirKey?: string;
     name?: string;
     thumbnailToken?: string;
-    page?: number;
+    fileKey?: string;
     time?: number;
   }
   ```

@@ -198,50 +198,50 @@ func RecordBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User, req Record
 }
 
 type RecordDirLastPageReq struct {
-	DirKey string `valid:"notEmpty" json:"dirKey"`
-	Page   int    `valid:"range(1|999999)" json:"page"`
+	DirKey  string `valid:"notEmpty" json:"dirKey"`
+	FileKey string `valid:"notEmpty" json:"fileKey"`
 }
 
 type DirLastPageRes struct {
-	Page int `json:"page"`
+	FileKey string `json:"fileKey"`
 }
 
 type dirLastPageEntry struct {
-	Page int   `json:"page"`
-	Time int64 `json:"time"`
+	FileKey string `json:"fileKey"`
+	Time    int64  `json:"time"`
 }
 
-// saveDirLastPage saves the last viewed page for a directory per user with timestamp
-func saveDirLastPage(rail miso.Rail, user flow.User, dirKey string, page int) error {
+// saveDirLastPage saves the last viewed fileKey for a directory per user with timestamp
+func saveDirLastPage(rail miso.Rail, user flow.User, dirKey string, fileKey string) error {
 	c := red.GetRedis()
 	key := "vfm:dir:lastpage:" + user.UserNo
-	entry, err := json.SWriteJson(dirLastPageEntry{Page: page, Time: atom.Now().UnixMilli()})
+	entry, err := json.SWriteJson(dirLastPageEntry{FileKey: fileKey, Time: atom.Now().UnixMilli()})
 	if err != nil {
 		return err
 	}
 	return c.HSet(rail.Context(), key, dirKey, entry).Err()
 }
 
-// getDirLastPage returns the last viewed page for a directory (defaults to 1)
-func getDirLastPage(rail miso.Rail, user flow.User, dirKey string) (int, error) {
+// getDirLastPage returns the last viewed fileKey for a directory (defaults to empty string)
+func getDirLastPage(rail miso.Rail, user flow.User, dirKey string) (string, error) {
 	c := red.GetRedis()
 	key := "vfm:dir:lastpage:" + user.UserNo
 	cmd := c.HGet(rail.Context(), key, dirKey)
 	if cmd.Err() != nil {
 		if errors.Is(cmd.Err(), redis.Nil) {
-			return 1, nil
+			return "", nil
 		}
-		return 1, cmd.Err()
+		return "", cmd.Err()
 	}
 	s, err := cmd.Result()
 	if err != nil {
-		return 1, err
+		return "", err
 	}
 	var entry dirLastPageEntry
 	if err := json.SParseJson(s, &entry); err != nil {
-		return 1, err
+		return "", err
 	}
-	return entry.Page, nil
+	return entry.FileKey, nil
 }
 
 func RecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req RecordDirLastPageReq) error {
@@ -258,22 +258,22 @@ func RecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req RecordDi
 	if !f.IsComic || f.FileType != FileTypeDir {
 		return nil // silently ignore, not a comic directory
 	}
-	return saveDirLastPage(rail, user, req.DirKey, req.Page)
+	return saveDirLastPage(rail, user, req.DirKey, req.FileKey)
 }
 
 func GetDirLastPage(rail miso.Rail, user flow.User, dirKey string) (DirLastPageRes, error) {
-	page, err := getDirLastPage(rail, user, dirKey)
+	fileKey, err := getDirLastPage(rail, user, dirKey)
 	if err != nil {
-		return DirLastPageRes{Page: 1}, err
+		return DirLastPageRes{}, err
 	}
-	return DirLastPageRes{Page: page}, nil
+	return DirLastPageRes{FileKey: fileKey}, nil
 }
 
 type DirBrowseRecord struct {
 	DirKey         string    `json:"dirKey"`
 	Name           string    `json:"name"`
 	ThumbnailToken string    `json:"thumbnailToken,omitempty"`
-	Page           int       `json:"page"`
+	FileKey        string    `json:"fileKey"`
 	Time           atom.Time `json:"time"`
 }
 
@@ -320,19 +320,24 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 		entries = entries[:maxEntries]
 	}
 
-	// collect dirKeys for enrichment
+	// collect dirKeys and fileKeys for enrichment
 	dirKeys := make([]string, len(entries))
+	var fileKeys []string
 	for i, e := range entries {
 		dirKeys[i] = e.DirKey
+		if e.FileKey != "" {
+			fileKeys = append(fileKeys, e.FileKey)
+		}
 	}
 
-	// enrich with file metadata from MySQL
-	ffi, err := queryFileFstoreInfo(rail, db, dirKeys)
+	// enrich with file metadata from MySQL (both dirs and files)
+	allKeys := append(dirKeys, fileKeys...)
+	ffi, err := queryFileFstoreInfo(rail, db, allKeys)
 	if err != nil {
 		return nil, err
 	}
 
-	// use batch dir-thumbnail API to get proper thumbnails (first image inside each dir)
+	// use batch dir-thumbnail API as fallback (first image inside each dir)
 	var thumbnailMap map[string]string
 	if len(dirKeys) > 0 {
 		thumbs, err := BatchFetchDirThumbnail(rail, db, BatchFetchDirThumbnailReq{DirFileKeys: dirKeys}, user)
@@ -352,14 +357,28 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 	for _, e := range entries {
 		r := DirBrowseRecord{
 			DirKey: e.DirKey,
-			Page:   e.Page,
+			FileKey: e.FileKey,
 			Time:   atom.WrapTime(time.UnixMilli(e.Time)),
 		}
 		if fi, ok := ffi[e.DirKey]; ok {
 			r.Name = fi.Name
 		}
-		if tkn, ok := thumbnailMap[e.DirKey]; ok {
-			r.ThumbnailToken = tkn
+		// Prefer thumbnail of the last-viewed file over dir thumbnail
+		if e.FileKey != "" {
+			if fi, ok := ffi[e.FileKey]; ok && fi.Thumbnail != "" && !fi.IsLogicDeleted {
+				tkn, err := GetFstoreTmpToken(rail, fi.Thumbnail, "")
+				if err != nil {
+					rail.Errorf("Failed to generate thumbnail token for fileKey: %v, %v", e.FileKey, err)
+				} else {
+					r.ThumbnailToken = tkn
+				}
+			}
+		}
+		// Fallback to dir thumbnail
+		if r.ThumbnailToken == "" {
+			if tkn, ok := thumbnailMap[e.DirKey]; ok {
+				r.ThumbnailToken = tkn
+			}
 		}
 		records = append(records, r)
 	}

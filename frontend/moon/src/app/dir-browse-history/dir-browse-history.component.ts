@@ -8,7 +8,7 @@ export interface DirBrowseRecord {
   dirKey: string;
   name: string;
   thumbnailToken?: string;
-  page: number;
+  fileKey: string;
   time: number; // unix millis
 }
 
@@ -50,11 +50,11 @@ export interface DirBrowseRecord {
                     />
                   </mat-form-field>
                   <mat-form-field style="width: 100%;" class="m-2">
-                    <mat-label>Last Page</mat-label>
+                    <mat-label>Last File</mat-label>
                     <input
                       matInput
                       type="text"
-                      [ngModel]="it.page"
+                      [ngModel]="it.fileKey"
                       readonly="true"
                     />
                   </mat-form-field>
@@ -68,7 +68,7 @@ export interface DirBrowseRecord {
                     />
                   </mat-form-field>
                   <div class="m-2" matLine>
-                    <button mat-icon-button (click)="resumeReading(it.dirKey, it.page)">
+                    <button mat-icon-button (click)="resumeReading(it.dirKey, it.fileKey)">
                       Resume <i class="bi bi-arrow-right-circle"></i>
                     </button>
                   </div>
@@ -118,9 +118,9 @@ export class DirBrowseHistoryComponent implements OnInit {
     });
   }
 
-  resumeReading(dirKey: string, page: number) {
+  resumeReading(dirKey: string, fileKey: string) {
     this.navigation.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: dirKey, targetPage: page, orderByName: true },
+      { parentDirKey: dirKey, targetFileKey: fileKey, orderByName: true, autoPreview: true },
     ]);
   }
 

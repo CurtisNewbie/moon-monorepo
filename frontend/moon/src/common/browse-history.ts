@@ -8,10 +8,6 @@ export interface RecordBrowseHistoryReq {
   fileKey?: string;
 }
 
-export interface DirLastPageRes {
-  page: number;
-}
-
 @Injectable({
   providedIn: "root",
 })
@@ -36,8 +32,8 @@ export class BrowseHistoryRecorder {
     });
   }
 
-  recordDirPage(dirKey: string, page: number) {
-    this.http.post<any>(`/vfm/history/dir/last-page`, { dirKey, page }).subscribe({
+  recordDirPage(dirKey: string, fileKey: string) {
+    this.http.post<any>(`/vfm/history/dir/last-page`, { dirKey, fileKey }).subscribe({
       next: (resp) => {
         if (resp.error) {
           this.snackBar.open(resp.msg, "ok", { duration: 6000 });
@@ -53,13 +49,13 @@ export class BrowseHistoryRecorder {
     });
   }
 
-  getDirPage(dirKey: string): Observable<number> {
+  getDirPage(dirKey: string): Observable<string> {
     return this.http.get<any>(`/vfm/history/dir/last-page?dirKey=${encodeURIComponent(dirKey)}`).pipe(
       map(resp => {
-        if (resp.error) return 1;
-        return resp.data?.page || 1;
+        if (resp.error) return '';
+        return resp.data?.fileKey || '';
       }),
-      catchError(() => of(1))
+      catchError(() => of(''))
     );
   }
 }
