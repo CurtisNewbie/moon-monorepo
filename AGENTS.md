@@ -7,9 +7,9 @@ Manual monorepo with:
 - **Frontend**: Angular application (`frontend/moon/`)
 - **Deployment**: Docker Compose configs in `deploy/`
 
-Each backend service is independent with its own `go.mod/go.sum` and `conf.yml`.
+Each backend service is independent with its own `go.mod/go.sum` and `conf.yml`. No `go.work` — each service is built standalone.
 
-## External Dependencies (Required for Backend Development)
+## Runtime Dependencies (for Backend)
 
 - MySQL >= 5.7
 - RabbitMQ
@@ -17,35 +17,52 @@ Each backend service is independent with its own `go.mod/go.sum` and `conf.yml`.
 - Redis
 - [event-pump](https://github.com/CurtisNewbie/event-pump) >= v0.0.18
 
-**Order matters**: Start middleware services before backend services.
+**Start order**: middleware services first, then backend services.
 
-### Frontend
+## Backend Development
+
+### Build & Test
+
+No Makefiles. Run per service:
 
 ```bash
-cd frontend/moon/
-npm ci
-ng serve  # or NODE_OPTIONS=--openssl-legacy-provider ng serve if openssl version incompatible
+cd backend/<service>
+go build ./...
+go test ./...
 ```
 
-Frontend dev server proxies to `http://127.0.0.1:7070` (gatekeeper) via `src/proxy.conf.json`.
+### Inter-Service Dependencies
 
-## Database Schema Migrations
+Some `go.mod` files use `replace` directives pointing to sibling directories. Build order matters:
 
-**No auto-migration**. DDL changes are maintained as versioned SQL files in each service's `schema/` folder.
+- **acct**: no deps on other services
+- **user-vault**: no deps on other services (but others depend on it)
+- **mini-fstore**: no deps on other services
+- **gatekeeper**: `replace user-vault => ../user-vault`
+- **logbot**: `replace user-vault => ../user-vault`
+- **vfm**: `replace user-vault => ../user-vault` & `replace mini-fstore => ../mini-fstore`
 
-- Execute DDL scripts manually based on your version
-- Check `changes/changes.md` for migration history
-- Example: `backend/user-vault/schema/v0.0.4.sql`
+Go version: 1.24.4 across all services.
 
-## Configuration Files
+### Configuration Files
 
 - **Development**: `conf.yml` in each backend service
-- **Production**: `conf-prod.yml` uses environment variables with `${VAR_NAME}` syntax
-- Production env vars are in `deploy/backend.env`
+- **Production**: uses `${VAR_NAME}` syntax to read from environment variables
+  - Most services: `conf-prod.yml`
+  - ⚠️ **user-vault** and **vfm** use `prod-conf.yml` (not `conf-prod.yml`)
+- Production env vars in `deploy/backend.env`
+
+### Database Schema Migrations
+
+**No auto-migration**. DDL changes are versioned SQL files in each service's `schema/` folder.
+
+- `gatekeeper` has no schema (stateless gateway only)
+- Execute DDL scripts manually per your version
+- Track migration history via `changes/changes.md`
 
 ## Backend Framework
 
-All backend services use [miso](https://github.com/CurtisNewbie/miso) framework:
+All backend services use [miso](https://github.com/CurtisNewbie/miso) framework.
 
 Use miso skill, install if absent:
 
@@ -55,18 +72,39 @@ npx sklls add https://github.com/curtisnewbie/miso
 
 See service-specific `doc/config.md` for custom properties.
 
-## Frontend i18n
+## Frontend
 
-**Preferred approach**: Use `trl` pure pipe for static translation keys in templates.
+### Setup & Run
+
+```bash
+cd frontend/moon/
+npm ci
+ng serve  # or NODE_OPTIONS=--openssl-legacy-provider ng serve if openssl version incompatible
+```
+
+Dev server proxies all requests to `http://127.0.0.1:7070` (gatekeeper) via `src/proxy.conf.json`.
+
+### Key Facts
+
+- **Angular 11** with `NgModule` (not standalone components)
+- **Angular Material** with pink-bluegrey theme
+- **TSLint** (not ESLint) — run with `ng lint`
+- **Testing**: Karma + Jasmine (`ng test`), Protractor E2E (`ng e2e`)
+- `angular.json` has `skipTests: true` — `ng generate component` creates no `.spec.ts` by default
+- `patch-package` runs on `postinstall` — patches exist in `patches/`
+
+### i18n
+
+**Preferred**: `trl` pure pipe in templates.
 
 ```html
 {{'module' | trl:'key'}}
 {{'module' | trl:'key':'paramName':paramValue}}
 ```
 
-**NEVER inject TrlPipe** - pipes are for templates only.
+**NEVER inject TrlPipe** — pipes are templates-only.
 
-For dynamic keys (constructed at runtime), inject `I18n` service:
+For dynamic keys (TypeScript code), inject `I18n` service:
 ```typescript
 constructor(private i18n: I18n) {}
 this.snackBar.open(this.i18n.trl("module", "key"), "ok");
@@ -74,37 +112,28 @@ this.snackBar.open(this.i18n.trl("module", "key"), "ok");
 
 See `frontend/moon/doc/agents/i18n.md` for full guidelines.
 
-## Deployment
-
-Production uses Docker Compose:
-- All configs externalized to environment variables
-- Use `conf-prod.yml` (not `conf.yml`) for production
-- Includes Nginx reverse proxy, Prometheus monitoring, Grafana dashboard
-
-Config files in `deploy/`: `docker-compose.yml`, `backend.env`, `nginx.conf`, `prometheus.yml`, `grafana_dashboard.json`
-
 ## Backend API Documentation
 
 **Always reference backend `doc/api.md` when working on frontend-backend integration.**
 
-Each backend service (vfm, gatekeeper, acct, etc.) maintains auto-generated API documentation in `backend/{service}/doc/api.md`.
+Each backend service maintains auto-generated API documentation at `backend/{service}/doc/api.md` including endpoints, request/response schemas, and TypeScript interfaces.
 
-This documentation includes:
-- Endpoint paths and HTTP methods
-- Request/response JSON structures
-- Required/optional parameters
-- TypeScript interface definitions
-- Usage examples
-
-**Example - Checking API before frontend implementation:**
 ```bash
-# Check VFM API for endpoint details
 cat backend/vfm/doc/api.md | grep -A 20 "dir-thumbnail"
 ```
 
-This ensures correct field names (`dirFileKey` vs `fileKey`, `fstoreToken` vs `thumbnailToken`) and request formats.
+This prevents field name mistakes (e.g., `dirFileKey` vs `fileKey`).
+
+## Deployment
+
+Production uses Docker Compose:
+- Configs externalized to environment variables
+- Use production config files (not `conf.yml`)
+- Includes Nginx reverse proxy, Prometheus monitoring, Grafana dashboard
+
+Config files: `deploy/docker-compose.yml`, `deploy/backend.env`, `deploy/nginx.conf`, `deploy/prometheus.yml`, `deploy/grafana_dashboard.json`
 
 ## Entry Points
 
 - **Frontend**: `frontend/moon/src/main.ts`
-- **Backend services**: `main.go` in each service's root directory
+- **Backend services**: `main.go` in each service root (none use `cmd/` subdirectory)
