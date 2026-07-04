@@ -1,10 +1,8 @@
 -- Initialize schema
 
-create database acct;
+CREATE DATABASE IF NOT EXISTS acct;
 
-use acct;
-
-CREATE TABLE `cashflow` (
+CREATE TABLE acct.cashflow (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
   `direction` varchar(6) NOT NULL DEFAULT '' COMMENT 'flow direction: IN / OUT',
@@ -28,7 +26,7 @@ CREATE TABLE `cashflow` (
   KEY `user_trans_time_idx` (`user_no`,`deleted`,`trans_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Cash flow';
 
-CREATE TABLE `cashflow_statistics` (
+CREATE TABLE acct.cashflow_statistics (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
   `agg_type` varchar(10) NOT NULL DEFAULT '' COMMENT 'aggregation type: MONTHLY, YEARLY, WEEKLY',
@@ -44,7 +42,7 @@ CREATE TABLE `cashflow_statistics` (
   KEY `user_agg_type_currency_range_idx` (`user_no`,`agg_type`,`currency`,`agg_range`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Cashflow Statistics';
 
-CREATE TABLE `cashflow_currency` (
+CREATE TABLE acct.cashflow_currency (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no',
   `currency` varchar(6) DEFAULT '' COMMENT 'currency',

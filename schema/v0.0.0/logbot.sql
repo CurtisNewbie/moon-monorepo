@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS logbot;
 
-CREATE TABLE `error_log` (
+CREATE TABLE logbot.error_log (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `node` varchar(25) NOT NULL COMMENT 'node name',
   `app` varchar(25) NOT NULL COMMENT 'app name',

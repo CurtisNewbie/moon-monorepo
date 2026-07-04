@@ -1,7 +1,6 @@
-create database if not exists vfm;
-use vfm;
+CREATE DATABASE IF NOT EXISTS vfm;
 
-CREATE TABLE `file_info` (
+CREATE TABLE vfm.file_info (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL COMMENT 'name of the file',
   `uuid` varchar(64) NOT NULL COMMENT 'file''s uuid',
@@ -34,7 +33,7 @@ CREATE TABLE `file_info` (
   FULLTEXT KEY `name_idx` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `vfolder` (
+CREATE TABLE vfm.vfolder (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `folder_no` varchar(64) NOT NULL COMMENT 'folder no',
   `name` varchar(255) NOT NULL COMMENT 'name of the folder',
@@ -47,7 +46,7 @@ CREATE TABLE `vfolder` (
   UNIQUE KEY `folder_no_uk` (`folder_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Virtual folder';
 
-CREATE TABLE `user_vfolder` (
+CREATE TABLE vfm.user_vfolder (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_no` varchar(64) NOT NULL COMMENT 'user no',
   `username` varchar(50) DEFAULT '' COMMENT 'username',
@@ -63,7 +62,7 @@ CREATE TABLE `user_vfolder` (
   KEY `user_folder_idx` (`user_no`,`folder_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User and Virtual folder join table';
 
-CREATE TABLE `file_vfolder` (
+CREATE TABLE vfm.file_vfolder (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `folder_no` varchar(64) NOT NULL COMMENT 'folder no',
   `uuid` varchar(64) NOT NULL COMMENT 'file''s uuid',
@@ -76,7 +75,7 @@ CREATE TABLE `file_vfolder` (
   UNIQUE KEY `folder_file_uk` (`folder_no`,`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='File and vfolder join table';
 
-CREATE TABLE `gallery` (
+CREATE TABLE vfm.gallery (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gallery_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'gallery no',
   `user_no` varchar(64) NOT NULL DEFAULT '' COMMENT 'user no',
@@ -92,7 +91,7 @@ CREATE TABLE `gallery` (
   KEY `idx_dir_file_key` (`dir_file_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Gallery';
 
-CREATE TABLE `gallery_image` (
+CREATE TABLE vfm.gallery_image (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gallery_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'gallery no',
   `image_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'image no',
@@ -110,7 +109,7 @@ CREATE TABLE `gallery_image` (
   KEY `gallery_name_idx` (`gallery_no`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Gallery Image';
 
-CREATE TABLE `gallery_user_access` (
+CREATE TABLE vfm.gallery_user_access (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `gallery_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'gallery no',
   `user_no` varchar(64) NOT NULL DEFAULT '' COMMENT 'user''s no',
@@ -123,7 +122,7 @@ CREATE TABLE `gallery_user_access` (
   UNIQUE KEY `gallery_user` (`gallery_no`,`user_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User access to gallery';
 
-CREATE TABLE `versioned_file` (
+CREATE TABLE vfm.versioned_file (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `name` varchar(255) NOT NULL COMMENT 'name of the file',
   `ver_file_id` varchar(32) NOT NULL COMMENT 'versioned file id',
@@ -145,7 +144,7 @@ CREATE TABLE `versioned_file` (
   FULLTEXT KEY `name_idx` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Versioned File';
 
-CREATE TABLE `versioned_file_log` (
+CREATE TABLE vfm.versioned_file_log (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `ver_file_id` varchar(32) NOT NULL COMMENT 'versioned file id',
   `file_key` varchar(64) NOT NULL COMMENT 'file_info key',
@@ -157,7 +156,7 @@ CREATE TABLE `versioned_file_log` (
   KEY `ver_file_id_idx` (`ver_file_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Versioned File Log';
 
-CREATE TABLE `bookmark` (
+CREATE TABLE vfm.bookmark (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_no` varchar(32) NOT NULL COMMENT 'user no',
   `icon` text COMMENT 'icon encoded blob',
@@ -169,7 +168,7 @@ CREATE TABLE `bookmark` (
   KEY `idx_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bookmark';
 
-CREATE TABLE `bookmark_blacklist` (
+CREATE TABLE vfm.bookmark_blacklist (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
   `user_no` varchar(32) NOT NULL COMMENT 'user no',
   `icon` text COMMENT 'icon encoded blob',

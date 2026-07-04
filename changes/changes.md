@@ -4,10 +4,14 @@ This change log only contains major changes to database schema.
 
 ## Release v0.0.3
 
-1. [backend/user-vault/schema/v0.0.3.sql](../backend/user-vault/schema/v0.0.3.sql)
+1. [schema/v0.0.3/user-vault.sql](../schema/v0.0.3/user-vault.sql)
 
 ## Release v0.0.4
 
-1. [backend/user-vault/schema/v0.0.4.sql](../backend/user-vault/schema/v0.0.4.sql)
-2. [backend/vfm/schema/v0.0.4.sql](../backend/vfm/schema/v0.0.4.sql)
+1. [schema/v0.0.4/user-vault.sql](../schema/v0.0.4/user-vault.sql)
+2. [schema/v0.0.4/vfm.sql](../schema/v0.0.4/vfm.sql)
+
+## Release v0.0.5
+
+1. [schema/v0.0.5/vfm.sql](../schema/v0.0.5/vfm.sql)
 

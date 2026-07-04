@@ -1,4 +1,4 @@
-create database if not exists user_vault;
+CREATE DATABASE IF NOT EXISTS user_vault;
 
 CREATE TABLE user_vault.user (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'primary key',
