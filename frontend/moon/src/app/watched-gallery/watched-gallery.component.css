@@ -73,4 +73,60 @@
   .mat-column-name {
     max-width: 0;
   }
+
+  /* Touch-friendly icon buttons on mobile — ≥44px tap targets */
+  .icon-button-large {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 24px !important;
+  }
+
+  /* Responsive heading sizing */
+  h3 {
+    font-size: 0.95rem;
+    word-break: break-word;
+  }
+
+  .task-meta {
+    font-size: 0.7rem !important;
+    word-break: break-all;
+  }
+}
+
+/* ===== Small phones: ≤480px ===== */
+@media (max-width: 480px) {
+  /* Hide createdAt column — thumbnail + name + operation still visible */
+  .mat-column-createdAt {
+    display: none !important;
+  }
+
+  /* Fix column widths: thumbnail + operation fixed, name fills rest */
+  .mat-column-thumbnail {
+    flex: 0 0 48px !important;
+  }
+
+  .mat-column-name {
+    flex: 1 1 auto !important;
+    max-width: none !important;
+    /* override max-width: 0 from ≤768px */
+  }
+
+  .mat-column-operation {
+    flex: 0 0 56px !important;
+  }
+
+  .mat-cell,
+  .mat-header-cell {
+    padding: 2px 4px !important;
+    font-size: 0.7rem;
+  }
+
+  h3 {
+    font-size: 0.85rem;
+  }
+
+  .task-meta {
+    font-size: 0.65rem !important;
+  }
 }

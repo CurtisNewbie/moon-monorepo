@@ -1,0 +1,67 @@
+/* ===== Mobile: ≤768px (tablets, large phones) ===== */
+@media (max-width: 768px) {
+  /* Stack header: heading + "Create Watch Task" button */
+  .d-flex.justify-content-between.align-items-center.mb-3 {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px;
+  }
+
+  .d-flex.justify-content-between.align-items-center.mb-3 button {
+    width: 100%;
+  }
+
+  /* Hide maxItems column (least critical) */
+  .mat-column-maxItems {
+    display: none !important;
+  }
+
+  /* Touch-friendly icon buttons — ≥44px tap targets */
+  .icon-button-large {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 24px !important;
+  }
+
+  /* Operation cell: stack Trigger + View vertically */
+  .mat-column-operation .d-flex {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+
+  .mat-column-operation .small-btn {
+    width: 100%;
+    font-size: 11px;
+    line-height: 32px;
+  }
+
+  /* Compact table cells */
+  .mat-cell,
+  .mat-header-cell {
+    padding: 6px 8px !important;
+    font-size: 0.78rem;
+  }
+
+  /* Create panel: tighter padding */
+  .mat-elevation-z8.p-3 {
+    padding: 12px !important;
+  }
+
+  h4 {
+    font-size: 1rem;
+  }
+}
+
+/* ===== Small phones: ≤480px ===== */
+@media (max-width: 480px) {
+  .mat-cell,
+  .mat-header-cell {
+    padding: 4px 6px !important;
+    font-size: 0.7rem;
+  }
+
+  .mat-elevation-z8.p-3 {
+    padding: 8px !important;
+  }
+}
