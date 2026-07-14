@@ -57,6 +57,22 @@ func prepareServer(rail miso.Rail) error {
 	})
 	proxy.AddFilter(IpFilter)
 
+	// websocket access filter — extracts JWT from query param, validates, sets user
+	wsAccessConfigs := miso.UnmarshalFromPropKeyAs[[]miso.WsAccessFilterConfig](PropWsAccessFilterRules)
+	proxy.AddWsAccessFilter(
+		func() []miso.WsAccessFilterConfig { return wsAccessConfigs },
+		func(token string, pc *miso.ProxyContext) (int, bool) {
+			user, err := uvault.ExchangeWsTicket(*pc.Rail, uvault.WsExchangeReq{Ticket: token})
+			if err != nil {
+				pc.Rail.Infof("WS access filter: ticket exchange failed, %v", err)
+				return http.StatusUnauthorized, false
+			}
+			pc.SetAttr(AttrAuthInfo, user)
+			pc.Rail.Infof("WS access filter: ticket exchanged for user %v", user.UserNo)
+			return 0, true
+		},
+	)
+
 	// healthcheck filter
 	proxy.AddHealthcheckFilter()
 

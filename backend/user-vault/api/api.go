@@ -62,3 +62,11 @@ type CheckResAccessReq struct {
 type CheckResAccessResp struct {
 	Valid bool `json:"valid"`
 }
+
+type WsTicketResp struct {
+	Ticket string `json:"ticket"`
+}
+
+type WsExchangeReq struct {
+	Ticket string `valid:"notEmpty" json:"ticket"`
+}

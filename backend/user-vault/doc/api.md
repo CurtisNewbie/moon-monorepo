@@ -58,7 +58,10 @@
 - [GET /open/api/v1/notification/count](#get-openapiv1notificationcount)
 - [POST /open/api/v1/notification/open](#post-openapiv1notificationopen)
 - [POST /open/api/v1/notification/open-all](#post-openapiv1notificationopen-all)
+- [POST /open/api/v1/notification/ws-ticket](#post-openapiv1notificationws-ticket)
 - [GET /open/api/v2/notification/count](#get-openapiv2notificationcount)
+- [GET /open/api/v2/notification/ws](#get-openapiv2notificationws)
+- [POST /internal/v1/notification/ws-exchange](#post-internalv1notificationws-exchange)
 
 ## POST /open/api/user/login
 
@@ -5414,6 +5417,83 @@
   }
   ```
 
+## POST /open/api/v1/notification/ws-ticket
+
+- Description: Generate a one-time websocket ticket for notification count push
+- Bound to Resource: `"postbox:notification:query"`
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (WsTicketResp) response data
+      - "ticket": (string) 
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/open/api/v1/notification/ws-ticket'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type WsTicketResp struct {
+  	Ticket string `json:"ticket"`
+  }
+
+  // Generate a one-time websocket ticket for notification count push
+  func SendRequest(rail miso.Rail) (WsTicketResp, error) {
+  	var res miso.GnResp[WsTicketResp]
+  	err := miso.NewDynClient(rail, "/open/api/v1/notification/ws-ticket", "user-vault").
+  		Post(nil).
+  		Json(&res)
+  	if err != nil {
+  		var dat WsTicketResp
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: WsTicketResp;
+  }
+
+  export interface WsTicketResp {
+    ticket?: string;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.post<any>(`/user-vault/open/api/v1/notification/ws-ticket`, null)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: WsTicketResp = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
 ## GET /open/api/v2/notification/count
 
 - Description: Count received platform notification using long polling
@@ -5454,6 +5534,99 @@
   sendRequest() {
     let curr: any | null = null;
     this.http.get<any>(`/user-vault/open/api/v2/notification/count?curr=${curr}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /open/api/v2/notification/ws
+
+- Description: WebSocket endpoint for notification count push
+- Bound to Resource: `"postbox:notification:query"`
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8089/open/api/v2/notification/ws'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // WebSocket endpoint for notification count push
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/open/api/v2/notification/ws", "user-vault").
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		return err
+  	}
+  	return nil
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.get<any>(`/user-vault/open/api/v2/notification/ws`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /internal/v1/notification/ws-exchange
+
+- Description: Exchange a websocket ticket for user info
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8089/internal/v1/notification/ws-exchange'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // Exchange a websocket ticket for user info
+  func SendRequest(rail miso.Rail) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/internal/v1/notification/ws-exchange", "user-vault").
+  		Post(nil).
+  		Json(&res)
+  	if err != nil {
+  		return err
+  	}
+  	return nil
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  sendRequest() {
+    this.http.post<any>(`/user-vault/internal/v1/notification/ws-exchange`, null)
       .subscribe({
         next: () => {
         },

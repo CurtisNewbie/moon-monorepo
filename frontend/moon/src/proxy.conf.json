@@ -2,6 +2,7 @@
   "/**": {
     "target": "http://127.0.0.1:7070",
     "secure": false,
+    "ws": true,
     "changeOrigin": true,
     "cookieDomainRewrite": "localhost"
   }

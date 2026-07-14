@@ -127,3 +127,14 @@ func FindUserCommon(rail miso.Rail, req FindUserCommonReq) (flow.User, error) {
 	}
 	return dat, err
 }
+
+func ExchangeWsTicket(rail miso.Rail, req WsExchangeReq) (flow.User, error) {
+	var res miso.GnResp[flow.User]
+	err := miso.NewDynClient(rail, "/internal/v1/notification/ws-exchange", ServiceName).
+		PostJson(req).
+		Json(&res)
+	if err != nil {
+		return flow.User{}, fmt.Errorf("failed to exchange WS ticket, %v", err)
+	}
+	return res.Res()
+}

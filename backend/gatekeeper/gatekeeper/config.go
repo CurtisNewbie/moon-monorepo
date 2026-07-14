@@ -12,6 +12,9 @@ const (
 
 	// misoconfig-prop: always overwrite remote ip address in `x-forwarded-for` header (by default, there should be a nginx sitting right before the gatekeeper as a reverse proxy, this the default value for this setting is false) | false
 	PropOverwriteRemoteIp = "gatekeeper.overwrite-remote-ip"
+
+	// misoconfig-prop: slice of WebSocket access filter rules (path-patterns + token-query-key)
+	PropWsAccessFilterRules = "gatekeeper.ws-access-filter.rules"
 )
 
 // misoconfig-default-start

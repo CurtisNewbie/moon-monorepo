@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/curtisnewbie/miso/flow"
+	"github.com/curtisnewbie/miso/middleware/mysql"
 	red "github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/async"
@@ -23,14 +24,19 @@ var (
 
 func PrepareLongPollHandler(rail miso.Rail) error {
 	longPollingHandler = newLongPolling()
+	InitWSManager()
 	miso.AddShutdownHook(func() { longPollingHandler.Shutdown() })
 	miso.PostServerBootstrap(func(rail miso.Rail) error {
-		return listenUserNotificationCountChanges(red.GetRedis())
+		return listenUserNotificationCountChanges(red.GetRedis(), func(userNo string, count int) {
+			if wsMgr != nil {
+				wsMgr.PushCount(userNo, count)
+			}
+		})
 	})
 	return nil
 }
 
-func listenUserNotificationCountChanges(r *redis.Client) error {
+func listenUserNotificationCountChanges(r *redis.Client, onCountChanged func(userNo string, count int)) error {
 	pubsub := r.Subscribe(context.Background(), userNotifCountChangedChannel)
 	c, cancel := context.WithCancel(context.Background())
 	miso.AddShutdownHook(func() {
@@ -46,6 +52,12 @@ func listenUserNotificationCountChanges(r *redis.Client) error {
 				userNo := m.Payload
 				if userNo != "" {
 					longPollingHandler.Notify(userNo)
+					if onCountChanged != nil {
+						count, err := CachedCountNotification(miso.EmptyRail(), mysql.GetMySQL(), flow.User{UserNo: userNo})
+						if err == nil {
+							onCountChanged(userNo, count)
+						}
+					}
 				}
 			}
 		}

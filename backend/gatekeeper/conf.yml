@@ -32,6 +32,12 @@ gatekeeper:
     - "/metrics"
     - "/health"
     - "/user-vault/open/api/v2/notification/count"
+  ws-access-filter:
+    rules:
+      - path-patterns:
+          - "/user-vault/open/api/v2/notification/ws"
+        token-query-key: "token"
+
 
 client:
   addr:
