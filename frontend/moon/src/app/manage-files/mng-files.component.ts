@@ -234,7 +234,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   onPaginatorReady() {
-    this.parseRouteParam();
+    // defer to next tick to avoid ExpressionChangedAfterItHasBeenCheckedError
+    // from paramMap.subscribe modifying component state during CD cycle
+    setTimeout(() => this.parseRouteParam());
   }
 
   parseRouteParam() {
