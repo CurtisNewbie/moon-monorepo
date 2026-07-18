@@ -5189,6 +5189,8 @@
 
 - Description: Get the last viewed page number for a directory
 - Bound to Resource: `"manage-files"`
+- Query Parameter:
+  - "dirKey": 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5197,7 +5199,7 @@
       - "fileKey": (string) 
 - cURL:
   ```sh
-  curl -X GET 'http://localhost:8086/history/dir/last-page'
+  curl -X GET 'http://localhost:8086/history/dir/last-page?dirKey='
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5207,9 +5209,10 @@
   }
 
   // Get the last viewed page number for a directory
-  func ApiGetDirLastPage(rail miso.Rail) (DirLastPageRes, error) {
+  func ApiGetDirLastPage(rail miso.Rail, dirKey string) (DirLastPageRes, error) {
   	var res miso.GnResp[DirLastPageRes]
   	err := miso.NewDynClient(rail, "/history/dir/last-page", "vfm").
+  		AddQuery("dirKey", dirKey).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5245,7 +5248,8 @@
   ) {}
 
   getDirLastPage() {
-    this.http.get<any>(`/vfm/history/dir/last-page`)
+    let dirKey: any | null = null;
+    this.http.get<any>(`/vfm/history/dir/last-page?dirKey=${dirKey}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

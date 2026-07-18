@@ -703,8 +703,8 @@ func ApiRecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req Recor
 //   - misoapi-http: GET /history/dir/last-page
 //   - misoapi-desc: Get the last viewed page number for a directory
 //   - misoapi-resource: ref(ResManageFiles)
-func ApiGetDirLastPage(rail miso.Rail, user flow.User, dirKey string) (DirLastPageRes, error) {
-	return GetDirLastPage(rail, user, dirKey)
+func ApiGetDirLastPage(rail miso.Rail, user flow.User, req GetDirLastPageReq) (DirLastPageRes, error) {
+	return GetDirLastPage(rail, user, req.DirKey)
 }
 
 // List directory browse history.

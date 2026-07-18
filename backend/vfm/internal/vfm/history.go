@@ -202,6 +202,10 @@ type RecordDirLastPageReq struct {
 	FileKey string `valid:"notEmpty" json:"fileKey"`
 }
 
+type GetDirLastPageReq struct {
+	DirKey string `form:"dirKey"`
+}
+
 type DirLastPageRes struct {
 	FileKey string `json:"fileKey"`
 }

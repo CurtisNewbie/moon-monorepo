@@ -454,7 +454,7 @@ func init() {
 		Resource(ResManageFiles)
 
 	miso.HttpGet("/history/dir/last-page", miso.AutoHandler(
-		func(inb *miso.Inbound, req string) (DirLastPageRes, error) {
+		func(inb *miso.Inbound, req GetDirLastPageReq) (DirLastPageRes, error) {
 			return ApiGetDirLastPage(inb.Rail(), inb.Rail().User(), req)
 		})).
 		Extra(miso.ExtraName, "ApiGetDirLastPage").

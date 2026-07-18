@@ -126,6 +126,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /** consecutive file preview count for streak detection */
   private dirPreviewCount: number = 0;
   private prevPreviewedKey: string = '';
+  private dirPagePrompted = false;
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -269,17 +270,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       this.dirReadingConfirmed = false;
       this.dirPreviewCount = 0;
       this.prevPreviewedKey = '';
+      this.dirPagePrompted = false;
 
       // directory
       this.inDirFileKey = params.get("parentDirKey");
       if (this.inDirFileKey) {
         this.fetchBottomUpDirTree(this.inDirFileKey);
-        // load recorded last page as baseline; if no previous record, skip streak guard
-        this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(fileKey => {
-          if (!fileKey) {
-            this.dirReadingConfirmed = true;
-          }
-        });
       } else {
         this.inDirFileName = "";
       }
@@ -320,13 +316,61 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           this.fetchFileInfoList(() => {
             this.pagingController.syncPage(tp);
           });
+        } else if (this.inDirFileKey && !this.dirPagePrompted) {
+          this.dirPagePrompted = true;
+          this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(fileKey => {
+            // reading-streak guard: no previous record means new visitor
+            if (!fileKey) {
+              this.dirReadingConfirmed = true;
+            }
+            // dialog prompt
+            if (fileKey) {
+              this.http.post<any>('/vfm/open/api/file/position', {
+                fileKey: fileKey,
+                parentFile: this.inDirFileKey,
+                limit: this.pagingController.paging.limit,
+                orderByName: this.orderByName,
+              }).subscribe(posResp => {
+                const savedPage = posResp.data?.page || 1;
+                if (savedPage > 1) {
+                  this.dialog.open(ConfirmDialogComponent, {
+                    width: "500px",
+                    data: {
+                      title: this.i18n.trl("manage-files", "continueReadingTitle"),
+                      msg: [this.i18n.trl("manage-files", "continueReadingMsg", "page", String(savedPage))],
+                      isNoBtnDisplayed: true,
+                    },
+                  }).afterClosed().subscribe(confirm => {
+                    if (confirm) {
+                      this.pagingController.paging.page = savedPage;
+                      this.fetchFileInfoList(() => this.pagingController.syncPage(savedPage));
+                    } else {
+                      this.resetToFirstPage();
+                    }
+                  });
+                } else {
+                  this.resetToFirstPage();
+                }
+              });
+            } else {
+              this.resetToFirstPage();
+            }
+          });
         } else if (!this.pagingController.atFirstPage()) {
-          this.pagingController.firstPage(); // this also triggers fetchFileInfoList
+          this.pagingController.firstPage();
         } else {
           this.fetchFileInfoList();
         }
       }
     });
+  }
+
+  private resetToFirstPage() {
+    if (!this.pagingController.atFirstPage()) {
+      this.pagingController.firstPage();
+    } else {
+      this.fetchFileInfoList();
+    }
   }
 
   @HostListener("document:keydown", ["$event"])
@@ -1409,6 +1453,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         ? path.replace(/;targetPage=\d+/, newParam)
         : path + newParam;
       this.location.replaceState(cleanPath);
+
     }
   }
 
