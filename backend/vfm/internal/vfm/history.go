@@ -280,7 +280,7 @@ type DirBrowseRecord struct {
 // listDirBrowseHistory returns the top directory browse history entries for a user,
 // sorted by last-viewed time descending, enriched with file metadata from MySQL.
 func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBrowseRecord, error) {
-	const maxEntries = 50
+	const maxEntries = 200
 
 	c := red.GetRedis()
 	key := "vfm:dir:lastpage:" + user.UserNo
@@ -356,9 +356,9 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 	records := make([]DirBrowseRecord, 0, len(entries))
 	for _, e := range entries {
 		r := DirBrowseRecord{
-			DirKey: e.DirKey,
+			DirKey:  e.DirKey,
 			FileKey: e.FileKey,
-			Time:   atom.WrapTime(time.UnixMilli(e.Time)),
+			Time:    atom.WrapTime(time.UnixMilli(e.Time)),
 		}
 		if fi, ok := ffi[e.DirKey]; ok {
 			r.Name = fi.Name

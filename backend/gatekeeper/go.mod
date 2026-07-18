@@ -5,7 +5,7 @@ go 1.24.4
 replace github.com/curtisnewbie/user-vault => ../user-vault
 
 require (
-	github.com/curtisnewbie/miso v0.4.16-0.20260705091657-593895e1d8e9
+	github.com/curtisnewbie/miso v0.4.16-0.20260718082143-e47321d5d9b6
 	github.com/curtisnewbie/user-vault v0.0.0
 	github.com/spf13/cast v1.6.0
 )
