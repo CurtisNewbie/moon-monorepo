@@ -110,6 +110,7 @@ import { EditNoteDialogComponent } from "./edit-note-dialog/edit-note-dialog.com
 import { DocxPreviewComponent } from './docx-preview-comp/docx-preview.component';
 import { TrlPipe } from './trl.pipe';
 import { OverlayModule } from "@angular/cdk/overlay";
+import { DragDropModule } from "@angular/cdk/drag-drop";
 import { ImageTooltipDirective } from "./shared/directives/image-tooltip.directive";
 import { GalleryWatchComponent } from './gallery-watch/gallery-watch.component';
 import { WatchedGalleryComponent } from './watched-gallery/watched-gallery.component';
@@ -214,6 +215,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     ScrollingModule,
     HighlightModule,
     OverlayModule,
+    DragDropModule,
   ],
   entryComponents: [
     ConfirmDialogComponent,

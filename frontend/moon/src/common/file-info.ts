@@ -12,6 +12,7 @@ export interface FileInfo {
   updateTime: Date;
   sensitiveMode: string;
   thumbnailToken: string;
+  seqKey: string;
 
   /*
     ---------------------------

@@ -124,8 +124,14 @@
                     </mat-select>
                 </mat-form-field>
 
-                <mat-checkbox [(ngModel)]="orderByName"
-                    (ngModelChange)="fetchFileInfoList()">{{'manage-files' | trl:'orderByName'}}</mat-checkbox>
+                <mat-form-field style="width: 120px;">
+                    <mat-label>{{'manage-files' | trl:'sort'}}</mat-label>
+                    <mat-select [(value)]="orderBy" (valueChange)="onOrderByChange()">
+                        <mat-option value="time">{{'manage-files' | trl:'time'}}</mat-option>
+                        <mat-option value="name">{{'manage-files' | trl:'name'}}</mat-option>
+                        <mat-option value="custom">{{'manage-files' | trl:'custom'}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
 
                 <mat-checkbox *ngIf="!env.isMobile()" [(ngModel)]="enableThumbnailTooltip">
                     {{'manage-files' | trl:'thumbnailTooltip'}}</mat-checkbox>
@@ -174,7 +180,19 @@
 
     <!-- table start -->
     <div class="mb-2">
-        <table mat-table [dataSource]="fileInfoList" style="width: 100%; height: 70%;" multiTemplateDataRows>
+        <table mat-table [dataSource]="fileInfoList" style="width: 100%; height: 70%;" multiTemplateDataRows
+            cdkDropList
+            [cdkDropListData]="fileInfoList"
+            (cdkDropListDropped)="onDrop($event)"
+            cdkDropListLockAxis="y"
+            [cdkDropListDisabled]="orderBy !== 'custom' || isReordering">
+
+            <ng-container matColumnDef="dragHandle">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let row">
+                    <i class="bi bi-grip-vertical drag-handle" cdkDragHandle></i>
+                </td>
+            </ng-container>
 
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef> <b>{{'manage-files' | trl:'name'}}</b> </th>
@@ -327,8 +345,13 @@
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
             </tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row"
-                [class.expanded-row]="curr != null && row.id == curr.id" (click)="onRowClicked($event, row, i)">
+            <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row file-row"
+                [class.expanded-row]="curr != null && row.id == curr.id"
+                [class.drag-enabled]="orderBy === 'custom'"
+                (click)="onRowClicked($event, row, i)"
+                cdkDrag
+                (cdkDragStarted)="curr = null"
+                [cdkDragData]="row">
             </tr>
             <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
         </table>

@@ -3,6 +3,7 @@ package vfm
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -80,6 +81,7 @@ type ListedFile struct {
 	ParentFileName string    `json:"parentFileName"`
 	SensitiveMode  string    `json:"sensitiveMode"`
 	IsComic        bool      `json:"isComic"`
+	SeqKey         string    `json:"seqKey"`
 	ThumbnailToken string    `json:"thumbnailToken"`
 	Thumbnail      string    `json:"-"`
 	ParentFile     string    `json:"-"`
@@ -150,6 +152,7 @@ type FileInfo struct {
 	UserGroup        int
 	FileType         string
 	ParentFile       string
+	SeqKey           string
 	CreateTime       atom.Time
 	CreateBy         string
 	UpdateTime       atom.Time
@@ -238,6 +241,12 @@ func queryFilenames(rail miso.Rail, db *gorm.DB, fileKeys []string) (map[string]
 		nil
 }
 
+const (
+	SortByTime   = "time"
+	SortByName   = "name"
+	SortByCustom = "custom"
+)
+
 type ListFileReq struct {
 	Page        miso.Paging `json:"paging"`
 	Filename    *string     `json:"filename"`
@@ -246,14 +255,16 @@ type ListFileReq struct {
 	ParentFile  *string     `json:"parentFile"`
 	Sensitive   *bool       `json:"sensitive"`
 	FileKey     *string     `json:"fileKey"`
-	OrderByName bool        `json:"orderByName"`
+	OrderByName bool        `json:"orderByName" desc:"deprecated, use OrderBy instead"`
+	OrderBy     string      `json:"orderBy"` // SortByTime (default), SortByName, SortByCustom
 }
 
 type FilePositionReq struct {
 	FileKey     string `json:"fileKey"`
 	ParentFile  string `json:"parentFile"`
 	Limit       int    `json:"limit"`
-	OrderByName bool   `json:"orderByName"`
+	OrderByName bool   `json:"orderByName"` // deprecated, use OrderBy instead
+	OrderBy     string `json:"orderBy"`     // "time" (default), "name", "custom"
 	FileType    string `json:"fileType"`
 }
 
@@ -269,17 +280,31 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (mi
 	var res miso.PageRes[ListedFile]
 	var e error
 
+	// backward compatibility: map OrderByName to OrderBy
+	if req.OrderBy == "" && req.OrderByName {
+		req.OrderBy = SortByName
+	}
+
+	// bootstrap custom order on first use
+	if req.OrderBy == SortByCustom && req.ParentFile != nil && *req.ParentFile != "" {
+		if err := bootstrapCustomOrder(rail, db, *req.ParentFile, user); err != nil {
+			rail.Warnf("Failed to bootstrap custom order for dir %v: %v", *req.ParentFile, err)
+		}
+	}
+
 	if req.FolderNo != nil && *req.FolderNo != "" {
 		res, e = listFilesInVFolder(rail, db, req.Page, *req.FolderNo, user)
 	} else {
-		// force order by name for comic directories
-		if req.ParentFile != nil && *req.ParentFile != "" && !req.OrderByName {
-			parent, ok, err := findFile(rail, db, *req.ParentFile)
-			if err != nil {
-				return res, err
-			}
-			if ok && parent.FileType == FileTypeDir && parent.IsComic {
-				req.OrderByName = true
+		// force order by name for comic directories in default/time mode
+		if req.OrderBy == SortByTime || req.OrderBy == "" {
+			if req.ParentFile != nil && *req.ParentFile != "" {
+				parent, ok, err := findFile(rail, db, *req.ParentFile)
+				if err != nil {
+					return res, err
+				}
+				if ok && parent.FileType == FileTypeDir && parent.IsComic {
+					req.OrderBy = SortByName
+				}
 			}
 		}
 		res, e = listFilesSelective(rail, db, req, user)
@@ -336,7 +361,7 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 	return dbquery.NewPagedQuery[ListedFile](db).
 		WithSelectQuery(func(q *dbquery.Query) *dbquery.Query {
 			return q.Select(`fi.id, fi.name, fi.parent_file, fi.uuid, fi.size_in_bytes,
-			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.sensitive_mode, fi.is_comic, fi.thumbnail`)
+			fi.uploader_name, fi.upload_time, fi.file_type, fi.update_time, fi.sensitive_mode, fi.is_comic, fi.seq_key, fi.thumbnail`)
 		}).
 		WithBaseQuery(func(q *dbquery.Query) *dbquery.Query {
 			q = q.From("file_info fi").
@@ -345,8 +370,14 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 				Eq("fi.is_del", 0).
 				Eq("fi.hidden", 0)
 
-			if req.OrderByName {
+			// apply order based on OrderBy
+			switch req.OrderBy {
+			case SortByCustom:
+				q = q.Order("fi.seq_key COLLATE utf8mb4_bin asc, fi.file_type asc, fi.id desc")
+			case SortByName:
 				q = q.Order("fi.name asc")
+			default: // SortByTime or empty
+				// ordering will be set below based on filename presence
 			}
 
 			if req.FileKey != nil {
@@ -364,11 +395,11 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 
 			if req.Filename != nil && *req.Filename != "" {
 				q = q.Where("match(fi.name) against (? IN NATURAL LANGUAGE MODE)", req.Filename)
-				if !req.OrderByName {
+				if req.OrderBy == "" || req.OrderBy == SortByTime {
 					q = q.Order("fi.id desc")
 				}
 			} else {
-				if !req.OrderByName {
+				if req.OrderBy == "" || req.OrderBy == SortByTime {
 					q = q.Order("fi.file_type asc, fi.id desc")
 				}
 			}
@@ -385,6 +416,20 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 	f, ok, err := findFile(rail, db, req.FileKey)
 	if err != nil || !ok || f.UploaderNo != user.UserNo {
 		return 1, nil // fallback to first page
+	}
+
+	// backward compatibility: map OrderByName to OrderBy
+	orderBy := req.OrderBy
+	if orderBy == "" && req.OrderByName {
+		orderBy = SortByName
+	}
+
+	// force name ordering for comic directories in default/time mode
+	if (orderBy == SortByTime || orderBy == "") && req.ParentFile != "" {
+		parent, ok, err := findFile(rail, db, req.ParentFile)
+		if err == nil && ok && parent.FileType == FileTypeDir && parent.IsComic {
+			orderBy = SortByName
+		}
 	}
 
 	// 2. Build the same query as listFilesSelective but:
@@ -404,20 +449,15 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		q = q.Eq("fi.file_type", req.FileType)
 	}
 
-	// 3. Force name-based ordering for comic directories (same as ListFiles)
-	orderByName := req.OrderByName
-	if !orderByName && req.ParentFile != "" {
-		parent, ok, err := findFile(rail, db, req.ParentFile)
-		if err == nil && ok && parent.FileType == FileTypeDir && parent.IsComic {
-			orderByName = true
-		}
-	}
-
-	// 4. Ordering-boundary condition: count rows that come BEFORE target file
-	if orderByName {
+	// 3. Ordering-boundary condition: count rows that come BEFORE target file
+	switch orderBy {
+	case SortByCustom:
+		// sort: fi.seq_key asc → rows before have seq_key < target seq_key
+		q = q.Where("fi.seq_key COLLATE utf8mb4_bin < ?", f.SeqKey)
+	case SortByName:
 		// sort: fi.name asc → rows before have name < targetName
 		q = q.Where("fi.name < ?", f.Name)
-	} else {
+	default:
 		// default: fi.file_type asc, fi.id desc
 		q = q.Where("(fi.file_type < ? OR (fi.file_type = ? AND fi.id > ?))", f.FileType, f.FileType, f.Id)
 	}
@@ -427,7 +467,7 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		return 1, nil // fallback to first page
 	}
 
-	// 5. Calculate page: ceil((count+1) / limit)
+	// 4. Calculate page: ceil((count+1) / limit)
 	if req.Limit <= 0 {
 		req.Limit = 10
 	}
@@ -535,6 +575,8 @@ func MakeDir(rail miso.Rail, tx *gorm.DB, req MakeDirReq, user flow.User) (strin
 		if e := MoveFileToDir(rail, tx, MoveIntoDirReq{Uuid: dir.Uuid, ParentFileUuid: req.ParentFile}, user); e != nil {
 			return dir.Uuid, e
 		}
+		// If parent dir has custom ordering, assign seq_key at the beginning
+		assignSeqKeyForNewFile(rail, tx, dir.Uuid, req.ParentFile, user)
 	}
 
 	return dir.Uuid, nil
@@ -846,6 +888,10 @@ type AddFileToVfolderReq struct {
 
 func NewVFolderLock(rail miso.Rail, folderNo string) *redis.RLock {
 	return redis.NewRLock(rail, "vfolder:"+folderNo)
+}
+
+func newReorderDirLock(rail miso.Rail, parentFile string) *redis.RLock {
+	return redis.NewRLockf(rail, "vfm:reorder:dir:%v", parentFile)
 }
 
 func HandleAddFileToVFolderEvent(rail miso.Rail, db *gorm.DB, evt AddFileToVfolderEvent) error {
@@ -1245,6 +1291,8 @@ func SaveFileRecord(rail miso.Rail, tx *gorm.DB, r SaveFileReq, user flow.User) 
 		if e := MoveFileToDir(rail, tx, MoveIntoDirReq{Uuid: f.Uuid, ParentFileUuid: r.ParentFile}, user); e != nil {
 			return "", e
 		}
+		// If parent dir has custom ordering, assign seq_key at the beginning
+		assignSeqKeyForNewFile(rail, tx, f.Uuid, r.ParentFile, user)
 	}
 	return f.Uuid, nil
 }
@@ -2105,4 +2153,652 @@ func findFirstThumbnailFileId(rail miso.Rail, db *gorm.DB, dirFileKey string) (s
 		return "", false, nil
 	}
 	return fstFileId, true, nil
+}
+
+// ---------------------------------------------------------------------------
+// Custom Drag-and-Drop Ordering (fractional-indexing)
+//
+// Port of rocicorp/fractional-indexing v4.0.0 (CC0 license)
+// https://github.com/rocicorp/fractional-indexing
+// ---------------------------------------------------------------------------
+
+const (
+	base62Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	base52Digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+)
+
+// getDigitIndex returns a [256]int lookup table mapping byte -> digit index.
+func getDigitIndex(digits string) [256]int {
+	var m [256]int
+	for i := 0; i < len(digits); i++ {
+		m[digits[i]] = i
+	}
+	return m
+}
+
+// midpoint computes the fractional part between two keys. a may be empty string,
+// b may be nil (infinite upper bound) or non-nil. digits must be in ascending
+// byte order. lookup is the precomputed digit index for digits.
+func midpoint(a string, b *string, digits string, lookup [256]int) (string, error) {
+	zero := digits[0]
+	if len(a) > 0 && a[len(a)-1] == zero {
+		return "", fmt.Errorf("trailing zero in a: %q", a)
+	}
+	if b != nil && len(*b) > 0 && (*b)[len(*b)-1] == zero {
+		return "", fmt.Errorf("trailing zero in b: %q", *b)
+	}
+	if b != nil && a >= *b {
+		return "", fmt.Errorf("a >= b: %q >= %q", a, *b)
+	}
+
+	if b != nil {
+		n := 0
+		for {
+			var ac, bc byte
+			if n < len(a) {
+				ac = a[n]
+			} else {
+				ac = zero
+			}
+			if n < len(*b) {
+				bc = (*b)[n]
+			} else {
+				break
+			}
+			if ac != bc {
+				break
+			}
+			n++
+		}
+		if n > 0 {
+			r, err := midpoint(a[n:], bStrPtr((*b)[n:]), digits, lookup)
+			if err != nil {
+				return "", err
+			}
+			return (*b)[:n] + r, nil
+		}
+	}
+
+	digitA := 0
+	if len(a) > 0 {
+		digitA = lookup[a[0]]
+	}
+	digitB := len(digits)
+	if b != nil {
+		digitB = lookup[(*b)[0]]
+	}
+
+	if digitB-digitA > 1 {
+		midDigit := int(math.Round(0.5 * float64(digitA+digitB)))
+		return string(digits[midDigit]), nil
+	}
+
+	if b != nil && len(*b) > 1 {
+		return (*b)[:1], nil
+	}
+
+	r, err := midpoint(a[1:], nil, digits, lookup)
+	if err != nil {
+		return "", err
+	}
+	return string(digits[digitA]) + r, nil
+}
+
+// bStrPtr converts a string to *string for use with nil (null bound).
+func bStrPtr(s string) *string {
+	return &s
+}
+
+func validateInteger(x string, intDigits string, intLookup [256]int) error {
+	if len(x) != getIntegerLength(x[0], intDigits, intLookup) {
+		return fmt.Errorf("invalid integer part of order key: %s", x)
+	}
+	return nil
+}
+
+func getIntegerLength(head byte, intDigits string, intLookup [256]int) int {
+	i := intLookup[head]
+	half := len(intDigits) / 2
+	if i < half {
+		return half - i + 1
+	}
+	return i - half + 2
+}
+
+func getIntegerPart(key string, intDigits string, intLookup [256]int) (string, error) {
+	integerPartLength := getIntegerLength(key[0], intDigits, intLookup)
+	if integerPartLength > len(key) {
+		return "", fmt.Errorf("invalid order key: %s", key)
+	}
+	return key[:integerPartLength], nil
+}
+
+func validateOrderKey(key string, digits string, intDigits string, intLookup [256]int) error {
+	if isSmallestInteger(key, digits, intDigits) {
+		return fmt.Errorf("invalid order key: %s", key)
+	}
+	i, err := getIntegerPart(key, intDigits, intLookup)
+	if err != nil {
+		return err
+	}
+	f := key[len(i):]
+	if len(f) > 0 && f[len(f)-1] == digits[0] {
+		return fmt.Errorf("invalid order key: %s", key)
+	}
+	return nil
+}
+
+func incrementInteger(x string, digits string, lookup [256]int, intDigits string, intLookup [256]int) (*string, error) {
+	if err := validateInteger(x, intDigits, intLookup); err != nil {
+		return nil, err
+	}
+	head := x[0]
+	zero := digits[0]
+	trailing := ""
+	for i := len(x) - 1; i >= 1; i-- {
+		d := lookup[x[i]] + 1
+		if d == len(digits) {
+			trailing = string(zero) + trailing
+		} else {
+			r := string(head) + x[1:i] + string(digits[d]) + trailing
+			return &r, nil
+		}
+	}
+	headIndex := intLookup[head]
+	if headIndex == len(intDigits)-1 {
+		return nil, nil
+	}
+	h := intDigits[headIndex+1]
+	lengthDelta := getIntegerLength(h, intDigits, intLookup) - getIntegerLength(head, intDigits, intLookup)
+	var r string
+	if lengthDelta > 0 {
+		r = string(h) + trailing + string(zero)
+	} else if lengthDelta < 0 {
+		if len(trailing) > 0 {
+			r = string(h) + trailing[1:]
+		} else {
+			r = string(h)
+		}
+	} else {
+		r = string(h) + trailing
+	}
+	return &r, nil
+}
+
+func decrementInteger(x string, digits string, lookup [256]int, intDigits string, intLookup [256]int) (*string, error) {
+	if err := validateInteger(x, intDigits, intLookup); err != nil {
+		return nil, err
+	}
+	head := x[0]
+	last := digits[len(digits)-1]
+	trailing := ""
+	for i := len(x) - 1; i >= 1; i-- {
+		d := lookup[x[i]] - 1
+		if d == -1 {
+			trailing = string(last) + trailing
+		} else {
+			r := string(head) + x[1:i] + string(digits[d]) + trailing
+			return &r, nil
+		}
+	}
+	headIndex := intLookup[head]
+	if headIndex == 0 {
+		return nil, nil
+	}
+	h := intDigits[headIndex-1]
+	lengthDelta := getIntegerLength(h, intDigits, intLookup) - getIntegerLength(head, intDigits, intLookup)
+	var r string
+	if lengthDelta > 0 {
+		r = string(h) + trailing + string(last)
+	} else if lengthDelta < 0 {
+		if len(trailing) > 0 {
+			r = string(h) + trailing[1:]
+		} else {
+			r = string(h)
+		}
+	} else {
+		r = string(h) + trailing
+	}
+	return &r, nil
+}
+
+func isSmallestInteger(key string, digits string, intDigits string) bool {
+	if len(key) != len(intDigits)/2+1 {
+		return false
+	}
+	head := intDigits[0]
+	if key[0] != head {
+		return false
+	}
+	for i := 1; i < len(key); i++ {
+		if key[i] != digits[0] {
+			return false
+		}
+	}
+	return true
+}
+
+// generateKeyBetween returns an order key between a and b.
+// a and b are *string where nil means unbounded (null in JS).
+// digits is the digit set (base62Digits), intDigits is the integer-digit set (base52Digits).
+func generateKeyBetween(a, b *string, digits, intDigits string) (string, error) {
+	if len(intDigits) < 2 || len(intDigits)%2 != 0 {
+		return "", fmt.Errorf("intDigits must be even length >= 2")
+	}
+	if len(digits) < 2 {
+		return "", fmt.Errorf("digits must be >= 2 chars")
+	}
+
+	lookup := getDigitIndex(digits)
+	intLookup := getDigitIndex(intDigits)
+
+	if a != nil {
+		if err := validateOrderKey(*a, digits, intDigits, intLookup); err != nil {
+			return "", err
+		}
+	}
+	if b != nil {
+		if err := validateOrderKey(*b, digits, intDigits, intLookup); err != nil {
+			return "", err
+		}
+	}
+	if a != nil && b != nil && *a > *b {
+		a, b = b, a
+	}
+
+	if a == nil {
+		if b == nil {
+			head := intDigits[len(intDigits)/2]
+			return string(head) + string(digits[0]), nil
+		}
+
+		ib, err := getIntegerPart(*b, intDigits, intLookup)
+		if err != nil {
+			return "", err
+		}
+		fb := (*b)[len(ib):]
+
+		if isSmallestInteger(ib, digits, intDigits) {
+			r, err := midpoint("", &fb, digits, lookup)
+			if err != nil {
+				return "", err
+			}
+			return ib + r, nil
+		}
+		if ib < *b {
+			return ib, nil
+		}
+		res, err := decrementInteger(ib, digits, lookup, intDigits, intLookup)
+		if err != nil {
+			return "", err
+		}
+		if res == nil {
+			return "", fmt.Errorf("cannot decrement any more")
+		}
+		return *res, nil
+	}
+
+	if b == nil {
+		ia, err := getIntegerPart(*a, intDigits, intLookup)
+		if err != nil {
+			return "", err
+		}
+		fa := (*a)[len(ia):]
+		i, err := incrementInteger(ia, digits, lookup, intDigits, intLookup)
+		if err != nil {
+			return "", err
+		}
+		if i == nil {
+			r, err := midpoint(fa, nil, digits, lookup)
+			if err != nil {
+				return "", err
+			}
+			return ia + r, nil
+		}
+		return *i, nil
+	}
+
+	ia, err := getIntegerPart(*a, intDigits, intLookup)
+	if err != nil {
+		return "", err
+	}
+	fa := (*a)[len(ia):]
+	ib, err := getIntegerPart(*b, intDigits, intLookup)
+	if err != nil {
+		return "", err
+	}
+	fb := (*b)[len(ib):]
+
+	if ia == ib {
+		r, err := midpoint(fa, &fb, digits, lookup)
+		if err != nil {
+			return "", err
+		}
+		return ia + r, nil
+	}
+
+	i, err := incrementInteger(ia, digits, lookup, intDigits, intLookup)
+	if err != nil {
+		return "", err
+	}
+	if i == nil {
+		return "", fmt.Errorf("cannot increment any more")
+	}
+	if *i < *b {
+		return *i, nil
+	}
+	r, err := midpoint(fa, nil, digits, lookup)
+	if err != nil {
+		return "", err
+	}
+	return ia + r, nil
+}
+
+// generateNKeysBetween returns n order keys between a and b.
+func generateNKeysBetween(a, b *string, n int, digits, intDigits string) ([]string, error) {
+	if n == 0 {
+		return []string{}, nil
+	}
+	if n == 1 {
+		k, err := generateKeyBetween(a, b, digits, intDigits)
+		if err != nil {
+			return nil, err
+		}
+		return []string{k}, nil
+	}
+	if b == nil {
+		c, err := generateKeyBetween(a, b, digits, intDigits)
+		if err != nil {
+			return nil, err
+		}
+		result := []string{c}
+		for i := 0; i < n-1; i++ {
+			c, err = generateKeyBetween(&c, b, digits, intDigits)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, c)
+		}
+		return result, nil
+	}
+	if a == nil {
+		c, err := generateKeyBetween(a, b, digits, intDigits)
+		if err != nil {
+			return nil, err
+		}
+		result := []string{c}
+		for i := 0; i < n-1; i++ {
+			c, err = generateKeyBetween(a, &c, digits, intDigits)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, c)
+		}
+		// reverse
+		for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
+			result[i], result[j] = result[j], result[i]
+		}
+		return result, nil
+	}
+	mid := n / 2
+	c, err := generateKeyBetween(a, b, digits, intDigits)
+	if err != nil {
+		return nil, err
+	}
+	left, err := generateNKeysBetween(a, &c, mid, digits, intDigits)
+	if err != nil {
+		return nil, err
+	}
+	right, err := generateNKeysBetween(&c, b, n-mid-1, digits, intDigits)
+	if err != nil {
+		return nil, err
+	}
+	return append(append(left, c), right...), nil
+}
+
+// bootstrapCustomOrder assigns seq_key to all files in a directory using
+// the default time-based order (file_type asc, id desc).
+// Idempotent: checks Redis flag before running.
+func bootstrapCustomOrder(rail miso.Rail, db *gorm.DB, parentFile string, user flow.User) error {
+	customOrderKey := "vfm:custom_order:" + parentFile
+
+	// Fast path: check Redis
+	exists, _ := redis.GetRedis().Exists(rail.Context(), customOrderKey).Result()
+	if exists > 0 {
+		// Verify: Redis says bootstrapped, but are files actually bootstrapped?
+		has, err := dbquery.NewQuery(rail, db).
+			Table("file_info").
+			Eq("parent_file", parentFile).
+			Where("seq_key != ''").
+			Eq("is_logic_deleted", DelN).
+			Eq("is_del", 0).
+			HasAny()
+		if err != nil {
+			return err
+		}
+		if has {
+			return nil // truly bootstrapped
+		}
+		// Redis flag exists but no files have seq_key → bootstrap failed previously
+		rail.Warnf("Redis flag exists for dir %v but no files have seq_key, re-bootstrapping", parentFile)
+	}
+
+	return db.Transaction(func(tx *gorm.DB) error {
+		// Read all files in the directory, ordered by default time order
+		var files []FileInfo
+		if err := dbquery.NewQuery(rail, tx).
+			Table("file_info").
+			Where("parent_file = ? AND is_logic_deleted = ? AND is_del = ? AND uploader_no = ?",
+				parentFile, DelN, 0, user.UserNo).
+			Order("file_type asc, id desc").
+			ScanVal(&files); err != nil {
+			return err
+		}
+
+		if len(files) == 0 {
+			return nil
+		}
+
+		// Distribute keys uniformly using generateNKeysBetween
+		keys, err := generateNKeysBetween(nil, nil, len(files), base62Digits, base52Digits)
+		if err != nil {
+			return err
+		}
+		for i, f := range files {
+			if err := dbquery.NewQuery(rail, tx).
+				Table("file_info").
+				Set("seq_key", keys[i]).
+				Eq("id", f.Id).
+				UpdateAny(); err != nil {
+				return err
+			}
+		}
+
+		// Set Redis flag to mark bootstrapped
+		if err := redis.GetRedis().Set(rail.Context(), customOrderKey, "1", 0).Err(); err != nil {
+			rail.Warnf("failed to set custom order redis flag for dir %v: %v", parentFile, err)
+		}
+		return nil
+	})
+}
+
+
+// assignSeqKeyForNewFile assigns a seq_key for a newly created file/dir
+// if its parent directory has custom ordering (checked via Redis flag).
+// The new file is placed at the BEGINNING of the list (before the current first file).
+func assignSeqKeyForNewFile(rail miso.Rail, tx *gorm.DB, fileKey string, parentFile string, user flow.User) {
+	if parentFile == "" {
+		return
+	}
+
+	// Check Redis flag for custom ordering
+	customOrderKey := "vfm:custom_order:" + parentFile
+	exists, _ := redis.GetRedis().Exists(rail.Context(), customOrderKey).Result()
+	if exists == 0 {
+		return // directory not in custom order
+	}
+
+	// Lock the directory to prevent concurrent seq_key modifications
+	lock := newReorderDirLock(rail, parentFile)
+	if err := lock.Lock(); err != nil {
+		rail.Warnf("failed to acquire reorder lock for dir %v: %v", parentFile, err)
+		return
+	}
+	defer lock.Unlock()
+
+	// Find the current first file in custom order
+	var firstFile struct {
+		SeqKey string
+	}
+	_, err2 := dbquery.NewQuery(rail, tx).
+		Table("file_info").
+		Select("seq_key").
+		Eq("parent_file", parentFile).
+		Eq("seq_key !=", "").
+		Eq("is_logic_deleted", DelN).
+		Eq("is_del", 0).
+		Order("seq_key COLLATE utf8mb4_bin asc").
+		Limit(1).
+		ScanAny(&firstFile)
+	if err2 != nil || firstFile.SeqKey == "" {
+		// No existing files with seq_key, use default starting key
+		keys, err := generateNKeysBetween(nil, nil, 1, base62Digits, base52Digits)
+		if err != nil {
+			rail.Warnf("failed to generate seq_key for new file %v: %v", fileKey, err)
+			return
+		}
+		if err := dbquery.NewQuery(rail, tx).
+			Table("file_info").
+			Set("seq_key", keys[0]).
+			Eq("uuid", fileKey).
+			UpdateAny(); err != nil {
+			rail.Warnf("failed to assign seq_key for new file %v: %v", fileKey, err)
+		}
+		return
+	}
+
+	// Prepend: key before the current first key
+	newKey, err := generateKeyBetween(nil, &firstFile.SeqKey, base62Digits, base52Digits)
+	if err != nil {
+		rail.Warnf("failed to generate seq_key for new file %v: %v", fileKey, err)
+		return
+	}
+	if err := dbquery.NewQuery(rail, tx).
+		Table("file_info").
+		Set("seq_key", newKey).
+		Eq("uuid", fileKey).
+		UpdateAny(); err != nil {
+		rail.Warnf("failed to assign seq_key for new file %v: %v", fileKey, err)
+	}
+}
+
+// lookupNeighborSeqKey fetches the seq_key of a neighbor file and validates it
+// belongs to the expected parent directory (i.e., is a sibling).
+// Returns empty string if the file is not found or not a sibling.
+func lookupNeighborSeqKey(rail miso.Rail, db *gorm.DB, fileKey string, parentFile string) string {
+	var seqKey string
+	ok, err := dbquery.NewQuery(rail, db).
+		Table("file_info").
+		Select("seq_key").
+		Eq("uuid", fileKey).
+		Eq("parent_file", parentFile).
+		Eq("is_del", 0).
+		ScanAny(&seqKey)
+	if err != nil || !ok {
+		return ""
+	}
+	return seqKey
+}
+
+// ReorderFileReq is the request to reorder a file within its parent directory.
+type ReorderFileReq struct {
+	FileKey    string `json:"fileKey"`    // file to move
+	ParentFile string `json:"parentFile"` // parent directory
+	BeforeKey  string `json:"beforeKey"`  // fileKey of the file that should be AFTER the moved file; empty = move to bottom
+	AfterKey   string `json:"afterKey"`   // fileKey of the file that should be BEFORE the moved file; empty = move to top
+}
+
+// ReorderFile moves a file to a new position within its parent directory
+// by computing a new fractional-indexing seq_key.
+func ReorderFile(rail miso.Rail, db *gorm.DB, req ReorderFileReq, user flow.User) error {
+	// 1. Validate file ownership
+	f, ok, err := findFile(rail, db, req.FileKey)
+	if err != nil {
+		return ErrFileNotFound.Wrapf(err, "failed to find file, fileKey: %v", req.FileKey)
+	}
+	if !ok {
+		return ErrFileNotFound.New()
+	}
+	if f.UploaderNo != user.UserNo {
+		return miso.ErrNotPermitted.New()
+	}
+
+	// Lock the directory for reorder to prevent concurrent seq_key races
+	lock := newReorderDirLock(rail, req.ParentFile)
+	if err := lock.Lock(); err != nil {
+		return errs.Wrap(err)
+	}
+	defer lock.Unlock()
+
+	// 2. Determine the new seq_key using midpoint calculation
+	var aKey, bKey string // new key must satisfy: aKey < new_key < bKey
+
+	if req.AfterKey == "" && req.BeforeKey == "" {
+		return errs.NewErrf("either beforeKey or afterKey must be provided")
+	}
+
+	if req.AfterKey != "" {
+		aKey = lookupNeighborSeqKey(rail, db, req.AfterKey, req.ParentFile)
+	}
+
+	if req.BeforeKey != "" {
+		bKey = lookupNeighborSeqKey(rail, db, req.BeforeKey, req.ParentFile)
+	}
+
+	// If neighbors don't have seq_key, bootstrap first, then re-lookup
+	if (req.AfterKey != "" && aKey == "") || (req.BeforeKey != "" && bKey == "") {
+		if err := bootstrapCustomOrder(rail, db, req.ParentFile, user); err != nil {
+			return errs.Wrapf(err, "failed to bootstrap custom order for reorder")
+		}
+		if req.AfterKey != "" {
+			aKey = lookupNeighborSeqKey(rail, db, req.AfterKey, req.ParentFile)
+		}
+		if req.BeforeKey != "" {
+			bKey = lookupNeighborSeqKey(rail, db, req.BeforeKey, req.ParentFile)
+		}
+	}
+
+	var lower, upper *string
+	if aKey != "" {
+		lower = &aKey
+	}
+	if bKey != "" {
+		upper = &bKey
+	}
+	newKey, err := generateKeyBetween(lower, upper, base62Digits, base52Digits)
+	if err != nil {
+		return errs.Wrap(err)
+	}
+
+	// 3. Update the file's seq_key
+	err = dbquery.NewQuery(rail, db).
+		Table("file_info").
+		Set("seq_key", newKey).
+		Set("update_by", user.Username).
+		Eq("uuid", req.FileKey).
+		Eq("uploader_no", user.UserNo).
+		UpdateAny()
+	if err != nil {
+		return errs.Wrapf(err, "failed to update seq_key for fileKey: %v", req.FileKey)
+	}
+
+	// 4. Set Redis flag indicating custom order exists for this directory
+	customOrderKey := "vfm:custom_order:" + req.ParentFile
+	if err := redis.GetRedis().Set(rail.Context(), customOrderKey, "1", 0).Err(); err != nil {
+		rail.Warnf("failed to set custom order redis flag for dir %v: %v", req.ParentFile, err)
+		// non-fatal
+	}
+
+	rail.Infof("File %v reordered: new seq_key=%v (afterKey=%v, beforeKey=%v)", req.FileKey, newKey, req.AfterKey, req.BeforeKey)
+	return nil
 }

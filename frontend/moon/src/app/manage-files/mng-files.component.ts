@@ -42,6 +42,7 @@ import { isEnterKey } from "src/common/condition";
 import { NavType } from "../routes";
 import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { Subscription } from "rxjs";
+import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
@@ -101,7 +102,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /** progress string */
   progress: string = null;
   /** currently displayed columns */
-  displayedColumns: string[] = this._selectColumns();
+  get displayedColumns(): string[] {
+    const cols = this._selectColumns();
+    if (this.orderBy === 'custom' && !this.env.isMobile() && !this.inFolderNo) {
+      return ['dragHandle', ...cols];
+    }
+    return cols;
+  }
 
   /** cache for directory thumbnail URLs */
   dirThumbnailCache: Map<string, string> = new Map();
@@ -118,7 +125,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
-  orderByName = false;
+  orderBy: string = 'time';
+  isReordering: boolean = false;
   private targetPage: number | null = null;
   private targetFileKey: string | null = null;
   /** directory reading streak — confirmed after 3+ consecutive file views */
@@ -228,7 +236,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnInit() {
-    this.orderByName = false;
     // select-all is handled by @HostListener
     // parseRouteParam is deferred to onPaginatorReady() — paginator must init first
   }
@@ -251,9 +258,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         this.searchParam.fileKey = searchedFileKey;
       }
 
-      let obn = params.get("orderByName");
-      if (obn) {
-        this.orderByName = obn == "true";
+      let ob = params.get("orderBy");
+      if (ob) {
+        this.orderBy = ob;
       }
 
       const targetPageParam = params.get("targetPage");
@@ -297,7 +304,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             fileKey: fileKey,
             parentFile: parentFile,
             limit: this.pagingController.paging.limit,
-            orderByName: this.orderByName,
+            orderBy: this.orderBy,
           }).subscribe(resp => {
             const page = resp.data?.page || 1;
             this.pagingController.paging.page = page;
@@ -331,7 +338,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 fileKey: fileKey,
                 parentFile: this.inDirFileKey,
                 limit: this.pagingController.paging.limit,
-                orderByName: this.orderByName,
+                orderBy: this.orderBy,
               }).subscribe(posResp => {
                 const savedPage = posResp.data?.page || 1;
                 if (savedPage > 1) {
@@ -439,7 +446,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.curr = null;
     this.resetSearchParam(false, false);
     this.nav.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: fileKey, orderByName: this.orderByName },
+      { parentDirKey: fileKey, orderBy: this.orderBy },
     ]);
   }
 
@@ -449,7 +456,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.searchParam = {};
     this.targetPage = page;
     this.nav.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: fileKey, orderByName: this.orderByName },
+      { parentDirKey: fileKey, orderBy: this.orderBy },
     ]);
   }
 
@@ -465,7 +472,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         parentFile: this.searchParam.parentFile,
         fileType: this.searchParam.fileType,
         sensitive: this.inSensitiveMode,
-        orderByName: this.orderByName,
+        orderBy: this.orderBy,
         fileKey: this.searchParam.fileKey,
       })
       .subscribe({
@@ -630,7 +637,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 fileKey: fileKey,
                 parentFile: parentFileKey,
                 limit: this.pagingController.paging.limit,
-                orderByName: this.orderByName,
+                orderBy: this.orderBy,
               };
               if (this.searchParam.fileType) body.fileType = this.searchParam.fileType;
 
@@ -1457,6 +1464,52 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       this.location.replaceState(cleanPath);
 
     }
+  }
+
+  /**
+   * Handle drag-and-drop reorder
+   */
+  onDrop(event: CdkDragDrop<FileInfo[]>) {
+    if (event.previousIndex === event.currentIndex) return;
+    if (this.isReordering) return;
+
+    const movedFile = event.item.data;
+
+    // Compute neighbors using a copy to determine correct positions
+    const sorted = [...this.fileInfoList];
+    moveItemInArray(sorted, event.previousIndex, event.currentIndex);
+    const ni = event.currentIndex;
+    const afterFile = ni > 0 ? sorted[ni - 1] : null;
+    const beforeFile = ni < sorted.length - 1 ? sorted[ni + 1] : null;
+
+    this.isReordering = true;
+    this.http.post<any>('vfm/open/api/file/reorder', {
+      fileKey: movedFile.uuid,
+      parentFile: this.inDirFileKey,
+      beforeKey: beforeFile ? beforeFile.uuid : '',
+      afterKey: afterFile ? afterFile.uuid : '',
+    }).subscribe({
+      next: (resp) => {
+        this.isReordering = false;
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.fetchFileInfoList();
+      },
+      error: () => {
+        this.isReordering = false;
+        this.snackBar.open("Reorder failed, unknown error", "ok", { duration: 3000 });
+        this.fetchFileInfoList();
+      }
+    });
+  }
+
+  /**
+   * Called when orderBy dropdown value changes
+   */
+  onOrderByChange() {
+    this.fetchFileInfoList();
   }
 
   trl(k) {

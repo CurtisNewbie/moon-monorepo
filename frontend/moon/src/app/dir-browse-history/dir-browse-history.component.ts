@@ -120,7 +120,7 @@ export class DirBrowseHistoryComponent implements OnInit {
 
   resumeReading(dirKey: string, fileKey: string) {
     this.navigation.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: dirKey, targetFileKey: fileKey, orderByName: true, autoPreview: true },
+      { parentDirKey: dirKey, targetFileKey: fileKey, orderBy: 'name', autoPreview: true },
     ]);
   }
 

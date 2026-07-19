@@ -60,6 +60,7 @@
 - [POST /history/dir/last-page](#post-historydirlast-page)
 - [GET /history/dir/last-page](#get-historydirlast-page)
 - [GET /history/list-dir-browse](#get-historylist-dir-browse)
+- [POST /open/api/file/reorder](#post-openapifilereorder)
 - [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
@@ -234,6 +235,7 @@
     - "parentFile": (string) 
     - "limit": (int) 
     - "orderByName": (bool) 
+    - "orderBy": (string) 
     - "fileType": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -245,7 +247,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/position' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","fileType":"","limit":0,"orderByName":false,"parentFile":""}'
+    -d '{"fileKey":"","fileType":"","limit":0,"orderBy":"","orderByName":false,"parentFile":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -255,6 +257,7 @@
   	ParentFile string `json:"parentFile"`
   	Limit int `json:"limit"`
   	OrderByName bool `json:"orderByName"`
+  	OrderBy string `json:"orderBy"`
   	FileType string `json:"fileType"`
   }
 
@@ -283,6 +286,7 @@
     parentFile?: string;
     limit?: number;
     orderByName?: boolean;
+    orderBy?: string;
     fileType?: string;
   }
 
@@ -680,7 +684,8 @@
     - "parentFile": (*string) 
     - "sensitive": (*bool) 
     - "fileKey": (*string) 
-    - "orderByName": (bool) 
+    - "orderByName": (bool) deprecated, use OrderBy instead
+    - "orderBy": (string) 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -702,12 +707,13 @@
         - "parentFileName": (string) 
         - "sensitiveMode": (string) 
         - "isComic": (bool) 
+        - "seqKey": (string) 
         - "thumbnailToken": (string) 
 - cURL:
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/list' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
+    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","orderBy":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -720,7 +726,8 @@
   	ParentFile *string `json:"parentFile"`
   	Sensitive *bool `json:"sensitive"`
   	FileKey *string `json:"fileKey"`
-  	OrderByName bool `json:"orderByName"`
+  	OrderByName bool `json:"orderByName"` // deprecated, use OrderBy instead
+  	OrderBy string `json:"orderBy"`
   }
 
 
@@ -736,6 +743,7 @@
   	ParentFileName string `json:"parentFileName"`
   	SensitiveMode string `json:"sensitiveMode"`
   	IsComic bool `json:"isComic"`
+  	SeqKey string `json:"seqKey"`
   	ThumbnailToken string `json:"thumbnailToken"`
   }
 
@@ -763,7 +771,8 @@
     parentFile?: string;
     sensitive?: boolean;
     fileKey?: string;
-    orderByName?: boolean;
+    orderByName?: boolean;         // deprecated, use OrderBy instead
+    orderBy?: string;
   }
 
   export interface Paging {
@@ -802,6 +811,7 @@
     parentFileName?: string;
     sensitiveMode?: string;
     isComic?: boolean;
+    seqKey?: string;
     thumbnailToken?: string;
   }
   ```
@@ -5346,6 +5356,92 @@
             return;
           }
           let dat: DirBrowseRecord[] = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/file/reorder
+
+- Description: Reorder file in directory using drag-and-drop (fractional-indexing)
+- Bound to Resource: `"manage-files"`
+- JSON Request:
+    - "fileKey": (string) 
+    - "parentFile": (string) 
+    - "beforeKey": (string) 
+    - "afterKey": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/open/api/file/reorder' \
+    -H 'Content-Type: application/json' \
+    -d '{"afterKey":"","beforeKey":"","fileKey":"","parentFile":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type ReorderFileReq struct {
+  	FileKey string `json:"fileKey"`
+  	ParentFile string `json:"parentFile"`
+  	BeforeKey string `json:"beforeKey"`
+  	AfterKey string `json:"afterKey"`
+  }
+
+  // Reorder file in directory using drag-and-drop (fractional-indexing)
+  func ApiReorderFile(rail miso.Rail, req ReorderFileReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/open/api/file/reorder", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		return err
+  	}
+  	return nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface ReorderFileReq {
+    fileKey?: string;
+    parentFile?: string;
+    beforeKey?: string;
+    afterKey?: string;
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  reorderFile() {
+    let req: ReorderFileReq | null = null;
+    this.http.post<any>(`/vfm/open/api/file/reorder`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
         },
         error: (err) => {
           console.log(err)

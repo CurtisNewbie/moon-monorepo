@@ -715,3 +715,12 @@ func ApiGetDirLastPage(rail miso.Rail, user flow.User, req GetDirLastPageReq) (D
 func ApiListDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBrowseRecord, error) {
 	return ListDirBrowseHistory(rail, db, user)
 }
+
+// Reorder file (drag-and-drop ordering).
+//
+//   - misoapi-http: POST /open/api/file/reorder
+//   - misoapi-desc: Reorder file in directory using drag-and-drop (fractional-indexing)
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiReorderFile(rail miso.Rail, db *gorm.DB, req ReorderFileReq, user flow.User) error {
+	return ReorderFile(rail, db, req, user)
+}
