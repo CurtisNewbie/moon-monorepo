@@ -42,7 +42,7 @@ import { isEnterKey } from "src/common/condition";
 import { NavType } from "../routes";
 import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { Subscription } from "rxjs";
-import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
+import { CdkDragDrop, CdkDragMove, moveItemInArray } from "@angular/cdk/drag-drop";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
@@ -127,6 +127,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inSensitiveMode = false;
   orderBy: string = 'time';
   isReordering: boolean = false;
+  trayOpen: boolean = false;
+  dragOverIndex: number = -1;
+  draggedRowIndex: number = -1;
+  lastDragClientY: number = -1;
   private targetPage: number | null = null;
   private targetFileKey: string | null = null;
   /** directory reading streak — confirmed after 3+ consecutive file views */
@@ -212,6 +216,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   @ViewChild("searchFilenameInput")
   searchFilenameInput: ElementRef;
+
+  @ViewChild("tableWrapper")
+  tableWrapper: ElementRef;
 
   setSearchFileType = (fileType) => (this.searchParam.fileType = fileType);
 
@@ -407,6 +414,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           thumbnailUrl: f.thumbnailUrl,
           fileKey: f.uuid,
           name: f.name,
+          parentFile: this.inDirFileKey,
         });
       }
     }
@@ -1418,6 +1426,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         thumbnailUrl: f.thumbnailUrl,
         fileKey: f.uuid,
         name: f.name,
+        parentFile: this.inDirFileKey,
       });
     } else {
       this.fileBookmark.del(f.uuid);
@@ -1426,16 +1435,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   showFileBookmark() {
-    this.dialog
-      .open(FileTrayComponent, {
-        width: "600px",
-        maxWidth: "90vw",
-        autoFocus: false,
-      })
-      .afterClosed()
-      .subscribe(() => {
-        setTimeout(() => this.fetchFileInfoList(), 300);
-      });
+    this.trayOpen = true;
+  }
+
+  onTrayClosed() {
+    this.trayOpen = false;
+    setTimeout(() => this.fetchFileInfoList(), 300);
   }
 
   onSearchNameKeyUp(event) {
@@ -1469,18 +1474,71 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /**
    * Handle drag-and-drop reorder
    */
-  onDrop(event: CdkDragDrop<FileInfo[]>) {
-    if (event.previousIndex === event.currentIndex) return;
+  onDrop(event: CdkDragDrop<FileInfo[] | any>) {
+    // Note: with sorting disabled, currentIndex === previousIndex always.
+    // Use dragOverIndex (tracked via cdkDragMoved) for actual drop position.
     if (this.isReordering) return;
 
     const movedFile = event.item.data;
 
-    // Compute neighbors using a copy to determine correct positions
-    const sorted = [...this.fileInfoList];
-    moveItemInArray(sorted, event.previousIndex, event.currentIndex);
-    const ni = event.currentIndex;
-    const afterFile = ni > 0 ? sorted[ni - 1] : null;
-    const beforeFile = ni < sorted.length - 1 ? sorted[ni + 1] : null;
+    // Check if this is a tray-sourced drop (TempFile has fileKey but no uuid)
+    if (movedFile.fileKey && !movedFile.uuid) {
+      // Tray-sourced drop
+      const tempFile = movedFile;
+
+      if (tempFile.parentFile !== this.inDirFileKey) {
+        this.snackBar.open("Cannot reorder: file does not belong to current directory", "ok", { duration: 4000 });
+        return;
+      }
+
+      const ni = event.currentIndex;
+      const afterFile = ni > 0 ? this.fileInfoList[ni - 1] : null;
+      const beforeFile = ni < this.fileInfoList.length ? this.fileInfoList[ni] : null;
+
+      this.isReordering = true;
+      this.http.post<any>('vfm/open/api/file/reorder', {
+        fileKey: tempFile.fileKey,
+        parentFile: this.inDirFileKey,
+        beforeKey: beforeFile ? beforeFile.uuid : '',
+        afterKey: afterFile ? afterFile.uuid : '',
+      }).subscribe({
+        next: (resp) => {
+          this.isReordering = false;
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.snackBar.open("File reordered successfully", "ok", { duration: 3000 });
+          this.fetchFileInfoList();
+        },
+        error: () => {
+          this.isReordering = false;
+          this.snackBar.open("Reorder failed, unknown error", "ok", { duration: 3000 });
+        }
+      });
+      return;
+    }
+
+    // Internal reorder (FileInfo)
+    // Sorting is disabled, so compute drop position from the last drag event's clientY.
+    if (this.lastDragClientY < 0) return;
+    const sourceIndex = event.previousIndex;
+    const dropIndex = this.computeDropIndex(this.lastDragClientY);
+    this.lastDragClientY = -1;
+    if (dropIndex < 0 || dropIndex === sourceIndex) return;
+
+    // Remove the dragged file from consideration
+    const withoutDragged = [...this.fileInfoList];
+    withoutDragged.splice(sourceIndex, 1);
+
+    // Convert dropIndex (original list position, includes source) to position without source
+    let insertIndex = dropIndex;
+    if (dropIndex > sourceIndex) {
+      insertIndex--;
+    }
+
+    const afterFile = insertIndex > 0 ? withoutDragged[insertIndex - 1] : null;
+    const beforeFile = insertIndex < withoutDragged.length ? withoutDragged[insertIndex] : null;
 
     this.isReordering = true;
     this.http.post<any>('vfm/open/api/file/reorder', {
@@ -1501,6 +1559,98 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         this.isReordering = false;
         this.snackBar.open("Reorder failed, unknown error", "ok", { duration: 3000 });
         this.fetchFileInfoList();
+      }
+    });
+  }
+
+  onCdkDragStarted(i: number) {
+    this.curr = null;
+    this.draggedRowIndex = i;
+  }
+
+  onCdkDragMoved(event: CdkDragMove, _row: FileInfo, _sourceIndex: number) {
+    this.dragOverIndex = this.computeDropIndex(event.pointerPosition.y);
+    this.lastDragClientY = event.pointerPosition.y;
+  }
+
+  computeDropIndex(pointerY: number): number {
+    const el = this.tableWrapper?.nativeElement as HTMLElement;
+    if (!el) return -1;
+    const rows = el.querySelectorAll('.file-row:not(.cdk-drag-placeholder)');
+    let targetIndex = this.fileInfoList.length;
+    for (let idx = 0; idx < rows.length; idx++) {
+      const r = rows[idx] as HTMLElement;
+      const rect = r.getBoundingClientRect();
+      if (pointerY < rect.top + rect.height / 2) {
+        targetIndex = idx;
+        break;
+      }
+    }
+    return targetIndex;
+  }
+
+  onCdkDragEnded() {
+    this.dragOverIndex = -1;
+    this.draggedRowIndex = -1;
+  }
+
+  onTrayDragOver(event: DragEvent) {
+    // Only handle our tray drags (they set JSON data in dataTransfer)
+    if (!event.dataTransfer || event.dataTransfer.types.indexOf('application/json') < 0) {
+      this.dragOverIndex = -1;
+      return;
+    }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    this.dragOverIndex = this.computeDropIndex(event.clientY);
+  }
+
+  onTrayDrop(event: DragEvent) {
+    if (!event.dataTransfer) return;
+    const raw = event.dataTransfer.getData('application/json');
+    if (!raw) return;
+    event.preventDefault();
+    this.dragOverIndex = -1;
+
+    if (this.orderBy !== 'custom') {
+      this.snackBar.open("Switch to custom sort mode to reorder files", "ok", { duration: 3000 });
+      return;
+    }
+    if (this.isReordering) return;
+
+    let tempFile: {fileKey: string, parentFile: string};
+    try { tempFile = JSON.parse(raw); } catch (e) { return; }
+
+    if (tempFile.parentFile !== this.inDirFileKey) {
+      this.snackBar.open("Cannot reorder: file does not belong to current directory", "ok", { duration: 4000 });
+      return;
+    }
+
+    const dropIndex = this.computeDropIndex(event.clientY);
+
+    // Compute beforeKey (file AFTER the moved file) and afterKey (file BEFORE the moved file)
+    const beforeFile = dropIndex < this.fileInfoList.length ? this.fileInfoList[dropIndex] : null;
+    const afterFile = dropIndex > 0 ? this.fileInfoList[dropIndex - 1] : null;
+
+    this.isReordering = true;
+    this.http.post<any>('vfm/open/api/file/reorder', {
+      fileKey: tempFile.fileKey,
+      parentFile: this.inDirFileKey,
+      beforeKey: beforeFile ? beforeFile.uuid : '',
+      afterKey: afterFile ? afterFile.uuid : '',
+    }).subscribe({
+      next: (resp) => {
+        this.isReordering = false;
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.snackBar.open("File reordered successfully", "ok", { duration: 3000 });
+        this.fetchFileInfoList();
+      },
+      error: () => {
+        this.isReordering = false;
+        this.snackBar.open("Reorder failed, unknown error", "ok", { duration: 3000 });
       }
     });
   }

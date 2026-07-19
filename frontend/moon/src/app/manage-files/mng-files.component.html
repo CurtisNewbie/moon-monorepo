@@ -179,12 +179,13 @@
     </div>
 
     <!-- table start -->
-    <div class="mb-2">
+    <div class="mb-2" #tableWrapper (dragover)="onTrayDragOver($event)" (drop)="onTrayDrop($event)">
         <table mat-table [dataSource]="fileInfoList" style="width: 100%; height: 70%;" multiTemplateDataRows
             cdkDropList
             [cdkDropListData]="fileInfoList"
             (cdkDropListDropped)="onDrop($event)"
             cdkDropListLockAxis="y"
+            [cdkDropListSortingDisabled]="true"
             [cdkDropListDisabled]="orderBy !== 'custom' || isReordering">
 
             <ng-container matColumnDef="dragHandle">
@@ -346,11 +347,15 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
             </tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = dataIndex" class="element-row file-row"
+                [class.drop-target-before]="dragOverIndex === i"
+                [class.dragging-source]="draggedRowIndex === i"
                 [class.expanded-row]="curr != null && row.id == curr.id"
                 [class.drag-enabled]="orderBy === 'custom'"
                 (click)="onRowClicked($event, row, i)"
                 cdkDrag
-                (cdkDragStarted)="curr = null"
+                (cdkDragStarted)="onCdkDragStarted(i)"
+                (cdkDragMoved)="onCdkDragMoved($event, row, i)"
+                (cdkDragEnded)="onCdkDragEnded()"
                 [cdkDragData]="row">
             </tr>
             <tr mat-row *matRowDef="let element; columns: ['expandedElement']" class="detail-row">
@@ -362,3 +367,5 @@
         (ready)="onPaginatorReady()"></app-controlled-paginator>
 
 </div>
+
+<app-file-tray *ngIf="trayOpen" (closed)="onTrayClosed()"></app-file-tray>

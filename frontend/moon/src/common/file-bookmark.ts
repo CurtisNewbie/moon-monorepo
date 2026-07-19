@@ -5,6 +5,7 @@ export interface TempFile {
   fileType?: string;
   fileKey?: string;
   name?: string;
+  parentFile?: string;
 }
 
 @Injectable({
