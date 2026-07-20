@@ -526,4 +526,20 @@ func init() {
 		Extra(miso.ExtraName, "ApiItnUpdateFileInfo").
 		Desc(`Internal endpoint. Update file info.`)
 
+	miso.HttpGet("/open/api/file/order-by-preference", miso.AutoHandler(
+		func(inb *miso.Inbound, req GetOrderByPreferenceReq) (OrderByPreferenceRes, error) {
+			return ApiGetOrderByPreference(inb.Rail(), inb.Rail().User(), req)
+		})).
+		Extra(miso.ExtraName, "ApiGetOrderByPreference").
+		Desc(`Get cached order-by preference for current user and directory`).
+		Resource(ResManageFiles)
+
+	miso.HttpPost("/open/api/file/order-by-preference", miso.AutoHandler(
+		func(inb *miso.Inbound, req OrderByPreferenceReq) (any, error) {
+			return nil, ApiSaveOrderByPreference(inb.Rail(), req, inb.Rail().User())
+		})).
+		Extra(miso.ExtraName, "ApiSaveOrderByPreference").
+		Desc(`Save order-by preference for current user (cached 30 days)`).
+		Resource(ResManageFiles)
+
 }

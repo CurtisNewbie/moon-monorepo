@@ -124,7 +124,7 @@
                     </mat-select>
                 </mat-form-field>
 
-                <mat-form-field style="width: 120px;">
+                <mat-form-field *ngIf="!currentDirIsComic" style="width: 120px;">
                     <mat-label>{{'manage-files' | trl:'sort'}}</mat-label>
                     <mat-select [(value)]="orderBy" (valueChange)="onOrderByChange()">
                         <mat-option value="time">{{'manage-files' | trl:'time'}}</mat-option>

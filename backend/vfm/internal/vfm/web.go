@@ -724,3 +724,31 @@ func ApiListDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]Dir
 func ApiReorderFile(rail miso.Rail, db *gorm.DB, req ReorderFileReq, user flow.User) error {
 	return ReorderFile(rail, db, req, user)
 }
+
+// Get cached order-by preference.
+//
+//   - misoapi-http: GET /open/api/file/order-by-preference
+//   - misoapi-desc: Get cached order-by preference for current user and directory
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiGetOrderByPreference(rail miso.Rail, user flow.User, req GetOrderByPreferenceReq) (OrderByPreferenceRes, error) {
+	orderBy, err := GetOrderByPreference(rail, user.UserNo, req.DirKey)
+	if err != nil {
+		return OrderByPreferenceRes{}, err
+	}
+	if orderBy == "" {
+		orderBy = SortByTime
+	}
+	return OrderByPreferenceRes{OrderBy: orderBy}, nil
+}
+
+// Save order-by preference.
+//
+//   - misoapi-http: POST /open/api/file/order-by-preference
+//   - misoapi-desc: Save order-by preference for current user and directory (cached 30 days)
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiSaveOrderByPreference(rail miso.Rail, req OrderByPreferenceReq, user flow.User) error {
+	if req.OrderBy == "" {
+		return nil
+	}
+	return SaveOrderByPreference(rail, user.UserNo, req.DirKey, req.OrderBy)
+}

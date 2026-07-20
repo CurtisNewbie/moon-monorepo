@@ -2622,7 +2622,6 @@ func bootstrapCustomOrder(rail miso.Rail, db *gorm.DB, parentFile string, user f
 	})
 }
 
-
 // assignSeqKeyForNewFile assigns a seq_key for a newly created file/dir
 // if its parent directory has custom ordering (checked via Redis flag).
 // The new file is placed at the BEGINNING of the list (before the current first file).
@@ -2801,4 +2800,39 @@ func ReorderFile(rail miso.Rail, db *gorm.DB, req ReorderFileReq, user flow.User
 
 	rail.Infof("File %v reordered: new seq_key=%v (afterKey=%v, beforeKey=%v)", req.FileKey, newKey, req.AfterKey, req.BeforeKey)
 	return nil
+}
+
+// ===== order-by preference cache =====
+
+type OrderByPreferenceReq struct {
+	OrderBy string `json:"orderBy"`
+	DirKey  string `json:"dirKey"`
+}
+
+type GetOrderByPreferenceReq struct {
+	DirKey string `form:"dirKey"`
+}
+
+type OrderByPreferenceRes struct {
+	OrderBy string `json:"orderBy"`
+}
+
+// SaveOrderByPreference caches the order-by preference for a user+directory, expires in 30 days.
+func SaveOrderByPreference(rail miso.Rail, userNo string, dirKey string, orderBy string) error {
+	key := "vfm:orderby:" + userNo + ":" + dirKey
+	return redis.Set(rail, key, orderBy, 30*24*time.Hour)
+}
+
+// GetOrderByPreference retrieves the cached order-by preference for a user+directory.
+// Returns empty string if not found or expired.
+func GetOrderByPreference(rail miso.Rail, userNo string, dirKey string) (string, error) {
+	key := "vfm:orderby:" + userNo + ":" + dirKey
+	val, err := redis.GetStr(key)
+	if err != nil {
+		if redis.IsNil(err) {
+			return "", nil
+		}
+		return "", err
+	}
+	return val, nil
 }

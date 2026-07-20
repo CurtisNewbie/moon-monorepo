@@ -168,6 +168,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inDirFileName: string = null;
   /** the file key of the directory that we are currently in */
   inDirFileKey: string = null;
+  /** whether the current directory is marked as comic */
+  currentDirIsComic: boolean = false;
+  /** cache of directory comic status from navigation history */
+  dirComicCache: { [fileKey: string]: boolean } = {};
 
   /** whether we are making directory */
   makingDir: boolean = false;
@@ -291,9 +295,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       // directory
       this.inDirFileKey = params.get("parentDirKey");
       if (this.inDirFileKey) {
+        this.currentDirIsComic = params.get("parentDirComic") === "true";
         this.fetchBottomUpDirTree(this.inDirFileKey);
       } else {
         this.inDirFileName = "";
+        this.currentDirIsComic = false;
+      }
+
+      // fetch cached orderBy preference from backend for non-comic dirs
+      if (!ob && !this.currentDirIsComic && !this.inFolderNo) {
+        this.fetchOrderByPreference();
       }
 
       // if we are already in a directory, by default we upload to current directory
@@ -449,22 +460,22 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   // Go to dir, i.e., list files under the directory
-  goToDir(fileKey) {
+  goToDir(fileKey: string, isComic: boolean = false) {
     this.expandUploadPanel = false;
     this.curr = null;
     this.resetSearchParam(false, false);
     this.nav.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: fileKey, orderBy: this.orderBy },
+      { parentDirKey: fileKey, parentDirComic: isComic },
     ]);
   }
 
-  goToDirAtPage(fileKey: string, page: number) {
+  goToDirAtPage(fileKey: string, page: number, isComic: boolean = false) {
     this.expandUploadPanel = false;
     this.curr = null;
     this.searchParam = {};
     this.targetPage = page;
     this.nav.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: fileKey, orderBy: this.orderBy },
+      { parentDirKey: fileKey, parentDirComic: isComic },
     ]);
   }
 
@@ -607,7 +618,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             return;
           }
           if (resp.data) {
-            this.goToDir(resp.data.fileKey);
+            this.goToDir(resp.data.fileKey, this.dirComicCache[resp.data.fileKey] || false);
           } else {
             this.nav.navigateTo(NavType.MANAGE_FILES, []);
           }
@@ -1301,7 +1312,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     if (row.isDir) {
-      this.goToDir(row.uuid);
+      this.dirComicCache[row.uuid] = row.isComic;
+      this.goToDir(row.uuid, row.isComic);
       return;
     }
     if (row.isDisplayable) {
@@ -1659,7 +1671,24 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
    * Called when orderBy dropdown value changes
    */
   onOrderByChange() {
+    if (!this.currentDirIsComic && !this.inFolderNo) {
+      this.http.post('vfm/open/api/file/order-by-preference', {
+        orderBy: this.orderBy,
+        dirKey: this.inDirFileKey || '',
+      }).subscribe();
+    }
     this.fetchFileInfoList();
+  }
+
+  private fetchOrderByPreference(): void {
+    const dirKey = encodeURIComponent(this.inDirFileKey || '');
+    this.http.get<any>(`vfm/open/api/file/order-by-preference?dirKey=${dirKey}`).subscribe({
+      next: (resp) => {
+        if (!resp.error && resp.data?.orderBy) {
+          this.orderBy = resp.data.orderBy;
+        }
+      },
+    });
   }
 
   trl(k) {
