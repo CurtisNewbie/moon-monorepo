@@ -1581,7 +1581,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     for (let idx = 0; idx < rows.length; idx++) {
       const r = rows[idx] as HTMLElement;
       const rect = r.getBoundingClientRect();
-      if (pointerY < rect.top + rect.height / 2) {
+      if (pointerY < rect.top + rect.height * 0.1) {
         targetIndex = idx;
         break;
       }
