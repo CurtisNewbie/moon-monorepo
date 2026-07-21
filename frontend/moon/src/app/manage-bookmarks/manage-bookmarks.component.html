@@ -6,7 +6,7 @@
     <h5>{{'manage-bookmarks' | trl:'uploadBookmarkFiles'}}</h5>
     <div class="input-group input-group-lg mt-1 mb-1">
         <input type="file" class="form-control darkmode" #uploadFileInput
-            (change)="onFileSelected($event.target.files)" />
+            (change)="onFileSelected($any($event.target).files)" />
     </div>
 
     <div class="d-grid gap-2 d-flex justify-content-end m-3">

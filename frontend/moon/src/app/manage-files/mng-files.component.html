@@ -33,7 +33,7 @@
 
             <div class="input-group input-group-lg mt-1 mb-1">
                 <input type="file" class="form-control darkmode" #uploadFileInput
-                    (change)="onFileSelected($event.target.files)" aria-describedby="basic-addon1" multiple
+                    (change)="onFileSelected($any($event.target).files)" aria-describedby="basic-addon1" multiple
                     [disabled]="isUploading">
             </div>
 
@@ -264,19 +264,19 @@
                             [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''" matBadgeColor="warn"
                             matBadgeOverlap="true" matBadgeSize="small"
                             [matTooltip]="'manage-files' | trl:'bookmarkFileForBatchOp'"
-                            matTooltipShowDelay="1000" (click)=" $event.stopPropagation() || bookmarkFile(f)"><i
+                            matTooltipShowDelay="1000" (click)=" $any($event).stopPropagation() || bookmarkFile(f)"><i
                                 class="bi icon-button-large"
                                 [class]="this.fileBookmark.has(f.uuid) ? 'bi-bag-x': 'bi-bag-plus'"></i></button>
 
                         <button class="icon-button-large" mat-icon-button matTooltipShowDelay="500"
-                            (click)="$event.stopPropagation() || selectExpanded(f)">
+                            (click)="$any($event).stopPropagation() || selectExpanded(f)">
                             <i class="bi bi-gear"></i>
                         </button>
                     </ng-container>
 
                     <ng-container *ngIf="f.isFile">
                         <button class="icon-button-large" mat-icon-button
-                            (click)="$event.stopPropagation() || jumpToDownloadUrl(f.uuid)">
+                            (click)="$any($event).stopPropagation() || jumpToDownloadUrl(f.uuid)">
                             <i class="bi bi-cloud-download"></i>
                         </button>
                     </ng-container>

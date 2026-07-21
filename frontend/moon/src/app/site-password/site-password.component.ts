@@ -413,7 +413,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
             <button
               class="small-btn m-2"
               mat-raised-button
-              (click)="$event.stopPropagation() || removeSitePassword(u)"
+              (click)="$any($event).stopPropagation() || removeSitePassword(u)"
             >
               Remove
             </button>
@@ -421,7 +421,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
             <button
               class="small-btn m-2"
               mat-raised-button
-              (click)="$event.stopPropagation() || edit(u)"
+              (click)="$any($event).stopPropagation() || edit(u)"
             >
               Edit
             </button>
@@ -432,7 +432,7 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
         <tr
           mat-row
           *matRowDef="let row; columns: col"
-          (click)="$event.stopPropagation() || preview(row)"
+          (click)="$any($event).stopPropagation() || preview(row)"
         ></tr>
       </table>
 

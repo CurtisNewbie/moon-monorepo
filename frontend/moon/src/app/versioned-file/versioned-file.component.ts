@@ -175,7 +175,7 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
             <button
               class="small-btn m-2"
               mat-raised-button
-              (click)="$event.stopPropagation() || jumpToDownloadUrl(f.fileKey)"
+              (click)="$any($event).stopPropagation() || jumpToDownloadUrl(f.fileKey)"
             >
               <i class="bi icon-button-large bi-cloud-download"> </i>
             </button>
@@ -364,7 +364,7 @@ export interface ApiListVerFileRes {
           type="file"
           class="form-control darkmode"
           #uploadFileInput
-          (change)="onFileSelected($event.target.files)"
+          (change)="onFileSelected($any($event.target).files)"
           aria-describedby="basic-addon1"
           [disabled]="isUploading"
         />
@@ -473,21 +473,21 @@ export interface ApiListVerFileRes {
             <button
               mat-raised-button
               class="m-2"
-              (click)="$event.stopPropagation() || selectVerFile(f)"
+              (click)="$any($event).stopPropagation() || selectVerFile(f)"
             >
               Update
             </button>
             <button
               mat-raised-button
               class="m-2"
-              (click)="$event.stopPropagation() || showVerFileHistory(f)"
+              (click)="$any($event).stopPropagation() || showVerFileHistory(f)"
             >
               History
             </button>
             <button
               mat-raised-button
               class="m-2"
-              (click)="$event.stopPropagation() || deleteVerFile(f)"
+              (click)="$any($event).stopPropagation() || deleteVerFile(f)"
             >
               Delete
             </button>

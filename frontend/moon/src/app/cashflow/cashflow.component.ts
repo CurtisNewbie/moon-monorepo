@@ -45,7 +45,7 @@ export interface ListCashFlowRes {
         <input
           type="file"
           class="form-control darkmode"
-          (change)="onFileSelected($event.target.files)"
+          (change)="onFileSelected($any($event.target).files)"
         />
       </div>
 
