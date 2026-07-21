@@ -1,0 +1,4 @@
+{
+  "typescript.tsdk": "frontend/moon/node_modules/typescript/lib",
+  "js/ts.tsdk.path": "frontend/moon/node_modules/typescript/lib"
+}
