@@ -205,7 +205,7 @@
             <ng-container matColumnDef="thumbnail">
                 <th mat-header-cell *matHeaderCellDef> <b>{{'manage-files' | trl:'preview'}}</b> </th>
                 <td mat-cell *matCellDef="let f"
-                    [appImageTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((f.isDir && dirThumbnailCache.has(f.uuid)) || (f.isFile && f.thumbnailUrl) ? '' : null) : null"
+                    [appImageTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((f.isDir && dirThumbnailCache.has(f.uuid)) || (f.isFile && f.thumbnailUrl) ? '' : '') : ''"
                     [imageUrl]="enableThumbnailTooltip && !env.isMobile() ? (f.isDir ? dirThumbnailCache.get(f.uuid) : (f.isFile ? f.thumbnailUrl : null)) : null"
                     [matTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((f.isDir && !dirThumbnailCache.has(f.uuid)) ? 'Open \'' + f.name +'\'' : (f.isFile && !f.thumbnailUrl ? (f.isDisplayable ? 'Preview \'' + f.name + '\'' : '') : '')) : ''"
                     matTooltipShowDelay="200">
