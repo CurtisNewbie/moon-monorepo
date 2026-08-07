@@ -114,6 +114,10 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
 import { ImageTooltipDirective } from "./shared/directives/image-tooltip.directive";
 import { GalleryWatchComponent } from './gallery-watch/gallery-watch.component';
 import { WatchedGalleryComponent } from './watched-gallery/watched-gallery.component';
+import {
+  FapeGalleryComponent,
+  TriggerFapeGalleryDialogComponent,
+} from './fape-gallery/fape-gallery.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -181,6 +185,8 @@ PlotlyModule.plotlyjs = PlotlyJS;
     DocxPreviewComponent,
     GalleryWatchComponent,
     WatchedGalleryComponent,
+    FapeGalleryComponent,
+    TriggerFapeGalleryDialogComponent,
   ],
   imports: [
     PlotlyModule,
@@ -223,6 +229,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     ShowNotificationDialogComponent,
     UpdateDroneTaskDialogComponent,
     ResolveDroneTaskDialogComponent,
+    TriggerFapeGalleryDialogComponent,
   ],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy },

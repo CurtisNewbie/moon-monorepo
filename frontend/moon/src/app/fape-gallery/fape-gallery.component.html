@@ -1,0 +1,92 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mt-2 mb-0">{{'fape-gallery' | trl:'heading'}}</h3>
+    <button mat-raised-button (click)="toggleCreatePanel()">
+        {{'fape-gallery' | trl:'createGallery'}}
+    </button>
+</div>
+
+<div class="mt-3 mb-5 mat-elevation-z8 p-3" *ngIf="showCreatePanel">
+    <h4 class="mt-2 mb-3">{{'fape-gallery' | trl:'createGallery'}}</h4>
+    <mat-form-field style="width: 100%;">
+        <mat-label>{{'fape-gallery' | trl:'name'}}</mat-label>
+        <input matInput type="text" [(ngModel)]="createGalleryReq.name" />
+    </mat-form-field>
+    <mat-form-field style="width: 100%;">
+        <mat-label>{{'fape-gallery' | trl:'maxPagesOptional'}}</mat-label>
+        <input matInput type="number" [(ngModel)]="createGalleryReq.maxPages" />
+    </mat-form-field>
+    <mat-form-field style="width: 100%;">
+        <mat-label>{{'fape-gallery' | trl:'parentDirectory'}}</mat-label>
+        <input matInput readonly [ngModel]="createDirName" />
+    </mat-form-field>
+    <div class="ms-3">
+        <app-dir-tree-nav [title]="'fape-gallery' | trl:'directoryTree'"
+            [prevSelectedFileKey]="prevSelectedFileKey" (selected)="selectDir($event)">
+        </app-dir-tree-nav>
+    </div>
+    <div class="justify-content-end d-flex">
+        <button mat-raised-button class="mt-2" (click)="createGallery()">
+            {{'fape-gallery' | trl:'create'}}
+        </button>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap justify-content-end mb-2">
+    <button mat-icon-button class="m-1 icon-button-large" (click)="listGalleries()">
+        <i class="bi bi-arrow-clockwise"></i>
+    </button>
+</div>
+
+<div class="mt-3 mb-5">
+    <table mat-table [dataSource]="galleries" class="mb-4" style="width: 100%;">
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>{{'fape-gallery' | trl:'name'}}</th>
+            <td mat-cell *matCellDef="let u" class="name-cell">{{u.name}}</td>
+        </ng-container>
+        <ng-container matColumnDef="dirFileKey">
+            <th mat-header-cell *matHeaderCellDef>{{'fape-gallery' | trl:'dirFileKey'}}</th>
+            <td mat-cell *matCellDef="let u" class="key-cell">{{u.dirFileKey}}</td>
+        </ng-container>
+        <ng-container matColumnDef="enabled">
+            <th mat-header-cell *matHeaderCellDef>{{'fape-gallery' | trl:'enabled'}}</th>
+            <td mat-cell *matCellDef="let u">
+                <button mat-icon-button class="m-1 icon-button-large"
+                        [matTooltip]="u.enabled ? ('fape-gallery' | trl:'enabled') : ('fape-gallery' | trl:'disabled')"
+                        (click)="toggleGalleryEnabled(u)">
+                    <i [ngClass]="u.enabled ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+                </button>
+            </td>
+        </ng-container>
+        <ng-container matColumnDef="maxPages">
+            <th mat-header-cell *matHeaderCellDef>{{'fape-gallery' | trl:'maxPages'}}</th>
+            <td mat-cell *matCellDef="let u">{{u.maxPages}}</td>
+        </ng-container>
+        <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>{{'fape-gallery' | trl:'createdAt'}}</th>
+            <td mat-cell *matCellDef="let u">{{u.createdAt | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+        </ng-container>
+        <ng-container matColumnDef="operation">
+            <th mat-header-cell *matHeaderCellDef>{{'fape-gallery' | trl:'operation'}}</th>
+            <td mat-cell *matCellDef="let u">
+                <div class="d-flex gap-2 flex-wrap">
+                <button class="mat-raised-button small-btn" (click)="gotoDir(u)">
+                    {{'fape-gallery' | trl:'open'}}
+                </button>
+                <button class="mat-raised-button small-btn" (click)="clickTrigger(u)">
+                    {{'fape-gallery' | trl:'trigger'}}
+                </button>
+                <button class="mat-raised-button small-btn" (click)="deleteGallery(u)">
+                    {{'fape-gallery' | trl:'delete'}}
+                </button>
+                </div>
+            </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="headers"></tr>
+        <tr mat-row *matRowDef="let row; columns: headers"></tr>
+    </table>
+    <div *ngIf="galleries.length === 0" class="text-muted text-center mt-3 mb-3">
+        {{'fape-gallery' | trl:'noGalleries'}}
+    </div>
+</div>
+
+<app-controlled-paginator (pageChanged)="onPageChanged()"></app-controlled-paginator>

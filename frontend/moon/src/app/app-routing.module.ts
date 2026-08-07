@@ -35,6 +35,7 @@ import { EventPumpDashboardComponent } from "./event-pump-dashboard/event-pump-d
 import { DroneTaskComponent } from "./drone-task/drone-task.component";
 import { GalleryWatchComponent } from "./gallery-watch/gallery-watch.component";
 import { WatchedGalleryComponent } from "./watched-gallery/watched-gallery.component";
+import { FapeGalleryComponent } from './fape-gallery/fape-gallery.component';
 import { MngNoteComponent } from "./mng-note/mng-note.component";
 import { DocxPreviewComponent } from "./docx-preview-comp/docx-preview.component";
 
@@ -173,6 +174,7 @@ const routes: Routes = [
   },
   { path: "gallery-watch/galleries", component: WatchedGalleryComponent },
   { path: "gallery-watch", component: GalleryWatchComponent },
+  { path: 'fape-gallery', component: FapeGalleryComponent },
   { path: "note", component: MngNoteComponent, },
   { path: "docx-viewer", component: DocxPreviewComponent },
   { path: "**", redirectTo: "/" + NavType.USER_DETAILS },
