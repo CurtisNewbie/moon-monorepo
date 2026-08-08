@@ -133,6 +133,14 @@
                     </mat-select>
                 </mat-form-field>
 
+                <mat-form-field *ngIf="!currentDirIsComic && orderBy !== 'custom'" style="width: 100px;">
+                    <mat-label>{{'manage-files' | trl:'orderDir'}}</mat-label>
+                    <mat-select [(value)]="orderByDir" (valueChange)="onOrderByDirChange()">
+                        <mat-option value="desc">{{'manage-files' | trl:'desc'}}</mat-option>
+                        <mat-option value="asc">{{'manage-files' | trl:'asc'}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
                 <mat-checkbox *ngIf="!env.isMobile()" [(ngModel)]="enableThumbnailTooltip">
                     {{'manage-files' | trl:'thumbnailTooltip'}}</mat-checkbox>
             </ng-container>

@@ -738,7 +738,18 @@ func ApiGetOrderByPreference(rail miso.Rail, user flow.User, req GetOrderByPrefe
 	if orderBy == "" {
 		orderBy = SortByTime
 	}
-	return OrderByPreferenceRes{OrderBy: orderBy}, nil
+	orderDir, err := GetOrderDirPreference(rail, user.UserNo, req.DirKey)
+	if err != nil {
+		return OrderByPreferenceRes{}, err
+	}
+	if orderDir == "" {
+		if orderBy == SortByName {
+			orderDir = "asc"
+		} else {
+			orderDir = "desc"
+		}
+	}
+	return OrderByPreferenceRes{OrderBy: orderBy, OrderDir: orderDir}, nil
 }
 
 // Save order-by preference.
@@ -750,5 +761,13 @@ func ApiSaveOrderByPreference(rail miso.Rail, req OrderByPreferenceReq, user flo
 	if req.OrderBy == "" {
 		return nil
 	}
-	return SaveOrderByPreference(rail, user.UserNo, req.DirKey, req.OrderBy)
+	if err := SaveOrderByPreference(rail, user.UserNo, req.DirKey, req.OrderBy); err != nil {
+		return err
+	}
+	if req.OrderDir != "" {
+		if err := SaveOrderDirPreference(rail, user.UserNo, req.DirKey, req.OrderDir); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -126,6 +126,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
   orderBy: string = 'time';
+  orderByDir: string = 'desc';
   isReordering: boolean = false;
   trayOpen: boolean = false;
   dragOverIndex: number = -1;
@@ -272,6 +273,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       let ob = params.get("orderBy");
       if (ob) {
         this.orderBy = ob;
+        this.orderByDir = ob === 'name' ? 'asc' : 'desc';
       }
 
       const targetPageParam = params.get("targetPage");
@@ -323,6 +325,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             parentFile: parentFile,
             limit: this.pagingController.paging.limit,
             orderBy: this.orderBy,
+            orderDir: this.orderByDir,
           }).subscribe(resp => {
             const page = resp.data?.page || 1;
             this.pagingController.paging.page = page;
@@ -357,6 +360,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 parentFile: this.inDirFileKey,
                 limit: this.pagingController.paging.limit,
                 orderBy: this.orderBy,
+                orderDir: this.orderByDir,
               }).subscribe(posResp => {
                 const savedPage = posResp.data?.page || 1;
                 if (savedPage > 1) {
@@ -492,6 +496,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         fileType: this.searchParam.fileType,
         sensitive: this.inSensitiveMode,
         orderBy: this.orderBy,
+        orderDir: this.orderByDir,
         fileKey: this.searchParam.fileKey,
       })
       .subscribe({
@@ -657,6 +662,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 parentFile: parentFileKey,
                 limit: this.pagingController.paging.limit,
                 orderBy: this.orderBy,
+                orderDir: this.orderByDir,
               };
               if (this.searchParam.fileType) body.fileType = this.searchParam.fileType;
 
@@ -1671,9 +1677,32 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
    * Called when orderBy dropdown value changes
    */
   onOrderByChange() {
+    if (this.orderBy === 'name') {
+      this.orderByDir = 'asc';
+    } else if (this.orderBy === 'time') {
+      this.orderByDir = 'desc';
+    }
+    if (!this.currentDirIsComic && !this.inFolderNo) {
+      const body: any = {
+        orderBy: this.orderBy,
+        dirKey: this.inDirFileKey || '',
+      };
+      if (this.orderBy !== 'custom') {
+        body.orderDir = this.orderByDir;
+      }
+      this.http.post('vfm/open/api/file/order-by-preference', body).subscribe();
+    }
+    this.fetchFileInfoList();
+  }
+
+  /**
+   * Called when order direction dropdown value changes
+   */
+  onOrderByDirChange() {
     if (!this.currentDirIsComic && !this.inFolderNo) {
       this.http.post('vfm/open/api/file/order-by-preference', {
         orderBy: this.orderBy,
+        orderDir: this.orderByDir,
         dirKey: this.inDirFileKey || '',
       }).subscribe();
     }
@@ -1686,6 +1715,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       next: (resp) => {
         if (!resp.error && resp.data?.orderBy) {
           this.orderBy = resp.data.orderBy;
+        }
+        if (!resp.error && resp.data?.orderDir) {
+          this.orderByDir = resp.data.orderDir;
         }
       },
     });

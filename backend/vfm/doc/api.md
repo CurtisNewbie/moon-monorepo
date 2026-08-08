@@ -61,6 +61,8 @@
 - [GET /history/dir/last-page](#get-historydirlast-page)
 - [GET /history/list-dir-browse](#get-historylist-dir-browse)
 - [POST /open/api/file/reorder](#post-openapifilereorder)
+- [GET /open/api/file/order-by-preference](#get-openapifileorder-by-preference)
+- [POST /open/api/file/order-by-preference](#post-openapifileorder-by-preference)
 - [POST /internal/v1/file/create](#post-internalv1filecreate)
 - [GET /internal/file/upload/duplication/preflight](#get-internalfileuploadduplicationpreflight)
 - [POST /internal/file/check-access](#post-internalfilecheck-access)
@@ -236,6 +238,7 @@
     - "limit": (int) 
     - "orderByName": (bool) 
     - "orderBy": (string) 
+    - "orderDir": (string) 
     - "fileType": (string) 
 - JSON Response:
     - "errorCode": (string) error code
@@ -247,7 +250,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/position' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","fileType":"","limit":0,"orderBy":"","orderByName":false,"parentFile":""}'
+    -d '{"fileKey":"","fileType":"","limit":0,"orderBy":"","orderByName":false,"orderDir":"","parentFile":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -258,6 +261,7 @@
   	Limit int `json:"limit"`
   	OrderByName bool `json:"orderByName"`
   	OrderBy string `json:"orderBy"`
+  	OrderDir string `json:"orderDir"`
   	FileType string `json:"fileType"`
   }
 
@@ -287,6 +291,7 @@
     limit?: number;
     orderByName?: boolean;
     orderBy?: string;
+    orderDir?: string;
     fileType?: string;
   }
 
@@ -686,6 +691,7 @@
     - "fileKey": (*string) 
     - "orderByName": (bool) deprecated, use OrderBy instead
     - "orderBy": (string) 
+    - "orderDir": (string) sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -713,7 +719,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/open/api/file/list' \
     -H 'Content-Type: application/json' \
-    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","orderBy":"","orderByName":false,"paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
+    -d '{"fileKey":"","fileType":"","filename":"","folderNo":"","orderBy":"","orderByName":false,"orderDir":"","paging":{"limit":0,"page":0,"total":0},"parentFile":"","sensitive":false}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -728,6 +734,7 @@
   	FileKey *string `json:"fileKey"`
   	OrderByName bool `json:"orderByName"` // deprecated, use OrderBy instead
   	OrderBy string `json:"orderBy"`
+  	OrderDir string `json:"orderDir"` // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
   }
 
 
@@ -773,6 +780,7 @@
     fileKey?: string;
     orderByName?: boolean;         // deprecated, use OrderBy instead
     orderBy?: string;
+    orderDir?: string;             // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
   }
 
   export interface Paging {
@@ -5436,6 +5444,173 @@
   reorderFile() {
     let req: ReorderFileReq | null = null;
     this.http.post<any>(`/vfm/open/api/file/reorder`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /open/api/file/order-by-preference
+
+- Description: Get cached order-by preference for current user and directory
+- Bound to Resource: `"manage-files"`
+- Query Parameter:
+  - "dirKey": 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (OrderByPreferenceRes) response data
+      - "orderBy": (string) 
+      - "orderDir": (string) 
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8086/open/api/file/order-by-preference?dirKey='
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type OrderByPreferenceRes struct {
+  	OrderBy string `json:"orderBy"`
+  	OrderDir string `json:"orderDir"`
+  }
+
+  // Get cached order-by preference for current user and directory
+  func ApiGetOrderByPreference(rail miso.Rail, dirKey string) (OrderByPreferenceRes, error) {
+  	var res miso.GnResp[OrderByPreferenceRes]
+  	err := miso.NewDynClient(rail, "/open/api/file/order-by-preference", "vfm").
+  		AddQuery("dirKey", dirKey).
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		var dat OrderByPreferenceRes
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: OrderByPreferenceRes;
+  }
+
+  export interface OrderByPreferenceRes {
+    orderBy?: string;
+    orderDir?: string;
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  getOrderByPreference() {
+    let dirKey: any | null = null;
+    this.http.get<any>(`/vfm/open/api/file/order-by-preference?dirKey=${dirKey}`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: OrderByPreferenceRes = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /open/api/file/order-by-preference
+
+- Description: Save order-by preference for current user and directory (cached 30 days)
+- Bound to Resource: `"manage-files"`
+- JSON Request:
+    - "orderBy": (string) 
+    - "orderDir": (string) 
+    - "dirKey": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8086/open/api/file/order-by-preference' \
+    -H 'Content-Type: application/json' \
+    -d '{"dirKey":"","orderBy":"","orderDir":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type OrderByPreferenceReq struct {
+  	OrderBy string `json:"orderBy"`
+  	OrderDir string `json:"orderDir"`
+  	DirKey string `json:"dirKey"`
+  }
+
+  // Save order-by preference for current user and directory (cached 30 days)
+  func ApiSaveOrderByPreference(rail miso.Rail, req OrderByPreferenceReq) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/open/api/file/order-by-preference", "vfm").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		return err
+  	}
+  	return nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface OrderByPreferenceReq {
+    orderBy?: string;
+    orderDir?: string;
+    dirKey?: string;
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  saveOrderByPreference() {
+    let req: OrderByPreferenceReq | null = null;
+    this.http.post<any>(`/vfm/open/api/file/order-by-preference`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

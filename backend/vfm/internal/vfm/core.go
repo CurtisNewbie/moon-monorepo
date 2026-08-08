@@ -257,6 +257,7 @@ type ListFileReq struct {
 	FileKey     *string     `json:"fileKey"`
 	OrderByName bool        `json:"orderByName" desc:"deprecated, use OrderBy instead"`
 	OrderBy     string      `json:"orderBy"` // SortByTime (default), SortByName, SortByCustom
+	OrderDir    string      `json:"orderDir" desc:"sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)"`
 }
 
 type FilePositionReq struct {
@@ -265,6 +266,7 @@ type FilePositionReq struct {
 	Limit       int    `json:"limit"`
 	OrderByName bool   `json:"orderByName"` // deprecated, use OrderBy instead
 	OrderBy     string `json:"orderBy"`     // "time" (default), "name", "custom"
+	OrderDir    string `json:"orderDir"`    // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
 	FileType    string `json:"fileType"`
 }
 
@@ -295,8 +297,8 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (mi
 	if req.FolderNo != nil && *req.FolderNo != "" {
 		res, e = listFilesInVFolder(rail, db, req.Page, *req.FolderNo, user)
 	} else {
-		// force order by name for comic directories in default/time mode
-		if req.OrderBy == SortByTime || req.OrderBy == "" {
+		// force order by name for comic directories (except custom ordering)
+		if req.OrderBy == SortByTime || req.OrderBy == "" || req.OrderBy == SortByName {
 			if req.ParentFile != nil && *req.ParentFile != "" {
 				parent, ok, err := findFile(rail, db, *req.ParentFile)
 				if err != nil {
@@ -304,6 +306,7 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (mi
 				}
 				if ok && parent.FileType == FileTypeDir && parent.IsComic {
 					req.OrderBy = SortByName
+					req.OrderDir = "" // comic dirs keep default name-asc behavior
 				}
 			}
 		}
@@ -375,7 +378,11 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 			case SortByCustom:
 				q = q.Order("fi.seq_key COLLATE utf8mb4_bin asc, fi.file_type asc, fi.id desc")
 			case SortByName:
-				q = q.Order("fi.name asc")
+				if req.OrderDir == "desc" {
+					q = q.Order("fi.name desc")
+				} else {
+					q = q.Order("fi.name asc")
+				}
 			default: // SortByTime or empty
 				// ordering will be set below based on filename presence
 			}
@@ -396,11 +403,19 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 			if req.Filename != nil && *req.Filename != "" {
 				q = q.Where("match(fi.name) against (? IN NATURAL LANGUAGE MODE)", req.Filename)
 				if req.OrderBy == "" || req.OrderBy == SortByTime {
-					q = q.Order("fi.id desc")
+					if req.OrderDir == "asc" {
+						q = q.Order("fi.id asc")
+					} else {
+						q = q.Order("fi.id desc")
+					}
 				}
 			} else {
 				if req.OrderBy == "" || req.OrderBy == SortByTime {
-					q = q.Order("fi.file_type asc, fi.id desc")
+					if req.OrderDir == "asc" {
+						q = q.Order("fi.file_type asc, fi.id asc")
+					} else {
+						q = q.Order("fi.file_type asc, fi.id desc")
+					}
 				}
 			}
 
@@ -424,11 +439,15 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		orderBy = SortByName
 	}
 
-	// force name ordering for comic directories in default/time mode
-	if (orderBy == SortByTime || orderBy == "") && req.ParentFile != "" {
+	// sort direction, empty means default (time: desc, name: asc)
+	orderDir := req.OrderDir
+
+	// force name ordering for comic directories (except custom ordering)
+	if (orderBy == SortByTime || orderBy == "" || orderBy == SortByName) && req.ParentFile != "" {
 		parent, ok, err := findFile(rail, db, req.ParentFile)
 		if err == nil && ok && parent.FileType == FileTypeDir && parent.IsComic {
 			orderBy = SortByName
+			orderDir = "" // comic dirs keep default name-asc behavior
 		}
 	}
 
@@ -455,11 +474,19 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		// sort: fi.seq_key asc → rows before have seq_key < target seq_key
 		q = q.Where("fi.seq_key COLLATE utf8mb4_bin < ?", f.SeqKey)
 	case SortByName:
-		// sort: fi.name asc → rows before have name < targetName
-		q = q.Where("fi.name < ?", f.Name)
+		// sort: fi.name asc → rows before have name < targetName; desc → rows before have name > targetName
+		if orderDir == "desc" {
+			q = q.Where("fi.name > ?", f.Name)
+		} else {
+			q = q.Where("fi.name < ?", f.Name)
+		}
 	default:
-		// default: fi.file_type asc, fi.id desc
-		q = q.Where("(fi.file_type < ? OR (fi.file_type = ? AND fi.id > ?))", f.FileType, f.FileType, f.Id)
+		// default: fi.file_type asc, fi.id desc → rows before have file_type < or (file_type = and id >); asc → id <
+		if orderDir == "asc" {
+			q = q.Where("(fi.file_type < ? OR (fi.file_type = ? AND fi.id < ?))", f.FileType, f.FileType, f.Id)
+		} else {
+			q = q.Where("(fi.file_type < ? OR (fi.file_type = ? AND fi.id > ?))", f.FileType, f.FileType, f.Id)
+		}
 	}
 
 	count, err := q.Count()
@@ -2805,8 +2832,9 @@ func ReorderFile(rail miso.Rail, db *gorm.DB, req ReorderFileReq, user flow.User
 // ===== order-by preference cache =====
 
 type OrderByPreferenceReq struct {
-	OrderBy string `json:"orderBy"`
-	DirKey  string `json:"dirKey"`
+	OrderBy  string `json:"orderBy"`
+	OrderDir string `json:"orderDir"`
+	DirKey   string `json:"dirKey"`
 }
 
 type GetOrderByPreferenceReq struct {
@@ -2814,7 +2842,8 @@ type GetOrderByPreferenceReq struct {
 }
 
 type OrderByPreferenceRes struct {
-	OrderBy string `json:"orderBy"`
+	OrderBy  string `json:"orderBy"`
+	OrderDir string `json:"orderDir"`
 }
 
 // SaveOrderByPreference caches the order-by preference for a user+directory, expires in 30 days.
@@ -2827,6 +2856,26 @@ func SaveOrderByPreference(rail miso.Rail, userNo string, dirKey string, orderBy
 // Returns empty string if not found or expired.
 func GetOrderByPreference(rail miso.Rail, userNo string, dirKey string) (string, error) {
 	key := "vfm:orderby:" + userNo + ":" + dirKey
+	val, err := redis.GetStr(key)
+	if err != nil {
+		if redis.IsNil(err) {
+			return "", nil
+		}
+		return "", err
+	}
+	return val, nil
+}
+
+// SaveOrderDirPreference caches the sort-direction preference for a user+directory, expires in 30 days.
+func SaveOrderDirPreference(rail miso.Rail, userNo string, dirKey string, orderDir string) error {
+	key := "vfm:orderdir:" + userNo + ":" + dirKey
+	return redis.Set(rail, key, orderDir, 30*24*time.Hour)
+}
+
+// GetOrderDirPreference retrieves the cached sort-direction preference for a user+directory.
+// Returns empty string if not found or expired.
+func GetOrderDirPreference(rail miso.Rail, userNo string, dirKey string) (string, error) {
+	key := "vfm:orderdir:" + userNo + ":" + dirKey
 	val, err := redis.GetStr(key)
 	if err != nil {
 		if redis.IsNil(err) {
