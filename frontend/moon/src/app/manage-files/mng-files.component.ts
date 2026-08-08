@@ -259,7 +259,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   parseRouteParam() {
-    this.route.paramMap.subscribe((params) => {
+    this.route.paramMap.subscribe(async (params) => {
       // vfolder
       this.inFolderNo = params.get("folderNo");
       this.inFolderName = params.get("folderName");
@@ -306,7 +306,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
       // fetch cached orderBy preference from backend for non-comic dirs
       if (!ob && !this.currentDirIsComic && !this.inFolderNo) {
-        this.fetchOrderByPreference();
+        await this.fetchOrderByPreference();
       }
 
       // if we are already in a directory, by default we upload to current directory
@@ -1709,18 +1709,30 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.fetchFileInfoList();
   }
 
-  private fetchOrderByPreference(): void {
+  private fetchOrderByPreference(): Promise<void> {
     const dirKey = encodeURIComponent(this.inDirFileKey || '');
-    this.http.get<any>(`vfm/open/api/file/order-by-preference?dirKey=${dirKey}`).subscribe({
-      next: (resp) => {
-        if (!resp.error && resp.data?.orderBy) {
+    const orderByAtReq = this.orderBy;
+    const orderByDirAtReq = this.orderByDir;
+    return this.http.get<any>(`vfm/open/api/file/order-by-preference?dirKey=${dirKey}`)
+      .toPromise()
+      .then((resp) => {
+        if (!resp || resp.error) {
+          return;
+        }
+        // discard stale response if the user changed sort state while the request was in flight
+        if (this.orderBy !== orderByAtReq || this.orderByDir !== orderByDirAtReq) {
+          return;
+        }
+        if (resp.data?.orderBy) {
           this.orderBy = resp.data.orderBy;
         }
-        if (!resp.error && resp.data?.orderDir) {
+        if (resp.data?.orderDir) {
           this.orderByDir = resp.data.orderDir;
         }
-      },
-    });
+      })
+      .catch(() => {
+        // ignore network errors, keep defaults
+      });
   }
 
   trl(k) {
