@@ -101,6 +101,10 @@
             <th mat-header-cell *matHeaderCellDef> {{'drone-task' | trl:'attempt'}} </th>
             <td mat-cell *matCellDef="let u"> {{u.attempt}} </td>
         </ng-container>
+        <ng-container matColumnDef="lastPage">
+            <th mat-header-cell *matHeaderCellDef> {{'drone-task' | trl:'lastPage'}} </th>
+            <td mat-cell *matCellDef="let u"> {{u.lastPage}} </td>
+        </ng-container>
         <ng-container matColumnDef="url">
             <th mat-header-cell *matHeaderCellDef> {{'drone-task' | trl:'url'}} </th>
             <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'p-2':''" style="overflow-wrap: anywhere;">
@@ -150,6 +154,9 @@
                     </ng-container>
                     <ng-container *ngIf="u.status == 'COMPLETED' && u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">{{'drone-task' | trl:'update'}}</button>
+                    </ng-container>
+                    <ng-container *ngIf="u.status == 'COMPLETED' && lastPagePlatforms.includes(u.platform)">
+                        <button class="mat-raised-button small-btn" (click)="clickUpdateLastPage(u)">{{'drone-task' | trl:'editLastPage'}}</button>
                     </ng-container>
                 </div>
             </td>

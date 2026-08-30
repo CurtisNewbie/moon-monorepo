@@ -64,6 +64,7 @@ export interface ListedTask {
   createdAt?: number;
   updatedAt?: number;
   fileCount?: number;
+  lastPage?: number;
   remark?: string;
   remarkShort?: string;
   thumbnailFstToken?: string;
@@ -73,6 +74,11 @@ export interface ListedTask {
 export interface UpdateTaskURLReq {
   taskId?: string; // Required.
   url?: string; // Required.
+}
+
+export interface UpdateTaskLastPageReq {
+  taskId?: string;
+  lastPage?: number;
 }
 
 export interface ResolveTaskReq {
@@ -111,6 +117,7 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
   createTaskReq: CreateTaskReq = {};
   prevSelectedFileKey: string | undefined;
   platforms: string[] = [];
+  lastPagePlatforms: string[] = [];
   tabdata: ListedTask[] = [];
   listTaskReq: ListTaskReq = {};
   isEnterKey = isEnterKey;
@@ -131,6 +138,7 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
           "url",
           "platform",
           "attempt",
+          "lastPage",
           "dirName",
           "fileCount",
           "updatedAt",
@@ -138,6 +146,7 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
           "operation",
         ];
     this.listPlatforms();
+    this.listLastPagePlatforms();
     const prefillUrl = this.route.snapshot.queryParams['url'] || '';
     if (prefillUrl) {
       this.bulkUrlFields = [prefillUrl];
@@ -369,6 +378,21 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
     });
   }
 
+  listLastPagePlatforms() {
+    this.http.get<any>(`/drone/open/api/list-last-page-platforms`).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.lastPagePlatforms = resp.data || [];
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
+  }
+
   gotoDir(dirFileKey) {
     this.nav.navigateTo(NavType.MANAGE_FILES, [{ parentDirKey: dirFileKey }]);
   }
@@ -433,6 +457,44 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
           });
         }
       });
+  }
+
+  clickUpdateLastPage(d) {
+    this.dialog
+      .open(UpdateLastPageDialogComponent, {
+        width: "500px",
+        data: {
+          taskId: d.taskId,
+          lastPage: d.lastPage,
+        },
+      })
+      .afterClosed()
+      .subscribe((newLastPage) => {
+        if (newLastPage && newLastPage >= 1 && newLastPage != d.lastPage) {
+          this.updateTaskLastPage({
+            taskId: d.taskId,
+            lastPage: newLastPage,
+          });
+        }
+      });
+  }
+
+  updateTaskLastPage(req: UpdateTaskLastPageReq) {
+    this.http.post<any>(`/drone/open/api/task/update-last-page`, req).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.listTasks();
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open("Request failed, unknown error", "ok", {
+          duration: 3000,
+        });
+      },
+    });
   }
 
   resolveTask(d) {
@@ -548,6 +610,37 @@ export class UpdateDroneTaskDialogComponent {
 export class ResolveDroneTaskDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<ResolveDroneTaskDialogComponent, any>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
+}
+
+@Component({
+  selector: "update-last-page-dialog-component",
+  template: `
+    <h1 mat-dialog-title>{{ 'drone-task' | trl:'editLastPage' }}</h1>
+    <div mat-dialog-content>
+      <mat-form-field style="width: 400px">
+        <mat-label>{{ 'drone-task' | trl:'taskId' }}</mat-label>
+        <input readonly disabled matInput [ngModel]="data.taskId" />
+      </mat-form-field>
+      <mat-form-field style="width: 400px">
+        <mat-label>{{ 'drone-task' | trl:'lastPage' }}</mat-label>
+        <input matInput type="number" min="1" [(ngModel)]="data.lastPage" />
+      </mat-form-field>
+    </div>
+    <div mat-dialog-actions class="d-flex justify-content-end">
+      <button mat-button [mat-dialog-close]="data.lastPage">
+        {{ 'drone-task' | trl:'update' }}
+      </button>
+      <button mat-button [mat-dialog-close]="null" cdkFocusInitial>
+        {{ 'drone-task' | trl:'no' }}
+      </button>
+    </div>
+  `,
+})
+export class UpdateLastPageDialogComponent {
+  constructor(
+    public dialogRef: MatDialogRef<UpdateLastPageDialogComponent, any>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 }
