@@ -156,7 +156,7 @@
                         <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">{{'drone-task' | trl:'update'}}</button>
                     </ng-container>
                     <ng-container *ngIf="u.status == 'COMPLETED' && lastPagePlatforms.includes(u.platform)">
-                        <button class="mat-raised-button small-btn" (click)="clickUpdateLastPage(u)">{{'drone-task' | trl:'editLastPage'}}</button>
+                        <button class="mat-raised-button small-btn" (click)="clickUpdateLastPage(u)">{{'drone-task' | trl:'edit'}}</button>
                     </ng-container>
                 </div>
             </td>
