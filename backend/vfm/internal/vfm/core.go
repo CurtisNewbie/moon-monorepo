@@ -2103,41 +2103,14 @@ func BatchFetchDirThumbnail(rail miso.Rail, db *gorm.DB, req BatchFetchDirThumbn
 	// Remove duplicates
 	dirKeys := slutil.FastDistinct(req.DirFileKeys)
 
-	// Single query using correlated subquery for MySQL 5.7 compatibility
-	// This is much more efficient than scanning all files with thumbnails
-	type DirWithThumbnail struct {
-		DirFileKey   string
-		FstoreFileId string
-	}
-	var dirs []DirWithThumbnail
-
-	query := `
-		SELECT
-			d.uuid as dir_file_key,
-			(SELECT f.thumbnail
-			 FROM file_info f
-			 WHERE f.parent_file = d.uuid
-			   AND f.is_del = 0
-			   AND f.thumbnail != ''
-			 ORDER BY f.id DESC
-			 LIMIT 1) as fstore_file_id
-		FROM file_info d
-		WHERE d.uuid IN ?
-			AND d.is_del = 0
-			AND d.uploader_no = ?
-	`
-
-	err := db.Raw(query, dirKeys, user.UserNo).Scan(&dirs).Error
+	// Find oldest thumbnail for each dir (single query, correlated subquery for MySQL 5.7 compatibility)
+	keyMap, err := findFirstThumbnailFileIds(rail, db, dirKeys, user.UserNo)
 	if err != nil {
 		return nil, miso.UnknownErrf(err, "failed to batch fetch dir thumbnails")
 	}
 
 	// Build response with all requested keys
 	res := make([]DirThumbnailWithKey, 0, len(dirKeys))
-	keyMap := make(map[string]string, len(dirKeys))
-	for _, d := range dirs {
-		keyMap[d.DirFileKey] = d.FstoreFileId
-	}
 
 	// Collect fileIds that need tokens
 	var tokenReqs []FstoreTmpTokenReq
@@ -2169,7 +2142,7 @@ func findFirstThumbnailFileId(rail miso.Rail, db *gorm.DB, dirFileKey string) (s
 		Eq("parent_file", dirFileKey).
 		Eq("is_del", 0).
 		Ne("thumbnail", "").
-		OrderDesc("id").
+		OrderAsc("id").
 		Limit(1).
 		Select("thumbnail").
 		ScanAny(&fstFileId)
@@ -2180,6 +2153,45 @@ func findFirstThumbnailFileId(rail miso.Rail, db *gorm.DB, dirFileKey string) (s
 		return "", false, nil
 	}
 	return fstFileId, true, nil
+}
+
+// findFirstThumbnailFileIds returns the oldest child file with a thumbnail for each dir.
+// Only dirs owned by userNo are considered.
+func findFirstThumbnailFileIds(rail miso.Rail, db *gorm.DB, dirKeys []string, userNo string) (map[string]string, error) {
+	type DirWithThumbnail struct {
+		DirFileKey   string
+		FstoreFileId string
+	}
+	var dirs []DirWithThumbnail
+
+	query := `
+		SELECT
+			d.uuid as dir_file_key,
+			(SELECT f.thumbnail
+			 FROM file_info f
+			 WHERE f.parent_file = d.uuid
+			   AND f.is_del = 0
+			   AND f.thumbnail != ''
+			 ORDER BY f.id ASC
+			 LIMIT 1) as fstore_file_id
+		FROM file_info d
+		WHERE d.uuid IN ?
+			AND d.is_del = 0
+			AND d.uploader_no = ?
+	`
+
+	err := db.Raw(query, dirKeys, userNo).Scan(&dirs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[string]string, len(dirs))
+	for _, d := range dirs {
+		if d.FstoreFileId != "" {
+			m[d.DirFileKey] = d.FstoreFileId
+		}
+	}
+	return m, nil
 }
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ import (
 	"github.com/curtisnewbie/miso/util/strutil"
 	vault "github.com/curtisnewbie/user-vault/api"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 func testUser() flow.User {
@@ -378,5 +379,138 @@ func TestFetchDirTreeTopDown(t *testing.T) {
 			}
 		}
 		d++
+	}
+}
+
+// testMySQLConn creates a dedicated MySQL connection to the vfm schema.
+// The global connection (mysql.GetMySQL) is unreliable in tests: bookmark_test.go
+// initializes it against the docindexer schema and InitMySQL is idempotent.
+func testMySQLConn(t *testing.T) *gorm.DB {
+	t.Helper()
+	rail := miso.EmptyRail()
+	p := mysql.MySQLConnParam{
+		User:      "root",
+		Password:  "",
+		Schema:    "vfm",
+		Host:      "localhost",
+		Port:      3306,
+		ConnParam: strings.Join(miso.GetPropStrSlice(mysql.PropMySQLConnParam), "&"),
+	}
+	conn, err := mysql.NewMySQLConn(rail, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return conn
+}
+
+// insertTestDir inserts a dir row and returns its uuid
+func insertTestDir(t *testing.T, db *gorm.DB, userNo string) string {
+	t.Helper()
+	uuid := "tdt-dir-" + randutil.ERand(8)
+	if err := db.Exec("INSERT INTO file_info (name, uuid, size_in_bytes, file_type, parent_file, thumbnail, uploader_no) VALUES (?,?,?,?,?,?,?)",
+		"test-dir", uuid, 0, "DIR", "", "", userNo).Error; err != nil {
+		t.Fatal(err)
+	}
+	return uuid
+}
+
+// insertTestChild inserts a child file row under parent, returns its uuid
+func insertTestChild(t *testing.T, db *gorm.DB, parent string, name string, thumbnail string, isDel int) string {
+	t.Helper()
+	uuid := "tdt-child-" + randutil.ERand(8)
+	if err := db.Exec("INSERT INTO file_info (name, uuid, size_in_bytes, file_type, parent_file, thumbnail, uploader_no, is_del) VALUES (?,?,?,?,?,?,?,?)",
+		name, uuid, 0, "FILE", parent, thumbnail, testUser().UserNo, isDel).Error; err != nil {
+		t.Fatal(err)
+	}
+	return uuid
+}
+
+func TestFindFirstThumbnailFileId(t *testing.T) {
+	rail := miso.EmptyRail()
+	db := testMySQLConn(t)
+
+	dirKey := insertTestDir(t, db, testUser().UserNo)
+	t.Cleanup(func() {
+		db.Exec("DELETE FROM file_info WHERE parent_file = ? OR uuid = ?", dirKey, dirKey)
+	})
+
+	// children inserted oldest → newest
+	insertTestChild(t, db, dirKey, "a.jpg", "", 0)          // oldest, no thumbnail
+	insertTestChild(t, db, dirKey, "b.jpg", "THUMB_OLD", 0) // has thumbnail
+	insertTestChild(t, db, dirKey, "c.jpg", "", 0)          // no thumbnail
+	insertTestChild(t, db, dirKey, "d.jpg", "THUMB_NEW", 0) // newest with thumbnail
+	insertTestChild(t, db, dirKey, "e.jpg", "THUMB_DEL", 1) // deleted, must be skipped
+
+	fst, ok, err := findFirstThumbnailFileId(rail, db, dirKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok {
+		t.Fatal("expected to find a thumbnail")
+	}
+	if fst != "THUMB_OLD" {
+		t.Fatalf("expected oldest thumbnail THUMB_OLD, got %v", fst)
+	}
+}
+
+func TestFindFirstThumbnailFileIdNoThumbnail(t *testing.T) {
+	rail := miso.EmptyRail()
+	db := testMySQLConn(t)
+
+	dirKey := insertTestDir(t, db, testUser().UserNo)
+	t.Cleanup(func() {
+		db.Exec("DELETE FROM file_info WHERE parent_file = ? OR uuid = ?", dirKey, dirKey)
+	})
+
+	insertTestChild(t, db, dirKey, "a.jpg", "", 0)
+	insertTestChild(t, db, dirKey, "b.jpg", "", 0)
+
+	fst, ok, err := findFirstThumbnailFileId(rail, db, dirKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok || fst != "" {
+		t.Fatalf("expected no thumbnail, got ok=%v fst=%v", ok, fst)
+	}
+}
+
+func TestFindFirstThumbnailFileIds(t *testing.T) {
+	rail := miso.EmptyRail()
+	db := testMySQLConn(t)
+
+	dir1 := insertTestDir(t, db, testUser().UserNo)
+	dir2 := insertTestDir(t, db, testUser().UserNo)
+	dir3 := insertTestDir(t, db, testUser().UserNo) // no thumbnails
+	dir4 := insertTestDir(t, db, "UE_OTHER_USER")   // owned by someone else
+	t.Cleanup(func() {
+		db.Exec("DELETE FROM file_info WHERE parent_file IN (?,?,?,?) OR uuid IN (?,?,?,?)", dir1, dir2, dir3, dir4, dir1, dir2, dir3, dir4)
+	})
+
+	// dir1: oldest has thumbnail
+	insertTestChild(t, db, dir1, "a.jpg", "", 0)
+	insertTestChild(t, db, dir1, "b.jpg", "D1_OLD", 0)
+	insertTestChild(t, db, dir1, "c.jpg", "D1_NEW", 0)
+	// dir2: oldest two lack thumbnails
+	insertTestChild(t, db, dir2, "x.jpg", "", 0)
+	insertTestChild(t, db, dir2, "y.jpg", "D2_OLD", 0)
+	insertTestChild(t, db, dir2, "z.jpg", "D2_NEW", 0)
+	// dir4: has thumbnail but dir owned by another user
+	insertTestChild(t, db, dir4, "w.jpg", "D4_THUMB", 0)
+
+	m, err := findFirstThumbnailFileIds(rail, db, []string{dir1, dir2, dir3, dir4}, testUser().UserNo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m[dir1] != "D1_OLD" {
+		t.Fatalf("expected dir1 oldest thumbnail D1_OLD, got %v", m[dir1])
+	}
+	if m[dir2] != "D2_OLD" {
+		t.Fatalf("expected dir2 oldest thumbnail D2_OLD, got %v", m[dir2])
+	}
+	if _, ok := m[dir3]; ok {
+		t.Fatalf("dir3 should have no thumbnail, got %v", m[dir3])
+	}
+	if _, ok := m[dir4]; ok {
+		t.Fatalf("dir4 owned by another user should be excluded, got %v", m[dir4])
 	}
 }
