@@ -821,7 +821,7 @@ export const zhCNDict = {
     resolve: "解析",
     unresolved: "未解析",
     resolveFailed: "解析失败",
-    pending: "待处理",
+    pending: "处理中",
     completed: "已完成",
     cancelled: "已取消",
     addUrl: "添加 URL",
