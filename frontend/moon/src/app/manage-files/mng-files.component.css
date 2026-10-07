@@ -125,3 +125,43 @@
 .overflow-cell::-webkit-scrollbar {
   display: none;
 }
+
+/* Mobile: compact file list */
+@media (max-width: 768px) {
+  /* Native table layout: fix columns so wide thumbnails can't stretch the table */
+  table.mat-table {
+    table-layout: fixed !important;
+  }
+
+  /* original thumbnails are 60px tall (border-box, incl. padding), ≈89px wide for 16:9; fit that plus the 8px left padding */
+  .mat-column-thumbnail {
+    width: 100px !important;
+    max-width: 100px !important;
+    padding-left: 8px !important;
+  }
+
+  .mat-column-name {
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  .mat-column-operation {
+    width: 132px !important;
+    max-width: 132px !important;
+    padding-right: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  /* keep original 60px thumbnail size; clamp only the width so ultra-wide images can't spill out */
+  td.mat-column-thumbnail img {
+    max-width: 100% !important;
+  }
+
+  /* keep search bar on a single line, scroll horizontally */
+  div.gap-4 {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    gap: 8px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
