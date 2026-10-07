@@ -466,6 +466,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   // Go to dir, i.e., list files under the directory
   goToDir(fileKey: string, isComic: boolean = false) {
     this.expandUploadPanel = false;
+    this.makingDir = false;
     this.curr = null;
     this.resetSearchParam(false, false);
     this.nav.navigateTo(NavType.MANAGE_FILES, [
@@ -475,6 +476,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   goToDirAtPage(fileKey: string, page: number, isComic: boolean = false) {
     this.expandUploadPanel = false;
+    this.makingDir = false;
     this.curr = null;
     this.searchParam = {};
     this.targetPage = page;
@@ -614,6 +616,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     this.expandUploadPanel = false;
+    this.makingDir = false;
     this.http
       .get<any>(`vfm/open/api/file/parent?fileKey=${this.inDirFileKey}`)
       .subscribe({
@@ -1426,6 +1429,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       data: {},
     });
     ref.componentInstance.selectedEmiter.subscribe((dat) => {
+      this.expandUploadPanel = false;
+      this.makingDir = false;
       this.nav.navigateTo(NavType.MANAGE_FILES, [
         { parentDirKey: dat.fileKey },
       ]);
@@ -1472,6 +1477,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   pageChanged(evt: Paging) {
+    this.expandUploadPanel = false;
+    this.makingDir = false;
     this.fetchFileInfoList();
 
     // keep targetPage in URL synced with current page
