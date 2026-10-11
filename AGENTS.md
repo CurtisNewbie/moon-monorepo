@@ -46,7 +46,7 @@ Some `go.mod` files use `replace` directives pointing to sibling directories. Bu
 
 ### Database Schema Migrations
 
-**No auto-migration.** Versioned DDL lives in the root `schema/` directory: `schema/current/` holds the live per-service snapshot, `schema/vX.Y.Z/` holds each release's increments, and `changes/changes.md` is the release manifest. See `docs/agents/db-schema.md` for the layout, the update rules, and how the manifest is maintained.
+**No auto-migration.** Versioned DDL lives in `docs/schema/`: `docs/schema/current/` holds the live per-service snapshot, `docs/schema/vX.Y.Z/` holds each release's increments, and `changes/changes.md` is the release manifest. See `docs/agents/db-schema.md` for the layout, the update rules, and how the manifest is maintained.
 
 ## Backend Framework
 

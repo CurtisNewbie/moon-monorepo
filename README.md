@@ -126,15 +126,12 @@ rabbitmq:
   vhost: ""
 ```
 
-5. For each backend service, go to `**/schema/` folder and execute the `schema.sql` DDL script.
+5. Create each backend service's schema by executing its current snapshot — for example `source docs/schema/current/user-vault.sql`.
 6. Bootstrap each of the backend servers:
 
 ```sh
 # e.g,.
 go run main.go
-
-# or
-go run cmd/main.go
 ```
 
 7. Finally, if everything goes right, you can visit the website via `https://localhost:4200`.
