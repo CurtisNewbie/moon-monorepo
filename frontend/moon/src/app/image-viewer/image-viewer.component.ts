@@ -39,6 +39,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
   private _timeoutIds: number[] = [];
   private _touchStartHandler: ((evt: TouchEvent) => void) | null = null;
   private _touchMoveHandler: ((evt: TouchEvent) => void) | null = null;
+  private _lightboxClosed = false;
 
   /** setTimeout wrapper that tracks IDs for cleanup on destroy */
   private _setTimeout(fn: () => void, ms: number): number {
@@ -119,17 +120,10 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
         let checkCompleteInterval = 50;
         this._setTimeout(() => {
           let imgs = this.lightboxdiv.querySelectorAll("#image");
-          console.log(imgs);
           if (imgs && imgs.length > 0) {
             let img = imgs[0];
             const checkComplete = () => {
               if (this._destroyed) return;
-              console.log(
-                "img",
-                img.complete,
-                img.clientWidth,
-                img.clientHeight
-              );
               if (!img.complete) {
                 this._setTimeout(checkComplete, checkCompleteInterval);
                 return;
@@ -140,14 +134,6 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
               const resizeMaxRetry = 10;
               const resize = () => {
                 if (this._destroyed) return;
-                console.log(
-                  "img check zoom-in",
-                  img.complete,
-                  " width ",
-                  img.clientWidth,
-                  " height ",
-                  img.clientHeight
-                );
                 resizeRetry += 1;
 
                 // image rendered
@@ -228,6 +214,7 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
 
     this.lbsub = this._lightboxEvent.lightboxEvent$.subscribe((evt: any) => {
       if (evt.id === LIGHTBOX_EVENT.CLOSE) {
+        this._lightboxClosed = true;
         this.lbsub.unsubscribe();
         this.dialogRef.close();
       }
@@ -269,6 +256,11 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
 
     if (this.lbsub && !this.lbsub.closed) {
       this.lbsub.unsubscribe();
+    }
+
+    if (!this._lightboxClosed) {
+      this._lightboxClosed = true;
+      this._lightbox.close();
     }
   }
 

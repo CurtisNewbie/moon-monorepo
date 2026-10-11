@@ -140,6 +140,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   private dirPreviewCount: number = 0;
   private prevPreviewedKey: string = '';
   private dirPagePrompted = false;
+  private navLock = false;
+  private pendingNavDir: boolean | null = null;
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -870,6 +872,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         next: (resp) => {
           if (resp.error) {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            this.navLock = false;
+            this.pendingNavDir = null;
             return;
           }
 
@@ -889,6 +893,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           };
 
           let leftRight = (isLeft) => {
+            if (this.navLock) {
+              this.pendingNavDir = isLeft;
+              return;
+            }
             if (!isLeft) {
               if (idx + 1 >= this.fileInfoList.length) {
                 if (this.pagingController.nextPage()) {
@@ -926,6 +934,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             }
             if (!closing && (nextIdx > -1 || fetchNewList)) {
               closing = true;
+              this.navLock = true;
+              this.pendingNavDir = null;
               closeDialog(() => {
                 if (fetchNewList) {
                   this.fetchFileInfoList(() => {
@@ -956,6 +966,15 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             }
           };
 
+          const onOpened = () => {
+            this.navLock = false;
+            if (this.pendingNavDir !== null) {
+              const d = this.pendingNavDir;
+              this.pendingNavDir = null;
+              leftRight(d);
+            }
+          };
+
           if (isStreaming) {
             let d = this.dialog.open(MediaStreamerComponent, {
               data: {
@@ -978,6 +997,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             d.componentInstance.nextEventEmitter.subscribe(() => {
               leftRight(false);
             });
+            d.afterOpened().subscribe(onOpened);
           } else if (isPdf(u.name)) {
             this.nav.navigateTo(NavType.PDF_VIEWER, [
               { name: u.name, url: getDownloadUrl(), uuid: u.uuid },
@@ -1020,9 +1040,10 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
               leftRight(false);
             });
 
+            dialog.afterOpened().subscribe(onOpened);
+
             dialog.keydownEvents().subscribe({
               next: (v: KeyboardEvent) => {
-                console.log("keyboardevent ", v);
                 if (v.code != "ArrowLeft" && v.code != "ArrowRight") {
                   return;
                 }
