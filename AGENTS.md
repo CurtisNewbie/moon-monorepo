@@ -99,6 +99,10 @@ this.snackBar.open(this.i18n.trl("module", "key"), "ok");
 
 See `frontend/moon/doc/agents/i18n.md` for full guidelines.
 
+### Pagination
+
+Paged lists are driven by `ControlledPaginatorComponent`. See `frontend/moon/doc/agents/pagination.md` before wiring a list fetch or configuring a page limit — the limit has to be applied before the paginator's first fetch, which its `pageChanged` output triggers.
+
 ## Backend API Documentation
 
 **Always reference backend `doc/api.md` when working on frontend-backend integration.**
