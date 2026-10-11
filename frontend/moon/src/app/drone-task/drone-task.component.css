@@ -40,3 +40,65 @@
 .overflow-cell::-webkit-scrollbar {
   display: none;
 }
+
+/* Mobile: keep the Operation buttons compact on a single row so rows stay short */
+@media (max-width: 768px) {
+  /* fixed layout so the pinned Operation width can't be stretched by other cells */
+  table.mat-table {
+    table-layout: fixed !important;
+  }
+
+  /* clamp the preview image so a wide thumbnail can't spill out of its column */
+  td.mat-column-thumbnail img {
+    max-width: 100% !important;
+  }
+
+  /* Pin Thumbnail + Status to their minimum so the Directory column (left
+     without a width) absorbs the leftover under table-layout: fixed, instead of
+     the three sharing it equally. The thumbnail cell keeps only 8px of its 24px
+     first-cell padding (same as mng-files.component.css) so the 64px column
+     still fits the "Thumbnail" header (43.5px @9px) on one line and gives the
+     clamped preview more room; 64px Status fits every short label
+     ("Completed"/"Unresolved"/CN 2-4 chars) and lets the long
+     "Resolution Failed" wrap to two lines rather than clip. */
+  .mat-column-thumbnail {
+    width: 64px !important;
+    max-width: 64px !important;
+    padding-left: 8px !important;
+  }
+  .mat-column-status {
+    width: 64px !important;
+    max-width: 64px !important;
+  }
+
+  /* Operation column: tightest width that still keeps the widest remaining row
+     (Open + Cancel + Resolve) on one line without wrapping */
+  .mat-column-operation {
+    width: 120px !important;
+    max-width: 120px !important;
+    padding-left: 1px !important;
+    padding-right: 1px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Single line, no wrapping. Intentionally NO overflow/scroll container here:
+     a scroll box would clip the buttons' raised box-shadow and rounded edge, so
+     the absence of overflow on this row is the fix. Neutralize the Bootstrap
+     m-2 / gap-2 / flex-wrap utilities on mobile only. */
+  td.mat-column-operation .d-flex {
+    flex-wrap: nowrap !important;
+    margin: 0 !important;
+    gap: 2px !important;
+  }
+
+  /* Compact footprint so several buttons fit the narrow column (native button
+     shape/border/background and the global .mat-raised-button shadow untouched) */
+  td.mat-column-operation button {
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 2px !important;
+    font-size: 9px !important;
+    line-height: 20px !important;
+    white-space: nowrap !important;
+  }
+}
