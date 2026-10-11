@@ -67,7 +67,7 @@ export class FapeGalleryComponent implements OnInit {
   };
   total = 0;
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   @ViewChild(DirTreeNavComponent)
@@ -83,7 +83,6 @@ export class FapeGalleryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.listGalleries();
   }
 
   listGalleries() {

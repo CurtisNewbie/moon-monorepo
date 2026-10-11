@@ -44,7 +44,7 @@ export class WatchedGalleryComponent implements OnInit {
   };
   total: number = 0;
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   constructor(
@@ -60,7 +60,6 @@ export class WatchedGalleryComponent implements OnInit {
     this.taskId = this.route.snapshot.queryParams['taskId'] || '';
     this.listGalleryReq.taskId = this.taskId;
     this.fetchWatchTask();
-    this.searchGalleries();
   }
 
   searchGalleries() {
