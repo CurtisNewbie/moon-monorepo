@@ -155,9 +155,6 @@
                     <ng-container *ngIf="!env.isMobile() && u.status == 'COMPLETED' && u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">{{'drone-task' | trl:'update'}}</button>
                     </ng-container>
-                    <ng-container *ngIf="!env.isMobile() && u.status == 'COMPLETED' && lastPagePlatforms.includes(u.platform)">
-                        <button class="mat-raised-button small-btn" (click)="clickUpdateLastPage(u)">{{'drone-task' | trl:'edit'}}</button>
-                    </ng-container>
                 </div>
             </td>
         </ng-container>
