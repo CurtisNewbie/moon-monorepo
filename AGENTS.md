@@ -2,12 +2,9 @@
 
 ## Repository Structure
 
-Manual monorepo with:
-- **Backend**: Go microservices (gatekeeper, acct, vfm, user-vault, mini-fstore, logbot)
-- **Frontend**: Angular application (`frontend/moon/`)
-- **Deployment**: Docker Compose configs in `deploy/`
+Manual monorepo: Go microservices in `backend/<service>/`, Angular app in `frontend/moon/`, Docker Compose configs in `deploy/`.
 
-Each backend service is independent with its own `go.mod/go.sum` and `conf.yml`. No `go.work` — each service is built standalone.
+Each backend service is standalone — its own `go.mod/go.sum` and `conf.yml`, no `go.work`.
 
 ## Runtime Dependencies (for Backend)
 
@@ -35,14 +32,9 @@ go test ./...
 
 Some `go.mod` files use `replace` directives pointing to sibling directories. Build order matters:
 
-- **acct**: no deps on other services
-- **user-vault**: no deps on other services (but others depend on it)
-- **mini-fstore**: no deps on other services
-- **gatekeeper**: `replace user-vault => ../user-vault`
-- **logbot**: `replace user-vault => ../user-vault`
+- **acct**, **user-vault**, **mini-fstore**: no dependency on another service
+- **gatekeeper**, **logbot**: `replace user-vault => ../user-vault`
 - **vfm**: `replace user-vault => ../user-vault` & `replace mini-fstore => ../mini-fstore`
-
-Go version: 1.24.4 across all services.
 
 ### Configuration Files
 
@@ -78,14 +70,13 @@ npm ci
 ng serve  # or NODE_OPTIONS=--openssl-legacy-provider ng serve if openssl version incompatible
 ```
 
-Dev server proxies all requests to `http://127.0.0.1:7070` (gatekeeper) via `src/proxy.conf.json`.
+Dev server proxies all requests to `http://127.0.0.1:7070` (gatekeeper).
 
 ### Key Facts
 
 - **Angular 11** with `NgModule` (not standalone components)
 - **Angular Material** with pink-bluegrey theme
 - **TSLint** (not ESLint) — run with `ng lint`
-- **Testing**: Karma + Jasmine (`ng test`), Protractor E2E (`ng e2e`)
 - `angular.json` has `skipTests: true` — `ng generate component` creates no `.spec.ts` by default
 - `patch-package` runs on `postinstall` — patches exist in `patches/`
 
@@ -114,10 +105,6 @@ See `frontend/moon/doc/agents/i18n.md` for full guidelines.
 
 Each backend service maintains auto-generated API documentation at `backend/{service}/doc/api.md` including endpoints, request/response schemas, and TypeScript interfaces.
 
-```bash
-cat backend/vfm/doc/api.md | grep -A 20 "dir-thumbnail"
-```
-
 This prevents field name mistakes (e.g., `dirFileKey` vs `fileKey`).
 
 ## Deployment
@@ -126,8 +113,6 @@ Production uses Docker Compose:
 - Configs externalized to environment variables
 - Use production config files (not `conf.yml`)
 - Includes Nginx reverse proxy, Prometheus monitoring, Grafana dashboard
-
-Config files: `deploy/docker-compose.yml`, `deploy/backend.env`, `deploy/nginx.conf`, `deploy/prometheus.yml`, `deploy/grafana_dashboard.json`
 
 ## Entry Points
 
