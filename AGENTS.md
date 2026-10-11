@@ -52,7 +52,7 @@ Some `go.mod` files use `replace` directives pointing to sibling directories. Bu
 
 All backend services use [miso](https://github.com/CurtisNewbie/miso) framework.
 
-Use miso skill, install if absent:
+**Mandatory:** load the `miso` skill before writing any backend Go code, and follow its conventions (error handling with `errs` — never `fmt.Errorf`/`errors.New`, bootstrap, rail logging, db, config, etc.). Install if absent:
 
 ```sh
 npx sklls add https://github.com/curtisnewbie/miso
