@@ -7,9 +7,11 @@
     <div #playerRef class="text-center">
         <div class="embed-responsive embed-responsive-16by9">
             <video #videoPlayer id="player" [src]="srcUrl" class="p-3 embed-responsive-item" controls preload="metadata"
+                playsinline webkit-playsinline (error)="onVideoError()"
                 style="max-height: 70vh; max-width: 65svw; overflow: auto">
             </video>
         </div>
+        <div class="text-danger p-2" *ngIf="loadFailed">Preview failed — try downloading the file.</div>
         <div class="d-flex flex-wrap gap-1">
             <button mat-icon-button class="icon-button-large" (click)="prev()"><i
                     class="bi bi-arrow-left-circle"></i></button>

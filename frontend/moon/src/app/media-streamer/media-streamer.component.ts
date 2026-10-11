@@ -1,10 +1,12 @@
 import {
   Component,
+  ElementRef,
   EventEmitter,
   Inject,
   OnDestroy,
   OnInit,
   Output,
+  ViewChild,
 } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 
@@ -23,6 +25,10 @@ export class MediaStreamerComponent implements OnInit, OnDestroy {
   name: string;
   token: string;
   srcUrl: string;
+  loadFailed = false;
+
+  @ViewChild("videoPlayer", { static: false })
+  videoPlayer?: ElementRef<HTMLVideoElement>;
 
   @Output("prev")
   prevEventEmitter = new EventEmitter();
@@ -38,19 +44,23 @@ export class MediaStreamerComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: MediaStreamerDialogData
   ) {}
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    const v = this.videoPlayer?.nativeElement as HTMLVideoElement | undefined;
+    if (v) {
+      v.pause();
+      v.removeAttribute("src");
+      v.load();
+    }
+  }
 
   ngOnInit() {
     this.name = this.data.name;
-    this.srcUrl =
-      location.protocol +
-      "//" +
-      location.hostname +
-      ":" +
-      location.port +
-      "/" +
-      this.data.url;
+    this.srcUrl = location.origin + "/" + this.data.url;
     this.token = this.data.token;
+  }
+
+  onVideoError(): void {
+    this.loadFailed = true;
   }
 
   prev() {

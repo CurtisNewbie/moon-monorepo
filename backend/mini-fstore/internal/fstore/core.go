@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -45,8 +46,6 @@ const (
 
 	PdelStrategyDirect = "direct" // file delete strategy - direct
 	PdelStrategyTrash  = "trash"  // file delete strategy - trash
-
-	ByteRangeMaxSize = 30_000_000 // 30 mb
 
 	serverMaintainanceKey = "mini-fstore:maintenance"
 )
@@ -445,29 +444,43 @@ func ResolveFileKey(rail miso.Rail, fileKey string) (bool, CachedFile) {
 	return true, cf
 }
 
-// Adjust ByteRange based on the fileSize
-func adjustByteRange(br ByteRange, fileSize int64) (ByteRange, error) {
-	if br.End >= fileSize {
-		br.End = fileSize - 1
+// Serve file content with correct HTTP Range semantics.
+func ServeFileContent(w http.ResponseWriter, r *http.Request, ff DFile) error {
+	f, eo := os.Open(ff.StoragePath())
+	if eo != nil {
+		return errs.Wrapf(eo, "failed to open file")
+	}
+	defer f.Close()
+
+	fi, es := f.Stat()
+	if es != nil {
+		return errs.Wrapf(es, "failed to stat file")
 	}
 
-	if br.Start > br.End {
-		return br, fmt.Errorf("invalid byte range request, start > end")
+	if ct := streamContentType(ff.Name); ct != "" {
+		w.Header().Set("Content-Type", ct)
 	}
+	http.ServeContent(w, r, ff.Name, fi.ModTime(), f)
+	return nil
+}
 
-	if br.Size() > fileSize {
-		return br, fmt.Errorf("invalid byte range request, end - size + 1 > file_size")
+// Content-Type for streamed files, deterministic across platforms.
+func streamContentType(name string) string {
+	switch strings.ToLower(filepath.Ext(name)) {
+	case ".mp4", ".m4v":
+		return "video/mp4"
+	case ".mov":
+		return "video/quicktime"
+	case ".webm":
+		return "video/webm"
+	case ".ogg", ".ogv":
+		return "video/ogg"
 	}
-
-	if br.Size() > ByteRangeMaxSize {
-		br.End = br.Start + ByteRangeMaxSize - 1
-	}
-
-	return br, nil
+	return mime.TypeByExtension(filepath.Ext(name))
 }
 
 // Stream file by a generated random file key
-func StreamFileKey(rail miso.Rail, w http.ResponseWriter, fileKey string, br ByteRange) error {
+func StreamFileKey(rail miso.Rail, w http.ResponseWriter, r *http.Request, fileKey string) error {
 	ok, cachedFile := ResolveFileKey(rail, fileKey)
 	if !ok {
 		return ErrFileNotFound
@@ -485,20 +498,7 @@ func StreamFileKey(rail miso.Rail, w http.ResponseWriter, fileKey string, br Byt
 		return e
 	}
 
-	var ea error
-	br, ea = adjustByteRange(br, ff.Size)
-	if ea != nil {
-		return ea
-	}
-
-	headers := w.Header()
-	headers.Set("Content-Type", "video/mp4")
-	headers.Set("Content-Length", strconv.FormatInt(br.Size(), 10))
-	headers.Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", br.Start, br.End, ff.Size))
-	headers.Set("Accept-Ranges", "bytes")
-	w.WriteHeader(206) // partial content
-
-	return TransferFile(rail, w, ff, br)
+	return ServeFileContent(w, r, ff)
 }
 
 // Download file by a generated random file key

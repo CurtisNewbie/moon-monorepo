@@ -3,10 +3,8 @@ package web
 import (
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -84,7 +82,7 @@ func ApiTempKeyStreamFile(inb *miso.Inbound) {
 		return
 	}
 
-	if e := fstore.StreamFileKey(rail, w, key, parseByteRangeRequest(r)); e != nil {
+	if e := fstore.StreamFileKey(rail, w, r, key); e != nil {
 		rail.Warnf("Failed to stream by fileKey, %v", e)
 		w.WriteHeader(404)
 		return
@@ -229,67 +227,6 @@ func ApiGenFileKey(inb *miso.Inbound, req DownloadFileReq) (string, error) {
 	k, re := fstore.RandFileKey(rail, filename, fileId)
 	rail.Infof("Generated random key %s for fileId %s (using filename: '%s')", k, fileId, filename)
 	return k, re
-}
-
-// Parse ByteRange Request.
-//
-// e.g., bytes = 123-124
-func parseByteRangeRequest(r *http.Request) fstore.ByteRange {
-	headers := r.Header
-	rg := headers.Get("Range") // e.g., Range: bytes = 1-2
-	if rg == "" {
-		return fstore.ByteRange{Start: 0, End: math.MaxInt64}
-	}
-	return parseByteRangeHeader(rg)
-}
-
-// Parse ByteRange Header.
-//
-// e.g., bytes=123-124
-func parseByteRangeHeader(rangeHeader string) fstore.ByteRange {
-	var start int64 = 0
-	var end int64 = math.MaxInt64
-
-	eqSplit := strings.Split(rangeHeader, "=") // split by '='
-	if len(eqSplit) <= 1 {                     // 'bytes=' or '=1-2', both are illegal
-		return fstore.ByteRange{Start: start, End: end}
-	}
-
-	brr := []rune(strings.TrimSpace(eqSplit[1]))
-	if len(brr) < 1 { // empty byte ranges, illegal
-		return fstore.ByteRange{Start: start, End: end}
-	}
-
-	dash := -1
-	for i := 0; i < len(brr); i++ { // try to find the first '-'
-		if brr[i] == '-' {
-			dash = i
-			break
-		}
-	}
-
-	if dash == 0 { // the '-2' case, only the end is specified, start will still be 0
-		if v, e := strconv.ParseInt(string(brr[dash+1:]), 10, 0); e == nil {
-			end = v
-		}
-	} else if dash == len(brr)-1 { // the '1-' case, only the start is specified, end will be MaxInt64
-		if v, e := strconv.ParseInt(string(brr[:dash]), 10, 0); e == nil {
-			start = v
-		}
-
-	} else if dash < 0 { // the '-' case, both start and end are not specified
-		// do nothing
-
-	} else { // '1-2' normal case
-		if v, e := strconv.ParseInt(string(brr[:dash]), 10, 0); e == nil {
-			start = v
-		}
-
-		if v, e := strconv.ParseInt(string(brr[dash+1:]), 10, 0); e == nil {
-			end = v
-		}
-	}
-	return fstore.ByteRange{Start: start, End: end}
 }
 
 // Download file directly without temporary key.
