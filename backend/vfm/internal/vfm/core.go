@@ -2692,7 +2692,7 @@ func assignSeqKeyForNewFile(rail miso.Rail, tx *gorm.DB, fileKey string, parentF
 		Table("file_info").
 		Select("seq_key").
 		Eq("parent_file", parentFile).
-		Eq("seq_key !=", "").
+		Ne("seq_key", "").
 		Eq("is_logic_deleted", DelN).
 		Eq("is_del", 0).
 		Order("seq_key COLLATE utf8mb4_bin asc").
