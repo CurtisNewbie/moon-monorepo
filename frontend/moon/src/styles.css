@@ -50,7 +50,9 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-@media only screen and (min-width: 801px) {
+/* Boundary must match MOBILE_MAX_WIDTH in src/common/env-util.ts: mobile ends
+   at 768px (inclusive), desktop starts at 769px. */
+@media only screen and (min-width: 769px) {
   html,
   .mat-tab-nav-bar,
   .mat-tab-link,
@@ -73,7 +75,7 @@ body {
   }
 }
 
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 768px) {
   html {
     font-size: 9px;
   }
