@@ -24,12 +24,16 @@ CREATE TABLE vfm.file_info (
   `uploader_no` varchar(32) NOT NULL DEFAULT '' COMMENT 'user no of uploader',
   `sensitive_mode` varchar(1) NOT NULL DEFAULT 'N' COMMENT 'sensitive file, Y/N',
   `hidden` tinyint NOT NULL DEFAULT '0' COMMENT 'whether the file is hidden',
+  `is_comic` tinyint NOT NULL DEFAULT '0' COMMENT 'marks comic directory',
+  `seq_key` varchar(50) NOT NULL DEFAULT '' COLLATE utf8mb4_bin COMMENT 'fractional-indexing key for custom drag-and-drop ordering',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid_uk` (`uuid`),
   KEY `parent_file_type_idx` (`parent_file`,`file_type`),
   KEY `uploader_no_idx` (`uploader_no`),
   KEY `parent_file_create_time_idx` (`parent_file`,`create_time`),
   KEY `idx_parent_thumbnail` (`parent_file`,`id` DESC),
+  KEY `idx_parent_name` (`parent_file`, `name`),
+  KEY `idx_parent_seq_key` (`parent_file`, `seq_key`),
   FULLTEXT KEY `name_idx` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

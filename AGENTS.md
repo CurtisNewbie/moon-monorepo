@@ -54,36 +54,7 @@ Go version: 1.24.4 across all services.
 
 ### Database Schema Migrations
 
-**No auto-migration**. DDL changes are versioned SQL files in the root `schema/` directory, organized by version:
-
-```
-schema/
-├── v0.0.0/           ← baseline (initial schemas)
-│   ├── acct.sql
-│   ├── logbot.sql
-│   ├── user-vault.sql
-│   ├── vfm.sql
-│   └── mini-fstore.sql
-├── v0.0.3/
-│   └── user-vault.sql
-├── v0.0.4/
-│   ├── user-vault.sql
-│   └── vfm.sql
-└── v0.0.5/
-    └── vfm.sql
-```
-
-- `gatekeeper` has no schema (stateless gateway only)
-- Each version directory contains all schema changes for that release across all services
-- All `CREATE TABLE` statements use `database.table_name` format (no backtick quoting on table names)
-- `v0.0.0/` is the baseline — contains only initial `CREATE TABLE`/`CREATE DATABASE` DDL per service
-- For new migrations: create a new version directory (e.g., `schema/v0.0.6/`), add per-service SQL files
-  - Each service gets its own file: `schema/v0.0.6/acct.sql`, `schema/v0.0.6/vfm.sql`, etc.
-  - A version directory only needs files for services that changed
-  - Version directory name is determined from git tags — use the next semantic version (check `git tag --sort=-version:refname` for latest)
-- Execute DDL scripts manually per your version (`source schema/v0.0.6/acct.sql`, etc.)
-- Track migration history via `changes/changes.md`
-  - When adding new DDL changes, append a new `## Release vX.Y.Z` section listing the changed SQL files
+**No auto-migration.** Versioned DDL lives in the root `schema/` directory: `schema/current/` holds the live per-service snapshot, `schema/vX.Y.Z/` holds each release's increments, and `changes/changes.md` is the release manifest. See `docs/agents/db-schema.md` for the layout, the update rules, and how the manifest is maintained.
 
 ## Backend Framework
 
@@ -162,3 +133,21 @@ Config files: `deploy/docker-compose.yml`, `deploy/backend.env`, `deploy/nginx.c
 
 - **Frontend**: `frontend/moon/src/main.ts`
 - **Backend services**: `main.go` in each service root (none use `cmd/` subdirectory)
+
+## Agent skills
+
+### Dev flow
+
+Non-trivial dev work follows the `dev-flow` skill — spec → tickets → implement, plus the bugfix lane. Load it at the start of any feature, bugfix, or setup task.
+
+### Issue tracker
+
+Issues and specs live as local markdown under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage labels, default strings unchanged. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
