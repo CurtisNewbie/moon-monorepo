@@ -22,14 +22,20 @@
   animation: tilt-shaking 0.25s linear infinite;
 }
 
+/* Angular Material zeroes interior cell padding; restore a consistent 8px
+   left/right gap so headers and data cells read as separate columns */
+.mat-header-cell,
+.mat-cell {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
 .mat-column-name {
   max-width: 150px;
-  padding-right: 8px;
 }
 
 .mat-column-parentFileName {
   max-width: 150px;
-  padding-right: 8px;
 }
 
 .overflow-cell {
@@ -107,10 +113,6 @@
 
 .mat-column-operation {
   max-width: 100px;
-}
-
-.mat-column-parentFileName {
-  max-width: 150px;
 }
 
 .overflow-cell {
