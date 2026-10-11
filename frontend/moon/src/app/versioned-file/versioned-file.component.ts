@@ -231,7 +231,7 @@ export class VerFileHistoryComponent implements OnInit {
     );
   };
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   constructor(

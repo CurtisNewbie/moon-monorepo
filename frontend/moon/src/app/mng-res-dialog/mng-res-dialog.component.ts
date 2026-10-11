@@ -33,7 +33,7 @@ export class MngResDialogComponent implements OnInit {
   ];
   paths: WPath[] = [];
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   constructor(

@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { ActivatedRoute } from "@angular/router";
-import { Component, Inject, OnInit, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, Inject, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
@@ -92,7 +92,7 @@ export interface ResolveTaskReq {
   templateUrl: "./drone-task.component.html",
   styleUrls: ["./drone-task.component.css"],
 })
-export class DroneTaskComponent implements OnInit, AfterViewInit {
+export class DroneTaskComponent implements OnInit {
   headers: string[] = [];
   createTaskPanelShown: boolean = false;
   bulkUrlFields: string[] = [""];
@@ -122,13 +122,14 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
   listTaskReq: ListTaskReq = {};
   isEnterKey = isEnterKey;
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   @ViewChild(DirTreeNavComponent)
   dirTreeNav: DirTreeNavComponent;
 
   ngOnInit(): void {
+    this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
     this.headers = this.env.isMobile()
       ? ["thumbnail", "status", "dirName", "operation"]
       : [
@@ -152,10 +153,6 @@ export class DroneTaskComponent implements OnInit, AfterViewInit {
       this.bulkUrlFields = [prefillUrl];
       this.createTaskPanelShown = true;
     }
-  }
-
-  ngAfterViewInit(): void {
-    this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
   }
 
   constructor(

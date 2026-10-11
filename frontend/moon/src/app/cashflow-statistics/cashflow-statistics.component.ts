@@ -161,7 +161,7 @@ export class CashflowStatisticsComponent implements OnInit {
   tabcol = ["aggType", "aggRange", "aggValue", "currency"];
   isEnterKey = isEnterKey;
 
-  @ViewChild(ControlledPaginatorComponent)
+  @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
   dat: ApiListStatisticsRes[] = [];
