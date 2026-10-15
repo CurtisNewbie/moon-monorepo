@@ -152,7 +152,7 @@
                     <ng-container *ngIf="u.status != 'PENDING' && u.status != 'UNRESOLVED' && u.status != 'RESOLVE_FAILED' && u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">{{'drone-task' | trl:'retry'}}</button>
                     </ng-container>
-                    <ng-container *ngIf="!env.isMobile() && u.status == 'COMPLETED' && u.dirFileKey">
+                    <ng-container *ngIf="!env.isMobile() && (u.status == 'COMPLETED' || u.status == 'CANCELLED') && u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">{{'drone-task' | trl:'update'}}</button>
                     </ng-container>
                 </div>
