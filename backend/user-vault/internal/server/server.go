@@ -17,6 +17,7 @@ func BootstrapServer(args []string) {
 		task.ScheduleTasks,
 		web.PrepareWebServer,
 		postbox.InitPipeline,
+		postbox.InitNotifCountCoalescer,
 		binlog.SubscribeBinlogEvents,
 		func(rail miso.Rail) error {
 			vault.RegisterInternalPathResourcesOnBootstrapped([]auth.Resource{

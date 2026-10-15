@@ -29,7 +29,7 @@ func SubscribeBinlogEvents(rail miso.Rail) error {
 		},
 		Concurrency:        2,
 		ContinueOnErr:      true,
-		Listener:           postbox.EvictNotifCountCache,
+		Listener:           postbox.NotifyNotifCountChanged,
 		ListenerLogPayload: false,
 	})
 

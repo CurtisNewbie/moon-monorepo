@@ -47,19 +47,13 @@ func CachedCountNotification(rail miso.Rail, db *gorm.DB, user flow.User) (int, 
 	return v, err
 }
 
-func EvictNotifCountCache(rail miso.Rail, t client.StreamEvent) error {
+func NotifyNotifCountChanged(rail miso.Rail, t client.StreamEvent) error {
 	userNo, ok := t.ColumnAfter("user_no")
 	if !ok {
 		return nil
 	}
 	rail.Infof("User notification changed, eventType: %v, %v", t.Type, userNo)
-	if err := userNotifCountCache.Del(rail, userNo); err != nil {
-		rail.Errorf("Failed to evict user notification count cache, %v, %v", userNo, err)
-	}
-
-	if c := redis.GetRedis().Publish(rail.Context(), userNotifCountChangedChannel, userNo); c.Err() != nil {
-		rail.Errorf("Failed to publish user notification count change to %v, %v, %v", userNotifCountChangedChannel, userNo, c.Err())
-	}
+	notifCountCoalescer.Notify(rail, userNo)
 	return nil
 }
 

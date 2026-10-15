@@ -52,7 +52,9 @@ func listenUserNotificationCountChanges(r *redis.Client, onCountChanged func(use
 				userNo := m.Payload
 				if userNo != "" {
 					longPollingHandler.Notify(userNo)
-					if onCountChanged != nil {
+					// Skip the count recomputation and push when the user has no live
+					// WebSocket connection; long-poll subscribers recompute for themselves.
+					if onCountChanged != nil && wsMgr != nil && wsMgr.connCount(userNo) > 0 {
 						count, err := CachedCountNotification(miso.EmptyRail(), mysql.GetMySQL(), flow.User{UserNo: userNo})
 						if err == nil {
 							onCountChanged(userNo, count)
