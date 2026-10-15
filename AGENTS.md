@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Dev workflow
+
+Load the `dev-flow` skill before starting any non-trivial task — a feature, a bugfix, or workflow setup — and follow its lane.
+
+The skills it dispatches live in the offloaded store, not installed. Reach any of them through the `offloaded-skill` skill; the `skill` tool cannot.
+
 ## Repository Structure
 
 Manual monorepo: Go microservices in `backend/<service>/`, Angular app in `frontend/moon/`, Docker Compose configs in `deploy/`.
@@ -20,7 +26,7 @@ Each backend service is standalone — its own `go.mod/go.sum` and `conf.yml`, n
 
 ### Build & Test
 
-No Makefiles. Run per service:
+Each service builds and tests standalone:
 
 ```bash
 cd backend/<service>
@@ -46,7 +52,7 @@ Some `go.mod` files use `replace` directives pointing to sibling directories. Bu
 
 ### Database Schema Migrations
 
-**No auto-migration.** Versioned DDL lives in `docs/schema/`: `docs/schema/current/` holds the live per-service snapshot, `docs/schema/vX.Y.Z/` holds each release's increments, and `changes/changes.md` is the release manifest. See `docs/agents/db-schema.md` for the layout, the update rules, and how the manifest is maintained.
+**No auto-migration.** Versioned DDL lives in `docs/schema/`: `docs/schema/current/` holds the live per-service snapshot, `docs/schema/vX.Y.Z/` holds each release's increments, and the repo-root `changes/changes.md` is the release manifest. See `docs/agents/db-schema.md` for the layout, the update rules, and how the manifest is maintained.
 
 ## Backend Framework
 
@@ -55,7 +61,7 @@ All backend services use [miso](https://github.com/CurtisNewbie/miso) framework.
 **Mandatory:** load the `miso` skill before writing any backend Go code, and follow its conventions (error handling with `errs` — never `fmt.Errorf`/`errors.New`, bootstrap, rail logging, db, config, etc.). Install if absent:
 
 ```sh
-npx sklls add https://github.com/curtisnewbie/miso
+npx skills add https://github.com/curtisnewbie/miso
 ```
 
 See service-specific `doc/config.md` for custom properties.
@@ -74,7 +80,7 @@ Dev server proxies all requests to `http://127.0.0.1:7070` (gatekeeper).
 
 ### Key Facts
 
-- **Angular 11** with `NgModule` (not standalone components)
+- **Angular 11** with `NgModule`
 - **Angular Material** with pink-bluegrey theme
 - **TSLint** (not ESLint) — run with `ng lint`
 - `angular.json` has `skipTests: true` — `ng generate component` creates no `.spec.ts` by default
@@ -113,10 +119,7 @@ This prevents field name mistakes (e.g., `dirFileKey` vs `fileKey`).
 
 ## Deployment
 
-Production uses Docker Compose:
-- Configs externalized to environment variables
-- Use production config files (not `conf.yml`)
-- Includes Nginx reverse proxy, Prometheus monitoring, Grafana dashboard
+Production runs on Docker Compose: Nginx reverse proxy, Prometheus monitoring, Grafana dashboard. Config files differ from development — see [Configuration Files](#configuration-files).
 
 ## Entry Points
 
@@ -125,18 +128,14 @@ Production uses Docker Compose:
 
 ## Agent skills
 
-### Dev flow
-
-Non-trivial dev work follows the `dev-flow` skill — spec → tickets → implement, plus the bugfix lane. Load it at the start of any feature, bugfix, or setup task.
-
 ### Issue tracker
 
-Issues and specs live as local markdown under `.scratch/`. See `docs/agents/issue-tracker.md`.
+Issues and specs live as local markdown under `.scratch/`; `docs/agents/issue-tracker.md` covers the conventions and how skills read and write them.
 
 ### Triage labels
 
-The five canonical triage labels, default strings unchanged. See `docs/agents/triage-labels.md`.
+The five canonical triage labels (default strings). `docs/agents/triage-labels.md` maps each to this repo's label.
 
 ### Domain docs
 
-Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
+This is a single-context repo: root `GLOSSARY.md` + `docs/adr/`. Read them before exploring an unfamiliar area; `docs/agents/domain.md` covers how the skills consume them.
