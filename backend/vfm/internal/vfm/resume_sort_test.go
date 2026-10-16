@@ -255,3 +255,28 @@ func TestCalcFilePositionCustomIgnoresDirection(t *testing.T) {
 		}
 	}
 }
+
+// A recorded file key that no longer exists yields page 1 rather than an error.
+func TestCalcFilePositionMissingFileReturnsFirstPage(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, false)
+
+	insertSortTestChild(t, db, dir, "a.jpg", user.UserNo, "")
+	insertSortTestChild(t, db, dir, "b.jpg", user.UserNo, "")
+
+	page, err := CalcFilePosition(miso.EmptyRail(), db, FilePositionReq{
+		FileKey:    "rst-missing-" + randutil.ERand(8),
+		ParentFile: dir,
+		Limit:      10,
+		OrderBy:    SortByName,
+		OrderDir:   "asc",
+	}, user)
+	if err != nil {
+		t.Fatalf("expected no error for a missing recorded file, got %v", err)
+	}
+	if page != 1 {
+		t.Fatalf("expected page 1 for a missing recorded file, got %d", page)
+	}
+}

@@ -353,10 +353,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         } else if (this.inDirFileKey && !this.dirPagePrompted) {
           this.dirPagePrompted = true;
           this.browseHistoryRecorder.getDirPage(this.inDirFileKey, this.orderBy, this.orderByDir).subscribe(fileKey => {
-            // reading-streak guard: no previous record means new visitor
-            if (!fileKey) {
-              this.dirReadingConfirmed = true;
-            }
             // dialog prompt
             if (fileKey) {
               this.http.post<any>('/vfm/open/api/file/position', {

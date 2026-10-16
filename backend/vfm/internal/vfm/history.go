@@ -20,6 +20,8 @@ import (
 const (
 	MaxBrowseHistoryLen int64         = 200
 	BrowseHistoryTTL    time.Duration = time.Hour * 24 * 7
+
+	TableDirResumeCursor = "dir_resume_cursor"
 )
 
 type ListBrowseRecordRes struct {
@@ -265,35 +267,47 @@ func RecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req RecordDi
 	}
 
 	lock := dirResumeCursorLock(rail, user.UserNo, req.DirKey, orderBy, orderDir)
-	if err := lock.Lock(); err != nil {
+	locked, err := lock.TryLock(red.WithBackoff(3 * time.Second))
+	if err != nil {
 		return errs.Wrap(err)
+	}
+	if !locked {
+		rail.Warnf("Skip recording dir resume cursor, lock is busy, userNo: %v, dirKey: %v", user.UserNo, req.DirKey)
+		return nil // lock busy, the client re-records on the next preview
 	}
 	defer lock.Unlock()
 
 	return upsertDirResumeCursor(rail, db, user, req.DirKey, orderBy, orderDir, req.FileKey)
 }
 
-// upsertDirResumeCursor reads the cursor row for the sort in force and inserts
-// or updates it. Callers hold the (user, directory, sort) lock so the
-// read-then-write leaves exactly one row.
-func upsertDirResumeCursor(rail miso.Rail, db *gorm.DB, user flow.User, dirKey, orderBy, orderDir, fileKey string) error {
+// findDirResumeCursor loads the live cursor row for one (user, directory, sort).
+// It returns ok=false when none exists. Callers own any error wrapping.
+func findDirResumeCursor(rail miso.Rail, db *gorm.DB, userNo, dirKey, orderBy, orderDir string) (dirResumeCursor, bool, error) {
 	var cur dirResumeCursor
 	ok, err := dbquery.NewQuery(rail, db).
-		Table("dir_resume_cursor").
-		Eq("user_no", user.UserNo).
+		Table(TableDirResumeCursor).
+		Eq("user_no", userNo).
 		Eq("dir_key", dirKey).
 		Eq("order_by", orderBy).
 		Eq("order_dir", orderDir).
 		Eq("deleted", 0).
 		Limit(1).
 		ScanAny(&cur)
+	return cur, ok, err
+}
+
+// upsertDirResumeCursor reads the cursor row for the sort in force and inserts
+// or updates it. Callers hold the (user, directory, sort) lock so the
+// read-then-write leaves exactly one row.
+func upsertDirResumeCursor(rail miso.Rail, db *gorm.DB, user flow.User, dirKey, orderBy, orderDir, fileKey string) error {
+	cur, ok, err := findDirResumeCursor(rail, db, user.UserNo, dirKey, orderBy, orderDir)
 	if err != nil {
 		return errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, dirKey)
 	}
 
 	if ok {
 		if err := dbquery.NewQuery(rail, db).
-			Table("dir_resume_cursor").
+			Table(TableDirResumeCursor).
 			Set("file_key", fileKey).
 			Set("updated_by", user.Username).
 			Eq("id", cur.Id).
@@ -313,7 +327,7 @@ func upsertDirResumeCursor(rail miso.Rail, db *gorm.DB, user flow.User, dirKey, 
 		UpdatedBy: user.Username,
 	}
 	if err := dbquery.NewQuery(rail, db).
-		Table("dir_resume_cursor").
+		Table(TableDirResumeCursor).
 		Omit("id").
 		CreateAny(&row); err != nil {
 		return errs.Wrapf(err, "failed to create dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, dirKey)
@@ -330,16 +344,7 @@ func GetDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req GetDirLastP
 		return DirLastPageRes{}, err
 	}
 
-	var cur dirResumeCursor
-	ok, err := dbquery.NewQuery(rail, db).
-		Table("dir_resume_cursor").
-		Eq("user_no", user.UserNo).
-		Eq("dir_key", req.DirKey).
-		Eq("order_by", orderBy).
-		Eq("order_dir", orderDir).
-		Eq("deleted", 0).
-		Limit(1).
-		ScanAny(&cur)
+	cur, ok, err := findDirResumeCursor(rail, db, user.UserNo, req.DirKey, orderBy, orderDir)
 	if err != nil {
 		return DirLastPageRes{}, errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, req.DirKey)
 	}
@@ -369,6 +374,11 @@ func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, 
 	if !ok || dir.FileType != FileTypeDir || !dir.IsComic {
 		return "", false, nil
 	}
+	// mirror the recording gate: only carry a legacy position forward for a
+	// directory the user owns
+	if dir.UploaderNo != user.UserNo {
+		return "", false, nil
+	}
 
 	fileKey, found, err := readLegacyDirLastPage(rail, user.UserNo, dirKey)
 	if err != nil || !found {
@@ -376,8 +386,13 @@ func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, 
 	}
 
 	lock := dirResumeCursorLock(rail, user.UserNo, dirKey, orderBy, orderDir)
-	if err := lock.Lock(); err != nil {
+	locked, err := lock.TryLock(red.WithBackoff(3 * time.Second))
+	if err != nil {
 		return "", false, errs.Wrap(err)
+	}
+	if !locked {
+		rail.Warnf("Skip writing back legacy dir resume cursor, lock is busy, userNo: %v, dirKey: %v", user.UserNo, dirKey)
+		return fileKey, true, nil // lock busy, serve the legacy position without the write-back
 	}
 	defer lock.Unlock()
 
@@ -441,7 +456,7 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 	// newest cursor rows first; the user_updated_idx (user_no, updated_at) index serves this
 	var rows []dirBrowseCursorRow
 	if err := dbquery.NewQuery(rail, db).
-		Table("dir_resume_cursor").
+		Table(TableDirResumeCursor).
 		Eq("user_no", user.UserNo).
 		Eq("deleted", 0).
 		OrderDesc("updated_at").
