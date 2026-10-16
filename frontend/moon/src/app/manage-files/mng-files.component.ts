@@ -374,7 +374,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                   }).afterClosed().subscribe(confirm => {
                     if (confirm) {
                       this.pagingController.paging.page = savedPage;
-                      this.fetchFileInfoList(() => this.pagingController.syncPage(savedPage));
+                      this.fetchFileInfoList(() => {
+                        this.pagingController.syncPage(savedPage);
+                        const f = this.fileInfoList.find(fi => fi.uuid === fileKey);
+                        if (f) {
+                          this.preview(f, this.fileInfoList.indexOf(f));
+                        }
+                      });
                     } else {
                       this.resetToFirstPage();
                     }
