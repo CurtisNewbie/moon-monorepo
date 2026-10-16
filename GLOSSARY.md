@@ -1,8 +1,10 @@
-# Platform Notifications
+# Moon Platform
 
-The notification postbox in the `user-vault` service: per-user messages and their unread count, delivered to clients over WebSocket (with a long-poll fallback).
+The platform in this monorepo: a file manager (`vfm`), user notifications (`user-vault`), and the Angular client that fronts them.
 
 ## Language
+
+### Platform Notifications
 
 **Notification**:
 A message addressed to exactly one recipient user, which is either unopened or opened.
@@ -23,3 +25,13 @@ _Avoid_: Count event, notification push, count message
 **Coalescing Window**:
 The period during which a user's repeated count changes are folded into a single Count-Changed Push. It opens on the first change for that user and defaults to one second.
 _Avoid_: Throttle interval, debounce, batch
+
+### File Browsing
+
+**Resume Cursor**:
+The file a user last read in a directory, remembered per user, per directory and per sort order, so that reopening the directory under the same sort returns them there.
+_Avoid_: Last page, bookmark, reading position, progress
+
+**Order-By Preference**:
+The sort order a user last chose for a directory. A directory opens in its Order-By Preference.
+_Avoid_: Sort setting, default sort, sort cache
