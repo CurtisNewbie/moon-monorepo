@@ -382,9 +382,9 @@ func TestFetchDirTreeTopDown(t *testing.T) {
 	}
 }
 
-// testMySQLConn creates a dedicated MySQL connection to the vfm schema.
-// The global connection (mysql.GetMySQL) is unreliable in tests: bookmark_test.go
-// initializes it against the docindexer schema and InitMySQL is idempotent.
+// testMySQLConn opens a dedicated connection to the vfm schema, separate from
+// the shared global (mysql.GetMySQL), so a test can run its own queries without
+// depending on or mutating process-wide connection state.
 func testMySQLConn(t *testing.T) *gorm.DB {
 	t.Helper()
 	rail := miso.EmptyRail()

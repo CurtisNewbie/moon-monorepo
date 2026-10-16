@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/curtisnewbie/miso/flow"
-	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/miso"
 )
 
@@ -14,9 +13,9 @@ func TestNetscapeBookmark(t *testing.T) {
 	testFile := "bookmarks_2023_10_13.html"
 	f, err := os.Open(testFile)
 	if err != nil {
-		t.Logf("failed to read file, %v", err)
-		t.FailNow()
+		t.Skipf("skipping: bookmark fixture %q is not available, %v", testFile, err)
 	}
+	defer f.Close()
 
 	rail := miso.EmptyRail()
 	// rail.SetLogLevel("debug")
@@ -34,16 +33,15 @@ func TestNetscapeBookmark(t *testing.T) {
 }
 
 func TestProcessUploadedBookmarkFile(t *testing.T) {
-	rail := miso.EmptyRail()
-	miso.SetLogLevel("debug")
-	miso.SetProp(mysql.PropMySQLSchema, "docindexer")
-
-	if err := mysql.InitMySQLFromProp(rail); err != nil {
-		t.Log(err)
-		t.FailNow()
+	testFile := "bookmarks_2023_10_13.html"
+	if _, err := os.Stat(testFile); err != nil {
+		t.Skipf("skipping: bookmark fixture %q is not available, %v", testFile, err)
 	}
 
-	testFile := "bookmarks_2023_10_13.html"
+	corePreTest(t)
+	rail := miso.EmptyRail()
+	miso.SetLogLevel("debug")
+
 	user := flow.User{
 		UserNo:   "UE202205142310076187414",
 		Username: "zhuangyongj",
