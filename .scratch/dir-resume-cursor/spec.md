@@ -14,7 +14,7 @@ The recorded position lives only in Redis, with no TTL, no query, and no durabil
 
 Every directory remembers a Resume Cursor: the file the user last read, kept per user, per directory, and per sort order.
 
-When a user opens a directory, vfm resolves the sort order in force for that directory, looks up the cursor for that sort, and — if one exists — offers to jump to the page that file sits on under that sort, using the existing "Continue Browsing" dialog. The user can accept or start from the top.
+When a user opens a directory, vfm resolves the sort order in force for that directory, looks up the cursor for that sort, and — if one exists — offers to jump to the page that file sits on under that sort, using the existing "Continue Browsing" dialog. Accepting lands on that file and previews it, the same way resuming from the Directory Browse History list does; the user can also start from the top.
 
 The cursor moves from Redis to a MySQL table so it is durable, queryable, and soft-deletable. Cursors already in Redis keep working: they are read once as a fallback and written back into the table.
 
@@ -42,6 +42,7 @@ The cursor moves from Redis to a MySQL table so it is durable, queryable, and so
 20. As an operator, I want cursor rows to live in a table I can query, so that I can inspect and clean them.
 21. As an operator, I want to discard a directory's cursor by marking it deleted, so that the removal is auditable rather than destructive.
 22. As an operator releasing a version, I want the new table recorded in the schema snapshot, the release increment, and the change log, so that the schema stays reproducible.
+23. As a moon user, I want accepting Continue Browsing to open the file I was reading, previewed, so that I land exactly where I left off rather than on a page of files.
 
 ## Implementation Decisions
 
