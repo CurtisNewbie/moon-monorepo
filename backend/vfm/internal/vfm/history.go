@@ -460,10 +460,10 @@ type dirBrowseCursorRow struct {
 	Name      string
 }
 
-// listDirBrowseHistory returns the top directory browse history entries for a user,
+// listDirBrowseHistory returns the directory browse history entries for a user,
 // sorted by last-viewed time descending, enriched with file metadata from MySQL.
-// Each directory appears once, taken from its most recently updated cursor row,
-// and directories marked deleted are left out.
+// Every cursor row — one per user, directory and sort — is its own entry, and
+// directories marked deleted are left out.
 func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBrowseRecord, error) {
 	const maxEntries = 200
 
@@ -487,29 +487,15 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 		return []DirBrowseRecord{}, nil
 	}
 
-	// one entry per directory: keep the first (most recent) row seen for each dir
-	seen := make(map[string]bool, len(rows))
-	entries := make([]dirBrowseCursorRow, 0, len(rows))
-	for _, r := range rows {
-		if seen[r.DirKey] {
-			continue
-		}
-		seen[r.DirKey] = true
-		entries = append(entries, r)
-	}
-
-	// take top N
-	if len(entries) > maxEntries {
-		entries = entries[:maxEntries]
-	}
-	if len(entries) == 0 {
-		return []DirBrowseRecord{}, nil
+	// take top N entries (rows)
+	if len(rows) > maxEntries {
+		rows = rows[:maxEntries]
 	}
 
 	// collect dirKeys and fileKeys for enrichment
 	var dirKeys []string
 	var fileKeys []string
-	for _, e := range entries {
+	for _, e := range rows {
 		dirKeys = append(dirKeys, e.DirKey)
 		if e.FileKey != "" {
 			fileKeys = append(fileKeys, e.FileKey)
@@ -542,8 +528,8 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 		}
 	}
 
-	records := make([]DirBrowseRecord, 0, len(entries))
-	for _, e := range entries {
+	records := make([]DirBrowseRecord, 0, len(rows))
+	for _, e := range rows {
 		r := DirBrowseRecord{
 			DirKey:   e.DirKey,
 			Name:     e.Name,

@@ -8,7 +8,7 @@ import (
 )
 
 // insertCursorRow seeds a dir_resume_cursor row with an explicit updated_at so a
-// test can control which visit is the directory's most recent one.
+// test can control the order in which the directory's visits appear.
 func insertCursorRow(t *testing.T, db *gorm.DB, userNo, dirKey, orderBy, orderDir, fileKey, updatedAt string) {
 	t.Helper()
 	if err := db.Exec("INSERT INTO dir_resume_cursor (user_no, dir_key, order_by, order_dir, file_key, updated_at, deleted) VALUES (?,?,?,?,?,?,0)",
@@ -17,27 +17,20 @@ func insertCursorRow(t *testing.T, db *gorm.DB, userNo, dirKey, orderBy, orderDi
 	}
 }
 
-func findDirRecord(records []DirBrowseRecord, dirKey string) *DirBrowseRecord {
+// dirRecords returns the list's entries for one directory, in list order.
+func dirRecords(records []DirBrowseRecord, dirKey string) []DirBrowseRecord {
+	var rs []DirBrowseRecord
 	for i := range records {
 		if records[i].DirKey == dirKey {
-			return &records[i]
+			rs = append(rs, records[i])
 		}
 	}
-	return nil
+	return rs
 }
 
-func countDirRecords(records []DirBrowseRecord, dirKey string) int {
-	n := 0
-	for i := range records {
-		if records[i].DirKey == dirKey {
-			n++
-		}
-	}
-	return n
-}
-
-// A directory read under several sorts appears exactly once in the list.
-func TestListDirBrowseHistoryOneEntryPerDirectory(t *testing.T) {
+// A directory read under several sorts appears once per sort, most recently
+// updated first, with no grouping by directory.
+func TestListDirBrowseHistoryOneEntryPerSort(t *testing.T) {
 	rail := miso.EmptyRail()
 	db := historyPreTest(t)
 	user := testUser()
@@ -55,13 +48,22 @@ func TestListDirBrowseHistoryOneEntryPerDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if n := countDirRecords(records, dirKey); n != 1 {
-		t.Fatalf("expected exactly one entry for the directory, got %d", n)
+	rs := dirRecords(records, dirKey)
+	if len(rs) != 2 {
+		t.Fatalf("expected one entry per sort, got %d entries for the directory", len(rs))
+	}
+	// newest visit first: time-descending, then name-ascending
+	if rs[0].FileKey != fileB {
+		t.Fatalf("expected the newest visit first, got file %q", rs[0].FileKey)
+	}
+	if rs[1].FileKey != fileA {
+		t.Fatalf("expected the older visit second, got file %q", rs[1].FileKey)
 	}
 }
 
-// The single entry carries the sort and file of the directory's most recent visit.
-func TestListDirBrowseHistoryCarriesMostRecentVisitSortAndFile(t *testing.T) {
+// Each entry carries the sort order and file of its own cursor row, so two
+// entries for one directory differ by sort and file.
+func TestListDirBrowseHistoryCarriesEachRowsSortAndFile(t *testing.T) {
 	rail := miso.EmptyRail()
 	db := historyPreTest(t)
 	user := testUser()
@@ -79,15 +81,25 @@ func TestListDirBrowseHistoryCarriesMostRecentVisitSortAndFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := findDirRecord(records, dirKey)
-	if got == nil {
-		t.Fatal("expected an entry for the directory")
+	bySort := make(map[string]DirBrowseRecord)
+	for _, r := range dirRecords(records, dirKey) {
+		bySort[r.OrderBy+"/"+r.OrderDir] = r
 	}
-	if got.FileKey != fileB {
-		t.Fatalf("expected file of the most recent visit %q, got %q", fileB, got.FileKey)
+
+	named, ok := bySort[SortByName+"/asc"]
+	if !ok {
+		t.Fatalf("expected an entry for the name/asc visit, got %v", bySort)
 	}
-	if got.OrderBy != SortByTime || got.OrderDir != "desc" {
-		t.Fatalf("expected most recent visit sort time/desc, got %q/%q", got.OrderBy, got.OrderDir)
+	if named.FileKey != fileA {
+		t.Fatalf("expected name/asc entry to carry file %q, got %q", fileA, named.FileKey)
+	}
+
+	timed, ok := bySort[SortByTime+"/desc"]
+	if !ok {
+		t.Fatalf("expected an entry for the time/desc visit, got %v", bySort)
+	}
+	if timed.FileKey != fileB {
+		t.Fatalf("expected time/desc entry to carry file %q, got %q", fileB, timed.FileKey)
 	}
 }
 
@@ -110,7 +122,7 @@ func TestListDirBrowseHistoryExcludesDeletedDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := findDirRecord(records, dirKey); got != nil {
-		t.Fatalf("deleted directory should not appear in the list, got %+v", got)
+	if rs := dirRecords(records, dirKey); len(rs) != 0 {
+		t.Fatalf("deleted directory should not appear in the list, got %+v", rs)
 	}
 }
