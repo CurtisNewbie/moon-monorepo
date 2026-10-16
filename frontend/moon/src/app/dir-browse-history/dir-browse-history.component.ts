@@ -101,8 +101,11 @@ export interface DirBrowseRecord {
         gap: 0.25rem;
         padding: 0.15rem 0.65rem;
         border-radius: 999px;
-        background-color: rgba(0, 0, 0, 0.06);
-        color: rgba(0, 0, 0, 0.7);
+        /* Theme-aware: inherit the surrounding surface's text colour (white on
+           the dark theme's cards, dark on a light theme) and use a neutral
+           translucent scrim so the pill keeps a subtle contrast either way. */
+        background-color: rgba(128, 128, 128, 0.22);
+        color: inherit;
         font-size: 0.8rem;
         line-height: 1.5;
         white-space: nowrap;
