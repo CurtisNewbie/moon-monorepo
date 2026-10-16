@@ -350,7 +350,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           });
         } else if (this.inDirFileKey && !this.dirPagePrompted) {
           this.dirPagePrompted = true;
-          this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(fileKey => {
+          this.browseHistoryRecorder.getDirPage(this.inDirFileKey, this.orderBy, this.orderByDir).subscribe(fileKey => {
             // reading-streak guard: no previous record means new visitor
             if (!fileKey) {
               this.dirReadingConfirmed = true;
@@ -843,7 +843,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       if (this.prevPreviewedKey && u.uuid === this.prevPreviewedKey) {
         // same file: don't count toward streak. still record if already confirmed.
         if (this.dirReadingConfirmed) {
-          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid);
+          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid, this.orderBy, this.orderByDir);
         }
       } else {
         this.prevPreviewedKey = u.uuid;
@@ -857,7 +857,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         }
 
         if (this.dirReadingConfirmed) {
-          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid);
+          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid, this.orderBy, this.orderByDir);
         }
       }
     }

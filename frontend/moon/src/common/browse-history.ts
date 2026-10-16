@@ -11,6 +11,8 @@ export interface RecordBrowseHistoryReq {
 interface DirPageUpdate {
   dirKey: string;
   fileKey: string;
+  orderBy: string;
+  orderDir: string;
 }
 
 const DIR_LAST_PAGE_ENDPOINT = '/vfm/history/dir/last-page';
@@ -32,7 +34,7 @@ export class BrowseHistoryRecorder implements OnDestroy {
     this.dirPageUpdates
       .pipe(
         debounceTime(300),
-        switchMap(({ dirKey, fileKey }) => this.postDirPage(dirKey, fileKey))
+        switchMap(({ dirKey, fileKey, orderBy, orderDir }) => this.postDirPage(dirKey, fileKey, orderBy, orderDir))
       )
       .subscribe();
 
@@ -61,13 +63,13 @@ export class BrowseHistoryRecorder implements OnDestroy {
     });
   }
 
-  recordDirPage(dirKey: string, fileKey: string) {
-    this.lastDirPage = { dirKey, fileKey };
-    this.dirPageUpdates.next({ dirKey, fileKey });
+  recordDirPage(dirKey: string, fileKey: string, orderBy: string, orderDir: string) {
+    this.lastDirPage = { dirKey, fileKey, orderBy, orderDir };
+    this.dirPageUpdates.next({ dirKey, fileKey, orderBy, orderDir });
   }
 
-  private postDirPage(dirKey: string, fileKey: string): Observable<any> {
-    return this.http.post<any>(DIR_LAST_PAGE_ENDPOINT, { dirKey, fileKey }).pipe(
+  private postDirPage(dirKey: string, fileKey: string, orderBy: string, orderDir: string): Observable<any> {
+    return this.http.post<any>(DIR_LAST_PAGE_ENDPOINT, { dirKey, fileKey, orderBy, orderDir }).pipe(
       tap((resp) => {
         if (resp.error) {
           this.snackBar.open(resp.msg, 'ok', { duration: 6000 });
@@ -88,12 +90,19 @@ export class BrowseHistoryRecorder implements OnDestroy {
     if (!latest) {
       return;
     }
-    const payload = JSON.stringify({ dirKey: latest.dirKey, fileKey: latest.fileKey });
+    const payload = JSON.stringify({
+      dirKey: latest.dirKey,
+      fileKey: latest.fileKey,
+      orderBy: latest.orderBy,
+      orderDir: latest.orderDir,
+    });
     navigator.sendBeacon(DIR_LAST_PAGE_ENDPOINT, new Blob([payload], { type: 'application/json' }));
   }
 
-  getDirPage(dirKey: string): Observable<string> {
-    return this.http.get<any>(`/vfm/history/dir/last-page?dirKey=${encodeURIComponent(dirKey)}`).pipe(
+  getDirPage(dirKey: string, orderBy: string, orderDir: string): Observable<string> {
+    return this.http.get<any>(
+      `/vfm/history/dir/last-page?dirKey=${encodeURIComponent(dirKey)}&orderBy=${encodeURIComponent(orderBy)}&orderDir=${encodeURIComponent(orderDir)}`
+    ).pipe(
       map(resp => {
         if (resp.error) return '';
         return resp.data?.fileKey || '';
