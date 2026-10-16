@@ -4,7 +4,7 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] A directory read under several sorts appears once per sort, newest first, with no grouping by directory.
 - [ ] Each entry shows the sort order it was recorded under.
