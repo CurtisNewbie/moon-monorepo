@@ -457,6 +457,7 @@ type dirBrowseCursorRow struct {
 	OrderDir  string
 	FileKey   string
 	UpdatedAt atom.Time
+	Name      string
 }
 
 // listDirBrowseHistory returns the top directory browse history entries for a user,
@@ -466,15 +467,19 @@ type dirBrowseCursorRow struct {
 func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBrowseRecord, error) {
 	const maxEntries = 200
 
-	// newest cursor rows first; the user_updated_idx (user_no, updated_at) index serves this
+	// newest cursor rows first; the user_updated_idx (user_no, updated_at) index serves this.
+	// The join drops directories marked deleted, so the rest of the pipeline sees only live dirs.
 	var rows []dirBrowseCursorRow
 	if err := dbquery.NewQuery(rail, db).
-		Table(TableDirResumeCursor).
-		Eq("user_no", user.UserNo).
-		Eq("deleted", 0).
-		OrderDesc("updated_at").
-		OrderDesc("id").
-		Select("dir_key", "order_by", "order_dir", "file_key", "updated_at").
+		From(TableDirResumeCursor+" c").
+		Join("INNER JOIN file_info f ON f.uuid = c.dir_key").
+		Eq("c.user_no", user.UserNo).
+		Eq("c.deleted", 0).
+		Eq("f.is_logic_deleted", DelN).
+		Eq("f.is_del", 0).
+		OrderDesc("c.updated_at").
+		OrderDesc("c.id").
+		Select("c.dir_key, c.order_by, c.order_dir, c.file_key, c.updated_at, f.name").
 		ScanVal(&rows); err != nil {
 		return nil, errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v", user.UserNo)
 	}
@@ -485,40 +490,13 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 	// one entry per directory: keep the first (most recent) row seen for each dir
 	seen := make(map[string]bool, len(rows))
 	entries := make([]dirBrowseCursorRow, 0, len(rows))
-	dirKeys := make([]string, 0, len(rows))
 	for _, r := range rows {
 		if seen[r.DirKey] {
 			continue
 		}
 		seen[r.DirKey] = true
 		entries = append(entries, r)
-		dirKeys = append(dirKeys, r.DirKey)
 	}
-
-	// exclude directories marked deleted (the directory's own file_info row)
-	var liveDirs []struct {
-		Uuid string
-	}
-	if err := dbquery.NewQuery(rail, db).
-		Table("file_info").
-		Where("uuid IN ?", dirKeys).
-		Eq("is_logic_deleted", DelN).
-		Eq("is_del", 0).
-		Select("uuid").
-		ScanVal(&liveDirs); err != nil {
-		return nil, errs.Wrapf(err, "failed to query live directories for browse history, userNo: %v", user.UserNo)
-	}
-	live := make(map[string]bool, len(liveDirs))
-	for _, d := range liveDirs {
-		live[d.Uuid] = true
-	}
-	kept := entries[:0]
-	for _, e := range entries {
-		if live[e.DirKey] {
-			kept = append(kept, e)
-		}
-	}
-	entries = kept
 
 	// take top N
 	if len(entries) > maxEntries {
@@ -529,7 +507,7 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 	}
 
 	// collect dirKeys and fileKeys for enrichment
-	dirKeys = dirKeys[:0]
+	var dirKeys []string
 	var fileKeys []string
 	for _, e := range entries {
 		dirKeys = append(dirKeys, e.DirKey)
@@ -538,11 +516,14 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 		}
 	}
 
-	// enrich with file metadata from MySQL (both dirs and files)
-	allKeys := append(dirKeys, fileKeys...)
-	ffi, err := queryFileFstoreInfo(rail, db, allKeys)
-	if err != nil {
-		return nil, err
+	// enrich with the last-read files' metadata (dir names come from the join)
+	var ffi map[string]FileFstoreInfo
+	if len(fileKeys) > 0 {
+		var err error
+		ffi, err = queryFileFstoreInfo(rail, db, fileKeys)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// use batch dir-thumbnail API as fallback (first image inside each dir)
@@ -565,13 +546,11 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 	for _, e := range entries {
 		r := DirBrowseRecord{
 			DirKey:   e.DirKey,
+			Name:     e.Name,
 			FileKey:  e.FileKey,
 			OrderBy:  e.OrderBy,
 			OrderDir: e.OrderDir,
 			Time:     e.UpdatedAt,
-		}
-		if fi, ok := ffi[e.DirKey]; ok {
-			r.Name = fi.Name
 		}
 		// Prefer thumbnail of the last-viewed file over dir thumbnail
 		if e.FileKey != "" {
