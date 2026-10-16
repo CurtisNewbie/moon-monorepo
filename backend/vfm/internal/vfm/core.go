@@ -247,6 +247,41 @@ const (
 	SortByCustom = "custom"
 )
 
+// resolveEffectiveSort answers the sort field and direction a directory is
+// actually listed by, from the requested values:
+//   - an omitted field resolves to SortByTime;
+//   - an omitted direction resolves to ascending for name/custom and descending for time;
+//   - a comic directory is forced to name-ascending (custom ordering is honored as requested).
+//
+// Both the directory listing and the file-position calculation resolve through
+// this one function so a directory records and reads its cursor under the same key.
+func resolveEffectiveSort(rail miso.Rail, db *gorm.DB, orderBy, orderDir, dirKey string) (string, string, error) {
+	if orderBy == "" {
+		orderBy = SortByTime
+	}
+	if orderDir == "" {
+		if orderBy == SortByName || orderBy == SortByCustom {
+			orderDir = "asc"
+		} else {
+			orderDir = "desc"
+		}
+	}
+
+	// force name-ascending for comic directories (except custom ordering)
+	if (orderBy == SortByTime || orderBy == SortByName) && dirKey != "" {
+		parent, ok, err := findFile(rail, db, dirKey)
+		if err != nil {
+			return orderBy, orderDir, err
+		}
+		if ok && parent.FileType == FileTypeDir && parent.IsComic {
+			orderBy = SortByName
+			orderDir = "asc" // comic dirs keep default name-asc behavior
+		}
+	}
+
+	return orderBy, orderDir, nil
+}
+
 type ListFileReq struct {
 	Page        miso.Paging `json:"paging"`
 	Filename    *string     `json:"filename"`
@@ -297,19 +332,17 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (mi
 	if req.FolderNo != nil && *req.FolderNo != "" {
 		res, e = listFilesInVFolder(rail, db, req.Page, *req.FolderNo, user)
 	} else {
-		// force order by name for comic directories (except custom ordering)
-		if req.OrderBy == SortByTime || req.OrderBy == "" || req.OrderBy == SortByName {
-			if req.ParentFile != nil && *req.ParentFile != "" {
-				parent, ok, err := findFile(rail, db, *req.ParentFile)
-				if err != nil {
-					return res, err
-				}
-				if ok && parent.FileType == FileTypeDir && parent.IsComic {
-					req.OrderBy = SortByName
-					req.OrderDir = "" // comic dirs keep default name-asc behavior
-				}
-			}
+		// resolve the effective sort (comic dirs are forced to name-ascending)
+		parentKey := ""
+		if req.ParentFile != nil {
+			parentKey = *req.ParentFile
 		}
+		orderBy, orderDir, err := resolveEffectiveSort(rail, db, req.OrderBy, req.OrderDir, parentKey)
+		if err != nil {
+			return res, err
+		}
+		req.OrderBy = orderBy
+		req.OrderDir = orderDir
 		res, e = listFilesSelective(rail, db, req, user)
 	}
 	if e != nil {
@@ -439,17 +472,8 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		orderBy = SortByName
 	}
 
-	// sort direction, empty means default (time: desc, name: asc)
-	orderDir := req.OrderDir
-
-	// force name ordering for comic directories (except custom ordering)
-	if (orderBy == SortByTime || orderBy == "" || orderBy == SortByName) && req.ParentFile != "" {
-		parent, ok, err := findFile(rail, db, req.ParentFile)
-		if err == nil && ok && parent.FileType == FileTypeDir && parent.IsComic {
-			orderBy = SortByName
-			orderDir = "" // comic dirs keep default name-asc behavior
-		}
-	}
+	// resolve the effective sort through the one resolver (comic dirs forced to name-ascending)
+	orderBy, orderDir, _ := resolveEffectiveSort(rail, db, orderBy, req.OrderDir, req.ParentFile)
 
 	// 2. Build the same query as listFilesSelective but:
 	//    - remove fileKey filter
