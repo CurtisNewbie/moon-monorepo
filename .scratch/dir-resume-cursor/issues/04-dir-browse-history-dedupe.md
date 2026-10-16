@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] A directory read under several sorts appears once, taken from its most recent visit.
 - [ ] Directories marked deleted do not appear in the list.

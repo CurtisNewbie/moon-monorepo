@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Directory listing and file-position calculation both resolve their sort through the one resolver; no inline copy of the rule remains.
 - [ ] A comic directory lists and calculates under name-ascending regardless of the requested field and direction, exactly as before.

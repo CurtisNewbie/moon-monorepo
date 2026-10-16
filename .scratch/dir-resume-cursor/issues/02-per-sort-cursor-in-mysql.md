@@ -30,7 +30,7 @@ The existing per-directory last-page endpoints carry the requested sort on both 
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] A non-comic directory records a cursor as its files are read, and reopening it offers Continue Browsing and jumps to the recorded file's page.
 - [ ] A comic directory resumes exactly as it does today.

@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] A comic directory whose position exists only in the old Redis store still resumes, using that entry's file.
 - [ ] On that first read the position is written into the table, and subsequent reads are served from the table without touching Redis.
