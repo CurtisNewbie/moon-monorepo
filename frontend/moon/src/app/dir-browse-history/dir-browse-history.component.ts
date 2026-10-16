@@ -9,6 +9,8 @@ export interface DirBrowseRecord {
   name: string;
   thumbnailToken?: string;
   fileKey: string;
+  orderBy: string;
+  orderDir: string;
   time: number; // unix millis
 }
 
@@ -37,6 +39,16 @@ export interface DirBrowseRecord {
                       *ngIf="!it.thumbnailToken"
                       class="bi bi-folder icon-button-large-preview mat-elevation-z8"
                     ></i>
+                    <div class="text-center mt-2">
+                      <span class="sort-badge" [title]="'dir-browse-history' | trl:'sort'">
+                        <i
+                          class="bi"
+                          [ngClass]="it.orderDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down'"
+                        ></i>
+                        {{'dir-browse-history' | trl:it.orderBy}} ·
+                        {{'dir-browse-history' | trl:it.orderDir}}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div class="col">
@@ -68,7 +80,7 @@ export interface DirBrowseRecord {
                     />
                   </mat-form-field>
                   <div class="m-2" matLine>
-                    <button mat-icon-button (click)="resumeReading(it.dirKey, it.fileKey)">
+                    <button mat-icon-button (click)="resumeReading(it)">
                       Resume <i class="bi bi-arrow-right-circle"></i>
                     </button>
                   </div>
@@ -81,7 +93,29 @@ export interface DirBrowseRecord {
     </div>
     <mat-divider></mat-divider>
   `,
-  styles: [],
+  styles: [
+    `
+      .sort-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.15rem 0.65rem;
+        border-radius: 999px;
+        /* Theme-aware: inherit the surrounding surface's text colour (white on
+           the dark theme's cards, dark on a light theme) and use a neutral
+           translucent scrim so the pill keeps a subtle contrast either way. */
+        background-color: rgba(128, 128, 128, 0.22);
+        color: inherit;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        white-space: nowrap;
+      }
+
+      .sort-badge .bi {
+        font-size: 0.8rem;
+      }
+    `,
+  ],
 })
 export class DirBrowseHistoryComponent implements OnInit {
   dat: DirBrowseRecord[] = [];
@@ -118,9 +152,15 @@ export class DirBrowseHistoryComponent implements OnInit {
     });
   }
 
-  resumeReading(dirKey: string, fileKey: string) {
+  resumeReading(it: DirBrowseRecord) {
     this.navigation.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: dirKey, targetFileKey: fileKey, orderBy: 'name', autoPreview: true },
+      {
+        parentDirKey: it.dirKey,
+        targetFileKey: it.fileKey,
+        orderBy: it.orderBy,
+        orderDir: it.orderDir,
+        autoPreview: true,
+      },
     ]);
   }
 

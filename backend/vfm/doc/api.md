@@ -5130,6 +5130,8 @@
 - JSON Request:
     - "dirKey": (string) Required.
     - "fileKey": (string) Required.
+    - "orderBy": (string) sort field, 'name', 'time' or 'custom', empty means default
+    - "orderDir": (string) sort direction, 'asc' or 'desc', empty means default
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5138,7 +5140,7 @@
   ```sh
   curl -X POST 'http://localhost:8086/history/dir/last-page' \
     -H 'Content-Type: application/json' \
-    -d '{"dirKey":"","fileKey":""}'
+    -d '{"dirKey":"","fileKey":"","orderBy":"","orderDir":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5146,6 +5148,8 @@
   type RecordDirLastPageReq struct {
   	DirKey string `json:"dirKey"`  // Required.
   	FileKey string `json:"fileKey"` // Required.
+  	OrderBy string `json:"orderBy"` // sort field, 'name', 'time' or 'custom', empty means default
+  	OrderDir string `json:"orderDir"` // sort direction, 'asc' or 'desc', empty means default
   }
 
   // Record the last viewed page number for a directory
@@ -5166,6 +5170,8 @@
   export interface RecordDirLastPageReq {
     dirKey?: string;               // Required.
     fileKey?: string;              // Required.
+    orderBy?: string;              // sort field, 'name', 'time' or 'custom', empty means default
+    orderDir?: string;             // sort direction, 'asc' or 'desc', empty means default
   }
 
   export interface Resp {
@@ -5209,6 +5215,8 @@
 - Bound to Resource: `"manage-files"`
 - Query Parameter:
   - "dirKey": 
+  - "orderBy": 
+  - "orderDir": 
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -5217,7 +5225,7 @@
       - "fileKey": (string) 
 - cURL:
   ```sh
-  curl -X GET 'http://localhost:8086/history/dir/last-page?dirKey='
+  curl -X GET 'http://localhost:8086/history/dir/last-page?dirKey=&orderBy=&orderDir='
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
@@ -5227,10 +5235,12 @@
   }
 
   // Get the last viewed page number for a directory
-  func ApiGetDirLastPage(rail miso.Rail, dirKey string) (DirLastPageRes, error) {
+  func ApiGetDirLastPage(rail miso.Rail, dirKey string, orderBy string, orderDir string) (DirLastPageRes, error) {
   	var res miso.GnResp[DirLastPageRes]
   	err := miso.NewDynClient(rail, "/history/dir/last-page", "vfm").
   		AddQuery("dirKey", dirKey).
+  		AddQuery("orderBy", orderBy).
+  		AddQuery("orderDir", orderDir).
   		Get().
   		Json(&res)
   	if err != nil {
@@ -5267,7 +5277,9 @@
 
   getDirLastPage() {
     let dirKey: any | null = null;
-    this.http.get<any>(`/vfm/history/dir/last-page?dirKey=${dirKey}`)
+    let orderBy: any | null = null;
+    let orderDir: any | null = null;
+    this.http.get<any>(`/vfm/history/dir/last-page?dirKey=${dirKey}&orderBy=${orderBy}&orderDir=${orderDir}`)
       .subscribe({
         next: (resp) => {
           if (resp.error) {
@@ -5297,6 +5309,8 @@
       - "name": (string) 
       - "thumbnailToken": (string) 
       - "fileKey": (string) 
+      - "orderBy": (string) 
+      - "orderDir": (string) 
       - "time": (int64) 
 - cURL:
   ```sh
@@ -5310,6 +5324,8 @@
   	Name string `json:"name"`
   	ThumbnailToken string `json:"thumbnailToken,omitempty"`
   	FileKey string `json:"fileKey"`
+  	OrderBy string `json:"orderBy"`
+  	OrderDir string `json:"orderDir"`
   	Time atom.Time `json:"time"`
   }
 
@@ -5341,6 +5357,8 @@
     name?: string;
     thumbnailToken?: string;
     fileKey?: string;
+    orderBy?: string;
+    orderDir?: string;
     time?: number;
   }
   ```

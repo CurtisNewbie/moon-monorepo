@@ -275,7 +275,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       let ob = params.get("orderBy");
       if (ob) {
         this.orderBy = ob;
-        this.orderByDir = ob === 'name' ? 'asc' : 'desc';
+        // an explicit orderDir (e.g. resuming a browse-history entry) wins over the default
+        const od = params.get("orderDir");
+        this.orderByDir = od || (ob === 'name' ? 'asc' : 'desc');
       }
 
       const targetPageParam = params.get("targetPage");
@@ -350,11 +352,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           });
         } else if (this.inDirFileKey && !this.dirPagePrompted) {
           this.dirPagePrompted = true;
-          this.browseHistoryRecorder.getDirPage(this.inDirFileKey).subscribe(fileKey => {
-            // reading-streak guard: no previous record means new visitor
-            if (!fileKey) {
-              this.dirReadingConfirmed = true;
-            }
+          this.browseHistoryRecorder.getDirPage(this.inDirFileKey, this.orderBy, this.orderByDir).subscribe(fileKey => {
             // dialog prompt
             if (fileKey) {
               this.http.post<any>('/vfm/open/api/file/position', {
@@ -376,7 +374,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                   }).afterClosed().subscribe(confirm => {
                     if (confirm) {
                       this.pagingController.paging.page = savedPage;
-                      this.fetchFileInfoList(() => this.pagingController.syncPage(savedPage));
+                      this.fetchFileInfoList(() => {
+                        this.pagingController.syncPage(savedPage);
+                        const f = this.fileInfoList.find(fi => fi.uuid === fileKey);
+                        if (f) {
+                          this.preview(f, this.fileInfoList.indexOf(f));
+                        }
+                      });
                     } else {
                       this.resetToFirstPage();
                     }
@@ -843,7 +847,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       if (this.prevPreviewedKey && u.uuid === this.prevPreviewedKey) {
         // same file: don't count toward streak. still record if already confirmed.
         if (this.dirReadingConfirmed) {
-          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid);
+          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid, this.orderBy, this.orderByDir);
         }
       } else {
         this.prevPreviewedKey = u.uuid;
@@ -857,7 +861,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         }
 
         if (this.dirReadingConfirmed) {
-          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid);
+          this.browseHistoryRecorder.recordDirPage(this.inDirFileKey, u.uuid, this.orderBy, this.orderByDir);
         }
       }
     }

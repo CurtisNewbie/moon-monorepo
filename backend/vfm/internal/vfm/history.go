@@ -5,7 +5,9 @@ import (
 	"sort"
 	"time"
 
+	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/flow"
+	"github.com/curtisnewbie/miso/middleware/dbquery"
 	red "github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/atom"
@@ -18,6 +20,8 @@ import (
 const (
 	MaxBrowseHistoryLen int64         = 200
 	BrowseHistoryTTL    time.Duration = time.Hour * 24 * 7
+
+	TableDirResumeCursor = "dir_resume_cursor"
 )
 
 type ListBrowseRecordRes struct {
@@ -198,12 +202,16 @@ func RecordBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User, req Record
 }
 
 type RecordDirLastPageReq struct {
-	DirKey  string `valid:"notEmpty" json:"dirKey"`
-	FileKey string `valid:"notEmpty" json:"fileKey"`
+	DirKey   string `valid:"notEmpty" json:"dirKey"`
+	FileKey  string `valid:"notEmpty" json:"fileKey"`
+	OrderBy  string `json:"orderBy" desc:"sort field, 'name', 'time' or 'custom', empty means default"`
+	OrderDir string `json:"orderDir" desc:"sort direction, 'asc' or 'desc', empty means default"`
 }
 
 type GetDirLastPageReq struct {
-	DirKey string `form:"dirKey"`
+	DirKey   string `form:"dirKey"`
+	OrderBy  string `form:"orderBy"`
+	OrderDir string `form:"orderDir"`
 }
 
 type DirLastPageRes struct {
@@ -215,39 +223,27 @@ type dirLastPageEntry struct {
 	Time    int64  `json:"time"`
 }
 
-// saveDirLastPage saves the last viewed fileKey for a directory per user with timestamp
-func saveDirLastPage(rail miso.Rail, user flow.User, dirKey string, fileKey string) error {
-	c := red.GetRedis()
-	key := "vfm:dir:lastpage:" + user.UserNo
-	entry, err := json.SWriteJson(dirLastPageEntry{FileKey: fileKey, Time: atom.Now().UnixMilli()})
-	if err != nil {
-		return err
-	}
-	return c.HSet(rail.Context(), key, dirKey, entry).Err()
+// dirResumeCursor maps a row of dir_resume_cursor: one resume cursor per user,
+// directory and sort order.
+type dirResumeCursor struct {
+	Id        int
+	UserNo    string
+	DirKey    string
+	OrderBy   string
+	OrderDir  string
+	FileKey   string
+	CreatedBy string
+	UpdatedBy string
 }
 
-// getDirLastPage returns the last viewed fileKey for a directory (defaults to empty string)
-func getDirLastPage(rail miso.Rail, user flow.User, dirKey string) (string, error) {
-	c := red.GetRedis()
-	key := "vfm:dir:lastpage:" + user.UserNo
-	cmd := c.HGet(rail.Context(), key, dirKey)
-	if cmd.Err() != nil {
-		if errors.Is(cmd.Err(), redis.Nil) {
-			return "", nil
-		}
-		return "", cmd.Err()
-	}
-	s, err := cmd.Result()
-	if err != nil {
-		return "", err
-	}
-	var entry dirLastPageEntry
-	if err := json.SParseJson(s, &entry); err != nil {
-		return "", err
-	}
-	return entry.FileKey, nil
+func dirResumeCursorLock(rail miso.Rail, userNo, dirKey, orderBy, orderDir string) *red.RLock {
+	return red.NewRLockf(rail, "vfm:dir:resume:cursor:%v:%v:%v:%v", userNo, dirKey, orderBy, orderDir)
 }
 
+// RecordDirLastPage records the file a user last read in a directory under the
+// sort order in force. Every directory records; only the directory's owner and
+// directories that exist are accepted. The comic-only gate is gone, so the
+// cursor key is (user, directory, resolved sort).
 func RecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req RecordDirLastPageReq) error {
 	f, ok, err := findFile(rail, db, req.DirKey)
 	if err != nil {
@@ -259,18 +255,188 @@ func RecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req RecordDi
 	if f.UploaderNo != user.UserNo {
 		return nil // silently ignore, not owned by user
 	}
-	if !f.IsComic || f.FileType != FileTypeDir {
-		return nil // silently ignore, not a comic directory
+	if f.FileType != FileTypeDir {
+		return nil // silently ignore, not a directory
 	}
-	return saveDirLastPage(rail, user, req.DirKey, req.FileKey)
+
+	// resolve the effective sort server-side so a comic directory records and
+	// reads under one key even though its client sends the dropdown default.
+	// Reuse the directory row already loaded above instead of loading it again.
+	orderBy, orderDir := resolveEffectiveSortForDir(req.OrderBy, req.OrderDir, f.IsComic)
+
+	lock := dirResumeCursorLock(rail, user.UserNo, req.DirKey, orderBy, orderDir)
+	locked, err := lock.TryLock(red.WithBackoff(3 * time.Second))
+	if err != nil {
+		return errs.Wrap(err)
+	}
+	if !locked {
+		rail.Warnf("Skip recording dir resume cursor, lock is busy, userNo: %v, dirKey: %v", user.UserNo, req.DirKey)
+		return nil // lock busy, the client re-records on the next preview
+	}
+	defer lock.Unlock()
+
+	return upsertDirResumeCursor(rail, db, user, req.DirKey, orderBy, orderDir, req.FileKey)
 }
 
-func GetDirLastPage(rail miso.Rail, user flow.User, dirKey string) (DirLastPageRes, error) {
-	fileKey, err := getDirLastPage(rail, user, dirKey)
+// findDirResumeCursor loads the live cursor row for one (user, directory, sort).
+// It returns ok=false when none exists. Callers own any error wrapping.
+func findDirResumeCursor(rail miso.Rail, db *gorm.DB, userNo, dirKey, orderBy, orderDir string) (dirResumeCursor, bool, error) {
+	var cur dirResumeCursor
+	ok, err := dbquery.NewQuery(rail, db).
+		Table(TableDirResumeCursor).
+		Eq("user_no", userNo).
+		Eq("dir_key", dirKey).
+		Eq("order_by", orderBy).
+		Eq("order_dir", orderDir).
+		Eq("deleted", 0).
+		Limit(1).
+		ScanAny(&cur)
+	return cur, ok, err
+}
+
+// upsertDirResumeCursor reads the cursor row for the sort in force and inserts
+// or updates it. Callers hold the (user, directory, sort) lock so the
+// read-then-write leaves exactly one row.
+func upsertDirResumeCursor(rail miso.Rail, db *gorm.DB, user flow.User, dirKey, orderBy, orderDir, fileKey string) error {
+	cur, ok, err := findDirResumeCursor(rail, db, user.UserNo, dirKey, orderBy, orderDir)
+	if err != nil {
+		return errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, dirKey)
+	}
+
+	if ok {
+		if err := dbquery.NewQuery(rail, db).
+			Table(TableDirResumeCursor).
+			Set("file_key", fileKey).
+			Set("updated_by", user.Username).
+			Eq("id", cur.Id).
+			UpdateAny(); err != nil {
+			return errs.Wrapf(err, "failed to update dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, dirKey)
+		}
+		return nil
+	}
+
+	row := dirResumeCursor{
+		UserNo:    user.UserNo,
+		DirKey:    dirKey,
+		OrderBy:   orderBy,
+		OrderDir:  orderDir,
+		FileKey:   fileKey,
+		CreatedBy: user.Username,
+		UpdatedBy: user.Username,
+	}
+	if err := dbquery.NewQuery(rail, db).
+		Table(TableDirResumeCursor).
+		Omit("id").
+		CreateAny(&row); err != nil {
+		return errs.Wrapf(err, "failed to create dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, dirKey)
+	}
+	return nil
+}
+
+// GetDirLastPage returns the file a user last read in a directory under the
+// requested sort, resolved the same way as recording. It returns the raw file,
+// empty when no cursor exists.
+func GetDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req GetDirLastPageReq) (DirLastPageRes, error) {
+	es, err := resolveEffectiveSort(rail, db, req.OrderBy, req.OrderDir, req.DirKey)
 	if err != nil {
 		return DirLastPageRes{}, err
 	}
-	return DirLastPageRes{FileKey: fileKey}, nil
+
+	cur, ok, err := findDirResumeCursor(rail, db, user.UserNo, req.DirKey, es.OrderBy, es.OrderDir)
+	if err != nil {
+		return DirLastPageRes{}, errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, req.DirKey)
+	}
+	if !ok {
+		fileKey, found, err := legacyDirResumeCursorFallback(rail, db, user, req.DirKey, es)
+		if err != nil {
+			return DirLastPageRes{}, err
+		}
+		if !found {
+			return DirLastPageRes{FileKey: ""}, nil
+		}
+		return DirLastPageRes{FileKey: fileKey}, nil
+	}
+	return DirLastPageRes{FileKey: cur.FileKey}, nil
+}
+
+// legacyDirResumeCursorFallback carries a position recorded before the cursor
+// moved to MySQL into the table. It runs only when the directory is comic — the
+// only kind the old Redis last-page hash ever held — and only on a table miss.
+// A hit is written into the table under the resolved sort and then returned.
+// The Redis hash is read-only legacy state: it receives no writes here.
+//
+// es carries what the resolver already knows about the directory: es.Dir when it
+// found it, or es.DirQueried when it ran the query and came up empty (authoritative,
+// so it is not queried again here). Only a custom-sort lookup, which never queries
+// the directory, falls back to loading it here.
+func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, dirKey string, es effectiveSort) (string, bool, error) {
+	dir := es.Dir
+	if !es.DirFound {
+		if es.DirQueried {
+			return "", false, nil // resolver already queried, directory is absent
+		}
+		d, ok, err := findFile(rail, db, dirKey)
+		if err != nil {
+			return "", false, err
+		}
+		if !ok {
+			return "", false, nil
+		}
+		dir = d
+	}
+	if dir.FileType != FileTypeDir || !dir.IsComic {
+		return "", false, nil
+	}
+	// mirror the recording gate: only carry a legacy position forward for a
+	// directory the user owns
+	if dir.UploaderNo != user.UserNo {
+		return "", false, nil
+	}
+
+	fileKey, found, err := readLegacyDirLastPage(rail, user.UserNo, dirKey)
+	if err != nil || !found {
+		return "", false, err
+	}
+
+	lock := dirResumeCursorLock(rail, user.UserNo, dirKey, es.OrderBy, es.OrderDir)
+	locked, err := lock.TryLock(red.WithBackoff(3 * time.Second))
+	if err != nil {
+		return "", false, errs.Wrap(err)
+	}
+	if !locked {
+		rail.Warnf("Skip writing back legacy dir resume cursor, lock is busy, userNo: %v, dirKey: %v", user.UserNo, dirKey)
+		return fileKey, true, nil // lock busy, serve the legacy position without the write-back
+	}
+	defer lock.Unlock()
+
+	if err := upsertDirResumeCursor(rail, db, user, dirKey, es.OrderBy, es.OrderDir, fileKey); err != nil {
+		return "", false, err
+	}
+	return fileKey, true, nil
+}
+
+// readLegacyDirLastPage reads a comic directory's last-read file from the old
+// Redis hash vfm:dir:lastpage:<userNo>. It never writes to the hash.
+func readLegacyDirLastPage(rail miso.Rail, userNo, dirKey string) (string, bool, error) {
+	c := red.GetRedis()
+	key := "vfm:dir:lastpage:" + userNo
+	raw, err := c.HGet(rail.Context(), key, dirKey).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", false, nil
+		}
+		return "", false, errs.Wrapf(err, "failed to read legacy dir last page, userNo: %v, dirKey: %v", userNo, dirKey)
+	}
+
+	var e dirLastPageEntry
+	if err := json.SParseJson(raw, &e); err != nil {
+		rail.Warnf("Failed to parse legacy dir last page entry, userNo: %v, dirKey: %v, %v", userNo, dirKey, err)
+		return "", false, nil
+	}
+	if e.FileKey == "" {
+		return "", false, nil
+	}
+	return e.FileKey, true, nil
 }
 
 type DirBrowseRecord struct {
@@ -278,67 +444,72 @@ type DirBrowseRecord struct {
 	Name           string    `json:"name"`
 	ThumbnailToken string    `json:"thumbnailToken,omitempty"`
 	FileKey        string    `json:"fileKey"`
+	OrderBy        string    `json:"orderBy"`
+	OrderDir       string    `json:"orderDir"`
 	Time           atom.Time `json:"time"`
 }
 
-// listDirBrowseHistory returns the top directory browse history entries for a user,
+// dirBrowseCursorRow is a dir_resume_cursor row used to build the browse
+// history, carrying the visit's sort and file.
+type dirBrowseCursorRow struct {
+	DirKey    string
+	OrderBy   string
+	OrderDir  string
+	FileKey   string
+	UpdatedAt atom.Time
+	Name      string
+}
+
+// listDirBrowseHistory returns the directory browse history entries for a user,
 // sorted by last-viewed time descending, enriched with file metadata from MySQL.
+// Every cursor row — one per user, directory and sort — is its own entry, and
+// directories marked deleted are left out.
 func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBrowseRecord, error) {
 	const maxEntries = 200
 
-	c := red.GetRedis()
-	key := "vfm:dir:lastpage:" + user.UserNo
-
-	all, err := c.HGetAll(rail.Context(), key).Result()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return []DirBrowseRecord{}, nil
-		}
-		return nil, err
+	// newest cursor rows first; the user_updated_idx (user_no, updated_at) index serves this.
+	// The join drops directories marked deleted, so the rest of the pipeline sees only live dirs.
+	var rows []dirBrowseCursorRow
+	if err := dbquery.NewQuery(rail, db).
+		From(TableDirResumeCursor+" c").
+		Join("INNER JOIN file_info f ON f.uuid = c.dir_key").
+		Eq("c.user_no", user.UserNo).
+		Eq("c.deleted", 0).
+		Eq("f.is_logic_deleted", DelN).
+		Eq("f.is_del", 0).
+		OrderDesc("c.updated_at").
+		OrderDesc("c.id").
+		Select("c.dir_key, c.order_by, c.order_dir, c.file_key, c.updated_at, f.name").
+		ScanVal(&rows); err != nil {
+		return nil, errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v", user.UserNo)
 	}
-	if len(all) == 0 {
+	if len(rows) == 0 {
 		return []DirBrowseRecord{}, nil
 	}
 
-	// parse all entries
-	type entry struct {
-		DirKey string
-		dirLastPageEntry
-	}
-	entries := make([]entry, 0, len(all))
-	for dirKey, raw := range all {
-		var e dirLastPageEntry
-		if err := json.SParseJson(raw, &e); err != nil {
-			continue // skip corrupted
-		}
-		entries = append(entries, entry{DirKey: dirKey, dirLastPageEntry: e})
-	}
-
-	// sort by time descending
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[j].Time < entries[i].Time
-	})
-
-	// take top N
-	if len(entries) > maxEntries {
-		entries = entries[:maxEntries]
+	// take top N entries (rows)
+	if len(rows) > maxEntries {
+		rows = rows[:maxEntries]
 	}
 
 	// collect dirKeys and fileKeys for enrichment
-	dirKeys := make([]string, len(entries))
+	var dirKeys []string
 	var fileKeys []string
-	for i, e := range entries {
-		dirKeys[i] = e.DirKey
+	for _, e := range rows {
+		dirKeys = append(dirKeys, e.DirKey)
 		if e.FileKey != "" {
 			fileKeys = append(fileKeys, e.FileKey)
 		}
 	}
 
-	// enrich with file metadata from MySQL (both dirs and files)
-	allKeys := append(dirKeys, fileKeys...)
-	ffi, err := queryFileFstoreInfo(rail, db, allKeys)
-	if err != nil {
-		return nil, err
+	// enrich with the last-read files' metadata (dir names come from the join)
+	var ffi map[string]FileFstoreInfo
+	if len(fileKeys) > 0 {
+		var err error
+		ffi, err = queryFileFstoreInfo(rail, db, fileKeys)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// use batch dir-thumbnail API as fallback (first image inside each dir)
@@ -357,15 +528,15 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 		}
 	}
 
-	records := make([]DirBrowseRecord, 0, len(entries))
-	for _, e := range entries {
+	records := make([]DirBrowseRecord, 0, len(rows))
+	for _, e := range rows {
 		r := DirBrowseRecord{
-			DirKey:  e.DirKey,
-			FileKey: e.FileKey,
-			Time:    atom.WrapTime(time.UnixMilli(e.Time)),
-		}
-		if fi, ok := ffi[e.DirKey]; ok {
-			r.Name = fi.Name
+			DirKey:   e.DirKey,
+			Name:     e.Name,
+			FileKey:  e.FileKey,
+			OrderBy:  e.OrderBy,
+			OrderDir: e.OrderDir,
+			Time:     e.UpdatedAt,
 		}
 		// Prefer thumbnail of the last-viewed file over dir thumbnail
 		if e.FileKey != "" {
