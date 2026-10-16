@@ -275,7 +275,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       let ob = params.get("orderBy");
       if (ob) {
         this.orderBy = ob;
-        this.orderByDir = ob === 'name' ? 'asc' : 'desc';
+        // an explicit orderDir (e.g. resuming a browse-history entry) wins over the default
+        const od = params.get("orderDir");
+        this.orderByDir = od || (ob === 'name' ? 'asc' : 'desc');
       }
 
       const targetPageParam = params.get("targetPage");

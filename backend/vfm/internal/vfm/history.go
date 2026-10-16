@@ -354,57 +354,95 @@ type DirBrowseRecord struct {
 	Name           string    `json:"name"`
 	ThumbnailToken string    `json:"thumbnailToken,omitempty"`
 	FileKey        string    `json:"fileKey"`
+	OrderBy        string    `json:"orderBy"`
+	OrderDir       string    `json:"orderDir"`
 	Time           atom.Time `json:"time"`
+}
+
+// dirBrowseCursorRow is a dir_resume_cursor row used to build the browse
+// history, carrying the visit's sort and file.
+type dirBrowseCursorRow struct {
+	DirKey    string
+	OrderBy   string
+	OrderDir  string
+	FileKey   string
+	UpdatedAt atom.Time
 }
 
 // listDirBrowseHistory returns the top directory browse history entries for a user,
 // sorted by last-viewed time descending, enriched with file metadata from MySQL.
+// Each directory appears once, taken from its most recently updated cursor row,
+// and directories marked deleted are left out.
 func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBrowseRecord, error) {
 	const maxEntries = 200
 
-	c := red.GetRedis()
-	key := "vfm:dir:lastpage:" + user.UserNo
-
-	all, err := c.HGetAll(rail.Context(), key).Result()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return []DirBrowseRecord{}, nil
-		}
-		return nil, err
+	// newest cursor rows first; the user_updated_idx (user_no, updated_at) index serves this
+	var rows []dirBrowseCursorRow
+	if err := dbquery.NewQuery(rail, db).
+		Table("dir_resume_cursor").
+		Eq("user_no", user.UserNo).
+		Eq("deleted", 0).
+		OrderDesc("updated_at").
+		OrderDesc("id").
+		Select("dir_key", "order_by", "order_dir", "file_key", "updated_at").
+		ScanVal(&rows); err != nil {
+		return nil, errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v", user.UserNo)
 	}
-	if len(all) == 0 {
+	if len(rows) == 0 {
 		return []DirBrowseRecord{}, nil
 	}
 
-	// parse all entries
-	type entry struct {
-		DirKey string
-		dirLastPageEntry
-	}
-	entries := make([]entry, 0, len(all))
-	for dirKey, raw := range all {
-		var e dirLastPageEntry
-		if err := json.SParseJson(raw, &e); err != nil {
-			continue // skip corrupted
+	// one entry per directory: keep the first (most recent) row seen for each dir
+	seen := make(map[string]bool, len(rows))
+	entries := make([]dirBrowseCursorRow, 0, len(rows))
+	dirKeys := make([]string, 0, len(rows))
+	for _, r := range rows {
+		if seen[r.DirKey] {
+			continue
 		}
-		entries = append(entries, entry{DirKey: dirKey, dirLastPageEntry: e})
+		seen[r.DirKey] = true
+		entries = append(entries, r)
+		dirKeys = append(dirKeys, r.DirKey)
 	}
 
-	// sort by time descending
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[j].Time < entries[i].Time
-	})
+	// exclude directories marked deleted (the directory's own file_info row)
+	var liveDirs []struct {
+		Uuid string
+	}
+	if err := dbquery.NewQuery(rail, db).
+		Table("file_info").
+		Where("uuid IN ?", dirKeys).
+		Eq("is_logic_deleted", DelN).
+		Eq("is_del", 0).
+		Select("uuid").
+		ScanVal(&liveDirs); err != nil {
+		return nil, errs.Wrapf(err, "failed to query live directories for browse history, userNo: %v", user.UserNo)
+	}
+	live := make(map[string]bool, len(liveDirs))
+	for _, d := range liveDirs {
+		live[d.Uuid] = true
+	}
+	kept := entries[:0]
+	for _, e := range entries {
+		if live[e.DirKey] {
+			kept = append(kept, e)
+		}
+	}
+	entries = kept
 
 	// take top N
 	if len(entries) > maxEntries {
 		entries = entries[:maxEntries]
 	}
+	if len(entries) == 0 {
+		return []DirBrowseRecord{}, nil
+	}
 
 	// collect dirKeys and fileKeys for enrichment
-	dirKeys := make([]string, len(entries))
+	dirKeys = dirKeys[:0]
 	var fileKeys []string
-	for i, e := range entries {
-		dirKeys[i] = e.DirKey
+	for _, e := range entries {
+		dirKeys = append(dirKeys, e.DirKey)
 		if e.FileKey != "" {
 			fileKeys = append(fileKeys, e.FileKey)
 		}
@@ -436,9 +474,11 @@ func listDirBrowseHistory(rail miso.Rail, db *gorm.DB, user flow.User) ([]DirBro
 	records := make([]DirBrowseRecord, 0, len(entries))
 	for _, e := range entries {
 		r := DirBrowseRecord{
-			DirKey:  e.DirKey,
-			FileKey: e.FileKey,
-			Time:    atom.WrapTime(time.UnixMilli(e.Time)),
+			DirKey:   e.DirKey,
+			FileKey:  e.FileKey,
+			OrderBy:  e.OrderBy,
+			OrderDir: e.OrderDir,
+			Time:     e.UpdatedAt,
 		}
 		if fi, ok := ffi[e.DirKey]; ok {
 			r.Name = fi.Name

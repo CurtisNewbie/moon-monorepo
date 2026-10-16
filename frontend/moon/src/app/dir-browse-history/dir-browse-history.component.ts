@@ -9,6 +9,8 @@ export interface DirBrowseRecord {
   name: string;
   thumbnailToken?: string;
   fileKey: string;
+  orderBy: string;
+  orderDir: string;
   time: number; // unix millis
 }
 
@@ -68,7 +70,7 @@ export interface DirBrowseRecord {
                     />
                   </mat-form-field>
                   <div class="m-2" matLine>
-                    <button mat-icon-button (click)="resumeReading(it.dirKey, it.fileKey)">
+                    <button mat-icon-button (click)="resumeReading(it)">
                       Resume <i class="bi bi-arrow-right-circle"></i>
                     </button>
                   </div>
@@ -118,9 +120,15 @@ export class DirBrowseHistoryComponent implements OnInit {
     });
   }
 
-  resumeReading(dirKey: string, fileKey: string) {
+  resumeReading(it: DirBrowseRecord) {
     this.navigation.navigateTo(NavType.MANAGE_FILES, [
-      { parentDirKey: dirKey, targetFileKey: fileKey, orderBy: 'name', autoPreview: true },
+      {
+        parentDirKey: it.dirKey,
+        targetFileKey: it.fileKey,
+        orderBy: it.orderBy,
+        orderDir: it.orderDir,
+        autoPreview: true,
+      },
     ]);
   }
 
