@@ -273,19 +273,24 @@ func resolveEffectiveSortForDir(orderBy, orderDir string, isComicDir bool) (stri
 	return orderBy, orderDir
 }
 
-// effectiveSort is the resolved sort plus the directory it was resolved from.
+// effectiveSort is the resolved sort plus what the resolver learned about the
+// directory it was resolved from.
 type effectiveSort struct {
 	OrderBy  string
 	OrderDir string
 	Dir      FileInfo
-	DirKnown bool // the directory row was loaded (Dir is valid)
+	DirFound bool // the directory row exists (Dir is valid)
+	// DirQueried reports that findFile already ran for this dirKey, so
+	// DirFound == false is authoritative and must not be re-queried.
+	DirQueried bool
 }
 
 // resolveEffectiveSort answers the sort field and direction a directory is
 // actually listed by. It loads the directory row only when the comic rule can
 // still change the answer (the normalized field is name or time; custom costs
-// zero loads) and only when dirKey is non-empty. On a successful load the row
-// is returned so a caller that already holds it can reuse it.
+// zero loads) and only when dirKey is non-empty. It reports whether the row was
+// found and whether the query ran at all, so a caller that also needs the
+// directory does not repeat the lookup.
 //
 // Both the directory listing and the file-position calculation resolve through
 // this one function so a directory records and reads its cursor under the same key.
@@ -300,12 +305,13 @@ func resolveEffectiveSort(rail miso.Rail, db *gorm.DB, orderBy, orderDir, dirKey
 	}
 
 	dir, ok, err := findFile(rail, db, dirKey)
+	es.DirQueried = true
 	if err != nil {
 		return es, err
 	}
 	if ok {
 		es.Dir = dir
-		es.DirKnown = true
+		es.DirFound = true
 	}
 	es.OrderBy, es.OrderDir = resolveEffectiveSortForDir(orderBy, orderDir, ok && dir.FileType == FileTypeDir && dir.IsComic)
 

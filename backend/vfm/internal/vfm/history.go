@@ -365,11 +365,16 @@ func GetDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req GetDirLastP
 // A hit is written into the table under the resolved sort and then returned.
 // The Redis hash is read-only legacy state: it receives no writes here.
 //
-// es carries the directory the resolver already loaded for name/time sorts. Only
-// a custom-sort lookup (which loads nothing) falls back to loading it here.
+// es carries what the resolver already knows about the directory: es.Dir when it
+// found it, or es.DirQueried when it ran the query and came up empty (authoritative,
+// so it is not queried again here). Only a custom-sort lookup, which never queries
+// the directory, falls back to loading it here.
 func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, dirKey string, es effectiveSort) (string, bool, error) {
 	dir := es.Dir
-	if !es.DirKnown {
+	if !es.DirFound {
+		if es.DirQueried {
+			return "", false, nil // resolver already queried, directory is absent
+		}
 		d, ok, err := findFile(rail, db, dirKey)
 		if err != nil {
 			return "", false, err
