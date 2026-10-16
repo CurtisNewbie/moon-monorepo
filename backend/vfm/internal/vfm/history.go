@@ -344,9 +344,71 @@ func GetDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req GetDirLastP
 		return DirLastPageRes{}, errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, req.DirKey)
 	}
 	if !ok {
-		return DirLastPageRes{FileKey: ""}, nil
+		fileKey, found, err := legacyDirResumeCursorFallback(rail, db, user, req.DirKey, orderBy, orderDir)
+		if err != nil {
+			return DirLastPageRes{}, err
+		}
+		if !found {
+			return DirLastPageRes{FileKey: ""}, nil
+		}
+		return DirLastPageRes{FileKey: fileKey}, nil
 	}
 	return DirLastPageRes{FileKey: cur.FileKey}, nil
+}
+
+// legacyDirResumeCursorFallback carries a position recorded before the cursor
+// moved to MySQL into the table. It runs only when the directory is comic — the
+// only kind the old Redis last-page hash ever held — and only on a table miss.
+// A hit is written into the table under the resolved sort and then returned.
+// The Redis hash is read-only legacy state: it receives no writes here.
+func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, dirKey, orderBy, orderDir string) (string, bool, error) {
+	dir, ok, err := findFile(rail, db, dirKey)
+	if err != nil {
+		return "", false, err
+	}
+	if !ok || dir.FileType != FileTypeDir || !dir.IsComic {
+		return "", false, nil
+	}
+
+	fileKey, found, err := readLegacyDirLastPage(rail, user.UserNo, dirKey)
+	if err != nil || !found {
+		return "", false, err
+	}
+
+	lock := dirResumeCursorLock(rail, user.UserNo, dirKey, orderBy, orderDir)
+	if err := lock.Lock(); err != nil {
+		return "", false, errs.Wrap(err)
+	}
+	defer lock.Unlock()
+
+	if err := upsertDirResumeCursor(rail, db, user, dirKey, orderBy, orderDir, fileKey); err != nil {
+		return "", false, err
+	}
+	return fileKey, true, nil
+}
+
+// readLegacyDirLastPage reads a comic directory's last-read file from the old
+// Redis hash vfm:dir:lastpage:<userNo>. It never writes to the hash.
+func readLegacyDirLastPage(rail miso.Rail, userNo, dirKey string) (string, bool, error) {
+	c := red.GetRedis()
+	key := "vfm:dir:lastpage:" + userNo
+	raw, err := c.HGet(rail.Context(), key, dirKey).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", false, nil
+		}
+		return "", false, errs.Wrapf(err, "failed to read legacy dir last page, userNo: %v, dirKey: %v", userNo, dirKey)
+	}
+
+	var e dirLastPageEntry
+	if err := json.SParseJson(raw, &e); err != nil {
+		rail.Warnf("Failed to parse legacy dir last page entry, userNo: %v, dirKey: %v, %v", userNo, dirKey, err)
+		return "", false, nil
+	}
+	if e.FileKey == "" {
+		return "", false, nil
+	}
+	return e.FileKey, true, nil
 }
 
 type DirBrowseRecord struct {
