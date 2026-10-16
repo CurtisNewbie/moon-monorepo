@@ -260,11 +260,9 @@ func RecordDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req RecordDi
 	}
 
 	// resolve the effective sort server-side so a comic directory records and
-	// reads under one key even though its client sends the dropdown default
-	orderBy, orderDir, err := resolveEffectiveSort(rail, db, req.OrderBy, req.OrderDir, req.DirKey)
-	if err != nil {
-		return err
-	}
+	// reads under one key even though its client sends the dropdown default.
+	// Reuse the directory row already loaded above instead of loading it again.
+	orderBy, orderDir := resolveEffectiveSortForDir(req.OrderBy, req.OrderDir, f.IsComic)
 
 	lock := dirResumeCursorLock(rail, user.UserNo, req.DirKey, orderBy, orderDir)
 	locked, err := lock.TryLock(red.WithBackoff(3 * time.Second))
@@ -339,17 +337,17 @@ func upsertDirResumeCursor(rail miso.Rail, db *gorm.DB, user flow.User, dirKey, 
 // requested sort, resolved the same way as recording. It returns the raw file,
 // empty when no cursor exists.
 func GetDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req GetDirLastPageReq) (DirLastPageRes, error) {
-	orderBy, orderDir, err := resolveEffectiveSort(rail, db, req.OrderBy, req.OrderDir, req.DirKey)
+	es, err := resolveEffectiveSort(rail, db, req.OrderBy, req.OrderDir, req.DirKey)
 	if err != nil {
 		return DirLastPageRes{}, err
 	}
 
-	cur, ok, err := findDirResumeCursor(rail, db, user.UserNo, req.DirKey, orderBy, orderDir)
+	cur, ok, err := findDirResumeCursor(rail, db, user.UserNo, req.DirKey, es.OrderBy, es.OrderDir)
 	if err != nil {
 		return DirLastPageRes{}, errs.Wrapf(err, "failed to query dir resume cursor, userNo: %v, dirKey: %v", user.UserNo, req.DirKey)
 	}
 	if !ok {
-		fileKey, found, err := legacyDirResumeCursorFallback(rail, db, user, req.DirKey, orderBy, orderDir)
+		fileKey, found, err := legacyDirResumeCursorFallback(rail, db, user, req.DirKey, es)
 		if err != nil {
 			return DirLastPageRes{}, err
 		}
@@ -366,12 +364,22 @@ func GetDirLastPage(rail miso.Rail, db *gorm.DB, user flow.User, req GetDirLastP
 // only kind the old Redis last-page hash ever held — and only on a table miss.
 // A hit is written into the table under the resolved sort and then returned.
 // The Redis hash is read-only legacy state: it receives no writes here.
-func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, dirKey, orderBy, orderDir string) (string, bool, error) {
-	dir, ok, err := findFile(rail, db, dirKey)
-	if err != nil {
-		return "", false, err
+//
+// es carries the directory the resolver already loaded for name/time sorts. Only
+// a custom-sort lookup (which loads nothing) falls back to loading it here.
+func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, dirKey string, es effectiveSort) (string, bool, error) {
+	dir := es.Dir
+	if !es.DirKnown {
+		d, ok, err := findFile(rail, db, dirKey)
+		if err != nil {
+			return "", false, err
+		}
+		if !ok {
+			return "", false, nil
+		}
+		dir = d
 	}
-	if !ok || dir.FileType != FileTypeDir || !dir.IsComic {
+	if dir.FileType != FileTypeDir || !dir.IsComic {
 		return "", false, nil
 	}
 	// mirror the recording gate: only carry a legacy position forward for a
@@ -385,7 +393,7 @@ func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, 
 		return "", false, err
 	}
 
-	lock := dirResumeCursorLock(rail, user.UserNo, dirKey, orderBy, orderDir)
+	lock := dirResumeCursorLock(rail, user.UserNo, dirKey, es.OrderBy, es.OrderDir)
 	locked, err := lock.TryLock(red.WithBackoff(3 * time.Second))
 	if err != nil {
 		return "", false, errs.Wrap(err)
@@ -396,7 +404,7 @@ func legacyDirResumeCursorFallback(rail miso.Rail, db *gorm.DB, user flow.User, 
 	}
 	defer lock.Unlock()
 
-	if err := upsertDirResumeCursor(rail, db, user, dirKey, orderBy, orderDir, fileKey); err != nil {
+	if err := upsertDirResumeCursor(rail, db, user, dirKey, es.OrderBy, es.OrderDir, fileKey); err != nil {
 		return "", false, err
 	}
 	return fileKey, true, nil
