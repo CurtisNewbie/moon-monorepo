@@ -30,8 +30,8 @@ The cursor moves from Redis to a MySQL table so it is durable, queryable, and so
 8. As a moon user who only glanced at a directory (fewer than three distinct files in a row), I want no cursor recorded, so that an accidental click does not move my place.
 9. As a moon user, I want the resume position I already had before this change to keep working, so that I do not lose where I was.
 10. As a moon user, I want the position I already had to be carried into the new store automatically, so that it survives the change even if I never revisit the directory.
-11. As a moon user, I want the Directory Browse History list to show each directory once, from its most recent visit, so that it is not cluttered by one entry per sort.
-12. As a moon user, I want resuming from the Directory Browse History list to land on the file I last read there under the sort I last used, so that the list's Resume action is faithful.
+11. As a moon user, I want the Directory Browse History list to show every stored cursor as its own entry, so that every sort I have read a directory under is listed and resumable.
+12. As a moon user, I want each entry to show the sort order it was recorded under and to resume with that sort and file, so that what I pick is what I get.
 13. As a moon user, I want a directory I deleted to disappear from the Directory Browse History list.
 14. As a moon user, I want my cursor updated as I read, so that the position is current when I return.
 15. As a moon user browsing quickly, I do not want my reading to flood the database with writes.
@@ -88,7 +88,7 @@ A row's columns and their roles:
 
 **Legacy compatibility.** On a lookup miss, and only for a comic directory (the only kind with entries under the old key), the old Redis last-page hash is consulted; a hit is written into the table and then returned. Existing Redis entries are otherwise left in place and never written to; the Redis hash is no longer a write target.
 
-**Directory Browse History.** The list returns one entry per directory, taken from its most recently updated cursor row, and excludes directories marked deleted. Each entry carries the sort order and file of that row, and resuming from it restores that sort and file rather than the fixed `name` sort it uses today.
+**Directory Browse History.** The list returns one entry per cursor row — one per user, directory and sort — most recently updated first, and excludes directories marked deleted. Each entry carries the sort order and file that row records, shows the sort in its own column, and resuming from it restores that sort and file rather than the fixed `name` sort it uses today.
 
 **Schema records.** The table is added to the vfm schema snapshot and appended to the in-flight release increment, both for the same release; the release's change-log entry already lists the vfm increment.
 
@@ -96,7 +96,7 @@ A row's columns and their roles:
 
 Tests assert external behavior only: given a directory and a sort, what a cursor lookup returns and how it changes as files are read and directories are opened. No test reaches into the table's columns or asserts on the locking mechanism.
 
-- Backend seam: the vfm service layer, exercised in-process against a real MySQL and Redis, as the existing service tests in that package already do. It covers effective-sort resolution (comic forced, direction defaulted), one row per sort, that recording under a second sort leaves the first intact, the locked read-then-write under concurrent recording, the legacy fallback with write-back, the list returning one entry per directory excluding deleted directories, and that a missing recorded file yields no resume rather than an error.
+- Backend seam: the vfm service layer, exercised in-process against a real MySQL and Redis, as the existing service tests in that package already do. It covers effective-sort resolution (comic forced, direction defaulted), one row per sort, that recording under a second sort leaves the first intact, the locked read-then-write under concurrent recording, the legacy fallback with write-back, the list returning one entry per stored cursor, newest first, excluding deleted directories, and that a missing recorded file yields no resume rather than an error.
 - Frontend seam: the browse-history recorder service, unit-tested with an HTTP controller mock as its existing spec does. It covers that recording and lookup now carry the directory and the sort, and that the recorder exposes a resolved page rather than a stored one.
 
 Prior art: the package's existing service tests for the backend seam; the recorder's existing spec for the frontend seam.
