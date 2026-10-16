@@ -39,6 +39,16 @@ export interface DirBrowseRecord {
                       *ngIf="!it.thumbnailToken"
                       class="bi bi-folder icon-button-large-preview mat-elevation-z8"
                     ></i>
+                    <div class="text-center mt-2">
+                      <span class="sort-badge" [title]="'dir-browse-history' | trl:'sort'">
+                        <i
+                          class="bi"
+                          [ngClass]="it.orderDir === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down'"
+                        ></i>
+                        {{'dir-browse-history' | trl:it.orderBy}} ·
+                        {{'dir-browse-history' | trl:it.orderDir}}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div class="col">
@@ -83,7 +93,26 @@ export interface DirBrowseRecord {
     </div>
     <mat-divider></mat-divider>
   `,
-  styles: [],
+  styles: [
+    `
+      .sort-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.15rem 0.65rem;
+        border-radius: 999px;
+        background-color: rgba(0, 0, 0, 0.06);
+        color: rgba(0, 0, 0, 0.7);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        white-space: nowrap;
+      }
+
+      .sort-badge .bi {
+        font-size: 0.8rem;
+      }
+    `,
+  ],
 })
 export class DirBrowseHistoryComponent implements OnInit {
   dat: DirBrowseRecord[] = [];

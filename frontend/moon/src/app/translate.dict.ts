@@ -274,6 +274,14 @@ export const enUSDict = {
     searchDirName: "Search Dir Name",
     defaultTitle: "Directory Tree Navigation",
   },
+  "dir-browse-history": {
+    sort: "Sort",
+    name: "Name",
+    time: "Time",
+    custom: "Custom",
+    asc: "Ascending",
+    desc: "Descending",
+  },
   "list-notification": {
     platformNotification: "Platform Notifications",
     unreadOnly: "Unread Only",
@@ -714,6 +722,14 @@ export const zhCNDict = {
   "dir-tree-nav": {
     searchDirName: "搜索文件夹名称",
     defaultTitle: "文件夹快速跳转",
+  },
+  "dir-browse-history": {
+    sort: "排序",
+    name: "文件名",
+    time: "时间",
+    custom: "自定义",
+    asc: "升序",
+    desc: "降序",
   },
   "list-notification": {
     platformNotification: "站内通知",
