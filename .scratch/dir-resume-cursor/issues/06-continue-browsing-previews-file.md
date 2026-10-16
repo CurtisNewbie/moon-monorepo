@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Accepting Continue Browsing previews the recorded file after landing on its page.
 - [ ] The previewed file is the one the cursor records for the sort in force.
