@@ -5309,6 +5309,8 @@
       - "name": (string) 
       - "thumbnailToken": (string) 
       - "fileKey": (string) 
+      - "orderBy": (string) 
+      - "orderDir": (string) 
       - "time": (int64) 
 - cURL:
   ```sh
@@ -5322,6 +5324,8 @@
   	Name string `json:"name"`
   	ThumbnailToken string `json:"thumbnailToken,omitempty"`
   	FileKey string `json:"fileKey"`
+  	OrderBy string `json:"orderBy"`
+  	OrderDir string `json:"orderDir"`
   	Time atom.Time `json:"time"`
   }
 
@@ -5353,6 +5357,8 @@
     name?: string;
     thumbnailToken?: string;
     fileKey?: string;
+    orderBy?: string;
+    orderDir?: string;
     time?: number;
   }
   ```
