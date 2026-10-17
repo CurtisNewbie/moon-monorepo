@@ -2,9 +2,7 @@
 
 ## Dev workflow
 
-Load the `dev-flow` skill before starting any non-trivial task — a feature, a bugfix, or workflow setup — and follow its lane.
-
-The skills it dispatches live in the offloaded store, not installed. Reach any of them through the `offloaded-skill` skill; the `skill` tool cannot.
+Load the `dev-flow` skill before starting any task — a feature, a bugfix, or workflow setup — and follow its lane (unless user chooses not to).
 
 ## Repository Structure
 
@@ -109,14 +107,6 @@ See `frontend/moon/doc/agents/i18n.md` for full guidelines.
 ### Pagination
 
 Paged lists are driven by `ControlledPaginatorComponent`. See `frontend/moon/doc/agents/pagination.md` before wiring a list fetch or configuring a page limit — the limit has to be applied before the paginator's first fetch, which its `pageChanged` output triggers.
-
-## Backend API Documentation
-
-**Always reference backend `doc/api.md` when working on frontend-backend integration.**
-
-Each backend service maintains auto-generated API documentation at `backend/{service}/doc/api.md` including endpoints, request/response schemas, and TypeScript interfaces.
-
-This prevents field name mistakes (e.g., `dirFileKey` vs `fileKey`).
 
 ## Deployment
 
