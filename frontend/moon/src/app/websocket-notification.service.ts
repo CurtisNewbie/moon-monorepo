@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { UserInfo } from 'src/common/user-info';
@@ -8,6 +8,8 @@ import { UserService } from './user.service';
   providedIn: 'root',
 })
 export class WebSocketNotificationService implements OnDestroy {
+  private static readonly terminalAuthStatuses = [401, 403];
+
   private ws: WebSocket | null = null;
   private countSubject = new BehaviorSubject<number>(0);
   private reconnectAttempts = 0;
@@ -18,6 +20,7 @@ export class WebSocketNotificationService implements OnDestroy {
   private userInfoSubscription: Subscription;
   private destroyed = false;
   private sessionActive = false;
+  private authRejected = false;
 
   /** Observable of current notification count */
   count$: Observable<number> = this.countSubject.asObservable();
@@ -40,7 +43,7 @@ export class WebSocketNotificationService implements OnDestroy {
   }
 
   private get canSubscribe(): boolean {
-    return !this.destroyed && this.sessionActive;
+    return !this.destroyed && this.sessionActive && !this.authRejected;
   }
 
   private startSession(): void {
@@ -49,6 +52,7 @@ export class WebSocketNotificationService implements OnDestroy {
     }
 
     this.sessionActive = true;
+    this.authRejected = false;
     this.reconnectAttempts = 0;
     this.connect();
   }
@@ -96,6 +100,22 @@ export class WebSocketNotificationService implements OnDestroy {
         error: (err) => {
           this.ticketSubscription = null;
           if (!this.canSubscribe) {
+            return;
+          }
+
+          if (
+            err instanceof HttpErrorResponse &&
+            WebSocketNotificationService.terminalAuthStatuses.includes(
+              err.status
+            )
+          ) {
+            console.error(
+              '[WS-Notification] Ticket rejected',
+              err.status,
+              err.error
+            );
+            this.authRejected = true;
+            this.cancelReconnect();
             return;
           }
 

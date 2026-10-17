@@ -4,12 +4,12 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A 401 or 403 on the ticket request schedules no retry and produces no further ticket request for that session
-- [ ] A network error or 5xx on the ticket request retries after the backoff delay
-- [ ] A transport-failure socket close inside the session reconnects, still subject to the gate
-- [ ] Re-login after a terminal failure starts a fresh connection attempt
-- [ ] Tests cover the above at the service's public seam and pass under the app's Karma/ChromeHeadless suite
+- [x] A 401 or 403 on the ticket request schedules no retry and produces no further ticket request for that session
+- [x] A network error or 5xx on the ticket request retries after the backoff delay
+- [x] A transport-failure socket close inside the session reconnects, still subject to the gate
+- [x] Re-login after a terminal failure starts a fresh connection attempt
+- [x] Tests cover the above at the service's public seam and pass under the app's Karma/ChromeHeadless suite
 
 ## Comments

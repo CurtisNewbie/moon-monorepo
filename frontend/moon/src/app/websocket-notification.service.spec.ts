@@ -191,6 +191,85 @@ describe('WebSocketNotificationService Login Session gate', () => {
     expect(FakeWebSocket.instances.length).toBe(1);
   }));
 
+  it('makes no further ticket request after a 401 rejection', fakeAsync(() => {
+    userService.emit({ id: 1, username: 'u' } as UserInfo);
+    httpMock
+      .expectOne(WS_TICKET_URL)
+      .flush(
+        { msg: 'unauthorized' },
+        { status: 401, statusText: 'Unauthorized' }
+      );
+
+    tick(60000);
+    httpMock.expectNone(WS_TICKET_URL);
+    expect(FakeWebSocket.instances.length).toBe(0);
+  }));
+
+  it('makes no further ticket request after a 403 rejection', fakeAsync(() => {
+    userService.emit({ id: 1, username: 'u' } as UserInfo);
+    httpMock
+      .expectOne(WS_TICKET_URL)
+      .flush(
+        { msg: 'forbidden' },
+        { status: 403, statusText: 'Forbidden' }
+      );
+
+    tick(60000);
+    httpMock.expectNone(WS_TICKET_URL);
+    expect(FakeWebSocket.instances.length).toBe(0);
+  }));
+
+  it('connects again after a terminal rejection when a new session starts', fakeAsync(() => {
+    userService.emit({ id: 1, username: 'u' } as UserInfo);
+    httpMock
+      .expectOne(WS_TICKET_URL)
+      .flush(
+        { msg: 'unauthorized' },
+        { status: 401, statusText: 'Unauthorized' }
+      );
+    tick(60000);
+    httpMock.expectNone(WS_TICKET_URL);
+
+    userService.emit(null);
+    userService.emit({ id: 1, username: 'u' } as UserInfo);
+
+    httpMock
+      .expectOne(WS_TICKET_URL)
+      .flush({ error: false, data: { ticket: 'ticket-2' } });
+
+    expect(FakeWebSocket.instances.length).toBe(1);
+    expect(FakeWebSocket.instances[0].url).toContain(
+      `token=${encodeURIComponent('ticket-2')}`
+    );
+
+    tick(60000);
+    httpMock.expectNone(WS_TICKET_URL);
+    expect(FakeWebSocket.instances.length).toBe(1);
+  }));
+
+  it('reconnects after a transport-failure socket close inside the session', fakeAsync(() => {
+    userService.emit({ id: 1, username: 'u' } as UserInfo);
+    httpMock
+      .expectOne(WS_TICKET_URL)
+      .flush({ error: false, data: { ticket: 'ticket-1' } });
+    const socket = FakeWebSocket.instances[0];
+
+    socket.triggerClose(1006, false);
+
+    tick(999);
+    httpMock.expectNone(WS_TICKET_URL);
+
+    tick(1);
+    httpMock
+      .expectOne(WS_TICKET_URL)
+      .flush({ error: false, data: { ticket: 'ticket-2' } });
+
+    expect(FakeWebSocket.instances.length).toBe(2);
+    expect(FakeWebSocket.instances[1].url).toContain(
+      `token=${encodeURIComponent('ticket-2')}`
+    );
+  }));
+
   it('discards a retry pending when the session ends', fakeAsync(() => {
     userService.emit({ id: 1, username: 'u' } as UserInfo);
     httpMock
