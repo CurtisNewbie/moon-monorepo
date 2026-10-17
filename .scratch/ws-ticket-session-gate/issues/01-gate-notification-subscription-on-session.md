@@ -6,11 +6,11 @@
 
 **Status:** done
 
-- [ ] No ticket request is made before a confirmed identity, including on the login and register pages
-- [ ] A confirmed identity produces exactly one ticket request and one websocket connection, carrying that ticket
-- [ ] The identity stream becoming null closes the socket and emits a count of zero
-- [ ] A retry pending at session end fires no ticket request afterwards
-- [ ] Logging back in after logout establishes the connection again, once
-- [ ] Tests cover the above at the service's public seam and pass under the app's Karma/ChromeHeadless suite
+- [x] No ticket request is made before a confirmed identity, including on the login and register pages
+- [x] A confirmed identity produces exactly one ticket request and one websocket connection, carrying that ticket
+- [x] The identity stream becoming null closes the socket and emits a count of zero
+- [x] A retry pending at session end fires no ticket request afterwards
+- [x] Logging back in after logout establishes the connection again, once
+- [x] Tests cover the above at the service's public seam and pass under the app's Karma/ChromeHeadless suite
 
 ## Comments
