@@ -6,6 +6,10 @@ The platform in this monorepo: a file manager (`vfm`), user notifications (`user
 
 ### Platform Notifications
 
+**Login Session**:
+The period during which the client holds a confirmed identity for a User. Unread Notification Count is only ever pushed to a client inside one.
+_Avoid_: authenticated state, auth session, logged-in flag
+
 **Notification**:
 A message addressed to exactly one recipient user, which is either unopened or opened.
 _Avoid_: Postbox message, inbox item, alert
