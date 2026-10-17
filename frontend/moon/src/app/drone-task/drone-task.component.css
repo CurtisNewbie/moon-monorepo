@@ -43,9 +43,9 @@
 
 /* Mobile: keep the Operation buttons compact on a single row so rows stay short */
 @media (max-width: 768px) {
-  /* fixed layout so the pinned Operation width can't be stretched by other cells */
+  /* auto layout so the Operation column can shrink to its buttons (see below) */
   table.mat-table {
-    table-layout: fixed !important;
+    table-layout: auto !important;
   }
 
   /* clamp the preview image so a wide thumbnail can't spill out of its column */
@@ -53,32 +53,54 @@
     max-width: 100% !important;
   }
 
-  /* Pin Thumbnail + Status to their minimum so the Directory column (left
-     without a width) absorbs the leftover under table-layout: fixed, instead of
-     the three sharing it equally. The thumbnail cell keeps only 8px of its 24px
-     first-cell padding (same as mng-files.component.css) so the 64px column
-     still fits the "Thumbnail" header (43.5px @9px) on one line and gives the
-     clamped preview more room; 64px Status fits every short label
-     ("Completed"/"Unresolved"/CN 2-4 chars) and lets the long
-     "Resolution Failed" wrap to two lines rather than clip. */
+  /* Pin Thumbnail + Status to their minimum so the Directory column absorbs the
+     leftover instead of the three sharing it. The thumbnail cell keeps only 8px
+     left padding (same as mng-files.component.css) and 4px on the right, so the
+     "Thumbnail" header stays on one line and never wraps under auto layout;
+     64px Status fits every short label ("Completed"/"Unresolved"/CN 2-4 chars)
+     and lets the long "Resolution Failed" wrap to two lines rather than clip. */
   .mat-column-thumbnail {
-    width: 64px !important;
-    max-width: 64px !important;
+    width: 72px !important;
+    max-width: none !important;
     padding-left: 8px !important;
+    padding-right: 4px !important;
+  }
+  th.mat-column-thumbnail {
+    white-space: nowrap !important;
   }
   .mat-column-status {
     width: 64px !important;
     max-width: 64px !important;
   }
 
-  /* Operation column: tightest width that still keeps the widest remaining row
-     (Open + Cancel + Resolve) on one line without wrapping */
+  /* Operation column: shrink to the widest button row on the current page, so
+     the freed width goes to Directory. 1% leaves the column at its content
+     width and hands the rest to the 100% Directory cell */
   .mat-column-operation {
-    width: 120px !important;
-    max-width: 120px !important;
+    width: 1% !important;
+    max-width: none !important;
     padding-left: 1px !important;
-    padding-right: 1px !important;
+    padding-right: 8px !important;
     white-space: nowrap !important;
+  }
+
+  /* Directory takes whatever Operation leaves; the 150px desktop cap would
+     otherwise clip it back down */
+  .mat-column-dirName {
+    width: 100% !important;
+    max-width: none !important;
+    padding-right: 8px !important;
+  }
+
+  /* A nowrap span inside the Directory cell would otherwise set the column's
+     minimum width to the whole string and push the table past the viewport.
+     width:0 keeps the string out of the intrinsic width calculation and
+     min-width:100% stretches the span back over the cell, so it still clips /
+     scrolls exactly as before. */
+  .mat-column-dirName .overflow-cell {
+    display: block;
+    width: 0;
+    min-width: 100%;
   }
 
   /* Single line, no wrapping. Intentionally NO overflow/scroll container here:
@@ -88,17 +110,19 @@
   td.mat-column-operation .d-flex {
     flex-wrap: nowrap !important;
     margin: 0 !important;
-    gap: 2px !important;
+    gap: 4px !important;
   }
 
   /* Compact footprint so several buttons fit the narrow column (native button
-     shape/border/background and the global .mat-raised-button shadow untouched) */
+     shape/border/background and the global .mat-raised-button shadow untouched).
+     Tap accuracy comes from the wider left/right padding plus the 4px gap
+     between buttons; no vertical padding is added. */
   td.mat-column-operation button {
     min-width: 0 !important;
     margin: 0 !important;
-    padding: 0 2px !important;
+    padding: 0 6px !important;
     font-size: 9px !important;
-    line-height: 20px !important;
+    line-height: 24px !important;
     white-space: nowrap !important;
   }
 }
