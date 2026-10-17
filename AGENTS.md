@@ -83,7 +83,8 @@ Dev server proxies all requests to `http://127.0.0.1:7070` (gatekeeper).
 - **Angular 11** with `NgModule`
 - **Angular Material** with pink-bluegrey theme
 - **TSLint** (not ESLint) — run with `ng lint`
-- `angular.json` has `skipTests: true` — `ng generate component` creates no `.spec.ts` by default
+- **Tests**: Karma/Jasmine on ChromeHeadless — `npm test -- --watch=false --browsers=ChromeHeadless`. Specs are written by hand: the component schematic sets `skipTests: true`, so `ng generate` creates none (that setting affects generators only, never `ng build` or `ng test`).
+- **HTTP interceptors**: token attach and global 401/403 handling — see `frontend/moon/doc/agents/http.md`
 - `patch-package` runs on `postinstall` — patches exist in `patches/`
 
 ### i18n
