@@ -54,23 +54,32 @@
   }
 
   /* Pin Thumbnail + Status to their minimum so the Directory column absorbs the
-     leftover instead of the three sharing it. The thumbnail cell keeps only 8px
-     left padding (same as mng-files.component.css) and 4px on the right, so the
-     "Thumbnail" header stays on one line and never wraps under auto layout;
-     64px Status fits every short label ("Completed"/"Unresolved"/CN 2-4 chars)
-     and lets the long "Resolution Failed" wrap to two lines rather than clip. */
+     leftover instead of the three sharing it. Under auto layout `width` is only a
+     preferred width, so the pins are min-widths too — otherwise CJK content
+     (min-content = a single character) collapses the column one glyph per line.
+     The thumbnail cell keeps only 8px left padding (same as
+     mng-files.component.css) and 4px on the right so the preview keeps its
+     width; 64px Status fits every short label ("Completed" / "解析失败") and
+     lets the long "Resolution Failed" wrap to two lines rather than clip. */
   .mat-column-thumbnail {
     width: 72px !important;
+    min-width: 72px !important;
     max-width: none !important;
     padding-left: 8px !important;
     padding-right: 4px !important;
   }
-  th.mat-column-thumbnail {
-    white-space: nowrap !important;
-  }
   .mat-column-status {
     width: 64px !important;
+    min-width: 64px !important;
     max-width: 64px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  /* Headers never wrap: a CJK header would otherwise stack one character per
+     line as soon as the column is squeezed */
+  th.mat-header-cell {
+    white-space: nowrap !important;
   }
 
   /* Operation column: shrink to the widest button row on the current page, so
@@ -89,6 +98,7 @@
   .mat-column-dirName {
     width: 100% !important;
     max-width: none !important;
+    padding-left: 4px !important;
     padding-right: 8px !important;
   }
 

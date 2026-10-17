@@ -119,7 +119,7 @@
         <ng-container matColumnDef="dirName">
             <th mat-header-cell *matHeaderCellDef> {{'drone-task' | trl:'directory'}} </th>
             <td mat-cell *matCellDef="let u" [ngClass]="env.isMobile()?'p-2':''">
-                <span class="overflow-cell">{{ u.trimmedDirName }}</span> </td>
+                <span class="overflow-cell">{{ u.dirName }}</span> </td>
         </ng-container>
         <ng-container matColumnDef="fileCount">
             <th mat-header-cell *matHeaderCellDef> {{'drone-task' | trl:'fileCount'}} </th>

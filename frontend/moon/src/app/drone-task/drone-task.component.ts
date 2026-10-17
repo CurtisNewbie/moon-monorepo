@@ -60,7 +60,6 @@ export interface ListedTask {
   dirFileKey?: string;
   dirName?: string;
   makeDirName?: string;
-  trimmedDirName?: string;
   createdAt?: number;
   updatedAt?: number;
   fileCount?: number;
@@ -174,10 +173,8 @@ export class DroneTaskComponent implements OnInit {
           let dat: PageRes = resp.data;
           this.tabdata = dat.payload;
 
-          const isMob = this.env.isMobile();
           const remarkShortMaxLen = 40;
           const remarkMaxLen = 800;
-          const statusLabelMaxLen = 60;
 
           if (this.tabdata) {
             for (let t of this.tabdata) {
@@ -198,11 +195,6 @@ export class DroneTaskComponent implements OnInit {
                 t.thumbnail =
                   "fstore/file/raw?key=" +
                   encodeURIComponent(t.thumbnailFstToken);
-              }
-              t.trimmedDirName = t.dirName;
-              if (isMob && t.trimmedDirName.length > statusLabelMaxLen) {
-                t.trimmedDirName =
-                  t.trimmedDirName.substring(0, statusLabelMaxLen) + " ...";
               }
               t.statusLabel = t.status;
               if (t.status == 'COMPLETED') {
