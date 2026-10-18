@@ -206,4 +206,5 @@ Meaning that you can directly upgrade to the code in moon-monorepo without worry
 
 ## Updates
 
-- [Change Log](./changes/changes.md)
+- [Database Change Log](./release/db-changes.md) — schema changes per release
+- [Release Notes](./release/) — per-release notes and the release process

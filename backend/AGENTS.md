@@ -54,7 +54,7 @@ See service-specific `doc/config.md` for custom properties.
 
 ## Database Schema Migrations
 
-**No auto-migration.** Versioned DDL lives in `docs/schema/`: `docs/schema/current/` holds the live per-service snapshot, `docs/schema/vX.Y.Z/` holds each release's increments, and the repo-root `changes/changes.md` is the release manifest. See `docs/agents/db-schema.md` for the layout, the update rules, and how the manifest is maintained.
+**No auto-migration.** Versioned DDL lives in `docs/schema/`: `docs/schema/current/` holds the live per-service snapshot, `docs/schema/vX.Y.Z/` holds each release's increments, and `release/db-changes.md` is the release manifest. See `docs/agents/db-schema.md` for the layout, the update rules, and how the manifest is maintained.
 
 ## Deployment
 

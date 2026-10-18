@@ -34,12 +34,12 @@ docs/schema/
 - A version directory only needs files for services that changed: `docs/schema/v0.0.6/acct.sql`, `docs/schema/v0.0.6/vfm.sql`, etc.
 - Execute DDL scripts manually per version: `source docs/schema/v0.0.6/acct.sql`
 
-## `changes/changes.md`
+## `release/db-changes.md`
 
 The release manifest for schema changes, and the only place release-level schema history is recorded.
 
 - One `## Release vX.Y.Z` section per version directory, in ascending version order — the file reads oldest to newest, top to bottom.
-- Each section lists the SQL files changed in that release, as a numbered list of markdown links relative to the `changes/` directory:
+- Each section lists the SQL files changed in that release, as a numbered list of markdown links relative to the `release/` directory:
   `1. [docs/schema/v0.0.5/vfm.sql](../docs/schema/v0.0.5/vfm.sql)`
 - A new section is added in the same change that opens its version directory, and its entry list grows as further services change within that release.
 - A version's section is final once the release is tagged; never reorder, remove, or rewrite a released section. Correcting the ascending order of released sections is the only permitted edit.
