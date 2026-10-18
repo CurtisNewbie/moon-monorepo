@@ -51,15 +51,6 @@ Files it must update in this repo:
 
 What it does **not** do: commit, tag, push, verify branch or clean tree, verify the schema increment or `db-changes.md`, limit the changed set, or run builds/tests.
 
-Known limitations of the current implementation:
-
-- `cli_run` checks `p.returncode` before reading stdout and discards stderr — a failed `go fmt` is not reported.
-- `walk(".")` descends into `.git` and `node_modules` (~65k files here) and rewrites *any* matching `version.ts` it finds.
-- A target that is not the latest tag is not checked against existing tags.
-- Rewriting `version.go` discards anything in the file besides `package` and the `Version` var.
-
-Safe procedure until then: clean tree, run without `-f`, then check `git show --stat HEAD` and `git tag --points-at HEAD` before pushing.
-
 ## Tags
 
 - `vX.Y.Z`, lightweight, on the release commit on `main`.
