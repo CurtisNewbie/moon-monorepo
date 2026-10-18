@@ -73,21 +73,17 @@ def is_beta(v):
 
 if __name__ == '__main__':
 
-    force_push = False
     target = None
 
     for v in sys.argv[1:]:
         if not v:
             continue
         if v == "-f":
-            force_push = True
-            continue
+            print("-f is no longer supported: this script only updates the version constants. Commit and tag yourself.")
+            exit(1)
         target = v
 
-    # print(f"force: {force_push}")
-    # print(f"target: {target}")
-
-    if not target and not force_push:
+    if not target:
         last = current_tag()
         guessed = guess_next(last)
         print()
@@ -107,7 +103,6 @@ if __name__ == '__main__':
         exit(1)
 
     if target:
-        branch = current_branch()
         latest_tag = current_tag().strip()
         if latest_tag == target:
             print(f"{latest_tag} has been released")
@@ -117,10 +112,6 @@ if __name__ == '__main__':
         if target_release != target and target_release in all_tags().splitlines():
             print(f"{target_release} has been released")
             exit(1)
-    else:
-        last = current_tag()
-        target = guess_next(last)
-        print(f"Last release is '{last}'. Releasing '{target}'...")
 
     for (dir_path, dir_name, file_names) in walk("."):
         for fn in file_names:
@@ -193,14 +184,10 @@ if __name__ == '__main__':
                     break
 
 
-    print(cli_run(f"git add ."))
-    print(cli_run(f"git commit -m \"Release {target}\""))
-    print(cli_run(f"git tag \"{target}\""))
-    print("Done, it's time to push your tag to remote origin! :D")
-
-    if not force_push:
-        print(f"\ngit push && git push origin {target}\n\n")
-    else:
-        cmd = f"git push && git push origin {target}"
-        print(f"\nExecuting '{cmd}' ...\n")
-        cli_run(cmd)
+    print()
+    print(f"Version constants updated to {target}. Nothing was committed or tagged.")
+    print("Review the diff, then commit and tag yourself:")
+    print("  git add -u")
+    print(f"  git commit -m \"Release {target}\"")
+    print(f"  git tag {target}")
+    print(f"  git push && git push origin {target}")
