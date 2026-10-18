@@ -11,6 +11,10 @@ Manual monorepo: Go microservices in `backend/<service>/`, Angular app in `front
 - Go services, backend config, build order, DB schema, deployment → read `backend/AGENTS.md` first.
 - Angular app → read `frontend/AGENTS.md` first.
 
+## Release
+
+Cutting a release — version bump, schema manifest, tag, GitHub notes, deploy order — follow `release/README.md`. Schema history lives in `release/db-changes.md`; per-release notes in `release/<version>.md`.
+
 ## Agent skills
 
 ### Issue tracker

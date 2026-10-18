@@ -18,6 +18,10 @@ The tag is the last step. Do not tag until the version commit has been reviewed.
   git status --short          # empty
   git fetch origin && git status -sb
   ```
+- Target tag does not exist yet:
+  ```sh
+  git tag -l vX.Y.Z           # empty
+  ```
 - `go`, `node`/`npm`, `python3` available.
 - Database access for the migration; GitHub access for publishing.
 - Agreed version number (`vX.Y.Z`) and closed scope.
@@ -104,6 +108,8 @@ Files:
 - `backend/user-vault/internal/server/version.go`
 - `backend/vfm/internal/vfm/version.go`
 - `frontend/moon/src/app/version.ts`
+
+`frontend/moon/package.json` stays at `0.0.0` by convention — do not bump it.
 
 The script does not commit, tag, push, or verify anything; it also runs `go fmt ./...` per module.
 
