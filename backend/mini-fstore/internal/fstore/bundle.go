@@ -97,7 +97,7 @@ type bundleEntry struct {
 func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) error {
 	ok, bundle := ResolveBundleKey(rail, bundleKey)
 	if !ok {
-		return ErrFileNotFound
+		return ErrFileNotFound.New()
 	}
 
 	ids := make([]string, 0, len(bundle.Items))
