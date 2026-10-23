@@ -1,6 +1,6 @@
 # 01: mini-fstore: bundle key and flat zip stream
 
-**What to build:** A caller inside the platform can hand mini-fstore a directory name plus an ordered list of file ids and entry names, and receive a bundle key. Fetching the public archive route with that key downloads a zip holding exactly those entries, flat, with no directory entries inside it. The key expires after thirty minutes and refreshes while it is being read. Every id is validated before the response body starts, so an invalid or missing file yields an error status rather than a truncated archive. An empty list yields a valid empty zip. The archive is named after the directory and entries are stored, not deflated.
+**What to build:** A caller inside the platform can hand mini-fstore a directory name plus an ordered list of file ids and entry names, and receive a bundle key. Fetching the public archive route with that key downloads a zip holding exactly those entries, flat, with no directory entries inside it. The key expires after thirty minutes and refreshes while it is being read. Every id is resolved before the response body starts: an entry that cannot be served is skipped and logged, and the rest still download. An empty list yields a valid empty zip. The archive is named after the directory and entries are stored, not deflated.
 
 **Blocked by:** None (can start immediately)
 
@@ -10,7 +10,7 @@
 - [x] The archive route streams a zip whose entries sit at the root: no directory entries, no nesting.
 - [x] Each entry's bytes equal the stored file's bytes.
 - [x] An empty file list produces a readable zip with zero entries.
-- [x] An unknown or non-normal file id fails the request before any body byte is written.
+- [x] A file whose record is absent, whose status is not normal, or whose stored bytes are missing is skipped and logged, and the remaining entries still download in order.
 - [x] The response sets the archive content type and an attachment disposition carrying the directory name plus `.zip`.
 - [x] The response carries no content length; the transfer is chunked.
 - [x] Entries are stored rather than deflated.

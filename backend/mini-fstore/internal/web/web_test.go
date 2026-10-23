@@ -1,6 +1,7 @@
 package web
 
 import (
+	"archive/zip"
 	"bytes"
 	"net/http"
 	"net/http/httptest"
@@ -115,10 +116,11 @@ func TestBundleDownloadMidStreamFailureDoesNotChangeStatus(t *testing.T) {
 	}
 }
 
-func TestBundleDownloadPreBodyFailureReturnsNotFoundWithNoBody(t *testing.T) {
+func TestBundleDownloadSkipsMissingStoredBytes(t *testing.T) {
 	preTest(t)
 
-	// no bytes are written for this id, so the request fails before the body
+	// no bytes are written for this id, so the entry is skipped instead of
+	// failing the whole archive
 	fileId := fstore.GenFileId()
 	createFileRecord(t, fileId, "missing.bin", 10)
 
@@ -134,10 +136,18 @@ func TestBundleDownloadPreBodyFailureReturnsNotFoundWithNoBody(t *testing.T) {
 
 	downloadBundle(miso.EmptyRail(), rr, req)
 
-	if rr.Code != http.StatusNotFound {
-		t.Fatalf("status = %d, want %d", rr.Code, http.StatusNotFound)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
 	}
-	if rr.Body.Len() != 0 {
-		t.Errorf("body has %d bytes, want none", rr.Body.Len())
+	if ct := rr.Header().Get("Content-Type"); ct != "application/zip" {
+		t.Fatalf("Content-Type = %q, want %q", ct, "application/zip")
+	}
+
+	zr, err := zip.NewReader(bytes.NewReader(rr.Body.Bytes()), int64(rr.Body.Len()))
+	if err != nil {
+		t.Fatalf("response body is not a readable zip, %v", err)
+	}
+	if len(zr.File) != 0 {
+		t.Fatalf("archive has %d entries, want 0", len(zr.File))
 	}
 }

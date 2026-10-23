@@ -49,6 +49,24 @@ func createBundleFile(t *testing.T, name string, content []byte) string {
 	return fileId
 }
 
+// createBundleRecordWithoutBytes creates a normal file record without writing
+// any bytes to the storage directory, so the record resolves but os.Stat fails.
+func createBundleRecordWithoutBytes(t *testing.T, name string) string {
+	t.Helper()
+	fileId := GenFileId()
+	if err := CreateFileRec(miso.EmptyRail(), CreateFile{
+		FileId: fileId,
+		Name:   name,
+		Size:   10,
+	}); err != nil {
+		t.Fatalf("failed to create file record, %v", err)
+	}
+	t.Cleanup(func() {
+		mysql.GetMySQL().Exec("delete from file where file_id = ?", fileId)
+	})
+	return fileId
+}
+
 func mintBundle(t *testing.T, name string, items []api.BundleItem) string {
 	t.Helper()
 	k, err := RandBundleKey(miso.EmptyRail(), name, items)
@@ -378,68 +396,89 @@ func TestDownloadBundleKeyEmptyListYieldsEmptyZip(t *testing.T) {
 	}
 }
 
-func TestDownloadBundleKeyRejectsUnknownFileBeforeBody(t *testing.T) {
+func TestDownloadBundleKeySkipsUnservableEntries(t *testing.T) {
 	setupBundleEnv(t)
 
-	k := mintBundle(t, "dir", []api.BundleItem{{FileId: "file_does_not_exist", Name: "ghost.txt"}})
+	servableA := []byte("first servable entry")
+	a := createBundleFile(t, "a.txt", servableA)
 
-	rr, err := downloadBundleKey(k)
-	if err == nil {
-		t.Fatal("DownloadBundleKey should fail for an unknown file id")
-	}
-	if rr.Body.Len() != 0 {
-		t.Errorf("wrote %d body bytes, want none", rr.Body.Len())
-	}
-	if ct := rr.Header().Get("Content-Type"); ct != "" {
-		t.Errorf("Content-Type = %q, want it unset before validation passes", ct)
-	}
-}
-
-func TestDownloadBundleKeyRejectsNonNormalFileBeforeBody(t *testing.T) {
-	setupBundleEnv(t)
-
-	fileId := createBundleFile(t, "deleted.txt", []byte("gone"))
-	if err := mysql.GetMySQL().Exec("update file set status = ? where file_id = ?", api.FileStatusLogicDel, fileId).Error; err != nil {
+	deleted := createBundleFile(t, "deleted.txt", []byte("gone"))
+	if err := mysql.GetMySQL().Exec("update file set status = ? where file_id = ?", api.FileStatusLogicDel, deleted).Error; err != nil {
 		t.Fatalf("failed to mark file deleted, %v", err)
 	}
-	k := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "deleted.txt"}})
+
+	noBytes := createBundleRecordWithoutBytes(t, "missing.bin")
+
+	servableB := []byte("second servable entry")
+	b := createBundleFile(t, "b.txt", servableB)
+
+	k := mintBundle(t, "dir", []api.BundleItem{
+		{FileId: a, Name: "a.txt"},
+		{FileId: deleted, Name: "deleted.txt"},
+		{FileId: "file_does_not_exist", Name: "ghost.txt"},
+		{FileId: noBytes, Name: "missing.bin"},
+		{FileId: b, Name: "b.txt"},
+	})
 
 	rr, err := downloadBundleKey(k)
-	if err == nil {
-		t.Fatal("DownloadBundleKey should fail for a non-normal file record")
+	if err != nil {
+		t.Fatalf("DownloadBundleKey returned error, %v", err)
 	}
-	if rr.Body.Len() != 0 {
-		t.Errorf("wrote %d body bytes, want none", rr.Body.Len())
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
 	}
-	if ct := rr.Header().Get("Content-Type"); ct != "" {
-		t.Errorf("Content-Type = %q, want it unset before validation passes", ct)
+
+	zr := readZip(t, rr.Body.Bytes())
+	wantNames := []string{"a.txt", "b.txt"}
+	wantContent := [][]byte{servableA, servableB}
+	if len(zr.File) != len(wantNames) {
+		t.Fatalf("archive has %d entries, want %d", len(zr.File), len(wantNames))
+	}
+	for i, zf := range zr.File {
+		if zf.Name != wantNames[i] {
+			t.Errorf("entry[%d].Name = %q, want %q", i, zf.Name, wantNames[i])
+		}
+		rc, err := zf.Open()
+		if err != nil {
+			t.Fatalf("failed to open entry %q, %v", zf.Name, err)
+		}
+		got, err := io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			t.Fatalf("failed to read entry %q, %v", zf.Name, err)
+		}
+		if !bytes.Equal(got, wantContent[i]) {
+			t.Errorf("entry %q contents = %q, want %q", zf.Name, got, wantContent[i])
+		}
 	}
 }
 
-func TestDownloadBundleKeyRejectsMissingStoredBytesBeforeBody(t *testing.T) {
+func TestDownloadBundleKeyAllUnservableYieldsEmptyZip(t *testing.T) {
 	setupBundleEnv(t)
 
-	// create a normal record without writing any bytes to the storage directory
-	fileId := GenFileId()
-	if err := CreateFileRec(miso.EmptyRail(), CreateFile{
-		FileId: fileId,
-		Name:   "missing.bin",
-		Size:   10,
-	}); err != nil {
-		t.Fatalf("failed to create file record, %v", err)
+	deleted := createBundleFile(t, "deleted.txt", []byte("gone"))
+	if err := mysql.GetMySQL().Exec("update file set status = ? where file_id = ?", api.FileStatusLogicDel, deleted).Error; err != nil {
+		t.Fatalf("failed to mark file deleted, %v", err)
 	}
-	t.Cleanup(func() {
-		mysql.GetMySQL().Exec("delete from file where file_id = ?", fileId)
+	noBytes := createBundleRecordWithoutBytes(t, "missing.bin")
+
+	k := mintBundle(t, "dir", []api.BundleItem{
+		{FileId: deleted, Name: "deleted.txt"},
+		{FileId: "file_does_not_exist", Name: "ghost.txt"},
+		{FileId: noBytes, Name: "missing.bin"},
 	})
 
-	k := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "missing.bin"}})
-
 	rr, err := downloadBundleKey(k)
-	if err == nil {
-		t.Fatal("DownloadBundleKey should fail when the stored bytes are missing")
+	if err != nil {
+		t.Fatalf("DownloadBundleKey returned error, %v", err)
 	}
-	if rr.Body.Len() != 0 {
-		t.Errorf("wrote %d body bytes, want none", rr.Body.Len())
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
+	}
+
+	zr := readZip(t, rr.Body.Bytes())
+	if len(zr.File) != 0 {
+		t.Errorf("archive has %d entries, want 0", len(zr.File))
 	}
 }
 
