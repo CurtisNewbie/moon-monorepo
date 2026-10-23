@@ -39,3 +39,7 @@ _Avoid_: Last page, bookmark, reading position, progress
 **Order-By Preference**:
 The sort order a user last chose for a directory. A directory opens in its Order-By Preference.
 _Avoid_: Sort setting, default sort, sort cache
+
+**Size Sort**:
+A listing ordered by file size, offered only while the File type filter is selected, never stored as an Order-By Preference and never resumed.
+_Avoid_: sort by bytes, size order, biggest first
