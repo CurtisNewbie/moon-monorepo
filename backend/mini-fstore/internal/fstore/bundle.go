@@ -2,7 +2,6 @@ package fstore
 
 import (
 	"archive/zip"
-	"errors"
 	"mime"
 	"net/http"
 	"os"
@@ -44,16 +43,17 @@ func RandBundleKey(rail miso.Rail, name string, items []api.BundleItem) (string,
 	if em != nil {
 		return "", errs.NewErrf("failed to marshal to bundle, %v", em)
 	}
-	c := redis.GetRedis().Set(rail, bundleKeyPrefix+bk, string(sby), bundleKeyTTL)
-	return bk, c.Err()
+	if e := redis.Set(rail, bundleKeyPrefix+bk, string(sby), bundleKeyTTL); e != nil {
+		return "", errs.Wrapf(e, "failed to cache bundle key")
+	}
+	return bk, nil
 }
 
 // RefreshBundleKeyExp refreshes the bundle key's expiration.
 func RefreshBundleKeyExp(rail miso.Rail, bundleKey string) error {
-	c := redis.GetRedis().Expire(rail, bundleKeyPrefix+bundleKey, bundleKeyTTL)
-	if c.Err() != nil {
-		rail.Warnf("Failed to refresh bundle key expiration, bundleKey: %v, %v", bundleKey, c.Err())
-		return errs.NewErrf("failed to refresh key expiration, %v", c.Err())
+	if _, err := redis.Expire(rail, bundleKeyPrefix+bundleKey, bundleKeyTTL); err != nil {
+		rail.Warnf("Failed to refresh bundle key expiration, bundleKey: %v, %v", bundleKey, err)
+		return errs.Wrapf(err, "failed to refresh bundle key expiration")
 	}
 	return nil
 }
@@ -61,17 +61,17 @@ func RefreshBundleKeyExp(rail miso.Rail, bundleKey string) error {
 // ResolveBundleKey resolves the bundle for the given bundle key.
 func ResolveBundleKey(rail miso.Rail, bundleKey string) (bool, api.GenBundleKeyReq) {
 	var cb api.GenBundleKeyReq
-	c := redis.GetRedis().Get(rail, bundleKeyPrefix+bundleKey)
-	if c.Err() != nil {
-		if errors.Is(c.Err(), redis.Nil) {
-			rail.Infof("BundleKey not found, %v", bundleKey)
-		} else {
-			rail.Errorf("Failed to find bundleKey, %v", c.Err())
-		}
+	val, ok, err := redis.Get(rail, bundleKeyPrefix+bundleKey)
+	if err != nil {
+		rail.Errorf("Failed to find bundleKey, %v", err)
+		return false, cb
+	}
+	if !ok {
+		rail.Infof("BundleKey not found, %v", bundleKey)
 		return false, cb
 	}
 
-	eu := json.ParseJson([]byte(c.Val()), &cb)
+	eu := json.ParseJson([]byte(val), &cb)
 	if eu != nil {
 		rail.Errorf("Failed to unmarshal bundleKey, %s, %v", bundleKey, eu)
 		return false, cb
