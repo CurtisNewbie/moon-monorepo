@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -48,7 +49,7 @@ func createBundleFile(t *testing.T, name string, content []byte) string {
 	return fileId
 }
 
-func mintBundle(t *testing.T, name string, items []BundleItem) string {
+func mintBundle(t *testing.T, name string, items []api.BundleItem) string {
 	t.Helper()
 	k, err := RandBundleKey(miso.EmptyRail(), name, items)
 	if err != nil {
@@ -103,7 +104,7 @@ func readZip(t *testing.T, b []byte) *zip.Reader {
 func TestRandBundleKeyResolvesItemsInOrder(t *testing.T) {
 	setupBundleEnv(t)
 
-	items := []BundleItem{
+	items := []api.BundleItem{
 		{FileId: "file_a", Name: "first.txt"},
 		{FileId: "file_b", Name: "second.txt"},
 		{FileId: "file_c", Name: "third.txt"},
@@ -134,7 +135,7 @@ func TestDownloadBundleKeyStreamsFlatStoredZip(t *testing.T) {
 	contentB := []byte("second file bytes, a bit longer")
 	a := createBundleFile(t, "a.txt", contentA)
 	b := createBundleFile(t, "b.txt", contentB)
-	k := mintBundle(t, "my dir", []BundleItem{
+	k := mintBundle(t, "my dir", []api.BundleItem{
 		{FileId: a, Name: "a.txt"},
 		{FileId: b, Name: "b.txt"},
 	})
@@ -212,10 +213,11 @@ func TestDownloadBundleKeyStreamsFlatStoredZip(t *testing.T) {
 func TestDownloadBundleKeyNonAsciiArchiveName(t *testing.T) {
 	setupBundleEnv(t)
 
-	fileId := createBundleFile(t, "报告.pdf", []byte("pdf bytes"))
-	k := mintBundle(t, "资料", []BundleItem{{FileId: fileId, Name: "报告.pdf"}})
+	content := []byte("pdf bytes")
+	fileId := createBundleFile(t, "报告.pdf", content)
+	k := mintBundle(t, "资料", []api.BundleItem{{FileId: fileId, Name: "报告.pdf"}})
 
-	res, _ := fetchBundleArchive(t, k)
+	res, body := fetchBundleArchive(t, k)
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want %d", res.StatusCode, http.StatusOK)
 	}
@@ -226,6 +228,111 @@ func TestDownloadBundleKeyNonAsciiArchiveName(t *testing.T) {
 	if params["filename"] != "资料.zip" {
 		t.Errorf("disposition filename = %q, want %q", params["filename"], "资料.zip")
 	}
+
+	// the entry name round-trips inside the archive body as well
+	zr := readZip(t, body)
+	if len(zr.File) != 1 {
+		t.Fatalf("archive has %d entries, want 1", len(zr.File))
+	}
+	if zr.File[0].Name != "报告.pdf" {
+		t.Errorf("entry name = %q, want %q", zr.File[0].Name, "报告.pdf")
+	}
+	rc, err := zr.File[0].Open()
+	if err != nil {
+		t.Fatalf("failed to open entry, %v", err)
+	}
+	got, err := io.ReadAll(rc)
+	rc.Close()
+	if err != nil {
+		t.Fatalf("failed to read entry, %v", err)
+	}
+	if !bytes.Equal(got, content) {
+		t.Errorf("entry contents = %q, want %q", got, content)
+	}
+}
+
+func TestDownloadBundleKeyUsesEntryNameFromBundle(t *testing.T) {
+	setupBundleEnv(t)
+
+	content := []byte("bytes of the stored file")
+	fileId := createBundleFile(t, "stored-name.txt", content)
+
+	// the bundle key, not the file record, decides the entry name
+	k := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "renamed-entry.txt"}})
+
+	rr, err := downloadBundleKey(k)
+	if err != nil {
+		t.Fatalf("DownloadBundleKey returned error, %v", err)
+	}
+	zr := readZip(t, rr.Body.Bytes())
+	if len(zr.File) != 1 {
+		t.Fatalf("archive has %d entries, want 1", len(zr.File))
+	}
+	if zr.File[0].Name != "renamed-entry.txt" {
+		t.Errorf("entry name = %q, want %q", zr.File[0].Name, "renamed-entry.txt")
+	}
+	rc, err := zr.File[0].Open()
+	if err != nil {
+		t.Fatalf("failed to open entry, %v", err)
+	}
+	got, err := io.ReadAll(rc)
+	rc.Close()
+	if err != nil {
+		t.Fatalf("failed to read entry, %v", err)
+	}
+	if !bytes.Equal(got, content) {
+		t.Errorf("entry contents = %q, want %q", got, content)
+	}
+}
+
+func TestBundleArchiveNameDoesNotDoubleZipSuffix(t *testing.T) {
+	cases := []struct {
+		name string
+		want string
+	}{
+		{"my dir", "my dir.zip"},
+		{"foo.zip", "foo.zip"},
+		{"foo.ZIP", "foo.ZIP"},
+		{"archive.zip.zip", "archive.zip.zip"},
+	}
+	for _, c := range cases {
+		if got := bundleArchiveName(c.name); got != c.want {
+			t.Errorf("bundleArchiveName(%q) = %q, want %q", c.name, got, c.want)
+		}
+	}
+}
+
+func TestRandBundleKeyRejectsTooManyItems(t *testing.T) {
+	setupBundleEnv(t)
+
+	items := make([]api.BundleItem, maxBundleItems+1)
+	for i := range items {
+		items[i] = api.BundleItem{FileId: "file_" + strconv.Itoa(i), Name: "entry_" + strconv.Itoa(i)}
+	}
+
+	k, err := RandBundleKey(miso.EmptyRail(), "too many", items)
+	if err == nil {
+		t.Fatal("RandBundleKey should reject an oversized bundle")
+	}
+	if k != "" {
+		t.Errorf("key = %q, want empty", k)
+	}
+	if !strings.Contains(err.Error(), "too many") {
+		t.Errorf("error = %q, want it to explain the cap", err)
+	}
+}
+
+func TestRandBundleKeyAcceptsCap(t *testing.T) {
+	setupBundleEnv(t)
+
+	items := make([]api.BundleItem, maxBundleItems)
+	for i := range items {
+		items[i] = api.BundleItem{FileId: "file_" + strconv.Itoa(i), Name: "entry_" + strconv.Itoa(i)}
+	}
+
+	if _, err := RandBundleKey(miso.EmptyRail(), "at cap", items); err != nil {
+		t.Fatalf("RandBundleKey should accept the cap, %v", err)
+	}
 }
 
 func TestDownloadBundleKeySingleEntry(t *testing.T) {
@@ -233,7 +340,7 @@ func TestDownloadBundleKeySingleEntry(t *testing.T) {
 
 	content := []byte("only one")
 	fileId := createBundleFile(t, "only.txt", content)
-	k := mintBundle(t, "one", []BundleItem{{FileId: fileId, Name: "only.txt"}})
+	k := mintBundle(t, "one", []api.BundleItem{{FileId: fileId, Name: "only.txt"}})
 
 	rr, err := downloadBundleKey(k)
 	if err != nil {
@@ -255,7 +362,7 @@ func TestDownloadBundleKeySingleEntry(t *testing.T) {
 func TestDownloadBundleKeyEmptyListYieldsEmptyZip(t *testing.T) {
 	setupBundleEnv(t)
 
-	k := mintBundle(t, "empty dir", []BundleItem{})
+	k := mintBundle(t, "empty dir", []api.BundleItem{})
 
 	rr, err := downloadBundleKey(k)
 	if err != nil {
@@ -274,7 +381,7 @@ func TestDownloadBundleKeyEmptyListYieldsEmptyZip(t *testing.T) {
 func TestDownloadBundleKeyRejectsUnknownFileBeforeBody(t *testing.T) {
 	setupBundleEnv(t)
 
-	k := mintBundle(t, "dir", []BundleItem{{FileId: "file_does_not_exist", Name: "ghost.txt"}})
+	k := mintBundle(t, "dir", []api.BundleItem{{FileId: "file_does_not_exist", Name: "ghost.txt"}})
 
 	rr, err := downloadBundleKey(k)
 	if err == nil {
@@ -295,7 +402,7 @@ func TestDownloadBundleKeyRejectsNonNormalFileBeforeBody(t *testing.T) {
 	if err := mysql.GetMySQL().Exec("update file set status = ? where file_id = ?", api.FileStatusLogicDel, fileId).Error; err != nil {
 		t.Fatalf("failed to mark file deleted, %v", err)
 	}
-	k := mintBundle(t, "dir", []BundleItem{{FileId: fileId, Name: "deleted.txt"}})
+	k := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "deleted.txt"}})
 
 	rr, err := downloadBundleKey(k)
 	if err == nil {
@@ -325,7 +432,7 @@ func TestDownloadBundleKeyRejectsMissingStoredBytesBeforeBody(t *testing.T) {
 		mysql.GetMySQL().Exec("delete from file where file_id = ?", fileId)
 	})
 
-	k := mintBundle(t, "dir", []BundleItem{{FileId: fileId, Name: "missing.bin"}})
+	k := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "missing.bin"}})
 
 	rr, err := downloadBundleKey(k)
 	if err == nil {
@@ -352,26 +459,29 @@ func TestBundleKeyExpiresAndRefreshes(t *testing.T) {
 	setupBundleEnv(t)
 
 	oldTTL := bundleKeyTTL
-	bundleKeyTTL = 500 * time.Millisecond
+	bundleKeyTTL = 3 * time.Second
 	t.Cleanup(func() { bundleKeyTTL = oldTTL })
+
+	step := 300 * time.Millisecond
+	// more than the ttl, in small steps so a slow run only spends a little
+	// extra wall clock instead of flaking
+	expirySteps := 12
 
 	fileId := createBundleFile(t, "kept.txt", []byte("still here"))
 
-	k := mintBundle(t, "dir", []BundleItem{{FileId: fileId, Name: "kept.txt"}})
+	k := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "kept.txt"}})
 
 	// a successful read refreshes the lifetime
-	time.Sleep(300 * time.Millisecond)
-	if _, err := downloadBundleKey(k); err != nil {
-		t.Fatalf("bundle key should still resolve before expiration, %v", err)
-	}
-	time.Sleep(300 * time.Millisecond)
-	if _, err := downloadBundleKey(k); err != nil {
-		t.Fatalf("bundle key should have been refreshed by the previous read, %v", err)
+	for i := 0; i < 3; i++ {
+		time.Sleep(step)
+		if _, err := downloadBundleKey(k); err != nil {
+			t.Fatalf("bundle key should still resolve before expiration, %v", err)
+		}
 	}
 
 	// without a read, the key expires
-	k2 := mintBundle(t, "dir", []BundleItem{{FileId: fileId, Name: "kept.txt"}})
-	time.Sleep(800 * time.Millisecond)
+	k2 := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "kept.txt"}})
+	time.Sleep(time.Duration(expirySteps) * step)
 	if _, err := downloadBundleKey(k2); err == nil {
 		t.Fatal("bundle key should have expired after the ttl of no reads")
 	}

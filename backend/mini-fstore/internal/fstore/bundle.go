@@ -7,10 +7,11 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/curtisnewbie/mini-fstore/api"
-	"github.com/curtisnewbie/miso/middleware/mysql"
+	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/middleware/redis"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/json"
@@ -19,32 +20,30 @@ import (
 
 const bundleKeyPrefix = "fstore:bundle:key:"
 
+// maxBundleItems bounds one bundle. The whole bundle is a single Redis value and
+// the whole entry list is validated before the response body starts, so an
+// unbounded list would let one caller grow both without limit.
+const maxBundleItems = 3000
+
 // Lifetime of a bundle key. It is refreshed on each successful read, matching
 // the single-file key.
 var bundleKeyTTL = 30 * time.Minute
 
-// BundleItem is one file that goes into a bundle archive.
-type BundleItem struct {
-	FileId string `json:"fileId"`
-	Name   string `json:"name"`
-}
-
-// CachedBundle is the payload held by a bundle key: the archive name plus the
-// ordered list of entries.
-type CachedBundle struct {
-	Name  string       `json:"name"`
-	Items []BundleItem `json:"items"`
-}
-
 // RandBundleKey generates a temporary key for an ordered list of files.
-func RandBundleKey(rail miso.Rail, name string, items []BundleItem) (string, error) {
+//
+// The file ids are deliberately not validated here: they are checked at
+// download time, unlike the single-file key which is resolved eagerly.
+func RandBundleKey(rail miso.Rail, name string, items []api.BundleItem) (string, error) {
+	if len(items) > maxBundleItems {
+		return "", errs.NewErrf("too many entries in bundle: %d, max: %d", len(items), maxBundleItems)
+	}
 	if items == nil {
-		items = []BundleItem{}
+		items = []api.BundleItem{}
 	}
 	bk := randutil.ERand(30)
-	sby, em := json.WriteJson(CachedBundle{Name: name, Items: items})
+	sby, em := json.WriteJson(api.GenBundleKeyReq{Name: name, Items: items})
 	if em != nil {
-		return "", fmt.Errorf("failed to marshal to CachedBundle, %v", em)
+		return "", fmt.Errorf("failed to marshal to bundle, %v", em)
 	}
 	c := redis.GetRedis().Set(rail.Context(), bundleKeyPrefix+bk, string(sby), bundleKeyTTL)
 	return bk, c.Err()
@@ -60,9 +59,9 @@ func RefreshBundleKeyExp(rail miso.Rail, bundleKey string) error {
 	return nil
 }
 
-// ResolveBundleKey resolves the CachedBundle for the given bundle key.
-func ResolveBundleKey(rail miso.Rail, bundleKey string) (bool, CachedBundle) {
-	var cb CachedBundle
+// ResolveBundleKey resolves the bundle for the given bundle key.
+func ResolveBundleKey(rail miso.Rail, bundleKey string) (bool, api.GenBundleKeyReq) {
+	var cb api.GenBundleKeyReq
 	c := redis.GetRedis().Get(rail.Context(), bundleKeyPrefix+bundleKey)
 	if c.Err() != nil {
 		if errors.Is(c.Err(), redis.Nil) {
@@ -81,36 +80,13 @@ func ResolveBundleKey(rail miso.Rail, bundleKey string) (bool, CachedBundle) {
 	return true, cb
 }
 
-// allFilesNormal checks in one batch that every distinct file id refers to a
-// normal file record.
-//
-// CheckAllNormalFiles cannot be used here: it relies on slutil.Distinct, which
-// in the miso version used by this service returns a slice padded with empty
-// strings, so the count can never match the id list.
-func allFilesNormal(ids []string) (bool, error) {
-	distinct := make([]string, 0, len(ids))
-	seen := make(map[string]struct{}, len(ids))
-	for _, id := range ids {
-		if _, exists := seen[id]; exists {
-			continue
-		}
-		seen[id] = struct{}{}
-		distinct = append(distinct, id)
+// bundleArchiveName returns the download filename for the archive, appending
+// ".zip" only when the archive name does not already carry it.
+func bundleArchiveName(name string) string {
+	if strings.HasSuffix(strings.ToLower(name), ".zip") {
+		return name
 	}
-	if len(distinct) == 0 {
-		return true, nil
-	}
-
-	var cnt int64
-	t := mysql.GetMySQL().
-		Table("file").
-		Where("file_id in ?", distinct).
-		Where("status = ?", api.FileStatusNormal).
-		Count(&cnt)
-	if t.Error != nil {
-		return false, fmt.Errorf("failed to count normal files, %w", t.Error)
-	}
-	return cnt == int64(len(distinct)), nil
+	return name + ".zip"
 }
 
 // DownloadBundleKey streams a flat zip archive built from a bundle key.
@@ -128,21 +104,24 @@ func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) 
 	for _, it := range bundle.Items {
 		ids = append(ids, it.FileId)
 	}
-	if len(ids) > 0 {
-		allNormal, err := allFilesNormal(ids)
-		if err != nil {
-			return err
-		}
-		if !allNormal {
-			return ErrFileNotFound.WithInternalMsg("not all bundled files are normal")
-		}
+	allNormal, err := CheckAllNormalFiles(ids)
+	if err != nil {
+		return err
+	}
+	if !allNormal {
+		return ErrFileNotFound.WithInternalMsg("not all bundled files are normal")
 	}
 
+	// load the records in one query; only os.Stat stays per entry
+	byId, err := findDFiles(ids)
+	if err != nil {
+		return ErrUnknownError.WithInternalMsg("findDFiles failed, %v", err)
+	}
 	dfs := make([]DFile, 0, len(bundle.Items))
 	for _, it := range bundle.Items {
-		df, err := findDFile(it.FileId)
-		if err != nil {
-			return ErrFileNotFound.WithInternalMsg("findDFile failed, fileId: %v, %v", it.FileId, err)
+		df, found := byId[it.FileId]
+		if !found {
+			return ErrFileNotFound.WithInternalMsg("file record not found, fileId: %v", it.FileId)
 		}
 		if df.IsDeleted() {
 			return ErrFileDeleted
@@ -161,24 +140,38 @@ func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) 
 	headers := w.Header()
 	headers.Set("Content-Type", "application/zip")
 	headers.Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{
-		"filename": bundle.Name + ".zip",
+		"filename": bundleArchiveName(bundle.Name),
 	}))
-	// Content-Length is deliberately absent: the archive size is unknown until
-	// the last entry is written, so the response is chunked. Flushing here
-	// commits the headers and starts the transfer before the first entry is
-	// read.
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	}
 
 	zw := zip.NewWriter(w)
+	flushed := false
 	for i, it := range bundle.Items {
 		ew, err := zw.CreateHeader(&zip.FileHeader{Name: it.Name, Method: zip.Store})
 		if err != nil {
 			return fmt.Errorf("failed to create zip entry %v, %v", it.Name, err)
 		}
+		// Only once the first entry header exists is there a body worth
+		// committing. Until this point a failure can still change the
+		// response status. Content-Length stays absent, so the response is
+		// chunked.
+		if !flushed {
+			// the zip writer buffers, so flush it into the response first
+			if err := zw.Flush(); err != nil {
+				return fmt.Errorf("failed to flush zip header for %v, %v", it.Name, err)
+			}
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			}
+			flushed = true
+		}
 		if err := TransferFile(rail, ew, dfs[i], ZeroByteRange()); err != nil {
 			return fmt.Errorf("failed to write zip entry %v, %w", it.Name, err)
+		}
+	}
+	if !flushed {
+		// empty archive: commit the headers before the central directory
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
 		}
 	}
 	return zw.Close()

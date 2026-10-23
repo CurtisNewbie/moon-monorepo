@@ -50,7 +50,7 @@ func RegisterApi() {
 		Desc(`Generate temporary file key for downloading and streaming. This endpoint is expected to be called internally by another backend service that validates the ownership of the file properly.`)
 
 	miso.HttpPost("/file/bundle/key", miso.AutoHandler(
-		func(inb *miso.Inbound, req GenBundleKeyReq) (string, error) {
+		func(inb *miso.Inbound, req api.GenBundleKeyReq) (string, error) {
 			return ApiGenBundleKey(inb, req)
 		})).
 		Extra(miso.ExtraName, "ApiGenBundleKey").

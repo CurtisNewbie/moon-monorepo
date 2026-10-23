@@ -2,16 +2,19 @@ package vfm
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 
 	fstore "github.com/curtisnewbie/mini-fstore/api"
+	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/miso"
 	"github.com/curtisnewbie/miso/util/randutil"
 	"gorm.io/gorm"
@@ -121,6 +124,15 @@ func insertDirZipChild(t *testing.T, db *gorm.DB, parent, name, userNo, fstoreFi
 	return insertDirZipRow(t, db, parent, name, userNo, FileTypeFile, fstoreFileId, 0, 0)
 }
 
+func insertDirZipHiddenChild(t *testing.T, db *gorm.DB, parent, name, userNo, fstoreFileId string) string {
+	t.Helper()
+	uuid := insertDirZipChild(t, db, parent, name, userNo, fstoreFileId)
+	if err := db.Exec("UPDATE file_info SET hidden = 1 WHERE uuid = ?", uuid).Error; err != nil {
+		t.Fatal(err)
+	}
+	return uuid
+}
+
 // --- happy path -------------------------------------------------------------
 
 func TestGenDirBundleKeyMintsDirectFileChildrenInNameOrder(t *testing.T) {
@@ -163,6 +175,101 @@ func TestGenDirBundleKeyMintsDirectFileChildrenInNameOrder(t *testing.T) {
 	}
 	if !reflect.DeepEqual(reqs[0].Items, want) {
 		t.Fatalf("items: got %+v, want %+v", reqs[0].Items, want)
+	}
+}
+
+func TestGenDirBundleKeyExcludesForeignAndHiddenChildren(t *testing.T) {
+	db := testMySQLConn(t)
+	mint := startDirZipFakeFstore(t)
+	user := testUser()
+
+	dir := insertDirZipDir(t, db, "", "mixed", user.UserNo)
+	insertDirZipChild(t, db, dir, "mine.jpg", user.UserNo, "FS_MINE")
+	// another user's file that was moved into this directory stays invisible in
+	// the listing, so it must not enter the archive either
+	insertDirZipChild(t, db, dir, "foreign.jpg", "UE_OTHER_USER", "FS_FOREIGN")
+	// a hidden row (e.g. a versioned file) is likewise absent from the listing
+	insertDirZipHiddenChild(t, db, dir, "hidden.jpg", user.UserNo, "FS_HIDDEN")
+
+	if _, err := GenDirBundleKey(miso.EmptyRail(), db, GenerateDirZipReq{FileKey: dir}, user); err != nil {
+		t.Fatal(err)
+	}
+
+	reqs := mint.all()
+	if len(reqs) != 1 {
+		t.Fatalf("expected 1 mint request, got %d", len(reqs))
+	}
+	want := []fstore.BundleItem{{FileId: "FS_MINE", Name: "mine.jpg"}}
+	if !reflect.DeepEqual(reqs[0].Items, want) {
+		t.Fatalf("items: got %+v, want %+v", reqs[0].Items, want)
+	}
+}
+
+func TestGenDirBundleKeyRejectsUnsafeEntryNames(t *testing.T) {
+	db := testMySQLConn(t)
+	mint := startDirZipFakeFstore(t)
+	user := testUser()
+
+	cases := []struct {
+		name     string
+		fileName string
+	}{
+		{"empty", ""},
+		{"slash", "a/b.txt"},
+		{"backslash", `a\b.txt`},
+		{"dot dot", ".."},
+		{"nested dot dot", "a/../b.txt"},
+		{"control character", "a\x01b.txt"},
+		{"trailing dot", "report."},
+		{"trailing space", "report "},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dir := insertDirZipDir(t, db, "", "unsafe", user.UserNo)
+			insertDirZipChild(t, db, dir, c.fileName, user.UserNo, "FS_UNSAFE")
+
+			key, err := GenDirBundleKey(miso.EmptyRail(), db, GenerateDirZipReq{FileKey: dir}, user)
+			if err == nil {
+				t.Fatal("expected an error")
+			}
+			if key != "" {
+				t.Fatalf("expected no bundle key, got %q", key)
+			}
+			if mint.count() != 0 {
+				t.Fatalf("expected no mint request, got %d", mint.count())
+			}
+			if !strings.Contains(err.Error(), strconv.Quote(c.fileName)) {
+				t.Errorf("error %q should name the offending file %q", err, c.fileName)
+			}
+		})
+	}
+}
+
+func TestGenDirBundleKeyIsDeterministic(t *testing.T) {
+	db := testMySQLConn(t)
+	mint := startDirZipFakeFstore(t)
+	user := testUser()
+
+	dir := insertDirZipDir(t, db, "", "stable", user.UserNo)
+	insertDirZipChild(t, db, dir, "b.txt", user.UserNo, "FS_B")
+	insertDirZipChild(t, db, dir, "a.txt", user.UserNo, "FS_A")
+	insertDirZipChild(t, db, dir, "a.txt", user.UserNo, "FS_A2")
+
+	for i := 0; i < 2; i++ {
+		if _, err := GenDirBundleKey(miso.EmptyRail(), db, GenerateDirZipReq{FileKey: dir}, user); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	reqs := mint.all()
+	if len(reqs) != 2 {
+		t.Fatalf("expected 2 mint requests, got %d", len(reqs))
+	}
+	if reqs[0].Name != reqs[1].Name {
+		t.Errorf("archive names differ: %q vs %q", reqs[0].Name, reqs[1].Name)
+	}
+	if !reflect.DeepEqual(reqs[0].Items, reqs[1].Items) {
+		t.Errorf("items differ across mints:\n%+v\n%+v", reqs[0].Items, reqs[1].Items)
 	}
 }
 
@@ -264,9 +371,37 @@ func TestGenDirBundleKeyRefusesNonOwner(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error")
 	}
+	if !errors.Is(err, errs.ErrNotPermitted) {
+		t.Fatalf("error = %v, want ErrNotPermitted", err)
+	}
 	if key != "" {
 		t.Fatalf("expected no bundle key, got %q", key)
 	}
+	if mint.count() != 0 {
+		t.Fatalf("expected no mint request, got %d", mint.count())
+	}
+}
+
+func TestGenDirBundleKeyChecksOwnershipBeforeDeletedAndType(t *testing.T) {
+	db := testMySQLConn(t)
+	mint := startDirZipFakeFstore(t)
+
+	deletedDir := insertDirZipRow(t, db, "", "someone-elses-deleted", "UE_OTHER_USER", FileTypeDir, "", 1, 0)
+	fileRow := insertDirZipChild(t, db, "", "someone-elses-file", "UE_OTHER_USER", "FS_PLAIN")
+
+	for _, fileKey := range []string{deletedDir, fileRow} {
+		key, err := GenDirBundleKey(miso.EmptyRail(), db, GenerateDirZipReq{FileKey: fileKey}, testUser())
+		if err == nil {
+			t.Fatal("expected an error")
+		}
+		if !errors.Is(err, errs.ErrNotPermitted) {
+			t.Fatalf("error = %v, want ErrNotPermitted, so a stranger learns nothing about the uuid", err)
+		}
+		if key != "" {
+			t.Fatalf("expected no bundle key, got %q", key)
+		}
+	}
+
 	if mint.count() != 0 {
 		t.Fatalf("expected no mint request, got %d", mint.count())
 	}
@@ -283,16 +418,23 @@ func TestGenDirBundleKeyRefusesMissingFileRowAndDeletedDir(t *testing.T) {
 	cases := []struct {
 		name    string
 		fileKey string
+		wantErr error
 	}{
-		{"missing", "dz-does-not-exist-" + randutil.ERand(8)},
-		{"file row", fileKey},
-		{"logically deleted dir", deletedDir},
+		{"missing", "dz-does-not-exist-" + randutil.ERand(8), ErrFileNotFound},
+		{"logically deleted dir", deletedDir, ErrFileDeleted},
+		{"file row", fileKey, nil},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			key, err := GenDirBundleKey(miso.EmptyRail(), db, GenerateDirZipReq{FileKey: c.fileKey}, user)
 			if err == nil {
 				t.Fatal("expected an error")
+			}
+			if c.wantErr != nil && !errors.Is(err, c.wantErr) {
+				t.Fatalf("error = %v, want %v", err, c.wantErr)
+			}
+			if c.wantErr == nil && !strings.Contains(err.Error(), "Only a directory") {
+				t.Fatalf("error = %v, want the not-a-directory error", err)
 			}
 			if key != "" {
 				t.Fatalf("expected no bundle key, got %q", key)

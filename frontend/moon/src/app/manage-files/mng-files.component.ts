@@ -158,6 +158,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   private dirPagePrompted = false;
   private navLock = false;
   private pendingNavDir: boolean | null = null;
+  /** whether a directory zip key request is still pending */
+  private dirZipRequestInFlight = false;
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -1128,15 +1130,32 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     if (!f || !f.isDir) {
       return;
     }
+    // each key lives 30 minutes, so a repeated click only mints a useless one
+    if (this.dirZipRequestInFlight) {
+      return;
+    }
 
+    this.dirZipRequestInFlight = true;
     this.http
       .post<Resp<string>>(`vfm/open/api/file/dir/zip`, { fileKey: f.uuid })
-      .subscribe((resp) => {
-        if (resp.error) {
-          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
-          return;
-        }
-        this.fileService.jumpToZipDownloadUrl(resp.data);
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.fileService.jumpToZipDownloadUrl(resp.data);
+        },
+        error: (err) => {
+          this.dirZipRequestInFlight = false;
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+        complete: () => {
+          this.dirZipRequestInFlight = false;
+        },
       });
   }
 
