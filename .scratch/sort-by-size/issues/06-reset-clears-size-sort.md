@@ -4,10 +4,10 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Reset while size is active sets the sort to time and the direction to descending
-- [ ] The resulting list request carries orderBy time and orderDir desc, with the type filter cleared
-- [ ] Reset sends nothing to the order-by preference endpoint
-- [ ] Reset while a non-size sort is active behaves as it does today
-- [ ] A component test covers the size-to-time reset
+- [x] Reset while size is active sets the sort to time and the direction to descending
+- [x] The resulting list request carries orderBy time and orderDir desc, with the type filter cleared
+- [x] Reset sends nothing to the order-by preference endpoint
+- [x] Reset while a non-size sort is active behaves as it does today
+- [x] A component test covers the size-to-time reset
