@@ -53,6 +53,7 @@ import { FileTrayComponent } from "../file-tray/file-tray.component";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Paging } from "src/common/paging";
 import { I18n } from "../i18n.service";
+import { Resp } from "src/common/resp";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -157,6 +158,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   private dirPagePrompted = false;
   private navLock = false;
   private pendingNavDir: boolean | null = null;
+  /** whether a directory zip key request is still pending */
+  private dirZipRequestInFlight = false;
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -1118,6 +1121,42 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
    */
   jumpToDownloadUrl(fileKey: string): void {
     this.fileService.jumpToDownloadUrl(fileKey);
+  }
+
+  /**
+   * Ask vfm for a bundle key, then open the directory archive it points to
+   */
+  downloadDirAsZip(f: FileInfo): void {
+    if (!f || !f.isDir) {
+      return;
+    }
+    // each key lives 30 minutes, so a repeated click only mints a useless one
+    if (this.dirZipRequestInFlight) {
+      return;
+    }
+
+    this.dirZipRequestInFlight = true;
+    this.http
+      .post<Resp<string>>(`vfm/open/api/file/dir/zip`, { fileKey: f.uuid })
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          this.fileService.jumpToZipDownloadUrl(resp.data);
+        },
+        error: (err) => {
+          this.dirZipRequestInFlight = false;
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+        complete: () => {
+          this.dirZipRequestInFlight = false;
+        },
+      });
   }
 
   isFileNameInputDisabled(): boolean {

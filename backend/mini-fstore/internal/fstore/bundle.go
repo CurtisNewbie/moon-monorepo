@@ -1,0 +1,171 @@
+package fstore
+
+import (
+	"archive/zip"
+	"mime"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/curtisnewbie/mini-fstore/api"
+	"github.com/curtisnewbie/miso/errs"
+	"github.com/curtisnewbie/miso/middleware/redis"
+	"github.com/curtisnewbie/miso/miso"
+	"github.com/curtisnewbie/miso/util/json"
+	"github.com/curtisnewbie/miso/util/randutil"
+)
+
+const bundleKeyPrefix = "fstore:bundle:key:"
+
+// maxBundleItems bounds one bundle. The whole bundle is a single Redis value and
+// the whole entry list is validated before the response body starts, so an
+// unbounded list would let one caller grow both without limit.
+const maxBundleItems = 3000
+
+// Lifetime of a bundle key, measured from mint. One key serves one download, so
+// reading it does not extend the lifetime.
+var bundleKeyTTL = 30 * time.Minute
+
+// RandBundleKey generates a temporary key for an ordered list of files.
+//
+// The file ids are deliberately not validated here: they are checked at
+// download time, unlike the single-file key which is resolved eagerly.
+func RandBundleKey(rail miso.Rail, name string, items []api.BundleItem) (string, error) {
+	if len(items) > maxBundleItems {
+		return "", errs.NewErrf("too many entries in bundle: %d, max: %d", len(items), maxBundleItems)
+	}
+	if items == nil {
+		items = []api.BundleItem{}
+	}
+	bk := randutil.ERand(30)
+	sby, em := json.WriteJson(api.GenBundleKeyReq{Name: name, Items: items})
+	if em != nil {
+		return "", errs.NewErrf("failed to marshal to bundle, %v", em)
+	}
+	if e := redis.Set(rail, bundleKeyPrefix+bk, string(sby), bundleKeyTTL); e != nil {
+		return "", errs.Wrapf(e, "failed to cache bundle key")
+	}
+	return bk, nil
+}
+
+// ResolveBundleKey resolves the bundle for the given bundle key.
+func ResolveBundleKey(rail miso.Rail, bundleKey string) (bool, api.GenBundleKeyReq) {
+	var cb api.GenBundleKeyReq
+	val, ok, err := redis.Get(rail, bundleKeyPrefix+bundleKey)
+	if err != nil {
+		rail.Errorf("Failed to find bundleKey, %v", err)
+		return false, cb
+	}
+	if !ok {
+		rail.Infof("BundleKey not found, %v", bundleKey)
+		return false, cb
+	}
+
+	eu := json.ParseJson([]byte(val), &cb)
+	if eu != nil {
+		rail.Errorf("Failed to unmarshal bundleKey, %s, %v", bundleKey, eu)
+		return false, cb
+	}
+	return true, cb
+}
+
+// bundleArchiveName returns the download filename for the archive, appending
+// ".zip" only when the archive name does not already carry it.
+func bundleArchiveName(name string) string {
+	if strings.HasSuffix(strings.ToLower(name), ".zip") {
+		return name
+	}
+	return name + ".zip"
+}
+
+// bundleEntry pairs a bundle key entry name with the file record it resolved to.
+type bundleEntry struct {
+	name string
+	df   DFile
+}
+
+// DownloadBundleKey streams a flat zip archive built from a bundle key.
+//
+// Entries that cannot be served — no file record, a non-normal status, or
+// missing stored bytes — are skipped with a warning, so one bad entry does not
+// fail the whole archive. Skipping happens before the first body byte is
+// written, which keeps the response status changeable until streaming starts.
+// Servable entries keep their bundle order and names. Entry names come verbatim
+// from the bundle key, entries are stored (not deflated), and the response
+// carries no Content-Length so the transfer is chunked.
+func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) error {
+	ok, bundle := ResolveBundleKey(rail, bundleKey)
+	if !ok {
+		return ErrFileNotFound.New()
+	}
+
+	ids := make([]string, 0, len(bundle.Items))
+	for _, it := range bundle.Items {
+		ids = append(ids, it.FileId)
+	}
+
+	// load the records in one query; only os.Stat stays per entry
+	byId, err := findDFiles(ids)
+	if err != nil {
+		return ErrUnknownError.WithInternalMsg("findDFiles failed, %v", err)
+	}
+
+	entries := make([]bundleEntry, 0, len(bundle.Items))
+	for _, it := range bundle.Items {
+		df, found := byId[it.FileId]
+		if !found {
+			rail.Warnf("Skipping bundle entry, file record not found, fileId: %v, bundleKey: %v", it.FileId, bundleKey)
+			continue
+		}
+		if df.IsDeleted() {
+			rail.Warnf("Skipping bundle entry, file status is %v, fileId: %v, bundleKey: %v", df.Status, it.FileId, bundleKey)
+			continue
+		}
+		// skip before the body starts instead of streaming a truncated archive
+		if _, err := os.Stat(df.StoragePath()); err != nil {
+			rail.Warnf("Skipping bundle entry, stored bytes missing, fileId: %v, bundleKey: %v, %v", it.FileId, bundleKey, err)
+			continue
+		}
+		entries = append(entries, bundleEntry{name: it.Name, df: df})
+	}
+
+	headers := w.Header()
+	headers.Set("Content-Type", "application/zip")
+	headers.Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{
+		"filename": bundleArchiveName(bundle.Name),
+	}))
+
+	zw := zip.NewWriter(w)
+	flushed := false
+	for _, en := range entries {
+		ew, err := zw.CreateHeader(&zip.FileHeader{Name: en.name, Method: zip.Store})
+		if err != nil {
+			return errs.NewErrf("failed to create zip entry %v, %v", en.name, err)
+		}
+		// Only once the first entry header exists is there a body worth
+		// committing. Until this point a failure can still change the
+		// response status. Content-Length stays absent, so the response is
+		// chunked.
+		if !flushed {
+			// the zip writer buffers, so flush it into the response first
+			if err := zw.Flush(); err != nil {
+				return errs.NewErrf("failed to flush zip header for %v, %v", en.name, err)
+			}
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			}
+			flushed = true
+		}
+		if err := TransferFile(rail, ew, en.df, ZeroByteRange()); err != nil {
+			return errs.Wrapf(err, "failed to write zip entry %v", en.name)
+		}
+	}
+	if !flushed {
+		// empty archive: commit the headers before the central directory
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+	}
+	return zw.Close()
+}

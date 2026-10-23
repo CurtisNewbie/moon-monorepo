@@ -4,14 +4,15 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Requesting a zip for an owned directory returns a key that downloads the directory's direct files.
-- [ ] Only direct file children are included: no sub-directory entries, no files from inside sub-directories.
-- [ ] Entries appear in name-ascending order.
-- [ ] Two children sharing a name both survive, the later suffixed ` (n)` before its extension, resolved the same way on every request.
-- [ ] A directory owned by another user is refused.
-- [ ] A missing directory, a file row, and a logically deleted directory are each refused.
-- [ ] An empty directory returns a key that downloads a valid empty zip.
-- [ ] The archive name follows the directory name, including non-ASCII names.
-- [ ] The existing single-file download token endpoint still refuses directories.
+- [x] Requesting a zip for an owned directory returns a key that downloads the directory's direct files.
+- [x] Only direct file children are included: no sub-directory entries, no files from inside sub-directories.
+- [x] Entries appear in name-ascending order.
+- [x] Two children sharing a name both survive, the later suffixed ` (n)` before its extension, resolved the same way on every request.
+- [x] A directory owned by another user is refused.
+- [x] A missing directory, a file row, and a logically deleted directory are each refused.
+- [x] An empty directory returns a key that downloads a valid empty zip.
+- [x] The archive name follows the directory name, including non-ASCII names.
+- [x] A child with no stored file id is left out of the archive and logged, without failing the request.
+- [x] The existing single-file download token endpoint still refuses directories.

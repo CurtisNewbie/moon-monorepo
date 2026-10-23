@@ -30,24 +30,24 @@ Only the directory's owner can download it.
 12. As a moon user, I want files that are already compressed to be stored without recompression, so that a download is not slowed for no gain.
 13. As a moon user, I want a directory I deleted to stop downloading, so that the action follows the same rules as the rest of the app.
 14. As a moon user without ownership of a directory, I want the download refused, so that no one else's files are exposed to me.
-15. As a moon user whose directory holds a file whose stored bytes have gone missing, I want a clear failure instead of a half-written archive, so that I never keep a silently truncated zip.
+15. As a moon user whose directory holds a file whose stored bytes have gone missing, I want that file left out and the rest downloaded, so that one bad record does not block the directory.
 16. As a moon user, I want the download link to stop working after half an hour, so that a copied link does not stay valid forever.
 17. As a moon user, I want the tooltip on the action to say what it does, so that I do not confuse it with the unzip action.
-18. As an operator, I want the zip built only from validated file records, so that a deleted or invalid record never reaches an archive.
+18. As an operator, I want every skipped file logged with its id and reason, so that I can tell why an archive is missing an entry.
 
 ## Implementation Decisions
 
 **Where the archive is built.** In mini-fstore, next to the bytes. Its file transfer routine already writes to any `io.Writer`, so a zip writer can consume it directly. No archive is persisted: the response streams, and nothing is written to storage or to a temp directory.
 
-**Selection rule.** vfm reads the directory's direct children: same parent, file type file, not deleted. Nothing recurses. The resolved set is ordered by name ascending, so the same directory always produces the same archive order.
+**Selection rule.** vfm reads the directory's direct children: same parent, file type file, not deleted, owned by the caller, not hidden, and carrying a stored file id. A child with no stored file id cannot be served, so it is left out and logged rather than failing the archive. Nothing recurses. The resolved set is ordered by name ascending, so the same directory always produces the same archive order.
 
 **Permission.** The directory must exist, must be a directory, must not be logically deleted, and its uploader must be the caller. Virtual folder grants are not consulted, because a grant only ever covers file rows and never a directory row.
 
-**Token handoff.** The existing temp token store holds exactly one file, so it cannot express a directory. A parallel bundle entry is added to the same Redis store under its own prefix. It carries the archive filename (the directory name) and an ordered list of file id plus entry name. Lifetime is thirty minutes and it refreshes on each read, matching the single-file key. The bundle key is a bearer secret, the same way a single-file key is today.
+**Token handoff.** The existing temp token store holds exactly one file, so it cannot express a directory. A parallel bundle entry is added to the same Redis store under its own prefix. It carries the archive filename (the directory name) and an ordered list of file id plus entry name. Lifetime is thirty minutes from mint; a read does not extend it, because one key serves one download. The bundle key is a bearer secret, the same way a single-file key is today.
 
 **Endpoints.** vfm gains one authenticated action that takes a directory file key and returns the bundle key. mini-fstore gains one public route that takes the bundle key and streams the archive. The existing single-file token endpoint keeps rejecting directories.
 
-**Validation before the first byte.** The whole file set is checked in one batch before the response body starts. If any record is missing or not normal, the request fails with an error status and no zip bytes. This is what keeps a partial archive from ever reaching the user, since a stream cannot take back what it already sent.
+**Validation before the first byte.** The whole file set is resolved before the response body starts: any entry whose record is absent, whose status is not normal, or whose stored bytes are missing is skipped and logged, and the rest stream in order. This is what keeps a partial archive from ever reaching the user, since a stream cannot take back what it already sent. A directory where every file is skipped still produces a valid empty zip.
 
 **Response shape.** Also before the body starts, the response sets the zip content type and an attachment disposition carrying the directory name plus `.zip`. Content length is deliberately absent, because the archive size is unknown until the last entry is written; the transfer is chunked. Entry names are bare filenames, so the archive carries no directory entries at all.
 
@@ -65,7 +65,7 @@ Tests assert external behavior only: what a caller receives, and what ends up in
 
 Three seams, all existing:
 
-- mini-fstore's storage package, driven through an `httptest` request against a temporary storage directory, the pattern its range-serving test already uses. Covers: entries appear flat at the archive root, store method, byte content matching the source files, a single entry, an empty set producing a readable empty zip, and a bad entry failing before any body byte.
+- mini-fstore's storage package, driven through an `httptest` request against a temporary storage directory, the pattern its range-serving test already uses. Covers: entries appear flat at the archive root, store method, byte content matching the source files, a single entry, an empty set producing a readable empty zip, and a mixed set where the unservable entries are skipped while the good ones still download.
 - vfm's service layer against real MySQL, the pattern its existing service tests already use. Covers: direct file children selected and sub-directories excluded, name ordering, the ` (n)` collision suffix, a deleted directory refused, a non-owner refused, an empty directory yielding an empty bundle, and a bundle key that resolves back to the same names and ids.
 - The manage-files component with its hand-rolled HTTP fake, the pattern its existing spec uses. Covers: the action posts the directory's file key and opens the returned archive route, and nothing else changes about the file-row download path.
 

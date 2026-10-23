@@ -2,6 +2,7 @@ import { EventEmitter } from '@angular/core';
 import { of, Subject, throwError } from 'rxjs';
 
 import { FileInfo, FileType } from 'src/common/file-info';
+import { FileInfoService } from '../file-info.service';
 import { MngFilesComponent } from './mng-files.component';
 
 /**
@@ -78,11 +79,26 @@ class FakeHttp {
   orderByPreferenceError = false;
   /** when set, the order-by-preference request fails outright */
   orderByPreferenceFails = false;
+  /** value the directory zip endpoint answers with */
+  dirZipResp: any = { data: 'bundle-key' };
+  /** when set, the directory zip request fails at the transport level */
+  dirZipFails = false;
+  /** when set, the directory zip request stays pending until the test answers it */
+  dirZipPending: Subject<any> = null;
 
   post(url: string, body?: any): any {
     this.posts.push({ url, body });
     if (url.indexOf('dir/bottom-up-tree') >= 0) {
       return of({ data: null });
+    }
+    if (url.indexOf('dir/zip') >= 0) {
+      if (this.dirZipPending) {
+        return this.dirZipPending.asObservable();
+      }
+      if (this.dirZipFails) {
+        return throwError(new Error('zip request failed'));
+      }
+      return of(this.dirZipResp);
     }
     return of({ data: { payload: [], paging: { page: 1, limit: 30, total: 0 } } });
   }
@@ -572,5 +588,120 @@ describe('MngFilesComponent preview nav coalescing', () => {
 
     expect(dialog.refs.length).toBe(3);
     expect(dialog.refs[2].options.data.name).toBe('img3.png');
+  });
+});
+
+describe('MngFilesComponent directory zip download', () => {
+  let component: MngFilesComponent;
+  let http: FakeHttp;
+  let snackBar: { open: jasmine.Spy };
+  let openSpy: jasmine.Spy;
+
+  beforeEach(() => {
+    http = new FakeHttp();
+    snackBar = { open: jasmine.createSpy('open') };
+    openSpy = spyOn(window, 'open').and.stub();
+
+    const fileService = new FileInfoService(http as any, snackBar as any);
+    component = new MngFilesComponent(
+      {} as any,
+      {} as any,
+      fileService,
+      {} as any,
+      http as any,
+      {} as any,
+      {} as any,
+      snackBar as any,
+      {} as any,
+      {} as any,
+      { isMobile: () => false } as any
+    );
+  });
+
+  function dir(name: string): FileInfo {
+    return { uuid: 'dir-1', name, isDir: true } as FileInfo;
+  }
+
+  it('posts the directory file key and opens the archive built from the returned key', () => {
+    http.dirZipResp = { data: 'bundle key/1' };
+
+    component.downloadDirAsZip(dir('Photos'));
+
+    expect(http.lastPostTo('/file/dir/zip').body).toEqual({ fileKey: 'dir-1' });
+    expect(openSpy).toHaveBeenCalledWith(
+      'fstore/file/bundle?key=bundle%20key%2F1',
+      '_parent'
+    );
+  });
+
+  it('shows the server message instead of opening an archive when the key request is refused', () => {
+    http.dirZipResp = { error: true, msg: 'not permitted' };
+
+    component.downloadDirAsZip(dir('Photos'));
+
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(snackBar.open).toHaveBeenCalledWith('not permitted', 'ok', {
+      duration: 6000,
+    });
+  });
+
+  it('does nothing for a file row', () => {
+    component.downloadDirAsZip(imgFile('u0', 'a.png'));
+
+    expect(http.postsTo('/file/dir/zip')).toEqual([]);
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it('reports a transport failure and opens no archive', () => {
+    http.dirZipFails = true;
+
+    component.downloadDirAsZip(dir('Photos'));
+
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Request failed, unknown error',
+      'ok',
+      { duration: 3000 }
+    );
+  });
+
+  it('lets the user retry after a transport failure', () => {
+    http.dirZipFails = true;
+    component.downloadDirAsZip(dir('Photos'));
+
+    http.dirZipFails = false;
+    component.downloadDirAsZip(dir('Photos'));
+
+    expect(http.postsTo('/file/dir/zip').length).toBe(2);
+    expect(openSpy).toHaveBeenCalledWith(
+      'fstore/file/bundle?key=bundle-key',
+      '_parent'
+    );
+  });
+
+  it('asks for one key while a request is already in flight', () => {
+    http.dirZipPending = new Subject<any>();
+
+    component.downloadDirAsZip(dir('Photos'));
+    component.downloadDirAsZip(dir('Photos'));
+
+    expect(http.postsTo('/file/dir/zip').length).toBe(1);
+
+    http.dirZipPending.next({ data: 'bundle-key' });
+    http.dirZipPending.complete();
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(openSpy).toHaveBeenCalledWith(
+      'fstore/file/bundle?key=bundle-key',
+      '_parent'
+    );
+  });
+
+  it('asks for a new key once the previous request finished', () => {
+    component.downloadDirAsZip(dir('Photos'));
+    component.downloadDirAsZip(dir('Photos'));
+
+    expect(http.postsTo('/file/dir/zip').length).toBe(2);
+    expect(openSpy).toHaveBeenCalledTimes(2);
   });
 });

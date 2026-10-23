@@ -724,13 +724,21 @@ func CheckFileExists(fileId string) (bool, error) {
 }
 
 func CheckAllNormalFiles(fileIds []string) (bool, error) {
-	fileIds = slutil.Distinct(fileIds)
-	var cnt int
-	t := mysql.GetMySQL().Raw("select count(id) from file where file_id in ? and status = 'NORMAL'", fileIds).Scan(&cnt)
-	if t.Error != nil {
-		return false, fmt.Errorf("failed to select file from DB, %w", t.Error)
+	// slutil.Distinct pads its result with empty strings in this miso version,
+	// so dedupe the request explicitly before counting.
+	distinct := slutil.DistinctStrBy(fileIds, func(id string) string { return id })
+	if len(distinct) == 0 {
+		return true, nil
 	}
-	return cnt == len(fileIds), nil
+	cnt, err := dbquery.NewQuery(dbquery.GetDB()).
+		Table("file").
+		Where("file_id in ?", distinct).
+		Where("status = ?", api.FileStatusNormal).
+		Count()
+	if err != nil {
+		return false, errs.Wrapf(err, "failed to count normal files")
+	}
+	return cnt == int64(len(distinct)), nil
 }
 
 // Find File
@@ -786,6 +794,28 @@ func findDFile(fileId string) (DFile, error) {
 		return df, ErrFileNotFound
 	}
 	return df, nil
+}
+
+// findDFiles loads every DFile record for the given file ids in one query,
+// keyed by file id. Ids without a record are absent from the result.
+func findDFiles(fileIds []string) (map[string]DFile, error) {
+	res := make(map[string]DFile, len(fileIds))
+	if len(fileIds) == 0 {
+		return res, nil
+	}
+	var dfs []DFile
+	t := mysql.GetMySQL().
+		Select("file_id, size, status, name, link").
+		Table("file").
+		Where("file_id in ?", fileIds).
+		Scan(&dfs)
+	if t.Error != nil {
+		return nil, t.Error
+	}
+	for _, df := range dfs {
+		res[df.FileId] = df
+	}
+	return res, nil
 }
 
 // Delete file logically by changing it's status

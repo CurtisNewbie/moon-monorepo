@@ -113,6 +113,60 @@ func ApiTempKeyDownloadFile(inb *miso.Inbound) {
 	}
 }
 
+// Download a bundle of files as a flat zip archive.
+//
+//   - misoapi-raw
+//   - misoapi-http: GET /file/bundle
+//   - misoapi-scope: PUBLIC
+//   - misoapi-query-doc: key: temporary bundle key
+//   - misoapi-desc: Download a set of files as a flat zip archive using a temporary bundle key. The archive is
+//     streamed, entries are stored rather than deflated, and the bundle_key's ttl is extended with each
+//     successful request. This endpoint is expected to be accessible publicly without authorization, since a
+//     temporary bundle_key is generated and used.
+func ApiTempKeyDownloadBundle(inb *miso.Inbound) {
+	w, r := inb.Unwrap()
+	downloadBundle(inb.Rail(), w, r)
+}
+
+// downloadBundle is the body of ApiTempKeyDownloadBundle. It writes an error
+// status only while no body byte has been written; once the archive has begun
+// streaming, the failure is logged and the status is left alone.
+func downloadBundle(rail miso.Rail, w http.ResponseWriter, r *http.Request) {
+	key := strings.TrimSpace(r.URL.Query().Get("key"))
+	if key == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	tw := &bodyTrackingWriter{ResponseWriter: w}
+	if e := fstore.DownloadBundleKey(rail, tw, key); e != nil {
+		rail.Warnf("Failed to download bundle by bundleKey, %v", e)
+		if !tw.wroteBody {
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}
+}
+
+// bodyTrackingWriter records whether any response body byte has been written.
+type bodyTrackingWriter struct {
+	http.ResponseWriter
+	wroteBody bool
+}
+
+func (b *bodyTrackingWriter) Write(p []byte) (int, error) {
+	n, err := b.ResponseWriter.Write(p)
+	if n > 0 {
+		b.wroteBody = true
+	}
+	return n, err
+}
+
+func (b *bodyTrackingWriter) Flush() {
+	if f, ok := b.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
 // Upload file.
 //
 //   - misoapi-http: PUT /file
@@ -227,6 +281,27 @@ func ApiGenFileKey(inb *miso.Inbound, req DownloadFileReq) (string, error) {
 	k, re := fstore.RandFileKey(rail, filename, fileId)
 	rail.Infof("Generated random key %s for fileId %s (using filename: '%s')", k, fileId, filename)
 	return k, re
+}
+
+// Generate random bundle key for downloading several files as one zip archive.
+//
+//   - misoapi-http: POST /file/bundle/key
+//   - misoapi-desc: Generate a temporary bundle key for downloading an ordered list of files as a flat zip
+//     archive. This endpoint is expected to be called internally by another backend service that validates
+//     the ownership of the files properly.
+func ApiGenBundleKey(inb *miso.Inbound, req api.GenBundleKeyReq) (string, error) {
+	rail := inb.Rail()
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
+		return "", fstore.ErrFilenameRequired
+	}
+
+	k, re := fstore.RandBundleKey(rail, name, req.Items)
+	if re != nil {
+		return "", re
+	}
+	rail.Infof("Generated bundle key %s for %d entries (using archive name: '%s')", k, len(req.Items), name)
+	return k, nil
 }
 
 // Download file directly without temporary key.
