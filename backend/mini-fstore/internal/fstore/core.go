@@ -724,18 +724,21 @@ func CheckFileExists(fileId string) (bool, error) {
 }
 
 func CheckAllNormalFiles(fileIds []string) (bool, error) {
-	if len(fileIds) == 0 {
+	// slutil.Distinct pads its result with empty strings in this miso version,
+	// so dedupe the request explicitly before counting.
+	distinct := slutil.DistinctStrBy(fileIds, func(id string) string { return id })
+	if len(distinct) == 0 {
 		return true, nil
 	}
-	// slutil.Distinct pads its result with empty strings in this miso version,
-	// so dedupe the request explicitly and let SQL count the matched ids.
-	distinct := slutil.DistinctStrBy(fileIds, func(id string) string { return id })
-	var cnt int
-	t := mysql.GetMySQL().Raw("select count(distinct file_id) from file where file_id in ? and status = 'NORMAL'", distinct).Scan(&cnt)
-	if t.Error != nil {
-		return false, errs.Wrapf(t.Error, "failed to select file from DB")
+	cnt, err := dbquery.NewQuery(dbquery.GetDB()).
+		Table("file").
+		Where("file_id in ?", distinct).
+		Where("status = ?", api.FileStatusNormal).
+		Count()
+	if err != nil {
+		return false, errs.Wrapf(err, "failed to count normal files")
 	}
-	return cnt == len(distinct), nil
+	return cnt == int64(len(distinct)), nil
 }
 
 // Find File
