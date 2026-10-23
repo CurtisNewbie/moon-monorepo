@@ -4,13 +4,13 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `orderBy=size` returns files ordered by size, descending when the direction is omitted
-- [ ] An explicit ascending direction is honored
-- [ ] Equal sizes are ordered by row id in the same direction, stable across pages
-- [ ] A size request with the type filter absent, All, or Directory returns files only
-- [ ] A size request combined with a name keyword returns the keyword matches ordered by size
-- [ ] A comic directory requesting size returns name-ascending
-- [ ] No schema change is introduced
-- [ ] Tests at the listing seam cover size order, tie-break, coercion, keyword combination, and the comic force
+- [x] `orderBy=size` returns files ordered by size, descending when the direction is omitted
+- [x] An explicit ascending direction is honored
+- [x] Equal sizes are ordered by row id in the same direction, stable across pages
+- [x] A size request with the type filter absent, All, or Directory returns files only
+- [x] A size request combined with a name keyword returns the keyword matches ordered by size
+- [x] A comic directory requesting size returns name-ascending
+- [x] No schema change is introduced
+- [x] Tests at the listing seam cover size order, tie-break, coercion, keyword combination, and the comic force
