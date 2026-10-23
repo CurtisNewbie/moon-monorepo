@@ -333,12 +333,12 @@ type ListFileReq struct {
 	Page        miso.Paging `json:"paging"`
 	Filename    *string     `json:"filename"`
 	FolderNo    *string     `json:"folderNo"`
-	FileType    *string     `json:"fileType"`
+	FileType    *string     `json:"fileType" desc:"type filter. A 'size' order forces it to File."`
 	ParentFile  *string     `json:"parentFile"`
 	Sensitive   *bool       `json:"sensitive"`
 	FileKey     *string     `json:"fileKey"`
 	OrderByName bool        `json:"orderByName" desc:"deprecated, use OrderBy instead"`
-	OrderBy     string      `json:"orderBy"` // SortByTime (default), SortByName, SortByCustom, SortBySize (files only)
+	OrderBy     string      `json:"orderBy" desc:"sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File. For size, an empty direction means descending, and the sort is never saved as an order-by preference."`
 	OrderDir    string      `json:"orderDir" desc:"sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)"`
 }
 
@@ -347,9 +347,9 @@ type FilePositionReq struct {
 	ParentFile  string `json:"parentFile"`
 	Limit       int    `json:"limit"`
 	OrderByName bool   `json:"orderByName"` // deprecated, use OrderBy instead
-	OrderBy     string `json:"orderBy"`     // "time" (default), "name", "custom", "size" (files only)
-	OrderDir    string `json:"orderDir"`    // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
-	FileType    string `json:"fileType"`
+	OrderBy     string `json:"orderBy" desc:"sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File. For size, an empty direction means descending."`
+	OrderDir    string `json:"orderDir" desc:"sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)"`
+	FileType    string `json:"fileType" desc:"type filter. A 'size' order forces it to File."`
 }
 
 type FilePositionRes struct {

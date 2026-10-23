@@ -127,7 +127,7 @@
                 <mat-form-field *ngIf="!currentDirIsComic" style="width: 120px;">
                     <mat-label>{{'manage-files' | trl:'sort'}}</mat-label>
                     <mat-select [(value)]="orderBy" (valueChange)="onOrderByChange()">
-                        <mat-option [value]="option.value" *ngFor="let option of sortOptions">
+                        <mat-option [value]="option.value" *ngFor="let option of sortOptions; trackBy: trackByOptionValue">
                             {{'manage-files' | trl:option.name}}
                         </mat-option>
                     </mat-select>

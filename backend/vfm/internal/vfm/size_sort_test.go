@@ -126,6 +126,48 @@ func TestListFilesSortBySizeBreaksTiesById(t *testing.T) {
 	}
 }
 
+func TestListFilesSortBySizePagesWithoutRepeatOrSkip(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, false)
+
+	// ids: c=1, a=2, b=3; equal sizes so only the id tie-break orders them
+	insertSortTestChildSized(t, db, dir, "c.bin", user.UserNo, 500)
+	insertSortTestChildSized(t, db, dir, "a.bin", user.UserNo, 500)
+	insertSortTestChildSized(t, db, dir, "b.bin", user.UserNo, 500)
+
+	parent := dir
+	limit := 2
+	cases := []struct {
+		orderDir string
+		want     []string
+	}{
+		{"desc", []string{"b.bin", "a.bin", "c.bin"}},
+		{"asc", []string{"c.bin", "a.bin", "b.bin"}},
+	}
+	for _, c := range cases {
+		got := make([]string, 0, 3)
+		for page := 1; page <= 2; page++ {
+			res, err := ListFiles(miso.EmptyRail(), db, ListFileReq{
+				Page:       miso.Paging{Page: page, Limit: limit},
+				ParentFile: &parent,
+				OrderBy:    SortBySize,
+				OrderDir:   c.orderDir,
+			}, user)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, f := range res.Payload {
+				got = append(got, f.Name)
+			}
+		}
+		if !reflect.DeepEqual(got, c.want) {
+			t.Fatalf("size orderDir=%q across pages: got %v, want %v", c.orderDir, got, c.want)
+		}
+	}
+}
+
 // --- type filter coercion ---------------------------------------------------
 
 func TestListFilesSortBySizeReturnsFilesOnly(t *testing.T) {
@@ -195,16 +237,25 @@ func TestListFilesComicDirSortBySizeReturnsNameAsc(t *testing.T) {
 	user := testUser()
 	dir := insertSortTestDir(t, db, user.UserNo, true)
 
-	// size order would be b, c, a; comic reading order is name asc
+	// insertion and PK order are c, a, b, not name order; size order would be
+	// b, c, a, and the directory would sort last by name
+	insertSortTestChildSized(t, db, dir, "c.bin", user.UserNo, 500)
 	insertSortTestChildSized(t, db, dir, "a.bin", user.UserNo, 100)
 	insertSortTestChildSized(t, db, dir, "b.bin", user.UserNo, 900)
-	insertSortTestChildSized(t, db, dir, "c.bin", user.UserNo, 500)
+	insertSortTestSubDir(t, db, dir, "zzz-subdir", user.UserNo, 9999)
 
 	want := []string{"a.bin", "b.bin", "c.bin"}
 	for _, d := range []string{"", "asc", "desc"} {
-		got := listSortedFileNames(t, db, dir, ListFileReq{OrderBy: "size", OrderDir: d}, user)
-		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("comic dir size orderDir=%q: got %v, want %v", d, got, want)
+		payload := listSortedFiles(t, db, dir, ListFileReq{OrderBy: "size", OrderDir: d}, user)
+		names := make([]string, 0, len(payload))
+		for _, f := range payload {
+			if f.FileType != FileTypeFile {
+				t.Fatalf("comic dir size orderDir=%q: got a %s row in a files listing", d, f.FileType)
+			}
+			names = append(names, f.Name)
+		}
+		if !reflect.DeepEqual(names, want) {
+			t.Fatalf("comic dir size orderDir=%q: got %v, want %v", d, names, want)
 		}
 	}
 }
