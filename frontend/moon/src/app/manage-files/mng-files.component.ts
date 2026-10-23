@@ -53,6 +53,7 @@ import { FileTrayComponent } from "../file-tray/file-tray.component";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { Paging } from "src/common/paging";
 import { I18n } from "../i18n.service";
+import { Resp } from "src/common/resp";
 
 export interface FetchDirTreeReq {
   fileKey?: string;
@@ -1118,6 +1119,25 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
    */
   jumpToDownloadUrl(fileKey: string): void {
     this.fileService.jumpToDownloadUrl(fileKey);
+  }
+
+  /**
+   * Ask vfm for a bundle key, then open the directory archive it points to
+   */
+  downloadDirAsZip(f: FileInfo): void {
+    if (!f || !f.isDir) {
+      return;
+    }
+
+    this.http
+      .post<Resp<string>>(`vfm/open/api/file/dir/zip`, { fileKey: f.uuid })
+      .subscribe((resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.fileService.jumpToZipDownloadUrl(resp.data);
+      });
   }
 
   isFileNameInputDisabled(): boolean {

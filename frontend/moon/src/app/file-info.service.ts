@@ -56,4 +56,9 @@ export class FileInfoService {
       },
     });
   }
+
+  public jumpToZipDownloadUrl(bundleKey: string): void {
+    const url = "fstore/file/bundle?key=" + encodeURIComponent(bundleKey);
+    window.open(url, "_parent");
+  }
 }

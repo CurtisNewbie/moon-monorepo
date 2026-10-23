@@ -4,10 +4,10 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A directory row's expanded panel offers a zip download action with a translated tooltip.
-- [ ] File rows show no zip action and keep their existing single-file download unchanged.
-- [ ] Clicking the action asks vfm for the directory's bundle key and opens the archive route with it.
-- [ ] The action carries no literal user-facing string; the tooltip resolves through the translation catalog.
-- [ ] A failed key request surfaces through the app's existing error handling rather than a silent no-op.
+- [x] A directory row's expanded panel offers a zip download action with a translated tooltip.
+- [x] File rows show no zip action and keep their existing single-file download unchanged.
+- [x] Clicking the action asks vfm for the directory's bundle key and opens the archive route with it.
+- [x] The action carries no literal user-facing string; the tooltip resolves through the translation catalog.
+- [x] A failed key request surfaces through the app's existing error handling rather than a silent no-op.

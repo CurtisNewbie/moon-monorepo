@@ -322,6 +322,11 @@
                                                 (click)="truncateDir(curr)"> <i
                                                     class="bi bi-eraser icon-button-large"></i> </button>
                                         </div>
+                                        <div>
+                                            <button mat-icon-button [matTooltip]="'manage-files' | trl:'downloadZip'"
+                                                (click)="downloadDirAsZip(curr)"> <i
+                                                    class="bi bi-file-zip icon-button-large"></i> </button>
+                                        </div>
                                     </ng-container>
 
                                     <ng-container *ngIf="curr.isFile">
