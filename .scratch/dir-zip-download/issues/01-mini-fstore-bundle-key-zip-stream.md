@@ -14,5 +14,5 @@
 - [x] The response sets the archive content type and an attachment disposition carrying the directory name plus `.zip`.
 - [x] The response carries no content length; the transfer is chunked.
 - [x] Entries are stored rather than deflated.
-- [x] A bundle key stops resolving after thirty minutes of no use, and its lifetime refreshes on a successful read.
+- [x] A bundle key stops resolving thirty minutes after it is minted, and a read does not extend that lifetime.
 - [x] A file entry's name is used verbatim; the id set and names come entirely from the bundle key.

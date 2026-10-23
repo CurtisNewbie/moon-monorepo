@@ -23,8 +23,8 @@ const bundleKeyPrefix = "fstore:bundle:key:"
 // unbounded list would let one caller grow both without limit.
 const maxBundleItems = 3000
 
-// Lifetime of a bundle key. It is refreshed on each successful read, matching
-// the single-file key.
+// Lifetime of a bundle key, measured from mint. One key serves one download, so
+// reading it does not extend the lifetime.
 var bundleKeyTTL = 30 * time.Minute
 
 // RandBundleKey generates a temporary key for an ordered list of files.
@@ -47,15 +47,6 @@ func RandBundleKey(rail miso.Rail, name string, items []api.BundleItem) (string,
 		return "", errs.Wrapf(e, "failed to cache bundle key")
 	}
 	return bk, nil
-}
-
-// RefreshBundleKeyExp refreshes the bundle key's expiration.
-func RefreshBundleKeyExp(rail miso.Rail, bundleKey string) error {
-	if _, err := redis.Expire(rail, bundleKeyPrefix+bundleKey, bundleKeyTTL); err != nil {
-		rail.Warnf("Failed to refresh bundle key expiration, bundleKey: %v, %v", bundleKey, err)
-		return errs.Wrapf(err, "failed to refresh bundle key expiration")
-	}
-	return nil
 }
 
 // ResolveBundleKey resolves the bundle for the given bundle key.
@@ -137,10 +128,6 @@ func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) 
 			continue
 		}
 		entries = append(entries, bundleEntry{name: it.Name, df: df})
-	}
-
-	if err := RefreshBundleKeyExp(rail, bundleKey); err != nil {
-		return err
 	}
 
 	headers := w.Header()

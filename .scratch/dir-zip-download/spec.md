@@ -43,7 +43,7 @@ Only the directory's owner can download it.
 
 **Permission.** The directory must exist, must be a directory, must not be logically deleted, and its uploader must be the caller. Virtual folder grants are not consulted, because a grant only ever covers file rows and never a directory row.
 
-**Token handoff.** The existing temp token store holds exactly one file, so it cannot express a directory. A parallel bundle entry is added to the same Redis store under its own prefix. It carries the archive filename (the directory name) and an ordered list of file id plus entry name. Lifetime is thirty minutes and it refreshes on each read, matching the single-file key. The bundle key is a bearer secret, the same way a single-file key is today.
+**Token handoff.** The existing temp token store holds exactly one file, so it cannot express a directory. A parallel bundle entry is added to the same Redis store under its own prefix. It carries the archive filename (the directory name) and an ordered list of file id plus entry name. Lifetime is thirty minutes from mint; a read does not extend it, because one key serves one download. The bundle key is a bearer secret, the same way a single-file key is today.
 
 **Endpoints.** vfm gains one authenticated action that takes a directory file key and returns the bundle key. mini-fstore gains one public route that takes the bundle key and streams the archive. The existing single-file token endpoint keeps rejecting directories.
 

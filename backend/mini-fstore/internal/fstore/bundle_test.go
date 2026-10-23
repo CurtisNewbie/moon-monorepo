@@ -494,7 +494,7 @@ func TestDownloadBundleKeyRejectsUnknownKey(t *testing.T) {
 	}
 }
 
-func TestBundleKeyExpiresAndRefreshes(t *testing.T) {
+func TestBundleKeyExpires(t *testing.T) {
 	setupBundleEnv(t)
 
 	oldTTL := bundleKeyTTL
@@ -508,9 +508,8 @@ func TestBundleKeyExpiresAndRefreshes(t *testing.T) {
 
 	fileId := createBundleFile(t, "kept.txt", []byte("still here"))
 
+	// a read before expiry still succeeds
 	k := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "kept.txt"}})
-
-	// a successful read refreshes the lifetime
 	for i := 0; i < 3; i++ {
 		time.Sleep(step)
 		if _, err := downloadBundleKey(k); err != nil {
@@ -518,10 +517,9 @@ func TestBundleKeyExpiresAndRefreshes(t *testing.T) {
 		}
 	}
 
-	// without a read, the key expires
-	k2 := mintBundle(t, "dir", []api.BundleItem{{FileId: fileId, Name: "kept.txt"}})
+	// the lifetime is measured from mint, so reading does not extend it
 	time.Sleep(time.Duration(expirySteps) * step)
-	if _, err := downloadBundleKey(k2); err == nil {
-		t.Fatal("bundle key should have expired after the ttl of no reads")
+	if _, err := downloadBundleKey(k); err == nil {
+		t.Fatal("bundle key should have expired, a read must not extend its lifetime")
 	}
 }
