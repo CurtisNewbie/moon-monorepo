@@ -1,5 +1,5 @@
 import { EventEmitter } from '@angular/core';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { FileInfo, FileType } from 'src/common/file-info';
 import { MngFilesComponent } from './mng-files.component';
@@ -74,6 +74,10 @@ class FakeHttp {
   gets: string[] = [];
   /** value the order-by-preference endpoint answers with */
   orderByPreference: any = null;
+  /** when set, the order-by-preference endpoint answers with an error */
+  orderByPreferenceError = false;
+  /** when set, the order-by-preference request fails outright */
+  orderByPreferenceFails = false;
 
   post(url: string, body?: any): any {
     this.posts.push({ url, body });
@@ -86,6 +90,12 @@ class FakeHttp {
   get(url: string): any {
     this.gets.push(url);
     if (url.indexOf('order-by-preference') >= 0) {
+      if (this.orderByPreferenceFails) {
+        return throwError(new Error('preference fetch failed'));
+      }
+      if (this.orderByPreferenceError) {
+        return of({ error: true, msg: 'preference fetch failed' });
+      }
       return of({ data: this.orderByPreference });
     }
     return of({ data: null });
@@ -165,6 +175,19 @@ describe('MngFilesComponent size sort', () => {
 
     component.searchParam.fileType = FileType.FILE;
     expect(sortOptionValues()).toEqual(['time', 'name', 'custom', 'size']);
+  });
+
+  it('keeps the sort options array stable while the File filter is unchanged', () => {
+    component.searchParam = { fileType: FileType.FILE };
+    const atFile = component.sortOptions;
+
+    expect(component.sortOptions).toBe(atFile);
+
+    component.searchParam.fileType = FileType.DIR;
+    const atDir = component.sortOptions;
+
+    expect(atDir).not.toBe(atFile);
+    expect(atDir.map((o) => o.value)).toEqual(['time', 'name', 'custom']);
   });
 
   it('choosing size under All narrows the listing to files', () => {
@@ -316,7 +339,11 @@ describe('MngFilesComponent size sort', () => {
     await flushAsync();
 
     expect(browseHistoryRecorder.getDirPage).not.toHaveBeenCalled();
-    expect(http.lastPostTo('/file/list').body.orderBy).toBe('size');
+    expect(component.searchParam.fileType).toBe(FileType.FILE);
+    const listReq = http.lastPostTo('/file/list').body;
+    expect(listReq.orderBy).toBe('size');
+    expect(listReq.fileType).toBe(FileType.FILE);
+    expect(sortOptionValues()).toContain('size');
   });
 
   it('still offers to resume a directory under a durable sort', async () => {
@@ -348,6 +375,51 @@ describe('MngFilesComponent size sort', () => {
     component.parseRouteParam();
     await flushAsync();
 
+    const listReq = http.lastPostTo('/file/list').body;
+    expect(listReq.orderBy).toBe('time');
+    expect(listReq.orderDir).toBe('desc');
+  });
+
+  it('falls back to the default order when the preference fetch fails', async () => {
+    component.orderBy = 'size';
+    http.orderByPreferenceFails = true;
+    routeParams = { parentDirKey: 'dir-1' };
+
+    component.parseRouteParam();
+    await flushAsync();
+
+    expect(component.orderBy).toBe('time');
+    expect(component.orderByDir).toBe('desc');
+    const listReq = http.lastPostTo('/file/list').body;
+    expect(listReq.orderBy).toBe('time');
+    expect(listReq.orderDir).toBe('desc');
+  });
+
+  it('falls back to the default order when the preference fetch returns an error', async () => {
+    component.orderBy = 'size';
+    http.orderByPreferenceError = true;
+    routeParams = { parentDirKey: 'dir-1' };
+
+    component.parseRouteParam();
+    await flushAsync();
+
+    expect(component.orderBy).toBe('time');
+    expect(component.orderByDir).toBe('desc');
+    const listReq = http.lastPostTo('/file/list').body;
+    expect(listReq.orderBy).toBe('time');
+    expect(listReq.orderDir).toBe('desc');
+  });
+
+  it('never applies a stored size preference', async () => {
+    component.orderBy = 'size';
+    http.orderByPreference = { orderBy: 'size', orderDir: 'asc' };
+    routeParams = { parentDirKey: 'dir-1' };
+
+    component.parseRouteParam();
+    await flushAsync();
+
+    expect(component.orderBy).toBe('time');
+    expect(component.orderByDir).toBe('desc');
     const listReq = http.lastPostTo('/file/list').body;
     expect(listReq.orderBy).toBe('time');
     expect(listReq.orderDir).toBe('desc');

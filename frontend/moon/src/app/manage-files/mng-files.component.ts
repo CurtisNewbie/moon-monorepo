@@ -127,18 +127,31 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inSensitiveMode = false;
   orderBy: string = 'time';
   orderByDir: string = 'desc';
+  private sortOptionsCache: Option<string>[] = null;
+  private sortOptionsFileType: FileType = null;
+  private sortOptionsCached = false;
   /** sort options offered by the toolbar; size applies to a files listing only */
   get sortOptions(): Option<string>[] {
-    const opts: Option<string>[] = [
-      { name: "time", value: "time" },
-      { name: "name", value: "name" },
-      { name: "custom", value: "custom" },
-    ];
-    if (this.searchParam.fileType === FileType.FILE) {
-      opts.push({ name: "size", value: "size" });
+    // memoized by fileType so change detection sees the same array until the
+    // File filter changes; a new array each tick makes Material rebuild every
+    // MatOption
+    if (!this.sortOptionsCached || this.sortOptionsFileType !== this.searchParam.fileType) {
+      const opts: Option<string>[] = [
+        { name: "time", value: "time" },
+        { name: "name", value: "name" },
+        { name: "custom", value: "custom" },
+      ];
+      if (this.searchParam.fileType === FileType.FILE) {
+        opts.push({ name: "size", value: "size" });
+      }
+      this.sortOptionsCache = opts;
+      this.sortOptionsFileType = this.searchParam.fileType;
+      this.sortOptionsCached = true;
     }
-    return opts;
+    return this.sortOptionsCache;
   }
+
+  trackByOptionValue = (_index: number, option: Option<string>): string => option.value;
 
   isReordering: boolean = false;
   trayOpen: boolean = false;
@@ -288,6 +301,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
       let ob = params.get("orderBy");
       if (ob) {
         this.orderBy = ob;
+        // a size sort ranks files only, so a deep link into one opens on File
+        // instead of showing All while the sort control is blank
+        if (ob === 'size') {
+          this.searchParam.fileType = FileType.FILE;
+        }
         // an explicit orderDir (e.g. resuming a browse-history entry) wins over the default
         const od = params.get("orderDir");
         this.orderByDir = od || (ob === 'name' ? 'asc' : 'desc');
@@ -1787,31 +1805,30 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     const dirKey = encodeURIComponent(this.inDirFileKey || '');
     const orderByAtReq = this.orderBy;
     const orderByDirAtReq = this.orderByDir;
+    // size is transient: when there is no usable stored preference, a size sort
+    // falls back to time/desc, and a stored size value is never applied
+    const apply = (stored: any) => {
+      // discard stale response if the user changed sort state while the request was in flight
+      if (this.orderBy !== orderByAtReq || this.orderByDir !== orderByDirAtReq) {
+        return;
+      }
+      if (this.orderBy === 'size') {
+        this.orderBy = 'time';
+        this.orderByDir = 'desc';
+      }
+      if (stored && stored.orderBy !== 'size') {
+        if (stored.orderBy) {
+          this.orderBy = stored.orderBy;
+        }
+        if (stored.orderDir) {
+          this.orderByDir = stored.orderDir;
+        }
+      }
+    };
     return this.http.get<any>(`vfm/open/api/file/order-by-preference?dirKey=${dirKey}`)
       .toPromise()
-      .then((resp) => {
-        if (!resp || resp.error) {
-          return;
-        }
-        // discard stale response if the user changed sort state while the request was in flight
-        if (this.orderBy !== orderByAtReq || this.orderByDir !== orderByDirAtReq) {
-          return;
-        }
-        // size is transient: a directory opens with its own order or the default
-        if (this.orderBy === 'size') {
-          this.orderBy = 'time';
-          this.orderByDir = 'desc';
-        }
-        if (resp.data?.orderBy) {
-          this.orderBy = resp.data.orderBy;
-        }
-        if (resp.data?.orderDir) {
-          this.orderByDir = resp.data.orderDir;
-        }
-      })
-      .catch(() => {
-        // ignore network errors, keep defaults
-      });
+      .then((resp) => apply(resp && !resp.error ? resp.data : null))
+      .catch(() => apply(null));
   }
 
   trl(k) {
