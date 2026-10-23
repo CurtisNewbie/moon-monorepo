@@ -24,7 +24,7 @@ func CreateNotification(rail miso.Rail, db *gorm.DB, req api.CreateNotificationR
 	}
 
 	// check whether the userNos are leegal
-	req.ReceiverUserNos = slutil.Distinct(req.ReceiverUserNos)
+	req.ReceiverUserNos = slutil.DistinctStrBy(req.ReceiverUserNos, func(uno string) string { return uno })
 
 	for _, u := range req.ReceiverUserNos {
 		sr := repo.SaveNotifiReq{

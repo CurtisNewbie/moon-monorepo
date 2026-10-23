@@ -1169,7 +1169,7 @@ func RemoveFileFromVFolder(rail miso.Rail, tx *gorm.DB, req RemoveFileFromVfolde
 			return errs.ErrNotPermitted.New()
 		}
 
-		filtered := slutil.Distinct(req.FileKeys)
+		filtered := slutil.DistinctStrBy(req.FileKeys, func(fk string) string { return fk })
 		if len(filtered) < 1 {
 			return nil
 		}

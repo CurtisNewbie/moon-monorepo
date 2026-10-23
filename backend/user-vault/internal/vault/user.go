@@ -708,7 +708,7 @@ func ItnFindNameOfUserNo(rail miso.Rail, db *gorm.DB, req api.FetchNameByUserNoR
 	err := dbquery.NewQuery(rail, db).
 		Table("user").
 		Select("username", "user_no").
-		Where("user_no in ?", slutil.Distinct(req.UserNos)).
+		Where("user_no in ?", slutil.DistinctStrBy(req.UserNos, func(uno string) string { return uno })).
 		ScanVal(&queried)
 	if err != nil {
 		return api.FetchUsernamesRes{}, err
