@@ -666,6 +666,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     setFirstPage: boolean = true,
     fetchFileInfoList: boolean = true
   ): void {
+    // a size sort is transient, so reset returns to the normal time order
+    if (this.orderBy === 'size') {
+      this.orderBy = 'time';
+      this.orderByDir = 'desc';
+    }
     this.curr = null;
     if (
       this.searchParam.fileKey &&

@@ -298,6 +298,40 @@ describe('MngFilesComponent size sort', () => {
     expect(pref.orderDir).toBe('asc');
   });
 
+  it('reset while sorted by size returns to time descending', () => {
+    component.searchParam = { fileType: FileType.FILE, name: 'report' };
+    component.orderBy = 'size';
+    component.orderByDir = 'asc';
+
+    component.resetSearchParam();
+
+    expect(component.orderBy).toBe('time');
+    expect(component.orderByDir).toBe('desc');
+    expect(component.searchParam.fileType).toBeUndefined();
+    expect(component.searchParam.name).toBeUndefined();
+    expect(http.postsTo('order-by-preference')).toEqual([]);
+    const listReq = http.lastPostTo('/file/list').body;
+    expect(listReq.orderBy).toBe('time');
+    expect(listReq.orderDir).toBe('desc');
+    expect(listReq.fileType).toBeUndefined();
+    expect(listReq.filename).toBeUndefined();
+  });
+
+  it('reset keeps a non-size sort as it is', () => {
+    component.searchParam = { fileType: FileType.FILE, name: 'report' };
+    component.orderBy = 'name';
+    component.orderByDir = 'asc';
+
+    component.resetSearchParam();
+
+    expect(component.orderBy).toBe('name');
+    expect(component.orderByDir).toBe('asc');
+    const listReq = http.lastPostTo('/file/list').body;
+    expect(listReq.orderBy).toBe('name');
+    expect(listReq.orderDir).toBe('asc');
+    expect(listReq.fileType).toBeUndefined();
+  });
+
   function flushAsync(): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve));
   }
