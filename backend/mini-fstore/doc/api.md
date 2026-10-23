@@ -125,7 +125,7 @@
 
 ## GET /file/bundle
 
-- Description: Download a set of files as a flat zip archive using a temporary bundle key. The archive is streamed, entries are stored rather than deflated, and the bundle_key's ttl is extended with each successful request. This endpoint is expected to be accessible publicly without authorization, since a temporary bundle_key is generated and used.
+- Description: Download files as a flat zip archive using a temporary bundle key. Entries are stored rather than deflated. Publicly accessible without authorization, since a temporary bundle key is generated and used.
 - Expected Access Scope: PUBLIC
 - Query Parameter:
   - "key": temporary bundle key
@@ -136,7 +136,7 @@
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
-  // Download a set of files as a flat zip archive using a temporary bundle key. The archive is streamed, entries are stored rather than deflated, and the bundle_key's ttl is extended with each successful request. This endpoint is expected to be accessible publicly without authorization, since a temporary bundle_key is generated and used.
+  // Download files as a flat zip archive using a temporary bundle key. Entries are stored rather than deflated. Publicly accessible without authorization, since a temporary bundle key is generated and used.
   func ApiTempKeyDownloadBundle(rail miso.Rail, key string) error {
   	var res miso.GnResp[any]
   	err := miso.NewDynClient(rail, "/file/bundle", "fstore").

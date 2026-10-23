@@ -119,10 +119,9 @@ func ApiTempKeyDownloadFile(inb *miso.Inbound) {
 //   - misoapi-http: GET /file/bundle
 //   - misoapi-scope: PUBLIC
 //   - misoapi-query-doc: key: temporary bundle key
-//   - misoapi-desc: Download a set of files as a flat zip archive using a temporary bundle key. The archive is
-//     streamed, entries are stored rather than deflated, and the bundle_key's ttl is extended with each
-//     successful request. This endpoint is expected to be accessible publicly without authorization, since a
-//     temporary bundle_key is generated and used.
+//   - misoapi-desc: Download files as a flat zip archive using a temporary bundle key. Entries are stored
+//     rather than deflated. Publicly accessible without authorization, since a temporary bundle key is
+//     generated and used.
 func ApiTempKeyDownloadBundle(inb *miso.Inbound) {
 	w, r := inb.Unwrap()
 	downloadBundle(inb.Rail(), w, r)
