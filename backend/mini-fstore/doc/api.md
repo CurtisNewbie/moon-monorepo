@@ -432,8 +432,8 @@
 
 - Description: Generate a temporary bundle key for downloading an ordered list of files as a flat zip archive. This endpoint is expected to be called internally by another backend service that validates the ownership of the files properly.
 - JSON Request:
-    - "name": (string) name of the archive, without the .zip suffix
-    - "items": ([]fstore.BundleItem) ordered list of files to include in the archive
+    - "name": (string) 
+    - "items": ([]api.BundleItem) 
       - "fileId": (string) 
       - "name": (string) 
 - JSON Response:
@@ -451,7 +451,7 @@
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type GenBundleKeyReq struct {
-  	Name string `json:"name"`      // name of the archive, without the .zip suffix
+  	Name string `json:"name"`
   	Items []BundleItem `json:"items"`
   }
 
@@ -476,7 +476,7 @@
 - JSON Request / Response Object In TypeScript:
   ```ts
   export interface GenBundleKeyReq {
-    name?: string;                 // name of the archive, without the .zip suffix
+    name?: string;
     items?: BundleItem[];
   }
 
