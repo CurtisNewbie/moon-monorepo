@@ -208,3 +208,221 @@ func TestListFilesComicDirSortBySizeReturnsNameAsc(t *testing.T) {
 		}
 	}
 }
+
+// --- file position ----------------------------------------------------------
+
+// calcSortedPosition asks for the page of fileKey under the given sort and the
+// request's raw type filter, the way the position endpoint asks.
+func calcSortedPosition(t *testing.T, db *gorm.DB, fileKey, dir, orderBy, orderDir, fileType string, limit int, user flow.User) int {
+	t.Helper()
+	p, err := CalcFilePosition(miso.EmptyRail(), db, FilePositionReq{
+		FileKey:    fileKey,
+		ParentFile: dir,
+		Limit:      limit,
+		OrderBy:    orderBy,
+		OrderDir:   orderDir,
+		FileType:   fileType,
+	}, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
+func TestCalcFilePositionSortBySizeBothDirections(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, false)
+
+	// ids: small=1, large=2, medium=3; inserted in neither size nor id order
+	smallKey := insertSortTestChildSized(t, db, dir, "small.bin", user.UserNo, 100)
+	largeKey := insertSortTestChildSized(t, db, dir, "large.bin", user.UserNo, 900)
+	mediumKey := insertSortTestChildSized(t, db, dir, "medium.bin", user.UserNo, 500)
+
+	// size desc: large, medium, small; size asc: small, medium, large
+	cases := []struct {
+		orderDir string
+		want     map[string]int
+	}{
+		{"", map[string]int{largeKey: 1, mediumKey: 2, smallKey: 3}},     // omitted direction → desc
+		{"desc", map[string]int{largeKey: 1, mediumKey: 2, smallKey: 3}}, // large, medium, small
+		{"asc", map[string]int{smallKey: 1, mediumKey: 2, largeKey: 3}},  // small, medium, large
+	}
+	for _, c := range cases {
+		for key, want := range c.want {
+			got := calcSortedPosition(t, db, key, dir, SortBySize, c.orderDir, "", 1, user)
+			if got != want {
+				t.Fatalf("size orderDir=%q: got page %v for %s, want %v", c.orderDir, got, key, want)
+			}
+		}
+	}
+}
+
+func TestCalcFilePositionSortBySizeBreaksTiesById(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, false)
+
+	// ids: c=1, a=2, b=3; all the same size
+	cKey := insertSortTestChildSized(t, db, dir, "c.bin", user.UserNo, 500)
+	aKey := insertSortTestChildSized(t, db, dir, "a.bin", user.UserNo, 500)
+	bKey := insertSortTestChildSized(t, db, dir, "b.bin", user.UserNo, 500)
+
+	// size desc falls back to id desc: b, a, c; asc: c, a, b
+	cases := []struct {
+		orderDir string
+		want     map[string]int
+	}{
+		{"", map[string]int{bKey: 1, aKey: 2, cKey: 3}},
+		{"desc", map[string]int{bKey: 1, aKey: 2, cKey: 3}},
+		{"asc", map[string]int{cKey: 1, aKey: 2, bKey: 3}},
+	}
+	for _, c := range cases {
+		for key, want := range c.want {
+			got := calcSortedPosition(t, db, key, dir, SortBySize, c.orderDir, "", 1, user)
+			if got != want {
+				t.Fatalf("equal sizes orderDir=%q: got page %v for %s, want %v", c.orderDir, got, key, want)
+			}
+		}
+	}
+}
+
+func TestCalcFilePositionSortBySizeCoercesFileType(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, false)
+
+	smallKey := insertSortTestChildSized(t, db, dir, "small.bin", user.UserNo, 100)
+	largeKey := insertSortTestChildSized(t, db, dir, "large.bin", user.UserNo, 900)
+	// a directory row big enough to top a mixed size order; the size sort must
+	// never count it
+	insertSortTestSubDir(t, db, dir, "zzz-subdir", user.UserNo, 9999)
+
+	// files only, size desc: large (1), small (2) regardless of the asked type
+	for _, fileType := range []string{"", FileTypeDir, FileTypeFile} {
+		if got, want := calcSortedPosition(t, db, largeKey, dir, SortBySize, "", fileType, 1, user), 1; got != want {
+			t.Fatalf("fileType=%q: got page %v for large.bin, want %v", fileType, got, want)
+		}
+		if got, want := calcSortedPosition(t, db, smallKey, dir, SortBySize, "", fileType, 1, user), 2; got != want {
+			t.Fatalf("fileType=%q: got page %v for small.bin, want %v", fileType, got, want)
+		}
+	}
+}
+
+// listingPageOf walks the listing at the given page size and returns the page
+// that holds fileKey, failing when the listing never shows it.
+func listingPageOf(t *testing.T, db *gorm.DB, dir, orderBy, orderDir string, fileType *string, fileKey string, limit int, user flow.User) int {
+	t.Helper()
+	parent := dir
+	for page := 1; page < 100; page++ {
+		res, err := ListFiles(miso.EmptyRail(), db, ListFileReq{
+			Page:       miso.Paging{Page: page, Limit: limit},
+			ParentFile: &parent,
+			OrderBy:    orderBy,
+			OrderDir:   orderDir,
+			FileType:   fileType,
+		}, user)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(res.Payload) == 0 {
+			break
+		}
+		for _, f := range res.Payload {
+			if f.Uuid == fileKey {
+				return page
+			}
+		}
+	}
+	t.Fatalf("file %s never appears in the listing", fileKey)
+	return 0
+}
+
+func TestCalcFilePositionSortBySizeMatchesListingPage(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, false)
+
+	smallKey := insertSortTestChildSized(t, db, dir, "small.bin", user.UserNo, 100)
+	largeKey := insertSortTestChildSized(t, db, dir, "large.bin", user.UserNo, 900)
+	mediumKey := insertSortTestChildSized(t, db, dir, "medium.bin", user.UserNo, 500)
+
+	empty := ""
+	dirFilter := FileTypeDir
+	cases := []struct {
+		orderDir string
+		fileType *string
+	}{
+		{"", nil},        // omitted direction, type filter absent
+		{"asc", nil},     // smallest first
+		{"desc", &empty}, // "all" type filter coerced to files
+		{"", &dirFilter}, // directory type filter coerced to files
+	}
+	limit := 2
+	for _, c := range cases {
+		fileType := ""
+		if c.fileType != nil {
+			fileType = *c.fileType
+		}
+		for _, key := range []string{smallKey, largeKey, mediumKey} {
+			want := listingPageOf(t, db, dir, SortBySize, c.orderDir, c.fileType, key, limit, user)
+			got := calcSortedPosition(t, db, key, dir, SortBySize, c.orderDir, fileType, limit, user)
+			if got != want {
+				t.Fatalf("size orderDir=%q fileType=%q: %s position is %v, but the listing shows it on page %v", c.orderDir, fileType, key, got, want)
+			}
+		}
+	}
+}
+
+func TestCalcFilePositionComicDirSortBySizeUsesNameAsc(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, true)
+
+	insertSortTestChildSized(t, db, dir, "a.bin", user.UserNo, 100)
+	insertSortTestChildSized(t, db, dir, "b.bin", user.UserNo, 900)
+	cKey := insertSortTestChildSized(t, db, dir, "c.bin", user.UserNo, 500)
+	// a subdirectory that sorts before c.bin by name, so a non-coerced count
+	// would push c.bin one page further than the listing does
+	insertSortTestSubDir(t, db, dir, "aa-subdir", user.UserNo, 9999)
+
+	// comic reading order is name asc, files only: a, b, c
+	for _, d := range []string{"", "asc", "desc"} {
+		got := calcSortedPosition(t, db, cKey, dir, SortBySize, d, "", 1, user)
+		if want := listingPageOf(t, db, dir, SortBySize, d, nil, cKey, 1, user); got != want {
+			t.Fatalf("comic size orderDir=%q: position %v, listing page %v", d, got, want)
+		}
+		if got != 3 {
+			t.Fatalf("comic size orderDir=%q: got page %v for c.bin, want 3 (name asc)", d, got)
+		}
+	}
+}
+
+// A size position is resolved from the rows themselves: the calculation neither
+// records nor reads a resume cursor.
+func TestCalcFilePositionSortBySizeRecordsNoResumeCursor(t *testing.T) {
+	sortPreTest(t)
+	db := testMySQLConn(t)
+	user := testUser()
+	dir := insertSortTestDir(t, db, user.UserNo, false)
+
+	smallKey := insertSortTestChildSized(t, db, dir, "small.bin", user.UserNo, 100)
+	insertSortTestChildSized(t, db, dir, "large.bin", user.UserNo, 900)
+
+	if got, want := calcSortedPosition(t, db, smallKey, dir, SortBySize, "", "", 1, user), 2; got != want {
+		t.Fatalf("got page %v for small.bin, want %v", got, want)
+	}
+
+	var count int64
+	if err := db.Raw("SELECT COUNT(*) FROM dir_resume_cursor WHERE dir_key = ?", dir).Scan(&count).Error; err != nil {
+		t.Fatal(err)
+	}
+	if count != 0 {
+		t.Fatalf("size position recorded %v resume cursor row(s), want 0", count)
+	}
+}

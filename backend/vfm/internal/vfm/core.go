@@ -347,8 +347,8 @@ type FilePositionReq struct {
 	ParentFile  string `json:"parentFile"`
 	Limit       int    `json:"limit"`
 	OrderByName bool   `json:"orderByName"` // deprecated, use OrderBy instead
-	OrderBy     string `json:"orderBy"`     // "time" (default), "name", "custom"
-	OrderDir    string `json:"orderDir"`    // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
+	OrderBy     string `json:"orderBy"`     // "time" (default), "name", "custom", "size" (files only)
+	OrderDir    string `json:"orderDir"`    // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
 	FileType    string `json:"fileType"`
 }
 
@@ -529,6 +529,11 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 		orderBy = SortByName
 	}
 
+	// the listing coerces the type filter to FILE for a size sort, based on the
+	// requested field and before the comic rule resolves the sort, so the page
+	// must count the same rows
+	fileType := *resolveFileTypeForSort(orderBy, &req.FileType)
+
 	// resolve the effective sort through the one resolver (comic dirs forced to name-ascending);
 	// the error is deliberately ignored here, falling back to a best-effort sort
 	es, _ := resolveEffectiveSort(rail, db, orderBy, req.OrderDir, req.ParentFile)
@@ -548,8 +553,8 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 	if req.ParentFile != "" {
 		q = q.Eq("fi.parent_file", req.ParentFile)
 	}
-	if req.FileType != "" {
-		q = q.Eq("fi.file_type", req.FileType)
+	if fileType != "" {
+		q = q.Eq("fi.file_type", fileType)
 	}
 
 	// 3. Ordering-boundary condition: count rows that come BEFORE target file
@@ -563,6 +568,15 @@ func CalcFilePosition(rail miso.Rail, db *gorm.DB, req FilePositionReq, user flo
 			q = q.Where("fi.name > ?", f.Name)
 		} else {
 			q = q.Where("fi.name < ?", f.Name)
+		}
+	case SortBySize:
+		// sort: fi.size_in_bytes dir, fi.id dir (files only, so no file_type prefix);
+		// rows before have a bigger/smaller size, or the same size and a
+		// later/earlier id
+		if orderDir == "asc" {
+			q = q.Where("(fi.size_in_bytes < ? OR (fi.size_in_bytes = ? AND fi.id < ?))", f.SizeInBytes, f.SizeInBytes, f.Id)
+		} else {
+			q = q.Where("(fi.size_in_bytes > ? OR (fi.size_in_bytes = ? AND fi.id > ?))", f.SizeInBytes, f.SizeInBytes, f.Id)
 		}
 	default:
 		// default: fi.file_type asc, fi.id desc → rows before have file_type < or (file_type = and id >); asc → id <
