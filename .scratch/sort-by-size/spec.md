@@ -21,7 +21,7 @@ The position endpoint resolves size as well, so jumping to a file from a search 
 1. As a moon user, I want to order a directory's files by size, so that I can find what takes the most space without paging through everything.
 2. As a moon user, I want largest first by default, so that the space hogs are on page one.
 3. As a moon user, I want to flip the direction, so that I can start from the smallest file when I am clearing out junk.
-4. As a moon user, I want the size option only when I have filtered to File, so that I am never offered an order that cannot apply.
+4. As a moon user, I want to pick size without first setting the type filter, so that one choice gets me the size ranking.
 5. As a moon user, I want choosing size to show files only, so that the list matches the order I picked instead of mixing in directories ranked at zero bytes.
 6. As a moon user, I want to switch the type filter back to All or Directory, so that I can browse directories again, and I accept that the sort returns to the directory's usual order.
 7. As a moon user, I want equal-sized files to keep a stable order across pages, so that paging does not repeat or skip a file.
@@ -55,7 +55,7 @@ The position endpoint resolves size as well, so jumping to a file from a search 
 
 **Position endpoint.** `file/position` understands size with the same ordering and the same File-type coercion. It serves file deep links and search-result jumps, not only cursor resume, so this is required even though size produces no cursor.
 
-**Frontend behavior.** The sort dropdown shows the size option only while the File type filter is selected. Selecting size while the filter is All or Directory switches the filter to File. Changing the filter away from File resets the sort to the directory's stored or default order. Sort state continues to come from the server, and the results table is never re-sorted in the browser.
+**Frontend behavior.** The sort dropdown always offers size. Selecting size while the filter is All or Directory switches the filter to File, so one choice produces the files-only size ranking. Changing the filter away from File resets the sort to the directory's stored or default order. Sort state continues to come from the server, and the results table is never re-sorted in the browser.
 
 **Documentation and release.** The vfm API doc's sort enumeration notes the size value and its File-only rule. The change is recorded in the v0.0.6 release notes. No schema snapshot or change log entry is needed.
 
