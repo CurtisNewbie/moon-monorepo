@@ -4,9 +4,11 @@
 
 - [GET /file/stream](#get-filestream)
 - [GET /file/raw](#get-fileraw)
+- [GET /file/bundle](#get-filebundle)
 - [PUT /file](#put-file)
 - [GET /file/info](#get-fileinfo)
 - [GET /file/key](#get-filekey)
+- [POST /file/bundle/key](#post-filebundlekey)
 - [GET /file/direct](#get-filedirect)
 - [DELETE /file](#delete-file)
 - [POST /file/unzip](#post-fileunzip)
@@ -110,6 +112,57 @@
   tempKeyDownloadFile() {
     let key: any | null = null;
     this.http.get<any>(`/fstore/file/raw?key=${key}`)
+      .subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /file/bundle
+
+- Description: Download a set of files as a flat zip archive using a temporary bundle key. The archive is streamed, entries are stored rather than deflated, and the bundle_key's ttl is extended with each successful request. This endpoint is expected to be accessible publicly without authorization, since a temporary bundle_key is generated and used.
+- Expected Access Scope: PUBLIC
+- Query Parameter:
+  - "key": temporary bundle key
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8084/file/bundle?key='
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  // Download a set of files as a flat zip archive using a temporary bundle key. The archive is streamed, entries are stored rather than deflated, and the bundle_key's ttl is extended with each successful request. This endpoint is expected to be accessible publicly without authorization, since a temporary bundle_key is generated and used.
+  func ApiTempKeyDownloadBundle(rail miso.Rail, key string) error {
+  	var res miso.GnResp[any]
+  	err := miso.NewDynClient(rail, "/file/bundle", "fstore").
+  		AddQuery("key", key).
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		return err
+  	}
+  	return nil
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  tempKeyDownloadBundle() {
+    let key: any | null = null;
+    this.http.get<any>(`/fstore/file/bundle?key=${key}`)
       .subscribe({
         next: () => {
         },
@@ -359,6 +412,100 @@
     let fileId: any | null = null;
     let filename: any | null = null;
     this.http.get<any>(`/fstore/file/key?fileId=${fileId}&filename=${filename}`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: string = resp.data;
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /file/bundle/key
+
+- Description: Generate a temporary bundle key for downloading an ordered list of files as a flat zip archive. This endpoint is expected to be called internally by another backend service that validates the ownership of the files properly.
+- JSON Request:
+    - "name": (string) name of the archive, without the .zip suffix
+    - "items": ([]fstore.BundleItem) ordered list of files to include in the archive
+      - "fileId": (string) 
+      - "name": (string) 
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (string) response data
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8084/file/bundle/key' \
+    -H 'Content-Type: application/json' \
+    -d '{"items":[],"name":""}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type GenBundleKeyReq struct {
+  	Name string `json:"name"`      // name of the archive, without the .zip suffix
+  	Items []BundleItem `json:"items"`
+  }
+
+  type BundleItem struct {
+  	FileId string `json:"fileId"`
+  	Name string `json:"name"`
+  }
+
+  // Generate a temporary bundle key for downloading an ordered list of files as a flat zip archive. This endpoint is expected to be called internally by another backend service that validates the ownership of the files properly.
+  func ApiGenBundleKey(rail miso.Rail, req GenBundleKeyReq) (string, error) {
+  	var res miso.GnResp[string]
+  	err := miso.NewDynClient(rail, "/file/bundle/key", "fstore").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		return "", err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface GenBundleKeyReq {
+    name?: string;                 // name of the archive, without the .zip suffix
+    items?: BundleItem[];
+  }
+
+  export interface BundleItem {
+    fileId?: string;
+    name?: string;
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: string;                 // response data
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  genBundleKey() {
+    let req: GenBundleKeyReq | null = null;
+    this.http.post<any>(`/fstore/file/bundle/key`, req)
       .subscribe({
         next: (resp) => {
           if (resp.error) {

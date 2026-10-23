@@ -4,15 +4,15 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Minting a bundle key for an ordered list of existing files returns a key that resolves to the same entry names, in the same order.
-- [ ] The archive route streams a zip whose entries sit at the root: no directory entries, no nesting.
-- [ ] Each entry's bytes equal the stored file's bytes.
-- [ ] An empty file list produces a readable zip with zero entries.
-- [ ] An unknown or non-normal file id fails the request before any body byte is written.
-- [ ] The response sets the archive content type and an attachment disposition carrying the directory name plus `.zip`.
-- [ ] The response carries no content length; the transfer is chunked.
-- [ ] Entries are stored rather than deflated.
-- [ ] A bundle key stops resolving after thirty minutes of no use, and its lifetime refreshes on a successful read.
-- [ ] A file entry's name is used verbatim; the id set and names come entirely from the bundle key.
+- [x] Minting a bundle key for an ordered list of existing files returns a key that resolves to the same entry names, in the same order.
+- [x] The archive route streams a zip whose entries sit at the root: no directory entries, no nesting.
+- [x] Each entry's bytes equal the stored file's bytes.
+- [x] An empty file list produces a readable zip with zero entries.
+- [x] An unknown or non-normal file id fails the request before any body byte is written.
+- [x] The response sets the archive content type and an attachment disposition carrying the directory name plus `.zip`.
+- [x] The response carries no content length; the transfer is chunked.
+- [x] Entries are stored rather than deflated.
+- [x] A bundle key stops resolving after thirty minutes of no use, and its lifetime refreshes on a successful read.
+- [x] A file entry's name is used verbatim; the id set and names come entirely from the bundle key.
