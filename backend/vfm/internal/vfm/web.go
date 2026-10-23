@@ -255,6 +255,15 @@ func ApiGenFileTkn(rail miso.Rail, db *gorm.DB, req GenerateTempTokenReq, user f
 	return GenTempToken(rail, db, req, user)
 }
 
+// Generate a bundle key to download a directory as a zip archive.
+//
+//   - misoapi-http: POST /open/api/file/dir/zip
+//   - misoapi-desc: User generate temporary bundle key to download a directory as a zip archive
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiGenDirBundleKey(rail miso.Rail, db *gorm.DB, req GenerateDirZipReq, user flow.User) (string, error) {
+	return GenDirBundleKey(rail, db, req, user)
+}
+
 // Unzip file in new dir.
 //
 //   - misoapi-http: POST /open/api/file/unpack

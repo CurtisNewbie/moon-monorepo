@@ -46,6 +46,30 @@ func GenTempFileKey(rail miso.Rail, fileId string, filename string) (string, err
 	return r.Data, nil
 }
 
+// BundleItem is one file that goes into a bundle archive.
+type BundleItem struct {
+	FileId string `json:"fileId"`
+	Name   string `json:"name"`
+}
+
+type GenBundleKeyReq struct {
+	Name  string       `json:"name"`
+	Items []BundleItem `json:"items"`
+}
+
+// GenBundleKey generates a temporary key for downloading an ordered list of
+// files as one flat zip archive.
+func GenBundleKey(rail miso.Rail, name string, items []BundleItem) (string, error) {
+	var r miso.GnResp[string]
+	err := miso.NewDynClient(rail, "/file/bundle/key", "fstore").
+		PostJson(GenBundleKeyReq{Name: name, Items: items}).
+		Json(&r)
+	if err != nil {
+		return "", err
+	}
+	return r.Res()
+}
+
 func DownloadFile(rail miso.Rail, tmpToken string, writer io.Writer) error {
 	_, err := miso.NewDynClient(rail, "/file/raw", "fstore").
 		AddQuery("key", tmpToken).
