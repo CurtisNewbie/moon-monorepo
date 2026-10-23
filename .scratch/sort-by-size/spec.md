@@ -34,6 +34,7 @@ The position endpoint resolves size as well, so jumping to a file from a search 
 14. As a moon user, I want size order to respect the same visibility rules as every other order, so that hidden and deleted files never appear.
 15. As a moon user, I want the file tray and bulk actions to work unchanged under size order, so that selecting across pages still works.
 16. As a release engineer, I want this shipped in v0.0.6 without a schema change, so that no migration step is needed.
+17. As a moon user, I want the reset button to clear a size sort, so that I return to the normal time order instead of staying in a files-only ranking.
 
 ## Implementation Decisions
 
@@ -55,7 +56,7 @@ The position endpoint resolves size as well, so jumping to a file from a search 
 
 **Position endpoint.** `file/position` understands size with the same ordering and the same File-type coercion. It serves file deep links and search-result jumps, not only cursor resume, so this is required even though size produces no cursor.
 
-**Frontend behavior.** The sort dropdown always offers size. Selecting size while the filter is All or Directory switches the filter to File, so one choice produces the files-only size ranking. Changing the filter away from File resets the sort to the directory's stored or default order. Sort state continues to come from the server, and the results table is never re-sorted in the browser.
+**Frontend behavior.** The sort dropdown always offers size. Selecting size while the filter is All or Directory switches the filter to File, so one choice produces the files-only size ranking. Changing the filter away from File resets the sort to the directory's stored or default order. The reset button clears a size sort back to time descending. Sort state continues to come from the server, and the results table is never re-sorted in the browser.
 
 **Documentation and release.** The vfm API doc's sort enumeration notes the size value and its File-only rule. The change is recorded in the v0.0.6 release notes. No schema snapshot or change log entry is needed.
 
@@ -69,7 +70,7 @@ The backend listing seam is the list operation itself, which already resolves so
 
 The backend position seam is the position calculation, tested the same way as the existing position tests. New tests cover the page a file lands on under size in both directions and under the coerced File filter.
 
-The frontend seam is the manage-files component with its HTTP client stubbed. New tests assert that a size sort request carries the size sort with a File type filter, that choosing size under All or Directory sends File, and that leaving File resets the sort to the stored order. Existing component tests are the prior art.
+The frontend seam is the manage-files component with its HTTP client stubbed. New tests assert that a size sort request carries the size sort with a File type filter, that choosing size under All or Directory sends File, that leaving File resets the sort to the stored order, and that reset returns a size sort to time descending. Existing component tests are the prior art.
 
 ## Out of Scope
 
