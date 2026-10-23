@@ -127,29 +127,18 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inSensitiveMode = false;
   orderBy: string = 'time';
   orderByDir: string = 'desc';
-  private sortOptionsCache: Option<string>[] = null;
-  private sortOptionsFileType: FileType = null;
-  private sortOptionsCached = false;
-  /** sort options offered by the toolbar; size applies to a files listing only */
-  get sortOptions(): Option<string>[] {
-    // memoized by fileType so change detection sees the same array until the
-    // File filter changes; a new array each tick makes Material rebuild every
-    // MatOption
-    if (!this.sortOptionsCached || this.sortOptionsFileType !== this.searchParam.fileType) {
-      const opts: Option<string>[] = [
-        { name: "time", value: "time" },
-        { name: "name", value: "name" },
-        { name: "custom", value: "custom" },
-      ];
-      if (this.searchParam.fileType === FileType.FILE) {
-        opts.push({ name: "size", value: "size" });
-      }
-      this.sortOptionsCache = opts;
-      this.sortOptionsFileType = this.searchParam.fileType;
-      this.sortOptionsCached = true;
-    }
-    return this.sortOptionsCache;
-  }
+  /**
+   * sort options offered by the toolbar. Size is always offered: choosing it
+   * narrows the listing to files, so no type filter has to be picked first.
+   * A stable field keeps change detection from making Material rebuild every
+   * MatOption on each tick; trackByOptionValue covers the rest.
+   */
+  readonly sortOptions: Option<string>[] = [
+    { name: "time", value: "time" },
+    { name: "name", value: "name" },
+    { name: "custom", value: "custom" },
+    { name: "size", value: "size" },
+  ];
 
   trackByOptionValue = (_index: number, option: Option<string>): string => option.value;
 
