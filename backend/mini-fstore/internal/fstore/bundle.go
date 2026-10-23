@@ -3,7 +3,6 @@ package fstore
 import (
 	"archive/zip"
 	"errors"
-	"fmt"
 	"mime"
 	"net/http"
 	"os"
@@ -43,18 +42,18 @@ func RandBundleKey(rail miso.Rail, name string, items []api.BundleItem) (string,
 	bk := randutil.ERand(30)
 	sby, em := json.WriteJson(api.GenBundleKeyReq{Name: name, Items: items})
 	if em != nil {
-		return "", fmt.Errorf("failed to marshal to bundle, %v", em)
+		return "", errs.NewErrf("failed to marshal to bundle, %v", em)
 	}
-	c := redis.GetRedis().Set(rail.Context(), bundleKeyPrefix+bk, string(sby), bundleKeyTTL)
+	c := redis.GetRedis().Set(rail, bundleKeyPrefix+bk, string(sby), bundleKeyTTL)
 	return bk, c.Err()
 }
 
 // RefreshBundleKeyExp refreshes the bundle key's expiration.
 func RefreshBundleKeyExp(rail miso.Rail, bundleKey string) error {
-	c := redis.GetRedis().Expire(rail.Context(), bundleKeyPrefix+bundleKey, bundleKeyTTL)
+	c := redis.GetRedis().Expire(rail, bundleKeyPrefix+bundleKey, bundleKeyTTL)
 	if c.Err() != nil {
 		rail.Warnf("Failed to refresh bundle key expiration, bundleKey: %v, %v", bundleKey, c.Err())
-		return fmt.Errorf("failed to refresh key expiration, %v", c.Err())
+		return errs.NewErrf("failed to refresh key expiration, %v", c.Err())
 	}
 	return nil
 }
@@ -62,7 +61,7 @@ func RefreshBundleKeyExp(rail miso.Rail, bundleKey string) error {
 // ResolveBundleKey resolves the bundle for the given bundle key.
 func ResolveBundleKey(rail miso.Rail, bundleKey string) (bool, api.GenBundleKeyReq) {
 	var cb api.GenBundleKeyReq
-	c := redis.GetRedis().Get(rail.Context(), bundleKeyPrefix+bundleKey)
+	c := redis.GetRedis().Get(rail, bundleKeyPrefix+bundleKey)
 	if c.Err() != nil {
 		if errors.Is(c.Err(), redis.Nil) {
 			rail.Infof("BundleKey not found, %v", bundleKey)
@@ -148,7 +147,7 @@ func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) 
 	for i, it := range bundle.Items {
 		ew, err := zw.CreateHeader(&zip.FileHeader{Name: it.Name, Method: zip.Store})
 		if err != nil {
-			return fmt.Errorf("failed to create zip entry %v, %v", it.Name, err)
+			return errs.NewErrf("failed to create zip entry %v, %v", it.Name, err)
 		}
 		// Only once the first entry header exists is there a body worth
 		// committing. Until this point a failure can still change the
@@ -157,7 +156,7 @@ func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) 
 		if !flushed {
 			// the zip writer buffers, so flush it into the response first
 			if err := zw.Flush(); err != nil {
-				return fmt.Errorf("failed to flush zip header for %v, %v", it.Name, err)
+				return errs.NewErrf("failed to flush zip header for %v, %v", it.Name, err)
 			}
 			if f, ok := w.(http.Flusher); ok {
 				f.Flush()
@@ -165,7 +164,7 @@ func DownloadBundleKey(rail miso.Rail, w http.ResponseWriter, bundleKey string) 
 			flushed = true
 		}
 		if err := TransferFile(rail, ew, dfs[i], ZeroByteRange()); err != nil {
-			return fmt.Errorf("failed to write zip entry %v, %w", it.Name, err)
+			return errs.Wrapf(err, "failed to write zip entry %v", it.Name)
 		}
 	}
 	if !flushed {

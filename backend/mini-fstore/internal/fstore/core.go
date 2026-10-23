@@ -733,7 +733,7 @@ func CheckAllNormalFiles(fileIds []string) (bool, error) {
 	var cnt int
 	t := mysql.GetMySQL().Raw("select count(distinct file_id) from file where file_id in ? and status = 'NORMAL'", distinct).Scan(&cnt)
 	if t.Error != nil {
-		return false, fmt.Errorf("failed to select file from DB, %w", t.Error)
+		return false, errs.Wrapf(t.Error, "failed to select file from DB")
 	}
 	return cnt == len(distinct), nil
 }
