@@ -17,7 +17,7 @@ Dev server proxies all requests to `http://127.0.0.1:7070` (gatekeeper).
 - **Angular 11** with `NgModule`
 - **Angular Material** with pink-bluegrey theme
 - **TSLint** (not ESLint) — run with `ng lint`
-- **Tests**: Karma/Jasmine on ChromeHeadless — `npm test -- --watch=false --browsers=ChromeHeadless`. Specs are written by hand: the component schematic sets `skipTests: true`, so `ng generate` creates none (that setting affects generators only, never `ng build` or `ng test`).
+- **Tests**: Karma/Jasmine on ChromeHeadless — `npm test -- --watch=false --browsers=ChromeHeadless`. Run them through `npm test`: the script sets `NODE_OPTIONS=--openssl-legacy-provider`, while calling `npx ng test` directly skips it and fails on current Node. Specs are written by hand: the component schematic sets `skipTests: true`, so `ng generate` creates none (that setting affects generators only, never `ng build` or `ng test`).
 - **HTTP interceptors**: token attach and global 401/403 handling — see `frontend/moon/doc/agents/http.md`
 - `patch-package` runs on `postinstall` — patches exist in `patches/`
 
