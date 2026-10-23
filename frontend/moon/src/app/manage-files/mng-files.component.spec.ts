@@ -166,51 +166,57 @@ describe('MngFilesComponent size sort', () => {
     return component.sortOptions.map((o) => o.value);
   }
 
-  it('offers size in the sort options only while the File filter is selected', () => {
+  it('always offers size in the sort options', () => {
     component.searchParam = {};
-    expect(sortOptionValues()).toEqual(['time', 'name', 'custom']);
+    expect(sortOptionValues()).toEqual(['time', 'name', 'custom', 'size']);
 
     component.searchParam.fileType = FileType.DIR;
-    expect(sortOptionValues()).toEqual(['time', 'name', 'custom']);
+    expect(sortOptionValues()).toEqual(['time', 'name', 'custom', 'size']);
 
     component.searchParam.fileType = FileType.FILE;
     expect(sortOptionValues()).toEqual(['time', 'name', 'custom', 'size']);
   });
 
-  it('keeps the sort options array stable while the File filter is unchanged', () => {
+  it('keeps the sort options array stable across ticks and filter changes', () => {
     component.searchParam = { fileType: FileType.FILE };
     const atFile = component.sortOptions;
 
     expect(component.sortOptions).toBe(atFile);
 
     component.searchParam.fileType = FileType.DIR;
-    const atDir = component.sortOptions;
+    expect(component.sortOptions).toBe(atFile);
 
-    expect(atDir).not.toBe(atFile);
-    expect(atDir.map((o) => o.value)).toEqual(['time', 'name', 'custom']);
+    component.searchParam.fileType = FileType.FILE;
+    expect(component.sortOptions).toBe(atFile);
+    expect(sortOptionValues()).toEqual(['time', 'name', 'custom', 'size']);
   });
 
-  it('choosing size under All narrows the listing to files', () => {
+  it('choosing size under All narrows the listing to files in one fetch', () => {
     component.searchParam = {};
     component.orderBy = 'size';
 
     component.onOrderByChange();
 
     expect(component.searchParam.fileType).toBe(FileType.FILE);
+    expect(http.postsTo('/file/list').length).toBe(1);
     const listReq = http.lastPostTo('/file/list').body;
     expect(listReq.fileType).toBe(FileType.FILE);
     expect(listReq.orderBy).toBe('size');
     expect(listReq.orderDir).toBe('desc');
   });
 
-  it('choosing size under Directory narrows the listing to files', () => {
+  it('choosing size under Directory narrows the listing to files in one fetch', () => {
     component.searchParam.fileType = FileType.DIR;
     component.orderBy = 'size';
 
     component.onOrderByChange();
 
     expect(component.searchParam.fileType).toBe(FileType.FILE);
-    expect(http.lastPostTo('/file/list').body.fileType).toBe(FileType.FILE);
+    expect(http.postsTo('/file/list').length).toBe(1);
+    const listReq = http.lastPostTo('/file/list').body;
+    expect(listReq.fileType).toBe(FileType.FILE);
+    expect(listReq.orderBy).toBe('size');
+    expect(listReq.orderDir).toBe('desc');
   });
 
   it('choosing size while already on File keeps the filter', () => {
