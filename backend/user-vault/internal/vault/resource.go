@@ -94,7 +94,23 @@ func UpdatePath(rail miso.Rail, req repo.UpdatePathReq) error {
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
 		return nil, repo.UpdatePath(rail, req)
 	})
-	return e
+	if e != nil {
+		return e
+	}
+	refreshAccessCaches(rail)
+	return nil
+}
+
+// refreshAccessCaches reloads the public and per-role access caches after a path
+// or binding changed, so a newly registered endpoint becomes reachable right
+// away instead of waiting for the scheduled reload or the binlog listener.
+func refreshAccessCaches(rail miso.Rail) {
+	if e := LoadPublicAccessCache(rail); e != nil {
+		rail.Errorf("Failed to reload public access cache, %v", e)
+	}
+	if e := BatchLoadRoleAccessCache(rail); e != nil {
+		rail.Errorf("Failed to reload role access cache, %v", e)
+	}
 }
 
 func GetRoleInfo(rail miso.Rail, req api.RoleInfoReq) (api.RoleInfoResp, error) {
@@ -136,6 +152,7 @@ func CreatePath(rail miso.Rail, req repo.CreatePathReq, user flow.User) error {
 		return BindPathRes(rail, repo.BindPathResReq{PathNo: pathNo, ResCode: req.ResCode})
 	}
 
+	refreshAccessCaches(rail)
 	return nil
 }
 
@@ -144,7 +161,11 @@ func DeletePath(rail miso.Rail, req repo.DeletePathReq) error {
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
 		return nil, repo.DeletePath(rail, req)
 	})
-	return e
+	if e != nil {
+		return e
+	}
+	refreshAccessCaches(rail)
+	return nil
 }
 
 func UnbindPathRes(rail miso.Rail, req repo.UnbindPathResReq) error {
@@ -152,7 +173,11 @@ func UnbindPathRes(rail miso.Rail, req repo.UnbindPathResReq) error {
 	_, e := lockPath(rail, req.PathNo, func() (any, error) {
 		return nil, repo.UnbindPathRes(rail, req)
 	})
-	return e
+	if e != nil {
+		return e
+	}
+	refreshAccessCaches(rail)
+	return nil
 }
 
 func BindPathRes(rail miso.Rail, req repo.BindPathResReq) error {
@@ -162,8 +187,11 @@ func BindPathRes(rail miso.Rail, req repo.BindPathResReq) error {
 			return repo.BindPathRes(rail, dbquery.GetDB(), req)
 		})
 	})
-
-	return e
+	if e != nil {
+		return e
+	}
+	refreshAccessCaches(rail)
+	return nil
 }
 
 func ListPaths(rail miso.Rail, req repo.ListPathReq) (repo.ListPathResp, error) {
