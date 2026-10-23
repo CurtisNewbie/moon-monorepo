@@ -117,7 +117,7 @@
                 </div>
                 <mat-form-field style="width: 100px;">
                     <mat-label>{{'manage-files' | trl:'fileType'}}</mat-label>
-                    <mat-select [(value)]="searchParam.fileType" (valueChange)="fetchFileInfoList()">
+                    <mat-select [(value)]="searchParam.fileType" (valueChange)="onFileTypeChange()">
                         <mat-option [value]="option.value" *ngFor="let option of allFileTypeOpts">
                             {{'manage-files' | trl:option.name.toLowerCase()}}
                         </mat-option>
@@ -127,9 +127,9 @@
                 <mat-form-field *ngIf="!currentDirIsComic" style="width: 120px;">
                     <mat-label>{{'manage-files' | trl:'sort'}}</mat-label>
                     <mat-select [(value)]="orderBy" (valueChange)="onOrderByChange()">
-                        <mat-option value="time">{{'manage-files' | trl:'time'}}</mat-option>
-                        <mat-option value="name">{{'manage-files' | trl:'name'}}</mat-option>
-                        <mat-option value="custom">{{'manage-files' | trl:'custom'}}</mat-option>
+                        <mat-option [value]="option.value" *ngFor="let option of sortOptions; trackBy: trackByOptionValue">
+                            {{'manage-files' | trl:option.name}}
+                        </mat-option>
                     </mat-select>
                 </mat-form-field>
 

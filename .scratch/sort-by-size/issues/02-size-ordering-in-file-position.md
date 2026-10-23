@@ -4,10 +4,10 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A position request under size returns the page the file occupies in the size-ordered listing, both directions
-- [ ] A position request under size applies the File-only type coercion
-- [ ] The result matches the page the listing actually places the file on
-- [ ] No resume cursor is created or read as part of the position calculation
-- [ ] Tests at the position seam cover both directions and the coerced type filter
+- [x] A position request under size returns the page the file occupies in the size-ordered listing, both directions
+- [x] A position request under size applies the File-only type coercion
+- [x] The result matches the page the listing actually places the file on
+- [x] No resume cursor is created or read as part of the position calculation
+- [x] Tests at the position seam cover both directions and the coerced type filter

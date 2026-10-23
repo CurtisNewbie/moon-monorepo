@@ -4,12 +4,12 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The size option appears in the sort dropdown only when the type filter is File
-- [ ] Choosing size under All or Directory sets the type filter to File and fetches the size-ordered list
-- [ ] Switching the type filter away from File while size is active resets the sort to the stored or default order and refetches
-- [ ] Size is never sent to the order-by preference endpoint
-- [ ] Browsing a size-ordered listing records no Resume Cursor and triggers no resume prompt
-- [ ] The size label is present in every locale the page uses
-- [ ] Component tests cover the dropdown visibility, the type coercion, the reset on type change, and the skipped preference upload
+- [x] The size option appears in the sort dropdown only when the type filter is File
+- [x] Choosing size under All or Directory sets the type filter to File and fetches the size-ordered list
+- [x] Switching the type filter away from File while size is active resets the sort to the stored or default order and refetches
+- [x] Size is never sent to the order-by preference endpoint
+- [x] Browsing a size-ordered listing records no Resume Cursor and triggers no resume prompt
+- [x] The size label is present in every locale the page uses
+- [x] Component tests cover the dropdown visibility, the type coercion, the reset on type change, and the skipped preference upload
