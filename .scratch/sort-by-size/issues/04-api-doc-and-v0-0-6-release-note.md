@@ -4,9 +4,9 @@
 
 **Blocked by:** 01, 02, 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The vfm API doc lists size among the sort values and states the File-only rule
-- [ ] `release/v0.0.6.md` exists and records the size sort from the user's point of view
-- [ ] `release/db-changes.md` gains no v0.0.6 entry
-- [ ] No schema snapshot or versioned DDL file is added
+- [x] The vfm API doc lists size among the sort values and states the File-only rule
+- [x] `release/v0.0.6.md` exists and records the size sort from the user's point of view
+- [x] `release/db-changes.md` gains no v0.0.6 entry
+- [x] No schema snapshot or versioned DDL file is added

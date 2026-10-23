@@ -185,3 +185,4 @@ No deploy pipeline lives in the repo: `deploy/docker-compose.yml` builds each se
 ## Release notes
 
 - [v0.0.5](./v0.0.5.md)
+- [v0.0.6](./v0.0.6.md)

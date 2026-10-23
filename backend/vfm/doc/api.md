@@ -237,9 +237,9 @@
     - "parentFile": (string) 
     - "limit": (int) 
     - "orderByName": (bool) 
-    - "orderBy": (string) 
-    - "orderDir": (string) 
-    - "fileType": (string) 
+    - "orderBy": (string) sort field, 'time' (default), 'name', 'custom' or 'size'; 'size' ranks files only, so a non-File fileType is coerced to File, and an empty direction means descending
+    - "orderDir": (string) sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
+    - "fileType": (string) type filter; a 'size' order forces it to File
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -690,8 +690,8 @@
     - "sensitive": (*bool) 
     - "fileKey": (*string) 
     - "orderByName": (bool) deprecated, use OrderBy instead
-    - "orderBy": (string) 
-    - "orderDir": (string) sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
+    - "orderBy": (string) sort field, 'time' (default), 'name', 'custom' or 'size'; 'size' ranks files only, so a non-File fileType is coerced to File, an empty direction means descending, and the sort is never saved as an order-by preference
+    - "orderDir": (string) sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
 - JSON Response:
     - "errorCode": (string) error code
     - "msg": (string) message
@@ -734,7 +734,7 @@
   	FileKey *string `json:"fileKey"`
   	OrderByName bool `json:"orderByName"` // deprecated, use OrderBy instead
   	OrderBy string `json:"orderBy"`
-  	OrderDir string `json:"orderDir"` // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
+  	OrderDir string `json:"orderDir"` // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
   }
 
 
@@ -780,7 +780,7 @@
     fileKey?: string;
     orderByName?: boolean;         // deprecated, use OrderBy instead
     orderBy?: string;
-    orderDir?: string;             // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)
+    orderDir?: string;             // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
   }
 
   export interface Paging {
