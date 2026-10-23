@@ -28,9 +28,8 @@ type dirZipChild struct {
 //
 // Only the caller's own, live directory is accepted. Sub-directories and their
 // contents are excluded by construction: the query selects direct file rows of
-// this one directory. A child without an fstore file id fails the request
-// instead of being silently dropped, so a minted archive never loses a file
-// the user can see.
+// this one directory. A child without an fstore file id cannot be served, so it
+// is skipped with a warning instead of failing the whole archive.
 func GenDirBundleKey(rail miso.Rail, db *gorm.DB, req GenerateDirZipReq, user flow.User) (string, error) {
 	dir, ok, err := findFile(rail, db, req.FileKey)
 	if err != nil {
@@ -61,6 +60,7 @@ func GenDirBundleKey(rail miso.Rail, db *gorm.DB, req GenerateDirZipReq, user fl
 		Eq("is_logic_deleted", DelN).
 		Eq("is_del", 0).
 		Eq("hidden", 0).
+		Where("fstore_file_id is not null and fstore_file_id != ''").
 		Order("name asc, id asc").
 		ScanVal(&children); err != nil {
 		return "", errs.Wrapf(err, "failed to query files in directory, fileKey: %v", req.FileKey)
@@ -70,8 +70,8 @@ func GenDirBundleKey(rail miso.Rail, db *gorm.DB, req GenerateDirZipReq, user fl
 	used := make(map[string]struct{}, len(children))
 	for _, c := range children {
 		if c.FstoreFileId == "" {
-			rail.Errorf("File in directory doesn't have mini-fstore file_id, dir: %v, name: %v", req.FileKey, c.Name)
-			return "", errs.NewErrf("Directory contains a file that cannot be downloaded, please contact system administrator")
+			rail.Warnf("Skipping zip entry, file has no mini-fstore file_id, dir: %v, name: %v", req.FileKey, c.Name)
+			continue
 		}
 		if problem := dirZipNameProblem(c.Name); problem != "" {
 			return "", errs.NewErrf("File %q in directory %q cannot be included in the zip archive: %s", c.Name, dir.Name, problem)

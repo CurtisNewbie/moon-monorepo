@@ -39,7 +39,7 @@ Only the directory's owner can download it.
 
 **Where the archive is built.** In mini-fstore, next to the bytes. Its file transfer routine already writes to any `io.Writer`, so a zip writer can consume it directly. No archive is persisted: the response streams, and nothing is written to storage or to a temp directory.
 
-**Selection rule.** vfm reads the directory's direct children: same parent, file type file, not deleted. Nothing recurses. The resolved set is ordered by name ascending, so the same directory always produces the same archive order.
+**Selection rule.** vfm reads the directory's direct children: same parent, file type file, not deleted, owned by the caller, not hidden, and carrying a stored file id. A child with no stored file id cannot be served, so it is left out and logged rather than failing the archive. Nothing recurses. The resolved set is ordered by name ascending, so the same directory always produces the same archive order.
 
 **Permission.** The directory must exist, must be a directory, must not be logically deleted, and its uploader must be the caller. Virtual folder grants are not consulted, because a grant only ever covers file rows and never a directory row.
 

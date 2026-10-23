@@ -447,23 +447,25 @@ func TestGenDirBundleKeyRefusesMissingFileRowAndDeletedDir(t *testing.T) {
 	}
 }
 
-func TestGenDirBundleKeyFailsOnChildWithoutFstoreFileId(t *testing.T) {
+func TestGenDirBundleKeySkipsChildWithoutFstoreFileId(t *testing.T) {
 	db := testMySQLConn(t)
 	mint := startDirZipFakeFstore(t)
 	user := testUser()
 
 	dir := insertDirZipDir(t, db, "", "with-ghost", user.UserNo)
 	insertDirZipChild(t, db, dir, "ghost.jpg", user.UserNo, "")
+	insertDirZipChild(t, db, dir, "real.jpg", user.UserNo, "fs-real")
 
 	key, err := GenDirBundleKey(miso.EmptyRail(), db, GenerateDirZipReq{FileKey: dir}, user)
-	if err == nil {
-		t.Fatal("expected an error")
+	if err != nil {
+		t.Fatalf("a child without an fstore file id should be skipped, got %v", err)
 	}
-	if key != "" {
-		t.Fatalf("expected no bundle key, got %q", key)
+	if key == "" {
+		t.Fatal("expected a bundle key")
 	}
-	if mint.count() != 0 {
-		t.Fatalf("expected no mint request, got %d", mint.count())
+	m := mint.all()
+	if len(m) != 1 || len(m[0].Items) != 1 || m[0].Items[0].Name != "real.jpg" {
+		t.Fatalf("expected only the servable child, got %+v", m)
 	}
 }
 
