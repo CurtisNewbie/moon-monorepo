@@ -245,13 +245,14 @@ const (
 	SortByTime   = "time"
 	SortByName   = "name"
 	SortByCustom = "custom"
+	SortBySize   = "size"
 )
 
 // resolveEffectiveSortForDir is the single place the directory sort rule lives,
 // for the requested values and whether the directory is comic:
 //   - an omitted field resolves to SortByTime;
-//   - an omitted direction resolves to ascending for name/custom and descending for time;
-//   - a comic directory is forced to name-ascending for the name/time fields (custom ordering is honored as requested).
+//   - an omitted direction resolves to ascending for name/custom and descending for time/size;
+//   - a comic directory is forced to name-ascending for the name/time/size fields (custom ordering is honored as requested).
 func resolveEffectiveSortForDir(orderBy, orderDir string, isComicDir bool) (string, string) {
 	if orderBy == "" {
 		orderBy = SortByTime
@@ -265,12 +266,22 @@ func resolveEffectiveSortForDir(orderBy, orderDir string, isComicDir bool) (stri
 	}
 
 	// force name-ascending for comic directories (except custom ordering)
-	if isComicDir && (orderBy == SortByTime || orderBy == SortByName) {
+	if isComicDir && (orderBy == SortByTime || orderBy == SortByName || orderBy == SortBySize) {
 		orderBy = SortByName
 		orderDir = "asc" // comic dirs keep default name-asc behavior
 	}
 
 	return orderBy, orderDir
+}
+
+// resolveFileTypeForSort coerces the type filter to FILE for a size sort. Size
+// has no meaning for a directory row, so a size order only ever ranks files.
+func resolveFileTypeForSort(orderBy string, fileType *string) *string {
+	if orderBy != SortBySize {
+		return fileType
+	}
+	file := FileTypeFile
+	return &file
 }
 
 // effectiveSort is the resolved sort plus what the resolver learned about the
@@ -287,9 +298,9 @@ type effectiveSort struct {
 
 // resolveEffectiveSort answers the sort field and direction a directory is
 // actually listed by. It loads the directory row only when the comic rule can
-// still change the answer (the normalized field is name or time; custom costs
-// zero loads) and only when dirKey is non-empty. It reports whether the row was
-// found and whether the query ran at all, so a caller that also needs the
+// still change the answer (the normalized field is name, time, or size; custom
+// costs zero loads) and only when dirKey is non-empty. It reports whether the row
+// was found and whether the query ran at all, so a caller that also needs the
 // directory does not repeat the lookup.
 //
 // Both the directory listing and the file-position calculation resolve through
@@ -298,9 +309,9 @@ func resolveEffectiveSort(rail miso.Rail, db *gorm.DB, orderBy, orderDir, dirKey
 	es := effectiveSort{}
 	es.OrderBy, es.OrderDir = resolveEffectiveSortForDir(orderBy, orderDir, false)
 
-	// custom ordering never needs the directory; only name/time can be forced.
+	// custom ordering never needs the directory; only name/time/size can be forced.
 	normalized := es.OrderBy
-	if dirKey == "" || (normalized != SortByName && normalized != SortByTime) {
+	if dirKey == "" || (normalized != SortByName && normalized != SortByTime && normalized != SortBySize) {
 		return es, nil
 	}
 
@@ -327,8 +338,8 @@ type ListFileReq struct {
 	Sensitive   *bool       `json:"sensitive"`
 	FileKey     *string     `json:"fileKey"`
 	OrderByName bool        `json:"orderByName" desc:"deprecated, use OrderBy instead"`
-	OrderBy     string      `json:"orderBy"` // SortByTime (default), SortByName, SortByCustom
-	OrderDir    string      `json:"orderDir" desc:"sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc)"`
+	OrderBy     string      `json:"orderBy"` // SortByTime (default), SortByName, SortByCustom, SortBySize (files only)
+	OrderDir    string      `json:"orderDir" desc:"sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)"`
 }
 
 type FilePositionReq struct {
@@ -377,6 +388,9 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (mi
 		if err != nil {
 			return res, err
 		}
+		// size ranks files only, so the request's type filter is coerced before
+		// the resolved sort is applied
+		req.FileType = resolveFileTypeForSort(req.OrderBy, req.FileType)
 		req.OrderBy = es.OrderBy
 		req.OrderDir = es.OrderDir
 		res, e = listFilesSelective(rail, db, req, user)
@@ -452,6 +466,13 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 				} else {
 					q = q.Order("fi.name asc")
 				}
+			case SortBySize:
+				// files only (the type filter is coerced), so no file_type prefix
+				dir := "desc"
+				if req.OrderDir == "asc" {
+					dir = "asc"
+				}
+				q = q.Order("fi.size_in_bytes " + dir + ", fi.id " + dir)
 			default: // SortByTime or empty
 				// ordering will be set below based on filename presence
 			}
