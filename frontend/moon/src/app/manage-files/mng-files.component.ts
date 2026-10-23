@@ -127,6 +127,19 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   inSensitiveMode = false;
   orderBy: string = 'time';
   orderByDir: string = 'desc';
+  /** sort options offered by the toolbar; size applies to a files listing only */
+  get sortOptions(): Option<string>[] {
+    const opts: Option<string>[] = [
+      { name: "time", value: "time" },
+      { name: "name", value: "name" },
+      { name: "custom", value: "custom" },
+    ];
+    if (this.searchParam.fileType === FileType.FILE) {
+      opts.push({ name: "size", value: "size" });
+    }
+    return opts;
+  }
+
   isReordering: boolean = false;
   trayOpen: boolean = false;
   dragOverIndex: number = -1;
@@ -350,7 +363,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           this.fetchFileInfoList(() => {
             this.pagingController.syncPage(tp);
           });
-        } else if (this.inDirFileKey && !this.dirPagePrompted) {
+        } else if (this.inDirFileKey && !this.dirPagePrompted && this.orderBy !== 'size') {
+          // a size sort records no cursor, so there is never one to resume
           this.dirPagePrompted = true;
           this.browseHistoryRecorder.getDirPage(this.inDirFileKey, this.orderBy, this.orderByDir).subscribe(fileKey => {
             // dialog prompt
@@ -842,8 +856,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   preview(u: FileInfo, idx: number): void {
     this.browseHistoryRecorder.record(u.uuid);
 
-    // Directory browse history — record after 3+ consecutive file views
-    if (this.inDirFileKey && u.uuid) {
+    // Directory browse history — record after 3+ consecutive file views.
+    // A size sort is transient, so it leaves no resumable position behind.
+    if (this.inDirFileKey && u.uuid && this.orderBy !== 'size') {
       if (this.prevPreviewedKey && u.uuid === this.prevPreviewedKey) {
         // same file: don't count toward streak. still record if already confirmed.
         if (this.dirReadingConfirmed) {
@@ -1709,6 +1724,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
    * Called when orderBy dropdown value changes
    */
   onOrderByChange() {
+    if (this.orderBy === 'size') {
+      // size ranks files only, so picking it narrows the mixture down to files;
+      // largest first is the useful default, and it is never remembered
+      if (this.searchParam.fileType !== FileType.FILE) {
+        this.searchParam.fileType = FileType.FILE;
+      }
+      this.orderByDir = 'desc';
+      this.fetchFileInfoList();
+      return;
+    }
     if (this.orderBy === 'name') {
       this.orderByDir = 'asc';
     } else if (this.orderBy === 'time') {
@@ -1728,10 +1753,27 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   /**
+   * Called when the file type filter changes. Size ranks files only, so leaving
+   * File while it is the active sort drops back to the order this directory
+   * would open with: its stored preference, or the default.
+   */
+  async onFileTypeChange(): Promise<void> {
+    if (this.orderBy === 'size' && this.searchParam.fileType !== FileType.FILE) {
+      this.orderBy = 'time';
+      this.orderByDir = 'desc';
+      if (!this.currentDirIsComic && !this.inFolderNo) {
+        await this.fetchOrderByPreference();
+      }
+    }
+    this.fetchFileInfoList();
+  }
+
+  /**
    * Called when order direction dropdown value changes
    */
   onOrderByDirChange() {
-    if (!this.currentDirIsComic && !this.inFolderNo) {
+    // a size sort is transient, so it is never written back as the preference
+    if (!this.currentDirIsComic && !this.inFolderNo && this.orderBy !== 'size') {
       this.http.post('vfm/open/api/file/order-by-preference', {
         orderBy: this.orderBy,
         orderDir: this.orderByDir,
@@ -1754,6 +1796,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         // discard stale response if the user changed sort state while the request was in flight
         if (this.orderBy !== orderByAtReq || this.orderByDir !== orderByDirAtReq) {
           return;
+        }
+        // size is transient: a directory opens with its own order or the default
+        if (this.orderBy === 'size') {
+          this.orderBy = 'time';
+          this.orderByDir = 'desc';
         }
         if (resp.data?.orderBy) {
           this.orderBy = resp.data.orderBy;
