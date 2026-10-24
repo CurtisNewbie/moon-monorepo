@@ -58,6 +58,10 @@
                 <mat-label>{{'drone-task' | trl:'searchUrl'}}</mat-label>
                 <input matInput [(ngModel)]="listTaskReq.url" (keyup)="isEnterKey($event) && listTasks()" />
             </mat-form-field>
+            <mat-form-field [ngStyle]="{'width': env.isMobile()? '250px': '400px'}">
+                <mat-label>{{'drone-task' | trl:'searchDirName'}}</mat-label>
+                <input matInput [(ngModel)]="listTaskReq.dirName" (keyup)="isEnterKey($event) && listTasks()" />
+            </mat-form-field>
         </div>
     </div>
 
