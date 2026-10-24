@@ -383,9 +383,25 @@ describe('MngFilesComponent size sort', () => {
       imgFile('u0', 'a.bin'),
       imgFile('u1', 'b.bin'),
       imgFile('u2', 'c.bin'),
+      imgFile('u3', 'd.bin'),
+      imgFile('u4', 'e.bin'),
     ]);
 
     expect(browseHistoryRecorder.recordDirPage).toHaveBeenCalled();
+  });
+
+  it('waits for a 5-view streak before recording a resume cursor', () => {
+    component.inDirFileKey = 'dir-1';
+    component.orderBy = 'time';
+
+    previewFour([
+      imgFile('u0', 'a.bin'),
+      imgFile('u1', 'b.bin'),
+      imgFile('u2', 'c.bin'),
+      imgFile('u3', 'd.bin'),
+    ]);
+
+    expect(browseHistoryRecorder.recordDirPage).not.toHaveBeenCalled();
   });
 
   it('does not offer to resume a directory under a size sort', async () => {

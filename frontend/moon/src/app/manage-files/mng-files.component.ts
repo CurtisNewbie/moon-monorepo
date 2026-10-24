@@ -150,7 +150,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   lastDragClientY: number = -1;
   private targetPage: number | null = null;
   private targetFileKey: string | null = null;
-  /** directory reading streak — confirmed after 3+ consecutive file views */
+  /** directory reading streak — confirmed after 5+ consecutive file views */
   private dirReadingConfirmed: boolean = false;
   /** consecutive file preview count for streak detection */
   private dirPreviewCount: number = 0;
@@ -871,7 +871,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   preview(u: FileInfo, idx: number): void {
     this.browseHistoryRecorder.record(u.uuid);
 
-    // Directory browse history — record after 3+ consecutive file views.
+    // Directory browse history — record after 5+ consecutive file views.
     // A size sort is transient, so it leaves no resumable position behind.
     if (this.inDirFileKey && u.uuid && this.orderBy !== 'size') {
       if (this.prevPreviewedKey && u.uuid === this.prevPreviewedKey) {
@@ -884,8 +884,8 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
         if (!this.dirReadingConfirmed) {
           this.dirPreviewCount++;
-          // Confirm reading intent after 3+ distinct consecutive file views
-          if (this.dirPreviewCount >= 3) {
+          // Confirm reading intent after 5+ distinct consecutive file views
+          if (this.dirPreviewCount >= 5) {
             this.dirReadingConfirmed = true;
           }
         }
