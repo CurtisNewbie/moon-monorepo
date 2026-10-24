@@ -46,6 +46,7 @@ export interface PageRes {
 export interface ListTaskReq {
   paging?: Paging;
   url?: string;
+  dirName?: string;
   taskId?: string;
   status?: string;
   platform?: string;
