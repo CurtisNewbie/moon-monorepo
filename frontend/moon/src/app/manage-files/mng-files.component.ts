@@ -1144,6 +1144,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
             this.snackBar.open(resp.msg, "ok", { duration: 6000 });
             return;
           }
+          this.curr = null;
           this.fileService.jumpToZipDownloadUrl(resp.data);
         },
         error: (err) => {

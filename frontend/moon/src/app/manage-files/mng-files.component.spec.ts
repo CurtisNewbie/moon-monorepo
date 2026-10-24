@@ -661,6 +661,24 @@ describe('MngFilesComponent directory zip download', () => {
     });
   });
 
+  it('collapses the expanded panel once the archive key arrives', () => {
+    component.curr = dir('Photos');
+
+    component.downloadDirAsZip(dir('Photos'));
+
+    expect(component.curr).toBeNull();
+  });
+
+  it('keeps the panel open when the key request is refused', () => {
+    http.dirZipResp = { error: true, msg: 'not permitted' };
+    const d = dir('Photos');
+    component.curr = d;
+
+    component.downloadDirAsZip(d);
+
+    expect(component.curr).toBe(d);
+  });
+
   it('does nothing for a file row', () => {
     component.downloadDirAsZip(imgFile('u0', 'a.png'));
 
