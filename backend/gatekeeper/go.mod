@@ -1,11 +1,11 @@
 module github.com/curtisnewbie/gatekeeper
 
-go 1.24.4
+go 1.26.5
 
 replace github.com/curtisnewbie/user-vault => ../user-vault
 
 require (
-	github.com/curtisnewbie/miso v0.4.16-0.20260718082143-e47321d5d9b6
+	github.com/curtisnewbie/miso v0.4.25-0.20261024130510-c1a597c2fb50
 	github.com/curtisnewbie/user-vault v0.0.0
 	github.com/spf13/cast v1.6.0
 )
@@ -15,7 +15,7 @@ require (
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/enetx/g v1.0.216 // indirect
 	github.com/enetx/http v1.0.28 // indirect
 	github.com/enetx/http2 v1.0.26 // indirect

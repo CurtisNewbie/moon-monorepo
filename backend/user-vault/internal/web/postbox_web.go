@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/mysql"
 	"github.com/curtisnewbie/miso/middleware/redis"
@@ -141,7 +142,7 @@ func ApiWsExchange(inb *miso.Inbound, req api.WsExchangeReq) (flow.User, error) 
 	val, err := r.GetDel(rail.Context(), key).Result()
 	if err != nil {
 		if err == redis.Nil {
-			return flow.User{}, miso.NewErrf("Invalid or expired ticket")
+			return flow.User{}, errs.NewErrf("Invalid or expired ticket")
 		}
 		return flow.User{}, fmt.Errorf("failed to lookup ticket: %w", err)
 	}
