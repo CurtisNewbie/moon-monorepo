@@ -11,6 +11,10 @@ Manual monorepo: Go microservices in `backend/<service>/`, Angular app in `front
 - Go services, backend config, build order, DB schema, deployment → read `backend/AGENTS.md` first.
 - Angular app → read `frontend/AGENTS.md` first.
 
+### Sibling project: drone
+
+`drone` is a private Go backend service (miso) that belongs to this system but is not in this monorepo — its code lives at `../drone`, it is not published publicly and whether it will be is undecided. It is optional: nothing here depends on it. It calls this deployment's services at runtime (registered in `user-vault`, logs collected by `logbot`) and is consumed by the Angular app; its `doc/agents/` covers architecture, API and config. When a task touches drone, work in `../drone` and read its `AGENTS.md` first.
+
 ## Release
 
 Cutting a release — version bump, schema manifest, tag, GitHub notes, deploy order — follow `release/README.md`. Schema history lives in `release/db-changes.md`; per-release notes in `release/<version>.md`.
