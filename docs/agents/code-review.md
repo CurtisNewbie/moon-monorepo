@@ -6,8 +6,7 @@ answers to this file. Files under `backend/` and `frontend/` answer to their own
 
 ## Membership
 
-- `dev-flow` — the workflow. It carries no review rules, so the review pass skips it.
-- `code-review` — the two-axis pass (Standards + Spec) run on every diff.
+- `dev-flow` — the workflow. It carries no review rules of its own, so the review pass skips it.
 
 ## Standards sources
 
@@ -17,5 +16,5 @@ answers to this file. Files under `backend/` and `frontend/` answer to their own
 
 ## Reviewing a diff
 
-Walk every entry above against the diff, then report per axis. A diff spanning contexts walks each
-context's contract.
+Walk every entry above against the diff, on top of `code-review`'s Standards and Spec axes. A diff
+spanning contexts walks each context's contract.

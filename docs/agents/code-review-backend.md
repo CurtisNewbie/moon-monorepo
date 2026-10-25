@@ -6,7 +6,6 @@ The backend review contract, named from `backend/AGENTS.md`.
 
 - `miso` — mandatory before any backend Go code. Load the skill, then walk
   `references/code-review-checklist.md` entry by entry against the diff.
-- `code-review` — the two-axis pass (Standards + Spec) run on every diff.
 
 ## Standards sources
 
@@ -16,4 +15,4 @@ The backend review contract, named from `backend/AGENTS.md`.
 
 ## Reviewing a diff
 
-Walk every entry above against the diff, then report per axis.
+Walk every entry above against the diff, on top of `code-review`'s Standards and Spec axes.
