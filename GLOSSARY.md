@@ -41,5 +41,13 @@ The sort order a user last chose for a directory. A directory opens in its Order
 _Avoid_: Sort setting, default sort, sort cache
 
 **Size Sort**:
-A listing ordered by file size, offered only while the File type filter is selected, never stored as an Order-By Preference and never resumed.
+A listing ordered by file size, offered at all times and files only, so that a directory row, which has no size, never sits in it. Never stored as an Order-By Preference and never resumed. At root it spans every directory.
 _Avoid_: sort by bytes, size order, biggest first
+
+**Search Term**:
+One fragment a Keyword Search requires a name to contain. What the user types is split into Search Terms at every separator, at a letter-to-digit or lower-to-upper change, and, for a run of Latin letters, into dictionary words, so `my holiday`, `my-holiday` and `myholiday` all yield the same two terms. Every term must be present, in any order.
+_Avoid_: token, keyword word, n-gram
+
+**Keyword Search**:
+A listing narrowed to files whose name contains every Search Term. Inside a directory it covers that directory alone; at root it covers every directory.
+_Avoid_: fulltext search, fuzzy search, filter

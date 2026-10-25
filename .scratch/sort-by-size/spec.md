@@ -8,9 +8,13 @@ A user browsing a directory can order it by time, name, or a custom drag order. 
 
 Size has no meaning for a directory row, though. Ordering a mixed list by size would rank directories at zero bytes, so a size order only makes sense when the listing is files.
 
+Browsing at root is worse than that. The biggest files are spread across directories, and a root listing under a size order shows only the files that sit at root, so the answer to "what is taking all my space" needs a walk through every directory by hand.
+
 ## Solution
 
-Add `size` as a fourth sort field on the directory listing. It is offered only while the File type filter is selected, and choosing it makes the listing files only: a request that asks for size under any other type filter is coerced to File.
+Add `size` as a fourth sort field on the directory listing. It is offered at all times, and choosing it makes the listing files only: a request that asks for size under any other type filter is coerced to File.
+
+At root the order spans the whole account. A size order with no directory named returns every file the user owns, in every directory, largest first. Inside a directory it stays scoped to that directory.
 
 The listing opens largest first. The direction control still works. Size is transient, so the directory does not remember it and no Resume Cursor is recorded or offered under it.
 
@@ -35,6 +39,8 @@ The position endpoint resolves size as well, so jumping to a file from a search 
 15. As a moon user, I want the file tray and bulk actions to work unchanged under size order, so that selecting across pages still works.
 16. As a release engineer, I want this shipped in v0.0.6 without a schema change, so that no migration step is needed.
 17. As a moon user, I want the reset button to clear a size sort, so that I return to the normal time order instead of staying in a files-only ranking.
+18. As a moon user, I want a size order at root to rank every file I own, so that the biggest space users are on page one without opening directories one by one.
+19. As a moon user, I want a size order inside a directory to stay inside it, so that the ranking matches the address I am looking at.
 
 ## Implementation Decisions
 
@@ -43,6 +49,8 @@ The position endpoint resolves size as well, so jumping to a file from a search 
 **Availability and coercion.** Size applies only to a listing of files. When the listing request asks for size while the type filter is anything other than File, including absent, the effective type filter becomes File for that request. The response then contains files only, and the position query applies the same coercion. An unknown sort value keeps today's behavior and falls back to the default order.
 
 **Ordering.** Size orders by `size_in_bytes` in the requested direction, then by row id in the same direction. Id breaks ties so pagination stays stable when several files share a size. There is no file-type prefix on the order clause, because the listing is files only.
+
+**Root scope.** A size order with no directory named drops the parent filter, so the listing spans every directory of the requesting user. The type coercion already makes it files only. Inside a directory the parent filter stays. No other sort gets this treatment, so time, name and custom at root keep listing root-level rows.
 
 **Default direction.** An omitted direction for size resolves to descending. An explicit ascending direction is honored.
 
@@ -66,7 +74,7 @@ Good tests assert visible behavior: the order of returned rows, which rows are r
 
 Two existing seams cover the feature, and no new seam is needed.
 
-The backend listing seam is the list operation itself, which already resolves sort and comic rules against a real test database. The existing sort tests are the prior art. New tests cover size ordering in both directions, the id tie-break, coercion of a non-File type filter to File, size under a keyword search, the comic force, and that a size listing returns no directories.
+The backend listing seam is the list operation itself, which already resolves sort and comic rules against a real test database. The existing sort tests are the prior art. New tests cover size ordering in both directions, the id tie-break, coercion of a non-File type filter to File, size under a keyword search, the comic force, and that a size listing returns no directories. Root scope is tested at the same seam, by asking for a size order with no directory and asserting that files from several directories come back ranked by size, and that a size order with a directory returns only that directory's files.
 
 The backend position seam is the position calculation, tested the same way as the existing position tests. New tests cover the page a file lands on under size in both directions and under the coerced File filter.
 
@@ -78,7 +86,6 @@ The frontend seam is the manage-files component with its HTTP client stubbed. Ne
 - Persisting size as an Order-By Preference or resuming under it.
 - Schema or index changes.
 - Showing human-readable or relative sizes differently from today.
-- A global largest-files view across directories.
 - Changing how the custom drag order or comic reading order works.
 
 ## Further Notes
