@@ -4,9 +4,9 @@
 
 **Blocked by:** 01, 02, 07
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The listing endpoint's keyword parameter is documented with terms, any order, separator insensitivity, case insensitivity and scope
-- [ ] The listing endpoint's sort enumeration notes that a size order at root spans every directory and stays files only
-- [ ] No service document still describes name search as a fulltext match
-- [ ] The v0.0.6 release note records the search change, the root size scope and the dropped fulltext index
+- [x] The listing endpoint's keyword parameter is documented with terms, any order, separator insensitivity, case insensitivity and scope
+- [x] The listing endpoint's sort enumeration notes that a size order at root spans every directory and stays files only
+- [x] No service document still describes name search as a fulltext match
+- [x] The v0.0.6 release note records the search change, the root size scope and the dropped fulltext index

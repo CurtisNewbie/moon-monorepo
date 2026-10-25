@@ -4,21 +4,21 @@
 
 **Blocked by:** none
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A fragment of a name matches, so `holid` finds `holiday.mp4`
-- [ ] Terms match in any order, so `trip holiday` finds `holiday-trip-2024.mp4` and `2024-holiday-my-trip.mp4` matches `my holiday`
-- [ ] Spaces the user types stand for any separator on either side, so `my holiday`, `my-holiday` and `myholiday` all find `my_holiday.mp4`
-- [ ] A short term narrows the list instead of being dropped, so `my` and `01` both filter
-- [ ] A Chinese fragment matches, so `剧集` finds `剧集01.mp4`
-- [ ] A letters-and-digits run matches, so `IMG2024` and `S01E02` find their files
-- [ ] Every term is required, so a second term cannot widen the result
-- [ ] A keyword containing `%` or `_` cannot widen the result
-- [ ] A keyword of separators only leaves the listing unfiltered and leaves a root listing root-scoped
-- [ ] Terms are deduplicated and capped
-- [ ] Hidden, logically deleted and sensitive rows stay out exactly as before
-- [ ] Keyword scope is unchanged, directory-scoped inside a directory and account-wide at root
-- [ ] The time order under a keyword still orders by row id, and name, custom and size keep their own clauses
-- [ ] The splitter has a table test covering the separator, transition and dictionary tiers, a Chinese run, and a run that is already a word
-- [ ] Listing tests at the existing listing seam cover a fragment, word order, both separator directions, a name typed without separators, a short term, a Chinese name, a letters-and-digits name, all terms being required, and `%` and `_` staying literal
-- [ ] The new dependency is declared in the service module with no transitive additions
+- [x] A fragment of a name matches, so `holid` finds `holiday.mp4`
+- [x] Terms match in any order, so `trip holiday` finds `holiday-trip-2024.mp4` and `2024-holiday-my-trip.mp4` matches `my holiday`
+- [x] Spaces the user types stand for any separator on either side, so `my holiday`, `my-holiday` and `myholiday` all find `my_holiday.mp4`
+- [x] A short term narrows the list instead of being dropped, so `my` and `01` both filter
+- [x] A Chinese fragment matches, so `剧集` finds `剧集01.mp4`
+- [x] A letters-and-digits run matches, so `IMG2024` and `S01E02` find their files
+- [x] Every term is required, so a second term cannot widen the result
+- [x] A keyword containing `%` or `_` cannot widen the result
+- [x] A keyword of separators only leaves the listing unfiltered and leaves a root listing root-scoped
+- [x] Terms are deduplicated and capped
+- [x] Hidden, logically deleted and sensitive rows stay out exactly as before
+- [x] Keyword scope is unchanged, directory-scoped inside a directory and account-wide at root
+- [x] The time order under a keyword still orders by row id, and name, custom and size keep their own clauses
+- [x] The splitter has a table test covering the separator, transition and dictionary tiers, a Chinese run, and a run that is already a word
+- [x] Listing tests at the existing listing seam cover a fragment, word order, both separator directions, a name typed without separators, a short term, a Chinese name, a letters-and-digits name, all terms being required, and `%` and `_` staying literal
+- [x] The new dependency is declared in the service module with no transitive additions

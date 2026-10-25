@@ -33,8 +33,7 @@ CREATE TABLE vfm.file_info (
   KEY `parent_file_create_time_idx` (`parent_file`,`create_time`),
   KEY `idx_parent_thumbnail` (`parent_file`,`id` DESC),
   KEY `idx_parent_name` (`parent_file`, `name`),
-  KEY `idx_parent_seq_key` (`parent_file`, `seq_key`),
-  FULLTEXT KEY `name_idx` (`name`)
+  KEY `idx_parent_seq_key` (`parent_file`, `seq_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE vfm.vfolder (

@@ -331,14 +331,14 @@ func resolveEffectiveSort(rail miso.Rail, db *gorm.DB, orderBy, orderDir, dirKey
 
 type ListFileReq struct {
 	Page        miso.Paging `json:"paging"`
-	Filename    *string     `json:"filename"`
+	Filename    *string     `json:"filename" desc:"keyword search on the file name. The keyword is split into terms and every term must appear somewhere in the name, in any order; the separators between words do not matter, so 'my holiday', 'my-holiday' and 'myholiday' all match 'my_holiday.mp4'. Matching is case-insensitive. Inside a directory the keyword narrows that directory; at root it covers every directory of the account. A keyword that yields no terms is ignored; at most 16 terms are used."`
 	FolderNo    *string     `json:"folderNo"`
 	FileType    *string     `json:"fileType" desc:"type filter. A 'size' order forces it to File."`
 	ParentFile  *string     `json:"parentFile"`
 	Sensitive   *bool       `json:"sensitive"`
 	FileKey     *string     `json:"fileKey"`
 	OrderByName bool        `json:"orderByName" desc:"deprecated, use OrderBy instead"`
-	OrderBy     string      `json:"orderBy" desc:"sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File. For size, an empty direction means descending, and the sort is never saved as an order-by preference."`
+	OrderBy     string      `json:"orderBy" desc:"sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File; at root (no parentFile) it spans every directory of the account and stays files only. For size, an empty direction means descending, and the sort is never saved as an order-by preference."`
 	OrderDir    string      `json:"orderDir" desc:"sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)"`
 }
 
@@ -439,8 +439,19 @@ func ListFiles(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (mi
 
 func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.User) (miso.PageRes[ListedFile], error) {
 
+	// Split the keyword before IsEmpty(): a keyword that yields no term
+	// (separators only) is absent entirely, so it neither filters nor changes
+	// the scope of a root listing.
+	var terms []string
+	if req.Filename != nil {
+		if terms = splitSearchTerms(*req.Filename); len(terms) == 0 {
+			req.Filename = nil
+		}
+	}
+
 	//  If parentFile is empty, and filename are not queried, then we only return the top level file or dir.
-	if req.IsEmpty() {
+	//  A size order ranks every file the user owns, so it keeps the parent filter absent instead of narrowing to the top level.
+	if req.IsEmpty() && req.OrderBy != SortBySize {
 		req.ParentFile = new(string) // top-level file/dir
 	}
 
@@ -490,8 +501,12 @@ func listFilesSelective(rail miso.Rail, db *gorm.DB, req ListFileReq, user flow.
 				q = q.Eq("fi.sensitive_mode", "N")
 			}
 
-			if req.Filename != nil && *req.Filename != "" {
-				q = q.Where("match(fi.name) against (? IN NATURAL LANGUAGE MODE)", req.Filename)
+			// every term must appear somewhere in the name, in any order; terms
+			// are letters and digits only, so no LIKE escaping is needed
+			if len(terms) > 0 {
+				for _, term := range terms {
+					q = q.Like("fi.name", term)
+				}
 				if req.OrderBy == "" || req.OrderBy == SortByTime {
 					if req.OrderDir == "asc" {
 						q = q.Order("fi.id asc")

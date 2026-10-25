@@ -88,7 +88,7 @@ The existing sort and position tests are the prior art and stay as they are, apa
 
 ## Further Notes
 
-Known limitation. The dictionary tier splits a concatenated run only when its parts are English dictionary words. A run made of pinyin, brand names or model numbers stays whole, so a user who types such a name without its separators will miss it. The separator and transition tiers still catch the common cases.
+Known limitation. The dictionary tier splits a concatenated run only when every piece is in the bundled word list. A run whose pieces are not in the bundled word list stays whole, so a user who types such a name without its separators will miss it. The separator and transition tiers still catch the common cases.
 
 After this change the file name column has no fulltext index and no fallback search path. The listing with no keyword, the position calculation and every other query are unaffected.
 

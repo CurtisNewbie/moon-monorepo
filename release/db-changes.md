@@ -19,3 +19,9 @@ Apply before deploying `vfm`.
 
 1. [docs/schema/v0.0.5/vfm.sql](../docs/schema/v0.0.5/vfm.sql)
 
+## Release v0.0.6
+
+Apply before deploying `vfm`.
+
+1. [docs/schema/v0.0.6/vfm.sql](../docs/schema/v0.0.6/vfm.sql)
+

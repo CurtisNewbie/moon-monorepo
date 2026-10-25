@@ -684,14 +684,14 @@
       - "limit": (int) page limit
       - "page": (int) page number, 1-based
       - "total": (int) total count
-    - "filename": (*string) 
+    - "filename": (*string) keyword search on the file name. The keyword is split into terms and every term must appear somewhere in the name, in any order; the separators between words do not matter, so 'my holiday', 'my-holiday' and 'myholiday' all match 'my_holiday.mp4'. Matching is case-insensitive. Inside a directory the keyword narrows that directory; at root it covers every directory of the account. A keyword that yields no terms is ignored; at most 16 terms are used.
     - "folderNo": (*string) 
     - "fileType": (*string) type filter. A 'size' order forces it to File.
     - "parentFile": (*string) 
     - "sensitive": (*bool) 
     - "fileKey": (*string) 
     - "orderByName": (bool) deprecated, use OrderBy instead
-    - "orderBy": (string) sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File. For size, an empty direction means descending, and the sort is never saved as an order-by preference.
+    - "orderBy": (string) sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File; at root (no parentFile) it spans every directory of the account and stays files only. For size, an empty direction means descending, and the sort is never saved as an order-by preference.
     - "orderDir": (string) sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
 - JSON Response:
     - "errorCode": (string) error code
@@ -727,14 +727,14 @@
   ```go
   type ListFileReq struct {
   	Page miso.Paging `json:"paging"`
-  	Filename *string `json:"filename"`
+  	Filename *string `json:"filename"` // keyword search on the file name. The keyword is split into terms and every term must appear somewhere in the name, in any order; the separators between words do not matter, so 'my holiday', 'my-holiday' and 'myholiday' all match 'my_holiday.mp4'. Matching is case-insensitive. Inside a directory the keyword narrows that directory; at root it covers every directory of the account. A keyword that yields no terms is ignored; at most 16 terms are used.
   	FolderNo *string `json:"folderNo"`
   	FileType *string `json:"fileType"` // type filter. A 'size' order forces it to File.
   	ParentFile *string `json:"parentFile"`
   	Sensitive *bool `json:"sensitive"`
   	FileKey *string `json:"fileKey"`
   	OrderByName bool `json:"orderByName"` // deprecated, use OrderBy instead
-  	OrderBy string `json:"orderBy"` // sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File. For size, an empty direction means descending, and the sort is never saved as an order-by preference.
+  	OrderBy string `json:"orderBy"` // sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File; at root (no parentFile) it spans every directory of the account and stays files only. For size, an empty direction means descending, and the sort is never saved as an order-by preference.
   	OrderDir string `json:"orderDir"` // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
   }
 
@@ -773,14 +773,14 @@
   ```ts
   export interface ListFileReq {
     paging?: Paging;
-    filename?: string;
+    filename?: string;             // keyword search on the file name. The keyword is split into terms and every term must appear somewhere in the name, in any order; the separators between words do not matter, so 'my holiday', 'my-holiday' and 'myholiday' all match 'my_holiday.mp4'. Matching is case-insensitive. Inside a directory the keyword narrows that directory; at root it covers every directory of the account. A keyword that yields no terms is ignored; at most 16 terms are used.
     folderNo?: string;
     fileType?: string;             // type filter. A 'size' order forces it to File.
     parentFile?: string;
     sensitive?: boolean;
     fileKey?: string;
     orderByName?: boolean;         // deprecated, use OrderBy instead
-    orderBy?: string;              // sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File. For size, an empty direction means descending, and the sort is never saved as an order-by preference.
+    orderBy?: string;              // sort field, 'time' (default), 'name', 'custom' or 'size'. A 'size' sort ranks files only, so a non-File fileType is coerced to File; at root (no parentFile) it spans every directory of the account and stays files only. For size, an empty direction means descending, and the sort is never saved as an order-by preference.
     orderDir?: string;             // sort direction, 'asc' or 'desc', empty means default (time: desc, name: asc, size: desc)
   }
 

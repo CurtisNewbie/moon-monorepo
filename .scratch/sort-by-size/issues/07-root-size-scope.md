@@ -4,14 +4,14 @@
 
 **Blocked by:** none
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A size order with no directory returns files from several directories, ordered by size descending
-- [ ] The direction control still flips the order, and row id breaks ties across directories so paging is stable
-- [ ] A size order with a keyword at root ranks only the matches, across every directory
-- [ ] A size order inside a directory returns only that directory's files
-- [ ] The listing stays files only under a size order, with no directory rows
-- [ ] Time, name and custom orders at root still return root-level rows only
-- [ ] Hidden, logically deleted and sensitive rows stay out
-- [ ] No resume cursor is recorded or offered under a size order, at root or in a directory
-- [ ] Tests at the listing seam cover the root listing, the in-directory listing, the keyword case, and the three orders that do not become global
+- [x] A size order with no directory returns files from several directories, ordered by size descending
+- [x] The direction control still flips the order, and row id breaks ties across directories so paging is stable
+- [x] A size order with a keyword at root ranks only the matches, across every directory
+- [x] A size order inside a directory returns only that directory's files
+- [x] The listing stays files only under a size order, with no directory rows
+- [x] Time, name and custom orders at root still return root-level rows only
+- [x] Hidden, logically deleted and sensitive rows stay out
+- [x] No resume cursor is recorded or offered under a size order, at root or in a directory
+- [x] Tests at the listing seam cover the root listing, the in-directory listing, the keyword case, and the three orders that do not become global

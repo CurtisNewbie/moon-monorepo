@@ -4,10 +4,10 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The v0.0.6 increment drops the fulltext index from `file_info`
-- [ ] The current snapshot for the service carries the table without that index
-- [ ] `release/db-changes.md` lists the increment file under the v0.0.6 section
-- [ ] The `versioned_file` fulltext index is untouched in both the increment and the snapshot
-- [ ] The change is applied by hand, with no migration tooling or auto-migration added
+- [x] The v0.0.6 increment drops the fulltext index from `file_info`
+- [x] The current snapshot for the service carries the table without that index
+- [x] `release/db-changes.md` lists the increment file under the v0.0.6 section
+- [x] The `versioned_file` fulltext index is untouched in both the increment and the snapshot
+- [x] The change is applied by hand, with no migration tooling or auto-migration added
