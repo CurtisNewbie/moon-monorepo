@@ -34,3 +34,7 @@ The five canonical triage labels (default strings). `docs/agents/triage-labels.m
 ### Domain docs
 
 This is a single-context repo: root `GLOSSARY.md` + `docs/adr/`. Read them before exploring an unfamiliar area; `docs/agents/domain.md` covers how the skills consume them.
+
+### Code review
+
+Repo-wide review contract: skills to load on every run, and their review rules. Backend and frontend code answer to their own contracts. See `docs/agents/code-review.md`.

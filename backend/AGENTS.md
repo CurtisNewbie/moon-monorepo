@@ -59,3 +59,7 @@ See service-specific `doc/config.md` for custom properties.
 ## Deployment
 
 Production runs on Docker Compose (`deploy/docker-compose.yml`): Nginx reverse proxy, Prometheus monitoring, Grafana dashboard. Config files differ from development — see [Configuration](#configuration).
+
+## Code review
+
+Backend Go code answers to the review contract in `docs/agents/code-review-backend.md`: the `miso` skill's checklist, walked entry by entry against the diff.

@@ -43,3 +43,7 @@ See `frontend/moon/doc/agents/i18n.md` for full guidelines.
 ## Pagination
 
 Paged lists are driven by `ControlledPaginatorComponent`. See `frontend/moon/doc/agents/pagination.md` before wiring a list fetch or configuring a page limit — the limit has to be applied before the paginator's first fetch, which its `pageChanged` output triggers.
+
+## Code review
+
+Frontend code answers to the review contract in `frontend/moon/doc/agents/code-review.md`.
