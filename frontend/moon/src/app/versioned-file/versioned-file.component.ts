@@ -22,9 +22,9 @@ import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
 import { isEnterKey } from "src/common/condition";
-import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ConfirmDialog } from "src/common/dialog";
+import { dialogSizeVw } from "src/common/dialog-size";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 
 export interface ApiDelVerFileReq {
@@ -45,7 +45,7 @@ export interface ApiListVerFileHistoryRes {
   sizeLabel?: string;
 }
 
-function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
+function preview(u, dialog, nav, fileService, onNav = null): void {
   if (!canPreview(u.name)) {
     return;
   }
@@ -98,7 +98,6 @@ function preview(u, dialog, nav, fileService, isMobile, onNav = null): void {
             data: {
               name: u.name,
               url: getDownloadUrl(),
-              isMobile: isMobile,
               rotate: false,
             },
           });
@@ -224,7 +223,6 @@ export class VerFileHistoryComponent implements OnInit {
       this.dialog,
       this.nav,
       this.fileService,
-      this.env.isMobile(),
       () => {
         this.dialogRef.close();
       }
@@ -244,7 +242,6 @@ export class VerFileHistoryComponent implements OnInit {
     private fileService: FileInfoService,
     private dialog: MatDialog,
     private nav: NavigationService,
-    public env: Env,
     private snackBar: MatSnackBar
   ) {}
 
@@ -525,7 +522,7 @@ export class VersionedFileComponent implements OnInit {
 
   guessFileIcon = guessFileIconClz;
   preview = (u) => {
-    preview(u, this.dialog, this.nav, this.fileService, this.env.isMobile());
+    preview(u, this.dialog, this.nav, this.fileService);
   };
 
   @ViewChild(ControlledPaginatorComponent)
@@ -536,7 +533,6 @@ export class VersionedFileComponent implements OnInit {
     private fileService: FileInfoService,
     private dialog: MatDialog,
     private nav: NavigationService,
-    public env: Env,
     private snackBar: MatSnackBar,
     private confirm: ConfirmDialog
   ) {}
@@ -708,7 +704,7 @@ export class VersionedFileComponent implements OnInit {
   showVerFileHistory(f: ApiListVerFileRes) {
     const dialogRef: MatDialogRef<VerFileHistoryComponent, boolean> =
       this.dialog.open(VerFileHistoryComponent, {
-        width: "80vw",
+        ...dialogSizeVw(80),
         data: { verFileId: f.verFileId, preview: () => this.preview },
       });
 

@@ -1,9 +1,19 @@
 import { EventEmitter } from '@angular/core';
 import { of, Subject, throwError } from 'rxjs';
 
+import { Env } from 'src/common/env-util';
 import { FileInfo, FileType } from 'src/common/file-info';
+import {
+  FakeMediaQueryList,
+  installFakeMatchMedia,
+} from 'src/testing/fake-media-query-list';
 import { FileInfoService } from '../file-info.service';
 import { MngFilesComponent } from './mng-files.component';
+
+/** Layout signal for tests that do not care which mode is active. */
+function staticEnv(isMobile: boolean): Env {
+  return { isMobile: () => isMobile, mobile$: of(isMobile) } as any;
+}
 
 /**
  * Controllable stand-in for the MatDialogRef returned by MatDialog.open().
@@ -166,7 +176,7 @@ describe('MngFilesComponent size sort', () => {
       { open: jasmine.createSpy('open') } as any,
       browseHistoryRecorder as any,
       {} as any,
-      { isMobile: () => false } as any
+      staticEnv(false)
     );
 
     component.pagingController = {
@@ -528,7 +538,7 @@ describe('MngFilesComponent preview nav coalescing', () => {
       snackBar as any,
       browseHistoryRecorder as any,
       {} as any,
-      { isMobile: () => false } as any
+      staticEnv(false)
     );
 
     component.fileInfoList = [
@@ -630,7 +640,7 @@ describe('MngFilesComponent directory zip download', () => {
       snackBar as any,
       {} as any,
       {} as any,
-      { isMobile: () => false } as any
+      staticEnv(false)
     );
   });
 
@@ -737,5 +747,53 @@ describe('MngFilesComponent directory zip download', () => {
 
     expect(http.postsTo('/file/dir/zip').length).toBe(2);
     expect(openSpy).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('MngFilesComponent columns', () => {
+  let fake: FakeMediaQueryList;
+  let component: MngFilesComponent;
+
+  const WIDE = ['thumbnail', 'name', 'parentFileName', 'uploadTime', 'size', 'operation'];
+  const COMPACT = ['thumbnail', 'name', 'operation'];
+
+  beforeEach(() => {
+    fake = installFakeMatchMedia(false);
+    component = new MngFilesComponent(
+      {} as any,
+      { open: () => ({ afterClosed: () => of(false) }) } as any,
+      {} as any,
+      { navigateTo: jasmine.createSpy('navigateTo') } as any,
+      {} as any,
+      { paramMap: of({ get: () => null }) } as any,
+      {} as any,
+      { open: jasmine.createSpy('open') } as any,
+      { record: jasmine.createSpy('record') } as any,
+      {} as any,
+      new Env()
+    );
+  });
+
+  it('shows the wide columns at 1280px and the compact columns at 390px', () => {
+    expect(component.displayedColumns).toEqual(WIDE);
+
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(COMPACT);
+  });
+
+  it('reassigns the columns when the layout flips mid-life', () => {
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(COMPACT);
+
+    fake.fireChange(false);
+    expect(component.displayedColumns).toEqual(WIDE);
+  });
+
+  it('keeps the drag handle out of the compact list', () => {
+    component.orderBy = 'custom';
+    expect(component.displayedColumns[0]).toBe('dragHandle');
+
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(COMPACT);
   });
 });

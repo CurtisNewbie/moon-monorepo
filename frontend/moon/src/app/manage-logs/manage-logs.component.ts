@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { Paging } from "src/common/paging";
 import { isEnterKey } from "src/common/condition";
 import { HttpClient } from "@angular/common/http";
@@ -33,10 +33,13 @@ export interface ListErrorLogResp {
   templateUrl: "./manage-logs.component.html",
   styleUrls: ["./manage-logs.component.css"],
 })
-export class ManageLogsComponent implements OnInit {
-  readonly tabcol = this.env.isMobile()
-    ? ["rtime", "errMsg"]
-    : ["rtime", "app", "caller", "errMsg"];
+export class ManageLogsComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["rtime", "errMsg"];
+  private readonly wideColumns = ["rtime", "app", "caller", "errMsg"];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   qryApp = "";
   tabdat = [];
@@ -57,6 +60,10 @@ export class ManageLogsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   reset() {
     this.qryApp = "";

@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { getExpanded, isIdEqual } from "src/animate/animate-util";
 import { MngPathDialogComponent } from "../mng-path-dialog/mng-path-dialog.component";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
@@ -37,7 +38,23 @@ export interface WPath {
   templateUrl: "./manage-paths.component.html",
   styleUrls: ["./manage-paths.component.css"],
 })
-export class ManagePathsComponent implements OnInit {
+export class ManagePathsComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["pgroup", "method", "url", "ptype"];
+  private readonly wideColumns = [
+    "id",
+    "pgroup",
+    "method",
+    "url",
+    "ptype",
+    "desc",
+    "createBy",
+    "createTime",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   searchPath = null;
   searchGroup = null;
   searchType = null;
@@ -60,23 +77,6 @@ export class ManagePathsComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
-  readonly tabcol = this.env.isMobile()
-    ? [
-        "pgroup",
-        "method",
-        "url",
-        "ptype",
-      ]
-    : [
-        "id",
-        "pgroup",
-        "method",
-        "url",
-        "ptype",
-        "desc",
-        "createBy",
-        "createTime",
-      ];
   paths: WPath[] = [];
 
   idEquals = isIdEqual;
@@ -101,10 +101,14 @@ export class ManagePathsComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
+
   openMngPathDialog(p: WPath) {
     this.dialog
       .open(MngPathDialogComponent, {
-        width: "700px",
+        ...dialogSize(700),
         data: {
           path: { ...p },
         },

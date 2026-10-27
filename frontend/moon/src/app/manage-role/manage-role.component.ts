@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { animateElementExpanding } from "src/animate/animate-util";
 import { MngRoleDialogComponent } from "../mng-role-dialog/mng-role-dialog.component";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -25,13 +26,24 @@ export interface ERole {
   styleUrls: ["./manage-role.component.css"],
   animations: [animateElementExpanding()],
 })
-export class ManageRoleComponent implements OnInit {
+export class ManageRoleComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["name", "updateTime"];
+  private readonly wideColumns = [
+    "roleNo",
+    "name",
+    "createBy",
+    "createTime",
+    "updateBy",
+    "updateTime",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   isEnter = isEnterKey;
   newRoleDialog = false;
   newRoleName = "";
-  readonly tabcol = this.env.isMobile()
-    ? ["name", "updateTime"]
-    : ["roleNo", "name", "createBy", "createTime", "updateBy", "updateTime"];
   roles: ERole[] = [];
 
   @ViewChild(ControlledPaginatorComponent)
@@ -55,6 +67,10 @@ export class ManageRoleComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   fetchList() {
     this.http
@@ -83,7 +99,7 @@ export class ManageRoleComponent implements OnInit {
   openMngRoleDialog(role: ERole) {
     this.dialog
       .open(MngRoleDialogComponent, {
-        width: "1000px",
+        ...dialogSize(1000),
         data: {
           roleName: role.name,
           roleNo: role.roleNo,

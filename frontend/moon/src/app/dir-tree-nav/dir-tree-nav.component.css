@@ -1,0 +1,10 @@
+/*
+ * A deep path is clipped only where the compact layout runs out of width, so
+ * the tree row stays readable at 390px. The width comes from the layout tier,
+ * never from a width read in TypeScript.
+ */
+@media (max-width: 768px) {
+  .dir-tree-name {
+    max-width: 200px;
+  }
+}

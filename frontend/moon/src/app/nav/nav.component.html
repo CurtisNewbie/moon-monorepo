@@ -1,10 +1,16 @@
 <ng-container *ngIf="userInfo">
-    <div class="d-flex align-self-stretch justify-content-between">
+    <div class="d-flex align-self-stretch justify-content-between nav-bar">
         <div>
-            <!-- <button mat-button [matMenuTriggerFor]="menu"><i class="bi bi-list icon-button-large"></i></button> -->
-            <button mat-button [matMenuTriggerFor]="menu">{{'nav' | trl:'menu'}}</button>
-            <button mat-button [matMenuTriggerFor]="moonMenu">Moon <img src="../../favicon.ico" width="30px"
-                    class="invertcolor" /></button>
+            <!-- The word label is wide enough to overflow a 390px row once the
+                 other four triggers are placed, so compact shows the list icon
+                 instead and names the button for screen readers. -->
+            <button mat-button [matMenuTriggerFor]="menu" [attr.aria-label]="'nav' | trl:'menu'">
+                <span class="only-wide">{{'nav' | trl:'menu'}}</span>
+                <i class="only-compact bi bi-list icon-button-large" aria-hidden="true"></i>
+            </button>
+            <button mat-button [matMenuTriggerFor]="moonMenu" aria-label="Moon">
+                <span class="only-wide">Moon&nbsp;</span><img src="../../favicon.ico" width="30px"
+                    class="invertcolor nav-moon-mark" alt="" /></button>
         </div>
         <div>
             <button mat-button [matMenuTriggerFor]="langMenu">{{i18n.trl("", i18n.curr)}}</button>

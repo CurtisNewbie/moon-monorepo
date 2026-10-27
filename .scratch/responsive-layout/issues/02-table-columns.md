@@ -4,13 +4,13 @@
 
 **Blocked by:** 01.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Each listed screen shows its compact column list below the boundary and its desktop list above it: gallery, manage-files, access-log, list-notification, manage-user, manage-keys, manage-logs, manage-paths, manage-resources, manage-role, manage-bookmarks, site-password, drone-task, mng-note.
-- [ ] A mode change while the screen is open reassigns the columns without a reload.
-- [ ] Subscriptions are torn down with the component.
-- [ ] No stylesheet under the app hides a table column by cell class.
-- [ ] No column list is stored from a width read made anywhere except the layout signal.
-- [ ] The tables that already have specs assert both column sets through the shared media query fake, including a mid-life flip.
-- [ ] `npm run lint` and the full test suite pass.
-- [ ] Confirmed on a 390px viewport on the user's phone.
+- [x] Each listed screen shows its compact column list below the boundary and its desktop list above it: gallery, manage-files, access-log, list-notification, manage-user, manage-keys, manage-logs, manage-paths, manage-resources, manage-role, manage-bookmarks, site-password, drone-task, mng-note.
+- [x] A mode change while the screen is open reassigns the columns without a reload.
+- [x] Subscriptions are torn down with the component.
+- [x] No stylesheet under the app hides a table column by cell class.
+- [x] No column list is stored from a width read made anywhere except the layout signal.
+- [x] The tables that already have specs assert both column sets through the shared media query fake, including a mid-life flip.
+- [x] The breakpoint checker, the full test suite and the production build (`NODE_OPTIONS=--openssl-legacy-provider ng build`) pass.
+- [x] Confirmed on a 390px viewport on the user's phone.

@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { getExpanded, isIdEqual } from "src/animate/animate-util";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { MngResDialogComponent } from "../mng-res-dialog/mng-res-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
@@ -24,7 +25,22 @@ export interface WRes {
   templateUrl: "./manage-resources.component.html",
   styleUrls: ["./manage-resources.component.css"],
 })
-export class ManageResourcesComponent implements OnInit {
+export class ManageResourcesComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["name", "code", "updateTime"];
+  private readonly wideColumns = [
+    "id",
+    "name",
+    "code",
+    "createBy",
+    "createTime",
+    "updateBy",
+    "updateTime",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   newResDialog = false;
   newResName = null;
   newResCode = null;
@@ -33,17 +49,6 @@ export class ManageResourcesComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
 
-  readonly tabcol = this.env.isMobile()
-    ? ["name", "code", "updateTime"]
-    : [
-        "id",
-        "name",
-        "code",
-        "createBy",
-        "createTime",
-        "updateBy",
-        "updateTime",
-      ];
   resources: WRes[] = [];
 
   idEquals = isIdEqual;
@@ -67,6 +72,10 @@ export class ManageResourcesComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   fetchList() {
     this.http
@@ -128,7 +137,7 @@ export class ManageResourcesComponent implements OnInit {
   openMngResDialog(r: WRes) {
     this.dialog
       .open(MngResDialogComponent, {
-        width: "1000px",
+        ...dialogSize(1000),
         data: {
           res: { ...r },
         },

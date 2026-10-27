@@ -50,8 +50,35 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-/* Boundary must match MOBILE_MAX_WIDTH in src/common/env-util.ts: mobile ends
-   at 768px (inclusive), desktop starts at 769px. */
+/* The only two width tiers in the app: compact at 768px and below, wide at
+   769px and above. The boundary must match MOBILE_MAX_WIDTH in
+   src/common/env-util.ts; scripts/check-breakpoints.js fails lint when the two
+   disagree or when any other width appears in a media query. */
+@media only screen and (max-width: 768px) {
+  html {
+    font-size: 9px;
+  }
+
+  .mat-option,
+  mat-form-field,
+  mat-label,
+  mat-table,
+  .mat-header-cell,
+  .mat-cell {
+    font-size: 9px;
+  }
+
+  button.mat-raised-button {
+    font-size: 9px;
+    line-height: 25px;
+  }
+
+  /* Cosmetic compact-only differences. !important beats Material defaults. */
+  .only-wide {
+    display: none !important;
+  }
+}
+
 @media only screen and (min-width: 769px) {
   html,
   .mat-tab-nav-bar,
@@ -73,25 +100,10 @@ body {
     font-size: 11px;
     line-height: 30px;
   }
-}
 
-@media only screen and (max-width: 768px) {
-  html {
-    font-size: 9px;
-  }
-
-  .mat-option,
-  mat-form-field,
-  mat-label,
-  mat-table,
-  .mat-header-cell,
-  .mat-cell {
-    font-size: 9px;
-  }
-
-  button.mat-raised-button {
-    font-size: 9px;
-    line-height: 25px;
+  /* Cosmetic wide-only differences. !important beats Material defaults. */
+  .only-compact {
+    display: none !important;
   }
 }
 

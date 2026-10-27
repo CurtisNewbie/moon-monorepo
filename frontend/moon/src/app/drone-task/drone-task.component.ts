@@ -1,6 +1,12 @@
 import { HttpClient } from "@angular/common/http";
 import { ActivatedRoute } from "@angular/router";
-import { Component, Inject, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
@@ -10,6 +16,7 @@ import { ControlledPaginatorComponent } from "../controlled-paginator/controlled
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { isEnterKey } from "src/common/condition";
 import { copyToClipboard } from "src/common/clipboard";
+import { dialogSize } from "src/common/dialog-size";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -88,8 +95,32 @@ export interface ResolveTaskReq {
   templateUrl: "./drone-task.component.html",
   styleUrls: ["./drone-task.component.css"],
 })
-export class DroneTaskComponent implements OnInit {
-  headers: string[] = [];
+export class DroneTaskComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = [
+    "thumbnail",
+    "status",
+    "dirName",
+    "operation",
+  ];
+  private readonly wideColumns = [
+    "thumbnail",
+    "taskId",
+    "status",
+    "url",
+    "platform",
+    "attempt",
+    "lastPage",
+    "dirName",
+    "fileCount",
+    "updatedAt",
+    "remark",
+    "operation",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   createTaskPanelShown: boolean = false;
   bulkUrlFields: string[] = [""];
 
@@ -126,22 +157,6 @@ export class DroneTaskComponent implements OnInit {
 
   ngOnInit(): void {
     this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
-    this.headers = this.env.isMobile()
-      ? ["thumbnail", "status", "dirName", "operation"]
-      : [
-          "thumbnail",
-          "taskId",
-          "status",
-          "url",
-          "platform",
-          "attempt",
-          "lastPage",
-          "dirName",
-          "fileCount",
-          "updatedAt",
-          "remark",
-          "operation",
-        ];
     this.listPlatforms();
     this.listLastPagePlatforms();
     const prefillUrl = this.route.snapshot.queryParams['url'] || '';
@@ -149,6 +164,10 @@ export class DroneTaskComponent implements OnInit {
       this.bulkUrlFields = [prefillUrl];
       this.createTaskPanelShown = true;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
   }
 
   constructor(
@@ -429,7 +448,7 @@ export class DroneTaskComponent implements OnInit {
     const lastPageSupported = this.lastPagePlatforms.includes(d.platform);
     this.dialog
       .open(UpdateDroneTaskDialogComponent, {
-        width: "700px",
+        ...dialogSize(700),
         data: {
           taskId: d.taskId,
           url: d.url,
@@ -464,7 +483,7 @@ export class DroneTaskComponent implements OnInit {
   resolveTask(d) {
     this.dialog
       .open(ResolveDroneTaskDialogComponent, {
-        width: "600px",
+        ...dialogSize(600),
         data: {
           taskId: d.taskId,
           url: d.url,
@@ -509,15 +528,15 @@ export class DroneTaskComponent implements OnInit {
   template: `
     <h1 mat-dialog-title>{{ 'drone-task' | trl:'updateDroneTask' }}</h1>
     <div mat-dialog-content>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'taskId' }}</mat-label>
         <input readonly disabled matInput [(ngModel)]="data.taskId" />
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'url' }}</mat-label>
         <input matInput [(ngModel)]="data.url" />
       </mat-form-field>
-      <mat-form-field style="width: 400px" *ngIf="data.lastPageSupported">
+      <mat-form-field style="width: 100%; max-width: 400px" *ngIf="data.lastPageSupported">
         <mat-label>{{ 'drone-task' | trl:'lastPage' }}</mat-label>
         <input matInput type="number" min="1" [(ngModel)]="data.lastPage" />
       </mat-form-field>
@@ -544,15 +563,15 @@ export class UpdateDroneTaskDialogComponent {
   template: `
     <h1 mat-dialog-title>{{ 'drone-task' | trl:'resolve' }}</h1>
     <div mat-dialog-content>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'taskId' }}</mat-label>
         <input readonly disabled matInput [ngModel]="data.taskId" />
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'url' }}</mat-label>
         <input readonly disabled matInput [ngModel]="data.url" />
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'platform' }}</mat-label>
         <mat-select [(ngModel)]="data.platform">
           <mat-option [value]="option" *ngFor="let option of data.platforms">
@@ -560,7 +579,7 @@ export class UpdateDroneTaskDialogComponent {
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'newDirectoryNameOptional' }}</mat-label>
         <input matInput [(ngModel)]="data.makeDirName" />
       </mat-form-field>

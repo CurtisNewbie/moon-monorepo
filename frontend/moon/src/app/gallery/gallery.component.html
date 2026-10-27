@@ -21,7 +21,7 @@
 
     <div class="d-flex justify-content-end mb-2">
 
-        <button *ngIf="!env.isMobile()" mat-raised-button class="m-2"
+        <button mat-raised-button class="m-2"
             (click)="showCreateGalleryDiv=!showCreateGalleryDiv">{{'gallery' | trl:'createGallery'}}</button>
         <button mat-icon-button class="m-1 icon-button-large" (click)="fetchGalleries()"><i
                 class="bi bi-arrow-clockwise"></i></button>
@@ -68,9 +68,30 @@
             <td mat-cell *matCellDef="let f"> {{f.createBy}} </td>
         </ng-container>
 
+        <ng-container matColumnDef="operation">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let f">
+                <!-- Compact only. A phone browses on a row tap, so the actions the
+                     expanded panel holds need a path of their own here. -->
+                <button mat-icon-button [matMenuTriggerFor]="galleryMenu" aria-label="Gallery actions"
+                    (click)="$event.stopPropagation()">
+                    <i class="bi bi-three-dots-vertical icon-button-large"></i>
+                </button>
+                <mat-menu #galleryMenu="matMenu">
+                    <button mat-menu-item (click)="browse(f.galleryNo)">{{'gallery' | trl:'browse'}}</button>
+                    <ng-container *ngIf="f.isOwner">
+                        <button mat-menu-item (click)="updateGallery(f.galleryNo, f.name)">{{'gallery' | trl:'update'}}</button>
+                        <button mat-menu-item (click)="deleteGallery(f.galleryNo, f.name)">{{'gallery' | trl:'delete'}}</button>
+                        <button mat-menu-item (click)="popToGrantAccess(f)">{{'gallery' | trl:'share'}}</button>
+                        <button mat-menu-item *ngIf="f.dirFileKey" (click)="openFileDir(f)">{{'gallery' | trl:'directory'}}</button>
+                    </ng-container>
+                </mat-menu>
+            </td>
+        </ng-container>
+
         <ng-container matColumnDef="expandedElement">
             <td mat-cell *matCellDef="let u"
-                [attr.colspan]="(env.isMobile() ? MOBILE_COLUMNS : DESKTOP_COLUMNS).length">
+                [attr.colspan]="displayedColumns.length">
                 <div class="element-detail" [@detailExpand]="idEquals(u, expandedElement) ? 'expanded' : 'collapsed'">
                     <div class="d-flex flex-wrap gap-2" *ngIf="expandedElement != null">
                         <mat-form-field style="width: 300px;" class="me-2">
@@ -104,8 +125,8 @@
             </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="env.isMobile() ? MOBILE_COLUMNS : DESKTOP_COLUMNS"></tr>
-        <tr mat-row *matRowDef="let row; columns: (env.isMobile() ? MOBILE_COLUMNS: DESKTOP_COLUMNS);"
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
             class="element-row" [class.expanded-row]="idEquals(row, expandedElement)"
             (click)="env.isMobile()? browse(row.galleryNo) : expandedElement = getExpandedEle(row)"
             [matTooltip]="row.isOwner ? 'Click to expand' : ''">

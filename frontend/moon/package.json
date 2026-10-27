@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "test": "NODE_OPTIONS=--openssl-legacy-provider ng test",
-    "lint": "ng lint",
+    "lint": "npm run lint:breakpoints && ng lint",
+    "lint:breakpoints": "node scripts/check-breakpoints.js",
     "e2e": "ng e2e",
     "postinstall": "patch-package"
   },

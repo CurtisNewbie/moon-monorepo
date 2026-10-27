@@ -11,29 +11,12 @@
     width: 100%;
   }
 
-  /* Hide maxItems column (least critical) */
-  .mat-column-maxItems {
-    display: none !important;
-  }
-
   /* Touch-friendly icon buttons — ≥44px tap targets */
   .icon-button-large {
     width: 44px !important;
     height: 44px !important;
     line-height: 44px !important;
     font-size: 24px !important;
-  }
-
-  /* Operation cell: stack Trigger + View vertically */
-  .mat-column-operation .d-flex {
-    flex-direction: column !important;
-    gap: 4px !important;
-  }
-
-  .mat-column-operation .small-btn {
-    width: 100%;
-    font-size: 11px;
-    line-height: 32px;
   }
 
   /* Compact table cells */
@@ -51,10 +34,8 @@
   h4 {
     font-size: 1rem;
   }
-}
 
-/* ===== Small phones: ≤480px ===== */
-@media (max-width: 480px) {
+  /* Small phones: tighter cells and panel padding */
   .mat-cell,
   .mat-header-cell {
     padding: 4px 6px !important;

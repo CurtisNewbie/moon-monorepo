@@ -2,3 +2,19 @@
     width: auto;
     padding: 0px 5px
 }
+
+/* Material gives every button a 64px minimum width and 16px of side padding,
+   which alone asks for 320px of a 390px row before the 30px Moon mark and the
+   language label are counted. The compact tier drops that floor and the wide
+   tier keeps Material's defaults unchanged. */
+@media only screen and (max-width: 768px) {
+    .nav-bar button.mat-button {
+        padding: 0 8px;
+        min-width: 0;
+    }
+
+    .nav-moon-mark {
+        width: 24px;
+        height: 24px;
+    }
+}

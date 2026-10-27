@@ -14,7 +14,10 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 
-import { Env } from "src/common/env-util";
+import {
+  FakeMediaQueryList,
+  installFakeMatchMedia,
+} from "src/testing/fake-media-query-list";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { I18n } from "../i18n.service";
 import { NavigationService } from "../navigation.service";
@@ -26,8 +29,10 @@ const LIST_URL = "/drone/open/api/list-task";
 describe("DroneTaskComponent search", () => {
   let fixture: ComponentFixture<DroneTaskComponent>;
   let httpMock: HttpTestingController;
+  let fake: FakeMediaQueryList;
 
   beforeEach(() => {
+    fake = installFakeMatchMedia(false);
     TestBed.configureTestingModule({
       declarations: [
         DroneTaskComponent,
@@ -52,7 +57,6 @@ describe("DroneTaskComponent search", () => {
           provide: ActivatedRoute,
           useValue: { snapshot: { queryParams: {} } },
         },
-        { provide: Env, useValue: { isMobile: () => false } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     });
@@ -129,5 +133,33 @@ describe("DroneTaskComponent search", () => {
     const body = lastListBody();
     expect(body.url).toBe("https://example.com/a");
     expect(body.dirName).toBe("my archive");
+  });
+
+  it("shows the wide columns at 1280px, the compact columns at 390px, and follows a flip", () => {
+    const component = fixture.componentInstance;
+
+    const wide = [
+      "thumbnail",
+      "taskId",
+      "status",
+      "url",
+      "platform",
+      "attempt",
+      "lastPage",
+      "dirName",
+      "fileCount",
+      "updatedAt",
+      "remark",
+      "operation",
+    ];
+    const compact = ["thumbnail", "status", "dirName", "operation"];
+
+    expect(component.displayedColumns).toEqual(wide);
+
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(compact);
+
+    fake.fireChange(false);
+    expect(component.displayedColumns).toEqual(wide);
   });
 });

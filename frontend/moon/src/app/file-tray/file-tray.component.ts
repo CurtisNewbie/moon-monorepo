@@ -1,5 +1,6 @@
 import { Component, OnInit, Output, EventEmitter } from "@angular/core";
 import { FileBookmark, TempFile } from "src/common/file-bookmark";
+import { dialogSize } from "src/common/dialog-size";
 import { MatDialog } from "@angular/material/dialog";
 import { DirectoryMoveFileComponent } from "../directory-move-file/directory-move-file.component";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
@@ -166,7 +167,7 @@ export class FileTrayComponent implements OnInit {
   moveToDir() {
     this.dialog
       .open(DirectoryMoveFileComponent, {
-        width: "800px",
+        ...dialogSize(800),
         data: {
           files: this.dat.map((f, i) => {
             return { name: `${i + 1}. ${f.name}`, fileKey: f.fileKey };
@@ -191,7 +192,7 @@ export class FileTrayComponent implements OnInit {
 
     this.dialog
       .open(ConfirmDialogComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: {
           title: this.i18n.trl("file-tray", "deleteFilesTitle"),
           msg: msgs,
@@ -231,7 +232,7 @@ export class FileTrayComponent implements OnInit {
 
     this.dialog
       .open(VfolderAddFileComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: { files: selected },
       })
       .afterClosed()
@@ -262,7 +263,7 @@ export class FileTrayComponent implements OnInit {
 
     this.dialog
       .open(HostOnGalleryComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: { files: selected },
       })
       .afterClosed()

@@ -56,4 +56,4 @@ this.pagingController.onTotalChanged(resp.data.paging);
 
 The breakpoint is **768px, inclusive**: `Env.isMobile()` (`src/common/env-util.ts`) and the CSS tiers in `src/styles.css` share that single value — keep them in step.
 
-On mobile the paginator hides its page-size selector. If the host never calls `setPageLimitOptions`, the paginator applies its own `[5, 10, 30]` list there; a host call replaces that list and disables the mobile fallback. Either way the first option is the page size on every device, so choose it deliberately.
+A compact screen keeps the page-size selector. The paginator drops no control at that width: `controlled-paginator.component.css` tightens the label, the gaps and the selector itself so the whole row still fits on one line. If the host never calls `setPageLimitOptions`, the paginator applies its own `[5, 10, 30]` list on a compact screen; a host call replaces that list and disables the mobile fallback. Either way the first option is the page size on every device, so choose it deliberately.

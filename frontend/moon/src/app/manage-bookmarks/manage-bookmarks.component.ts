@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import { isEnterKey } from "src/common/condition";
 import { Observable } from "rxjs";
 import { HttpClient, HttpEvent } from "@angular/common/http";
@@ -13,11 +19,14 @@ import { I18n } from "../i18n.service";
   templateUrl: "./manage-bookmarks.component.html",
   styleUrls: ["./manage-bookmarks.component.css"],
 })
-export class ManageBookmarksComponent implements OnInit {
+export class ManageBookmarksComponent implements OnInit, OnDestroy {
   readonly isEnterKeyPressed = isEnterKey;
-  readonly tabcol = this.env.isMobile()
-    ? ["name", "operation"]
-    : ["id", "name", "operation"];
+  private readonly compactColumns = ["name", "operation"];
+  private readonly wideColumns = ["id", "name", "operation"];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   tabdat = [];
   isEnter = isEnterKey;
@@ -41,6 +50,10 @@ export class ManageBookmarksComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   fetchList() {
     this.http

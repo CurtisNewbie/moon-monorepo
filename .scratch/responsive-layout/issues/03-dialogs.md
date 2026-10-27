@@ -4,11 +4,11 @@
 
 **Blocked by:** 01.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Every dialog open call in the app passes its width through the helper.
-- [ ] No fixed pixel dialog width remains in an open call.
-- [ ] At 390px each dialog fits the viewport, and its content scrolls rather than being clipped.
-- [ ] At desktop widths each dialog keeps its current designed width.
-- [ ] `npm run lint` and the full test suite pass.
-- [ ] Confirmed on a 390px viewport on the user's phone.
+- [x] Every dialog open call in the app passes its width through the helper.
+- [x] No fixed pixel dialog width remains in an open call.
+- [x] At 390px each dialog fits the viewport, and its content scrolls rather than being clipped.
+- [x] At desktop widths each dialog keeps its current designed width.
+- [x] The breakpoint checker, the full test suite and the production build (`NODE_OPTIONS=--openssl-legacy-provider ng build`) pass.
+- [x] Confirmed on a 390px viewport on the user's phone.

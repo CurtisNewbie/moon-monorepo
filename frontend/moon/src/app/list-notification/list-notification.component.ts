@@ -1,4 +1,10 @@
-import { Component, Inject, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -7,6 +13,7 @@ import {
 import { PlatformNotificationService } from "../platform-notification.service";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
+import { dialogSize } from "src/common/dialog-size";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
@@ -58,10 +65,20 @@ export interface Notification {
   templateUrl: "./list-notification.component.html",
   styleUrls: ["./list-notification.component.css"],
 })
-export class ListNotificationComponent implements OnInit {
-  readonly columns: string[] = this.env.isMobile()
-    ? ["title", "status", "createTime"]
-    : ["notifiNo", "title", "brief", "status", "createTime"];
+export class ListNotificationComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["title", "status", "createTime"];
+  private readonly wideColumns = [
+    "notifiNo",
+    "title",
+    "brief",
+    "status",
+    "createTime",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   query = {
     onlyInitMessage: true,
   };
@@ -84,6 +101,10 @@ export class ListNotificationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   fetchList() {
     this.http
@@ -153,7 +174,7 @@ export class ListNotificationComponent implements OnInit {
 
     const dialogRef: MatDialogRef<ShowNotificationDialogComponent, boolean> =
       this.dialog.open(ShowNotificationDialogComponent, {
-        width: "900px",
+        ...dialogSize(900),
         data: {
           title: n.title,
           time: `Notification Time: ${timeStr}`,
@@ -177,7 +198,7 @@ export class ListNotificationComponent implements OnInit {
 
     const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
       this.dialog.open(ConfirmDialogComponent, {
-        width: "700px",
+        ...dialogSize(700),
         data: {
           title: "Mark All Notifications Opened?",
           msg: ["Are your sure you want to mark all notifications as opened?"],

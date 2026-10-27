@@ -1,1 +1,9 @@
-
+/* The app scrolls inside one container that is exactly as tall as the visible
+   viewport. 100dvh follows a phone's collapsing browser chrome, so the bottom
+   of a page is neither hidden behind it nor left above it. The 100vh line above
+   it is the fallback for browsers that do not know dvh yet. */
+.app-shell {
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: auto;
+}

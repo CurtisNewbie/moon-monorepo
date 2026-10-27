@@ -39,6 +39,7 @@ import {
 import { MediaStreamerComponent } from "../media-streamer/media-streamer.component";
 import { Option } from "src/common/select-util";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { NavType } from "../routes";
 import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { Subscription } from "rxjs";
@@ -72,7 +73,8 @@ export interface DirBottomUpTreeNode {
   animations: [animateElementExpanding()],
 })
 export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
-  readonly desktopColumns = [
+  private readonly compactColumns = ["thumbnail", "name", "operation"];
+  private readonly wideColumns = [
     "thumbnail",
     "name",
     "parentFileName",
@@ -80,7 +82,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     "size",
     "operation",
   ];
-  readonly desktopFolderColumns = [
+  private readonly wideFolderColumns = [
     "thumbnail",
     "name",
     "uploader",
@@ -88,7 +90,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     "size",
     "operation",
   ];
-  readonly mobileColumns = ["thumbnail", "name", "operation"];
+  /** whether the layout signal currently selects the wide layout */
+  private wideLayout: boolean = true;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.wideLayout = !mobile;
+  });
 
   allFileTypeOpts: Option<FileType>[] = getFileTypeOpts(true);
   guessFileIcon = guessFileIconClz;
@@ -104,8 +110,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   progress: string = null;
   /** currently displayed columns */
   get displayedColumns(): string[] {
-    const cols = this._selectColumns();
-    if (this.orderBy === 'custom' && !this.env.isMobile() && !this.inFolderNo) {
+    const cols = this.wideLayout
+      ? this.inFolderNo
+        ? this.wideFolderColumns
+        : this.wideColumns
+      : this.compactColumns;
+    if (this.orderBy === 'custom' && this.wideLayout && !this.inFolderNo) {
       return ['dragHandle', ...cols];
     }
     return cols;
@@ -264,6 +274,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngDoCheck(): void {}
 
   ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
     this.dirThumbnailCache.clear();
   }
 
@@ -389,7 +400,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 const savedPage = posResp.data?.page || 1;
                 if (savedPage > 1) {
                   this.dialog.open(ConfirmDialogComponent, {
-                    width: "500px",
+                    ...dialogSize(500),
                     data: {
                       title: this.i18n.trl("manage-files", "continueReadingTitle"),
                       msg: [this.i18n.trl("manage-files", "continueReadingMsg", "page", String(savedPage))],
@@ -756,7 +767,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     ];
     this.dialog
       .open(ConfirmDialogComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: {
           title: "Truncate Directory",
           msg: msgs,
@@ -1394,11 +1405,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     return this.uploadParam.files.length > 1;
   }
 
-  private _selectColumns() {
-    if (this.env.isMobile()) return this.mobileColumns;
-    return this.inFolderNo ? this.desktopFolderColumns : this.desktopColumns;
-  }
-
   onRowClicked(evt: any, row: FileInfo, idx: number) {
     if (this.inFolderNo) {
       if (row.isDisplayable) {
@@ -1465,7 +1471,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
         const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
           this.dialog.open(ConfirmDialogComponent, {
-            width: "700px",
+            ...dialogSize(700),
             data: {
               title: "Share File",
               msg: ["Link to download this file:", url],
@@ -1517,7 +1523,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   popDirTree() {
     let ref = this.dialog.open(DirTreeNavComponent, {
-      width: "800px",
+      ...dialogSize(800),
       data: {},
     });
     ref.componentInstance.selectedEmiter.subscribe((dat) => {

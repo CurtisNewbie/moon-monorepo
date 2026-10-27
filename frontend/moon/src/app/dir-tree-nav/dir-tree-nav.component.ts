@@ -8,7 +8,6 @@ import {
 } from "@angular/core";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { DirTopDownTreeNode, DirTree } from "src/common/dir-tree";
-import { Env } from "src/common/env-util";
 
 @Component({
   selector: "app-dir-tree-nav",
@@ -67,12 +66,12 @@ import { Env } from "src/common/env-util";
 
                 <span
                   (click)="selectDir(node)"
+                  class="dir-tree-name"
                   style="text-align: left; white-space: nowrap; overflow: scroll;"
                   [ngStyle]="{
                     'font-weight': dirTree.matchNode(node, searchDirTreeName)
                       ? 'bold'
-                      : null,
-                    'max-width': env.isMobile() ? '200px' : ''
+                      : null
                   }"
                   >/{{ node.name }}</span
                 >
@@ -86,7 +85,7 @@ import { Env } from "src/common/env-util";
       </div>
     </div>
   `,
-  styles: [],
+  styleUrls: ["./dir-tree-nav.component.css"],
 })
 export class DirTreeNavComponent implements OnInit {
   searchDirTreeName: string = "";
@@ -111,7 +110,7 @@ export class DirTreeNavComponent implements OnInit {
   @Output("treeLoaded")
   treeLoadedEmiter = new EventEmitter<void>();
 
-  constructor(public env: Env, public dirTree: DirTree) {}
+  constructor(public dirTree: DirTree) {}
 
   dirTreeControl = new NestedTreeControl<DirTopDownTreeNode>(
     (node) => node.child

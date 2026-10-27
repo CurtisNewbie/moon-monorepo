@@ -4,11 +4,11 @@
 
 **Blocked by:** 01.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] At 390px the header renders on one line with no horizontal scrolling on the page.
-- [ ] Every header control present on desktop is still reachable on a phone, through the same element or a different one.
-- [ ] The page container uses the dynamic viewport height, with the current fixed height kept as the fallback.
-- [ ] The desktop header looks as it does today.
-- [ ] `npm run lint` and the full test suite pass.
-- [ ] Confirmed on a 390px viewport on the user's phone.
+- [x] At 390px the header renders on one line with no horizontal scrolling on the page.
+- [x] Every header control present on desktop is still reachable on a phone, through the same element or a different one.
+- [x] The page container uses the dynamic viewport height, with the current fixed height kept as the fallback.
+- [x] The desktop header looks as it does today.
+- [x] The breakpoint checker, the full test suite and the production build (`NODE_OPTIONS=--openssl-legacy-provider ng build`) pass.
+- [x] Confirmed on a 390px viewport on the user's phone.

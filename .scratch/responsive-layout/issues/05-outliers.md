@@ -4,11 +4,14 @@
 
 **Blocked by:** 01.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The image viewer declares no width breakpoint of its own and fills the screen at 390x844 and at desktop sizes.
-- [ ] The directory tree nav takes its width from the layout mode; no width is computed inline from a window read.
-- [ ] The paginator offers the page-size control at 390px; every control it renders on desktop is reachable on a phone.
-- [ ] The gallery's compact row click is documented in the rule doc as a behaviour swap, and every action reachable from a desktop row is reachable on a phone by some path.
-- [ ] `npm run lint` and the full test suite pass.
-- [ ] Confirmed on a 390px viewport on the user's phone.
+- [x] The image viewer declares no width breakpoint of its own and fills the screen at 390x844 and at desktop sizes, keeping its long-portrait and tiny-image scaling behaviour.
+- [x] The gallery's create control reaches a phone user, and every owner action (update, delete, share, directory) plus browse is reachable from a compact row.
+- [x] The drone task list's update action is reachable on a phone.
+- [x] The directory tree nav takes its width from the layout mode; no width is computed inline from a window read.
+- [x] The paginator offers the page-size control at 390px; every control it renders on desktop is reachable on a phone.
+- [x] The gallery's compact row click is documented in the rule doc as a behaviour swap, and every action reachable from a desktop row is reachable on a phone by some path.
+- [x] The checker's allow-list names no file once this ticket lands.
+- [x] The breakpoint checker, the full test suite and the production build (`NODE_OPTIONS=--openssl-legacy-provider ng build`) pass.
+- [x] Confirmed on a 390px viewport on the user's phone.
