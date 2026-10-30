@@ -259,10 +259,8 @@ func UpdateGallery(rail miso.Rail, cmd UpdateGalleryCmd, user flow.User, tx *gor
 	err := dbquery.NewQuery(rail, tx).
 		Table("gallery").
 		Where("gallery_no = ?", galleryNo).
-		SetCols(Gallery{
-			Name:     cmd.Name,
-			UpdateBy: user.Username,
-		}).
+		Set("name", cmd.Name).
+		Set("update_by", user.Username).
 		UpdateAny()
 
 	if err != nil {
