@@ -16,9 +16,9 @@ The compact layout is **768px and below**; the wide layout is **769px and above*
 | Table columns | Two TypeScript arrays on the component, assigned at construction and reassigned from `mobile$`. Never CSS. |
 | A template that renders a different component or changes behaviour | `env.isMobile()` in the template is allowed. A template branch that merely drops an element is not. |
 
-A screen does not hide a capability on phones; it adapts the interaction.
+A screen adapts its interaction on phones. When an action leaves the compact layout, that is a product decision and this doc records it.
 
-An allowed swap changes the shape of the interaction, not the set of things it can reach. The gallery's row click is the worked example: on a wide screen the row expands in place to show the gallery's actions, and on a compact screen the same tap browses into the gallery while the row's kebab menu carries the same Update, Delete, Share and Directory actions (`src/app/gallery/gallery.component.html`). The row is not inert on a phone, and no action is dropped; it takes a different route. A template branch that renders a desktop-only button is not a swap: that is a hidden action, and it needs a product decision rather than a layout one. When a swap changes the route, check that the compact route still reaches every action the wide route offers before calling it one.
+The gallery's row click is the worked example. On a wide screen the row expands in place and holds the name input with the update, delete, share, directory and browse actions. On a compact screen the same tap browses into the gallery, and the row's kebab menu carries browse and directory. Update, delete and share are desktop-only by product decision: their work starts from the widened row, so a phone keeps the browse shortcut and leaves owner administration to the wide layout. A template branch that renders a desktop-only control needs that decision behind it, and one that drops an action without it is a bug. When a swap changes the route, check the compact route against the wide one and write down any action it no longer reaches.
 
 ## Table columns
 

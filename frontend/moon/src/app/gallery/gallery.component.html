@@ -71,20 +71,15 @@
         <ng-container matColumnDef="operation">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let f">
-                <!-- Compact only. A phone browses on a row tap, so the actions the
-                     expanded panel holds need a path of their own here. -->
+                <!-- Compact only. A phone browses on a row tap, so browse and
+                     directory need a path of their own here. -->
                 <button mat-icon-button [matMenuTriggerFor]="galleryMenu" aria-label="Gallery actions"
                     (click)="$event.stopPropagation()">
                     <i class="bi bi-three-dots-vertical icon-button-large"></i>
                 </button>
                 <mat-menu #galleryMenu="matMenu">
                     <button mat-menu-item (click)="browse(f.galleryNo)">{{'gallery' | trl:'browse'}}</button>
-                    <ng-container *ngIf="f.isOwner">
-                        <button mat-menu-item (click)="updateGallery(f.galleryNo, f.name)">{{'gallery' | trl:'update'}}</button>
-                        <button mat-menu-item (click)="deleteGallery(f.galleryNo, f.name)">{{'gallery' | trl:'delete'}}</button>
-                        <button mat-menu-item (click)="popToGrantAccess(f)">{{'gallery' | trl:'share'}}</button>
-                        <button mat-menu-item *ngIf="f.dirFileKey" (click)="openFileDir(f)">{{'gallery' | trl:'directory'}}</button>
-                    </ng-container>
+                    <button mat-menu-item *ngIf="f.isOwner && f.dirFileKey" (click)="openFileDir(f)">{{'gallery' | trl:'directory'}}</button>
                 </mat-menu>
             </td>
         </ng-container>
@@ -101,7 +96,7 @@
                         </mat-form-field>
                         <div class="d-flex flex-wrap gap-2 mb-3" *ngIf="expandedElement != null">
                             <ng-container *ngIf="u.isOwner">
-                                <button mat-raised-button (click)="updateGallery(u.galleryNo, u.name)">
+                                <button mat-raised-button (click)="updateGallery(expandedElement.galleryNo, expandedElement.name)">
                                     {{'gallery' | trl:'update'}}
                                 </button>
                                 <button mat-raised-button (click)="deleteGallery(u.galleryNo, u.name)">
