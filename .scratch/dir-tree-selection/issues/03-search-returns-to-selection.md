@@ -4,9 +4,9 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Clearing the search box re-expands every ancestor between the root and the selected node.
-- [ ] The selected node keeps its highlight after the search is cleared and while results are shown.
-- [ ] Search matching, match highlighting, and result visibility behave as they do today.
-- [ ] The component spec covers clear-search restoring the selected path and the highlight surviving an active search.
+- [x] Clearing the search box re-expands every ancestor between the root and the selected node.
+- [x] The selected node keeps its highlight after the search is cleared and while results are shown.
+- [x] Search matching, match highlighting, and result visibility behave as they do today.
+- [x] The component spec covers clear-search restoring the selected path and the highlight surviving an active search.

@@ -40,7 +40,7 @@
                 <input matInput readonly [ngModel]="createTaskDirName" />
             </mat-form-field>
             <div class="ms-3">
-                <app-dir-tree-nav [title]="'drone-task' | trl:'directoryTree'" [prevSelectedFileKey]="prevSelectedFileKey" (treeLoaded)="onTreeLoaded()" (selected)="selectDir($event)"></app-dir-tree-nav>
+                <app-dir-tree-nav [title]="'drone-task' | trl:'directoryTree'" [selectedFileKey]="selectedFileKey" (treeLoaded)="onTreeLoaded()" (selected)="selectDir($event)"></app-dir-tree-nav>
             </div>
 
             <div class="justify-content-end d-flex">

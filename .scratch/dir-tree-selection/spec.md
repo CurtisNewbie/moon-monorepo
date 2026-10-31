@@ -41,7 +41,7 @@ The shared directory tree component, used by Manage Drone Tasks, fape gallery cr
 
 **Selection model.** The component stores the selected node itself. Applying a key locates the node in the loaded top-down tree, records it, expands each ancestor between the root and the node with the tree control's `expand`, and applies a selected style class to that node's label. Nodes without a file key are still expanded when they sit on the path.
 
-**Reveal.** After the node is marked, it is scrolled into view inside the tree's scroll box, centred vertically. The component has no lazy loading, so the node is always present once the tree has loaded.
+**Reveal.** After the node is marked, its own scroll box is scrolled so the node sits centred vertically; the page around it never moves. The component has no lazy loading, so the node is always present once the tree has loaded.
 
 **Programmatic selection still emits.** Setting the input emits `selected` for the located node, because the embedding pages use that emission to fill their own fields. A key equal to the one already applied emits nothing, so re-rendering cannot loop. A key that is absent from the tree clears the highlight and emits nothing.
 
@@ -49,7 +49,7 @@ The shared directory tree component, used by Manage Drone Tasks, fape gallery cr
 
 **Search.** Search still collapses the tree to show matches. Clearing the search restores the expansion along the selected node's path, so the selection is visible again.
 
-**Highlight style.** The label of the selected node gets a class that renders a distinct background using the app theme, plus `aria-selected="true"` for screen readers. The component's empty styles array carries the rule.
+**Highlight style.** The label of the selected node gets a class that renders a distinct background in the theme's pink at low opacity, plus `aria-selected="true"` for screen readers. The component's stylesheet carries the rule.
 
 **Sources of the key.** Manage Drone Tasks keeps resolving the remembered directory from the backend after the tree reports it has loaded. Fape gallery keeps passing no key. No new client-side persistence is introduced.
 
@@ -57,7 +57,9 @@ The shared directory tree component, used by Manage Drone Tasks, fape gallery cr
 
 A good test here drives the component through its inputs and user clicks and asserts what a user would see or receive: the emitted node, which ancestors are expanded, whether the selected class is present, and whether scrolling was requested. Tests do not assert private fields or the BFS implementation.
 
-The primary seam is a new component spec for the directory tree, using `HttpClientTestingModule` to answer the top-down tree request and `Env` stubbed for the mobile width. It covers: a key set before load is applied after load and emits once; ancestors are expanded; the selected class lands on exactly one node; a deep key is scrolled into view; an unknown key clears the mark and emits nothing; setting the same key twice emits once; a click marks and emits without collapsing; clearing a search returns to the selected path.
+The primary seam is a new component spec for the directory tree, answering the top-down tree request through `HttpClientTestingModule`. It covers: a key set before load is applied after load and emits once; ancestors are expanded; the selected class lands on exactly one node; a deep key is revealed by scrolling the tree's own box; an unknown key clears the mark and emits nothing; the same input key twice emits once; a click marks and emits even on the node already selected, without collapsing; a pending input emit is dropped when a click supersedes it; clearing a search returns to the selected path without emitting or refetching.
+
+Mobile width is a stylesheet rule with no behaviour of its own, so the repo's breakpoint lint covers it rather than a test.
 
 The existing Manage Drone Tasks spec is extended to cover the page contract: after the last-selected-directory response, the tree receives that key and the Parent Directory field carries the name, and selecting a node leaves the tree expanded. Its current search tests are the prior art for stubbing HTTP and pipes.
 
@@ -90,7 +92,7 @@ The tree component's public surface:
 
 - Input `title`, a translation key, default `defaultTitle`.
 - Input `selectedFileKey`, `string | undefined`, default `undefined`. Writing a key applies the selection; there is no getter.
-- Output `selected`, emitting a shallow copy of the selected `DirTopDownTreeNode`. It fires on a click and on an input-applied selection that differs from the current one.
+- Output `selected`, emitting a shallow copy of the selected `DirTopDownTreeNode`. It fires on every click, and on an input-applied selection that differs from the current one. A click emits synchronously; an input application emits after the change-detection pass that bound the input, so the page can update its own bound fields without a changed-after-checked error.
 - Output `treeLoaded`, emitting once per successful fetch of the tree data.
 
 No HTTP contract changes: the tree keeps reading the top-down tree, and Manage Drone Tasks keeps reading the last selected directory and creating tasks with a directory key.
@@ -104,7 +106,7 @@ N/A. No new configuration keys.
 - At most one node carries the selected style at any time.
 - The selected style is never shown for a key that is absent from the loaded tree.
 - Whenever a selection is applied, by input or by click, every ancestor between the root and that node is expanded, unless a search is active.
-- Applying the same key twice emits once.
+- Applying the same key to the input twice emits once; a click always emits, including on the node already selected.
 - A click never collapses the tree.
 - The tree data is fetched once per component instance; applying a selection never refetches.
 - The highlighted node always matches the key last applied by the input or last clicked.
@@ -115,7 +117,7 @@ Before the tree data arrives, an input key is pending. When the fetch succeeds, 
 
 If the fetch fails, the tree stays empty, no selection is applied, and `treeLoaded` does not fire. Manage Drone Tasks therefore keeps its Parent Directory empty and its remembered-directory request unstarted; the user picks a directory once a reload succeeds.
 
-If the remembered-directory request fails, Manage Drone Tasks shows its existing message and leaves the tree unselected.
+If the remembered-directory request fails at the transport level, the tree stays unselected and the Parent Directory stays empty, so the user picks a directory by hand. The page logs the failure and shows no message for this one.
 
 An unknown key clears the highlight and emits nothing, so the page keeps whatever field value it already had and no selection is invented.
 

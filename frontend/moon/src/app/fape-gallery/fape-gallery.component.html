@@ -21,7 +21,7 @@
     </mat-form-field>
     <div class="ms-3">
         <app-dir-tree-nav [title]="'fape-gallery' | trl:'directoryTree'"
-            [prevSelectedFileKey]="prevSelectedFileKey" (selected)="selectDir($event)">
+            [selectedFileKey]="selectedFileKey" (selected)="selectDir($event)">
         </app-dir-tree-nav>
     </div>
     <div class="justify-content-end d-flex">

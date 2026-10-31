@@ -4,11 +4,11 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Clicking a node marks it as selected and emits it, with no collapse.
-- [ ] Manage Drone Tasks no longer collapses the tree after a directory is picked, and the selected node stays highlighted.
-- [ ] Fape gallery creation no longer collapses the tree after a directory is picked, and the selected node stays highlighted.
-- [ ] The tree component's public collapse method and the view queries that existed only to call it are gone, with no remaining callers.
-- [ ] The Manage Drone Tasks page spec covers the last-selected-directory round trip and a click that leaves the tree expanded.
-- [ ] Existing Manage Drone Tasks search tests still pass.
+- [x] Clicking a node marks it as selected and emits it, with no collapse.
+- [x] Manage Drone Tasks no longer collapses the tree after a directory is picked, and the selected node stays highlighted.
+- [x] Fape gallery creation no longer collapses the tree after a directory is picked, and the selected node stays highlighted.
+- [x] The tree component's public collapse method and the view queries that existed only to call it are gone, with no remaining callers.
+- [x] The Manage Drone Tasks page spec covers the last-selected-directory round trip and a click that leaves the tree expanded.
+- [x] Existing Manage Drone Tasks search tests still pass.

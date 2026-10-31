@@ -13,7 +13,6 @@ import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
-import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { isEnterKey } from "src/common/condition";
 import { copyToClipboard } from "src/common/clipboard";
 import { dialogSize } from "src/common/dialog-size";
@@ -142,7 +141,7 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
   }
   createTaskDirName: string = "";
   createTaskReq: CreateTaskReq = {};
-  prevSelectedFileKey: string | undefined;
+  selectedFileKey: string | undefined;
   platforms: string[] = [];
   lastPagePlatforms: string[] = [];
   tabdata: ListedTask[] = [];
@@ -151,9 +150,6 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
-
-  @ViewChild(DirTreeNavComponent)
-  dirTreeNav: DirTreeNavComponent;
 
   ngOnInit(): void {
     this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
@@ -331,7 +327,6 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
   selectDir(n) {
     this.createTaskReq.dirFileKey = n.fileKey;
     this.createTaskDirName = n.name;
-    this.dirTreeNav.collapseAll();
   }
 
   fetchLastSelectedDir() {
@@ -344,7 +339,7 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
             return;
           }
           let dat: { fileKey?: string } = resp.data;
-          this.prevSelectedFileKey = dat?.fileKey || undefined;
+          this.selectedFileKey = dat?.fileKey || undefined;
         },
         error: (err) => {
           console.log(err);
@@ -359,7 +354,7 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
   toggleCreateTaskPanelShown() {
     this.createTaskPanelShown = !this.createTaskPanelShown;
     if (this.createTaskPanelShown) {
-      this.prevSelectedFileKey = undefined;
+      this.selectedFileKey = undefined;
       this.listPlatforms();
     }
   }

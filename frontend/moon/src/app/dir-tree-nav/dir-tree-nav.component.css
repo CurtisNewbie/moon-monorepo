@@ -1,3 +1,8 @@
+.dir-tree-name-selected {
+  background-color: rgba(233, 30, 99, 0.16);
+  border-radius: 3px;
+}
+
 /*
  * A deep path is clipped only where the compact layout runs out of width, so
  * the tree row stays readable at 390px. The width comes from the layout tier,

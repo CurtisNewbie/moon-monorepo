@@ -6,7 +6,6 @@ import { ConfirmDialog } from 'src/common/dialog';
 import { dialogSize } from 'src/common/dialog-size';
 import { Env } from 'src/common/env-util';
 import { ControlledPaginatorComponent } from '../controlled-paginator/controlled-paginator.component';
-import { DirTreeNavComponent } from '../dir-tree-nav/dir-tree-nav.component';
 import { I18n } from '../i18n.service';
 import { NavigationService } from '../navigation.service';
 import { NavType } from '../routes';
@@ -72,7 +71,7 @@ export class FapeGalleryComponent implements OnInit, OnDestroy {
     maxPages: 3,
   };
   createDirName = '';
-  prevSelectedFileKey: string | undefined;
+  selectedFileKey: string | undefined;
 
   // Gallery list
   galleries: ListedFapeGallery[] = [];
@@ -83,9 +82,6 @@ export class FapeGalleryComponent implements OnInit, OnDestroy {
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
-
-  @ViewChild(DirTreeNavComponent)
-  dirTreeNav: DirTreeNavComponent;
 
   constructor(
     private snackBar: MatSnackBar,
@@ -141,14 +137,13 @@ export class FapeGalleryComponent implements OnInit, OnDestroy {
   toggleCreatePanel(): void {
     this.showCreatePanel = !this.showCreatePanel;
     if (this.showCreatePanel) {
-      this.prevSelectedFileKey = undefined;
+      this.selectedFileKey = undefined;
     }
   }
 
   selectDir(n) {
     this.createGalleryReq.dirFileKey = n.fileKey;
     this.createDirName = n.name;
-    this.dirTreeNav.collapseAll();
   }
 
   createGallery() {
