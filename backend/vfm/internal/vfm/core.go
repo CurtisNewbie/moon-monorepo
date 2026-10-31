@@ -2253,7 +2253,9 @@ func findFirstThumbnailFileId(rail miso.Rail, db *gorm.DB, dirFileKey string) (s
 	ok, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Eq("parent_file", dirFileKey).
+		Eq("is_logic_deleted", DelN).
 		Eq("is_del", 0).
+		Eq("hidden", 0).
 		Ne("thumbnail", "").
 		OrderAsc("id").
 		Limit(1).
@@ -2283,12 +2285,15 @@ func findFirstThumbnailFileIds(rail miso.Rail, db *gorm.DB, dirKeys []string, us
 			(SELECT f.thumbnail
 			 FROM file_info f
 			 WHERE f.parent_file = d.uuid
+			   AND f.is_logic_deleted = 0
 			   AND f.is_del = 0
+			   AND f.hidden = 0
 			   AND f.thumbnail != ''
 			 ORDER BY f.id ASC
 			 LIMIT 1) as fstore_file_id
 		FROM file_info d
 		WHERE d.uuid IN ?
+			AND d.is_logic_deleted = 0
 			AND d.is_del = 0
 			AND d.uploader_no = ?
 	`
