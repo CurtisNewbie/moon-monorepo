@@ -219,13 +219,13 @@
                     [imageUrl]="enableThumbnailTooltip && !env.isMobile() ? (f.isDir ? dirThumbnailCache.get(f.uuid) : (f.isFile ? f.thumbnailUrl : null)) : null"
                     [matTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((f.isDir && !dirThumbnailCache.has(f.uuid)) ? 'Open \'' + f.name +'\'' : (f.isFile && !f.thumbnailUrl ? (f.isDisplayable ? 'Preview \'' + f.name + '\'' : '') : '')) : ''"
                     matTooltipShowDelay="200">
-                    <span class="dir-cover" *ngIf="showDirCover(f)">
-                        <img class="dir-cover-img" [src]="dirThumbnailCache.get(f.uuid)" alt=""
+                    <span class="dir-glyph" *ngIf="f.fileType == 'DIR'">
+                        <img class="dir-glyph-img" *ngIf="showDirCover(f)" [src]="dirThumbnailCache.get(f.uuid)" alt=""
                             (error)="onDirCoverError(f)" />
                     </span>
                     <img style="max-height:60px; padding: 5px 0px 5px 0px;"
-                        *ngIf="!showDirCover(f) && f.fileType != 'DIR' && f.thumbnailUrl" [src]="f.thumbnailUrl" />
-                    <i style="max-height:60px; padding: 5px 0px 5px 0px;" *ngIf="!showDirCover(f) && (f.fileType == 'DIR' || !f.thumbnailUrl)"
+                        *ngIf="f.fileType != 'DIR' && f.thumbnailUrl" [src]="f.thumbnailUrl" />
+                    <i style="max-height:60px; padding: 5px 0px 5px 0px;" *ngIf="f.fileType != 'DIR' && !f.thumbnailUrl"
                         [ngClass]="['bi', 'icon-button-large', guessFileIcon(f)]"></i>
                 </td>
             </ng-container>

@@ -128,47 +128,51 @@
   display: none;
 }
 
-/* Folder with cover: the row still reads as a directory, because the picture is
-   clipped inside a folder frame whose tab stays visible. Geometry from the
-   approved mock (.scratch/folder-preview/design/folder-glyph.html). The 3px
-   vertical margins keep the 48px row height, so a glyph -> cover swap never
-   shifts the list. */
-.dir-cover {
+/* Every directory row draws this tabbed folder. The body is 72x48 with a
+   12px-proud tab, so the whole silhouette is 72x60 — the height of a file
+   row's thumbnail. The 12px top margin reserves the tab in the flow. Aligned
+   middle like the thumbnail (Bootstrap resets img to vertical-align: middle),
+   the shape contributes exactly its 60px box to the line, so covered,
+   uncovered and file rows share one row height and the toggle never resizes a
+   row. Geometry from the approved mock:
+   .scratch/folder-preview/design/folder-glyph-v2.html (variant B). */
+.dir-glyph {
   position: relative;
-  display: block;
-  width: 44px;
-  height: 34px;
-  margin: 3px 0;
+  display: inline-block;
+  vertical-align: middle;
+  width: 72px;
+  height: 48px;
+  /* the tab paints inside this reserve, never over the row above */
+  margin-top: 12px;
   /* square top-left: that is where the tab joins */
-  border-radius: 0 4px 4px 4px;
+  border-radius: 0 6px 6px 6px;
   background: linear-gradient(180deg, #f4edf1 0%, #e7dfe4 55%, #c9c0c7 100%);
-  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 1.5px 2px rgba(0, 0, 0, 0.5));
 }
 
-.dir-cover::before {
-  /* the tab, 7px proud of the body with a clipped slope on its right edge */
+.dir-glyph::before {
+  /* the tab, 12px proud of the body with a clipped slope on its right edge */
   content: "";
   position: absolute;
   left: 0;
-  top: -7px;
-  width: 20px;
-  height: 9px;
-  border-radius: 4px 0 0 0;
+  top: -12px;
+  width: 32px;
+  height: 16px;
+  border-radius: 5px 0 0 0;
   background: linear-gradient(180deg, #f9f3f6, #eee6ea);
-  clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 100%, 0 100%);
 }
 
-.dir-cover-img {
+.dir-glyph-img {
   position: absolute;
-  left: 3px;
-  top: 6px;
-  right: 3px;
-  bottom: 3px;
-  width: calc(100% - 6px);
-  height: calc(100% - 9px);
+  left: 2px;
+  top: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  display: block;
   /* arbitrary aspect ratios are cropped, never squashed or spilling out */
   object-fit: cover;
-  border-radius: 2px;
+  border-radius: 0 4px 4px 4px;
 }
 
 /* Mobile: compact file list */

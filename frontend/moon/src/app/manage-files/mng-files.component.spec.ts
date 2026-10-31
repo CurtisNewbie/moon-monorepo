@@ -22,6 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 
 import { Env } from 'src/common/env-util';
@@ -849,11 +850,20 @@ describe('MngFilesComponent folder preview', () => {
   let http: FakeHttp;
   let mobile$: BehaviorSubject<boolean>;
 
-  const COVER_URL = 'fstore/file/raw?key=cover-token';
+  /** a real, decodable image so intrinsic thumbnail sizes are measurable */
+  const IMAGE_DATA_URL =
+    'data:image/svg+xml;charset=utf-8,' +
+    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="100"></svg>');
+  const COVER_URL = IMAGE_DATA_URL;
   const FOLDER_PREVIEW_KEY = 'manage-files.folderPreview';
 
   function dirRow(uuid: string, name: string): FileInfo {
     return { uuid, name, isDir: true, fileType: 'DIR' } as FileInfo;
+  }
+
+  /** A data URL the browser will actually decode; Angular would prefix it as unsafe otherwise. */
+  function trustedImage(url: string): any {
+    return TestBed.inject(DomSanitizer).bypassSecurityTrustUrl(url);
   }
 
   function fileRow(uuid: string, name: string, thumbnailUrl: string): FileInfo {
@@ -881,21 +891,54 @@ describe('MngFilesComponent folder preview', () => {
     fixture.detectChanges();
   }
 
+  function rowAt(index: number): HTMLElement {
+    return fixture.nativeElement.querySelectorAll('tr.file-row')[index];
+  }
+
+  function cellAt(index: number): HTMLElement {
+    return rowAt(index).querySelector('td.mat-column-thumbnail');
+  }
+
   function thumbnailCell(): HTMLElement {
-    const rows = fixture.nativeElement.querySelectorAll('tr.file-row');
-    return rows[0].querySelector('td.mat-column-thumbnail');
+    return cellAt(0);
+  }
+
+  function glyphAt(index: number): HTMLElement {
+    return cellAt(index).querySelector('.dir-glyph');
+  }
+
+  /** Lets real image decoding finish before the test measures a box. */
+  async function settleImages(): Promise<void> {
+    fixture.detectChanges();
+    const imgs = Array.from<HTMLImageElement>(
+      fixture.nativeElement.querySelectorAll('img')
+    );
+    await Promise.all(
+      imgs.map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              img.addEventListener('load', () => resolve(), { once: true });
+              img.addEventListener('error', () => resolve(), { once: true });
+            })
+      )
+    );
+    fixture.detectChanges();
   }
 
   /**
-   * Renders at a phone width for the duration of `run`. The compact rules live
-   * in a media query and Karma's own window is wider, so the runner iframe is
-   * given a phone size — the assertion is still layout a real browser did.
+   * Renders at a given width for the duration of `run`. The layout tiers live
+   * in media queries and Karma's own window is 756px wide, so the runner iframe
+   * is resized — the assertion is still layout a real browser did.
    */
-  function atPhoneWidth(run: (viewportWidth: number) => void): void {
+  function atViewportWidth(
+    width: number,
+    run: (viewportWidth: number) => void
+  ): void {
     const frame = window.frameElement as HTMLElement;
     const originalWidth = frame ? frame.style.width : null;
     if (frame) {
-      frame.style.width = '412px';
+      frame.style.width = `${width}px`;
     }
     try {
       const viewportWidth = frame
@@ -907,6 +950,10 @@ describe('MngFilesComponent folder preview', () => {
         frame.style.width = originalWidth;
       }
     }
+  }
+
+  function atPhoneWidth(run: (viewportWidth: number) => void): void {
+    atViewportWidth(412, run);
   }
 
   beforeEach(() => {
@@ -969,15 +1016,19 @@ describe('MngFilesComponent folder preview', () => {
     });
   });
 
-  it('starts off and draws the plain folder glyph for a directory with a cached cover', () => {
+  it('starts off and draws the empty folder shape for a directory with a cached cover', () => {
     open([dirRow('dir-1', 'Album')]);
-    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
     fixture.detectChanges();
 
     expect(isChecked('folderPreview')).toBe(false);
     const cell = thumbnailCell();
-    expect(cell.querySelector('.dir-cover')).toBeNull();
-    expect(cell.querySelector('i.bi')).not.toBeNull();
+    const glyph = glyphAt(0);
+    expect(glyph).not.toBeNull();
+    expect(glyph.querySelector('img')).toBeNull();
+    // the shape itself is the surface: no inner rectangle and no bootstrap glyph
+    expect(glyph.children.length).toBe(0);
+    expect(cell.querySelector('i.bi')).toBeNull();
   });
 
   it('remembers a ticked box when the page is opened again', async () => {
@@ -1005,66 +1056,204 @@ describe('MngFilesComponent folder preview', () => {
 
   it('draws a known cover inside the folder shape when it is on', () => {
     open([dirRow('dir-1', 'Album')]);
-    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
 
     tickFolderPreview();
 
     const cell = thumbnailCell();
-    const cover = cell.querySelector('.dir-cover');
+    const glyph = glyphAt(0);
+    const cover = glyph.querySelector('img');
+    expect(glyph).not.toBeNull();
     expect(cover).not.toBeNull();
-    expect(cover.querySelector('img').getAttribute('src')).toBe(COVER_URL);
-    // the plain glyph steps aside: never a glyph on top of a picture
+    expect(cover.getAttribute('src')).toBe(COVER_URL);
+    // the folder shape is the only frame: never a glyph on top of a picture
     expect(cell.querySelector('i.bi')).toBeNull();
   });
 
-  it('falls back to the plain glyph when a cached cover fails to load', () => {
+  it('falls back to the empty folder shape when a cached cover fails to load', () => {
     open([dirRow('dir-1', 'Album')]);
-    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
     tickFolderPreview();
-    expect(thumbnailCell().querySelector('.dir-cover')).not.toBeNull();
+    const before = glyphAt(0).getBoundingClientRect();
 
-    thumbnailCell().querySelector('img').dispatchEvent(new Event('error'));
+    glyphAt(0).querySelector('img').dispatchEvent(new Event('error'));
     fixture.detectChanges();
 
     const cell = thumbnailCell();
-    expect(cell.querySelector('.dir-cover')).toBeNull();
-    expect(cell.querySelector('i.bi')).not.toBeNull();
+    const glyph = glyphAt(0);
+    expect(glyph).not.toBeNull();
+    expect(glyph.querySelector('img')).toBeNull();
+    expect(cell.querySelector('i.bi')).toBeNull();
+    const after = glyph.getBoundingClientRect();
+    expect(after.width).toBeCloseTo(before.width, 0);
+    expect(after.height).toBeCloseTo(before.height, 0);
     // forgotten, so a later listing does not draw the same broken cover again
     expect(component.dirThumbnailCache.has('dir-1')).toBe(false);
   });
 
-  it('swaps the glyph for the cover when the batch answer arrives later', () => {
+  it('keeps the folder shape and adds the cover when the batch answer arrives later', () => {
     open([dirRow('dir-1', 'Album')]);
     tickFolderPreview();
-    expect(thumbnailCell().querySelector('.dir-cover')).toBeNull();
+    expect(glyphAt(0)).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).toBeNull();
 
-    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
     fixture.detectChanges();
 
-    expect(thumbnailCell().querySelector('.dir-cover')).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).not.toBeNull();
   });
 
-  it('keeps the plain glyph for a directory whose cover is unknown while it is on', () => {
+  it('draws the empty folder body for a directory whose cover is unknown while it is on', () => {
     open([dirRow('dir-1', 'Album')]);
 
     tickFolderPreview();
 
     const cell = thumbnailCell();
-    expect(cell.querySelector('.dir-cover')).toBeNull();
-    expect(cell.querySelector('img')).toBeNull();
-    expect(cell.querySelector('i.bi')).not.toBeNull();
+    expect(glyphAt(0)).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).toBeNull();
+    expect(cell.querySelector('i.bi')).toBeNull();
   });
 
-  it('returns a directory to the plain glyph when it is turned off', () => {
+  it('keeps the folder shape with an empty body when it is turned off', () => {
     open([dirRow('dir-1', 'Album')]);
-    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
     tickFolderPreview();
-    expect(thumbnailCell().querySelector('.dir-cover')).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).not.toBeNull();
 
     tickFolderPreview();
 
-    expect(thumbnailCell().querySelector('.dir-cover')).toBeNull();
-    expect(thumbnailCell().querySelector('i.bi')).not.toBeNull();
+    expect(glyphAt(0)).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).toBeNull();
+    expect(thumbnailCell().querySelector('i.bi')).toBeNull();
+  });
+
+  it('draws the cover at the large body size behind a thin folder rail', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+
+    tickFolderPreview();
+
+    const glyph = glyphAt(0);
+    const box = glyph.getBoundingClientRect();
+    const cover = glyph.querySelector('img').getBoundingClientRect();
+
+    expect(box.width).toBeCloseTo(72, 0);
+    expect(box.height).toBeCloseTo(48, 0);
+    expect(cover.width).toBeCloseTo(68, 0);
+    expect(cover.height).toBeCloseTo(44, 0);
+    expect(cover.left - box.left).toBeCloseTo(2, 0);
+    expect(cover.top - box.top).toBeCloseTo(2, 0);
+  });
+
+  it('keeps a covered directory the same overall size with the toggle on and off', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    const off = glyphAt(0).getBoundingClientRect();
+    const offRow = rowAt(0).getBoundingClientRect().height;
+
+    tickFolderPreview();
+    const on = glyphAt(0).getBoundingClientRect();
+    const onRow = rowAt(0).getBoundingClientRect().height;
+
+    tickFolderPreview();
+    const offAgain = glyphAt(0).getBoundingClientRect();
+
+    expect(on.width).toBeCloseTo(off.width, 0);
+    expect(on.height).toBeCloseTo(off.height, 0);
+    expect(offAgain.width).toBeCloseTo(off.width, 0);
+    expect(offAgain.height).toBeCloseTo(off.height, 0);
+    expect(onRow).toBeCloseTo(offRow, 0);
+  });
+
+  it('gives a covered directory, an uncovered directory and an image file the same row height', async () => {
+    open([
+      dirRow('dir-1', 'Album'),
+      dirRow('dir-2', 'Screenshots'),
+      fileRow('f-1', 'photo.jpg', trustedImage(IMAGE_DATA_URL)),
+    ]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    tickFolderPreview();
+    await settleImages();
+
+    expect(glyphAt(0).querySelector('img')).not.toBeNull();
+    expect(glyphAt(1).querySelector('img')).toBeNull();
+
+    atViewportWidth(1200, (viewportWidth) => {
+      expect(viewportWidth).toBeGreaterThan(768);
+
+      const heights = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5);
+      // the tab stays inside the row's own flow box, clear of the row above
+      const cell = cellAt(0).getBoundingClientRect();
+      const glyphBox = glyphAt(0).getBoundingClientRect();
+      expect(glyphBox.top - 12).toBeGreaterThanOrEqual(cell.top - 0.5);
+      expect(rowAt(1).getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        rowAt(0).getBoundingClientRect().bottom - 0.5
+      );
+      expect(glyphAt(1).getBoundingClientRect().top - 12).toBeGreaterThanOrEqual(
+        rowAt(0).getBoundingClientRect().bottom - 0.5
+      );
+    });
+  });
+
+  it('changes no row height when the preview toggle is switched', async () => {
+    open([
+      dirRow('dir-1', 'Album'),
+      dirRow('dir-2', 'Screenshots'),
+      fileRow('f-1', 'photo.jpg', trustedImage(IMAGE_DATA_URL)),
+    ]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    await settleImages();
+
+    atViewportWidth(1200, (viewportWidth) => {
+      expect(viewportWidth).toBeGreaterThan(768);
+
+      const before = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+      tickFolderPreview();
+      const after = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+
+      expect(glyphAt(0).querySelector('img')).not.toBeNull();
+      before.forEach((height, i) =>
+        expect(Math.abs(after[i] - height)).toBeLessThanOrEqual(0.5)
+      );
+    });
+  });
+
+  it('keeps the same footprint in the compact layout without clipping the shape', async () => {
+    mobile$.next(true);
+    open([
+      dirRow('dir-1', 'Album'),
+      dirRow('dir-2', 'Screenshots'),
+      fileRow('f-1', 'photo.jpg', trustedImage(IMAGE_DATA_URL)),
+    ]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    tickFolderPreview();
+    await settleImages();
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+
+      const heights = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5);
+
+      const cell = cellAt(0).getBoundingClientRect();
+      const glyph = glyphAt(0).getBoundingClientRect();
+      expect(glyph.width).toBeCloseTo(72, 0);
+      expect(glyph.height).toBeCloseTo(48, 0);
+      expect(glyph.left).toBeGreaterThanOrEqual(cell.left - 0.5);
+      expect(glyph.right).toBeLessThanOrEqual(cell.right + 0.5);
+      // tab included: nothing spills above or below the cell
+      expect(glyph.top - 12).toBeGreaterThanOrEqual(cell.top - 0.5);
+      expect(glyph.bottom).toBeLessThanOrEqual(cell.bottom + 0.5);
+    });
   });
 
   it('leaves file rows exactly as they were under both states', () => {
