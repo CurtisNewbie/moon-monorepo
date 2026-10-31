@@ -82,8 +82,9 @@ layout keeps the Preview column.
 
 **Cell rendering.** Every directory row draws the folder shape, whether the toggle is on or off, and
 at one footprint for covered and uncovered alike. The shape is a tabbed silhouette with the body
-72x48 and the tab proud of it, 6px corner radius on the body, the tab joining square on the left. Its
-total height matches a file row's thumbnail so both line up.
+54x34, the tab 24x10 sitting proud of it with a 1px tuck at its base, 5px corner radius on the body,
+the tab joining square on the left, total silhouette 54x44. The cell holds a fixed 60px slot and
+centres the shape inside it, so the row height comes from the slot and not from the glyph.
 
 With the toggle on and a cover URL known, the cover fills the body inside a 2px folder-coloured rail
 that runs continuously into the tab: the row reads as a directory holding a picture, and the picture
@@ -92,9 +93,9 @@ folder-coloured and empty — never an inner rectangle, a grey box, or an image 
 are untouched.
 
 **Row rhythm.** A covered directory, an uncovered directory and an image file must occupy the same
-row height, in the wide and the compact layout. The shape reserves the tab's height in the flow and
-sits on the text baseline, so its line box matches the existing thumbnail's; changing the toggle or
-receiving a cover must never resize a row.
+row height, in the wide and the compact layout. The tab paints inside the slot's flow, so no part of
+the shape crosses into the row above or below. Changing the toggle or receiving a cover must never
+resize a row.
 
 **Timing.** Covers arrive from the batch request that follows each listing, so a covered row draws the
 empty folder first and gains its picture once the batch answers. The row's size is the same in both
