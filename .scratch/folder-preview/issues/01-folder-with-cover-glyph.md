@@ -16,7 +16,7 @@
 
 ## Comments
 
-Approved 2026-10-31 — mock `design/folder-glyph.png` (source `design/folder-glyph.html`), user approved as-is.
+Approved 2026-10-31 — mock `design/folder-glyph.html` (self-contained; the rendered PNG was a review artifact and is not kept), user approved as-is.
 
 Approved CSS approach, reproduce this:
 1. `.dir-cover` = folder body: 44x34, `border-radius: 0 4px 4px 4px` (square top-left, where the tab joins), light gradient `#f4edf1 -> #c9c0c7`, `filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.5))`.
