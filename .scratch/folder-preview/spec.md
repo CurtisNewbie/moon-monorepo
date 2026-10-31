@@ -16,7 +16,7 @@ hover tooltip, but the list never draws it. The information is on screen and thr
 
 Every directory row draws one folder shape, always: a tabbed silhouette at a fixed footprint that
 matches the height of a file row's thumbnail, so a column of directories and files lines up row for
-row. With the "Folder preview" checkbox in the toolbar on, a directory whose cover image is known
+row. With the "Folder Preview" checkbox in the toolbar on, a directory whose cover image is known
 draws that image inside the folder body, filling it but for a thin folder-coloured rail. With it off,
 or with no cover known, the body stays folder-coloured and empty.
 
@@ -71,7 +71,7 @@ thumbnails are generated for video as well as image children, a video child can 
 cover; that is accepted, not special-cased. The tooltip, this column, and the browse-history page all
 read the same rule.
 
-**Toggle.** One boolean, "Folder preview", default off, persisted in browser localStorage so it
+**Toggle.** One boolean, "Folder Preview", default off, persisted in browser localStorage so it
 survives reloads and applies per browser rather than per account. It is a new, separate control: the
 existing "Enable Thumbnail Tooltips" checkbox keeps its current behavior and its current
 component-only (unpersisted) state.

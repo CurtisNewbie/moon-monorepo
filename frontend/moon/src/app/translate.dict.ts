@@ -235,7 +235,7 @@ export const enUSDict = {
     asc: "Ascending",
     desc: "Descending",
     thumbnailTooltip: "Enable Thumbnail Tooltips",
-    folderPreview: "Folder preview",
+    folderPreview: "Folder Preview",
     preview: "Preview",
     inDir: "In Directory",
     uploader: "Uploader",
