@@ -294,6 +294,17 @@ describe("DroneTaskComponent directory tree", () => {
     return labels[0];
   }
 
+  /** Empties the tree's search box the way a user would. */
+  function clearTreeSearch(tree: DirTreeNavComponent): void {
+    expect(tree.searchDirTreeName).toBeTruthy();
+    const input = fixture.debugElement.query(By.directive(DirTreeNavComponent))
+      .nativeElement.querySelector("input") as HTMLInputElement;
+    input.value = "";
+    input.dispatchEvent(new Event("input"));
+    input.dispatchEvent(new KeyboardEvent("keyup", { key: "Backspace" }));
+    fixture.detectChanges();
+  }
+
   it("applies the last selected directory to the tree and the parent directory field", async () => {
     const tree = openPanelAndLoadTree();
 
@@ -307,11 +318,18 @@ describe("DroneTaskComponent directory tree", () => {
     expect(selected.getAttribute("aria-selected")).toBe("true");
     expect(tree.dirTreeControl.isExpanded(root)).toBe(true);
     expect(tree.dirTreeControl.isExpanded(groupDocs)).toBe(true);
+    expect(tree.searchDirTreeName).toBe("deep");
+
+    const rendered = Array.from(
+      fixture.nativeElement.querySelectorAll(".dir-tree-name")
+    ).map((l: HTMLElement) => (l.textContent || "").trim());
+    expect(rendered).not.toContain("/other");
   });
 
   it("leaves the tree expanded after a click and rebinds the parent directory", async () => {
     const tree = openPanelAndLoadTree();
     await applyRememberedDir("deep");
+    clearTreeSearch(tree);
 
     treeLabel("/other").click();
     fixture.detectChanges();

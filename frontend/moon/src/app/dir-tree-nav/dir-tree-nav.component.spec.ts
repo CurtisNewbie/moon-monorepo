@@ -84,6 +84,20 @@ describe('DirTreeNavComponent selection', () => {
     ) as HTMLElement[];
   }
 
+  /** The labels from the root down to the given label. */
+  function pathTexts(label: HTMLElement): string[] {
+    const texts: string[] = [];
+    let item = label.closest('li');
+    while (item) {
+      const own = item.querySelector('.dir-tree-name') as HTMLElement | null;
+      if (own) {
+        texts.push((own.textContent || '').trim());
+      }
+      item = item.parentElement ? item.parentElement.closest('li') : null;
+    }
+    return texts.reverse();
+  }
+
   function labelText(text: string): HTMLElement {
     const labels = Array.from(
       fixture.nativeElement.querySelectorAll('.dir-tree-name')
@@ -161,9 +175,11 @@ describe('DirTreeNavComponent selection', () => {
   });
 
   it('scrolls only the tree box so the selected label is centred', () => {
+    // 41 same-named directories so the prefill keeps them all visible and the
+    // selected one sits in the middle of a list taller than the box.
     const leaves: DirTopDownTreeNode[] = [];
     for (let i = 0; i < 41; i++) {
-      leaves.push({ fileKey: `k${i}`, name: `k${i}` });
+      leaves.push({ fileKey: `k${i}`, name: 'same' });
     }
     fixture.detectChanges();
     httpMock
@@ -336,6 +352,34 @@ describe('DirTreeNavComponent selection', () => {
     httpMock.expectNone(TREE_URL);
   });
 
+  it('fills the search box with the applied directory name and filters the tree', async () => {
+    loadTree();
+
+    component.selectedFileKey = 'c';
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.searchDirTreeName).toBe('c');
+    const input = fixture.nativeElement.querySelector(
+      'input'
+    ) as HTMLInputElement;
+    expect(input.value).toBe('c');
+
+    expect(labelText('/c').classList).toContain('dir-tree-name-selected');
+    expect(selectedLabels().length).toBe(1);
+
+    const rendered = Array.from(
+      fixture.nativeElement.querySelectorAll('.dir-tree-name')
+    ).map((l: HTMLElement) => (l.textContent || '').trim());
+    expect(rendered).toContain('/c');
+    expect(rendered).not.toContain('/x');
+
+    expect(component.dirTreeControl.isExpanded(root)).toBe(true);
+    expect(component.dirTreeControl.isExpanded(groupA)).toBe(true);
+    expect(component.dirTreeControl.isExpanded(nodeB)).toBe(true);
+    expect(emitted.length).toBe(1);
+  });
+
   it('drops a pending input emit when a click selects another node first', async () => {
     loadTree();
     component.dirTreeControl.expand(root);
@@ -343,13 +387,70 @@ describe('DirTreeNavComponent selection', () => {
 
     component.selectedFileKey = 'c';
     fixture.detectChanges();
-    labelText('/x').click();
+    labelText('/b').click();
 
     expect(emitted.length).toBe(1);
-    expect(emitted[0].fileKey).toBe('x');
+    expect(emitted[0].fileKey).toBe('b');
 
     await fixture.whenStable();
 
-    expect(emitted.map((n) => n.fileKey)).toEqual(['x']);
+    expect(emitted.map((n) => n.fileKey)).toEqual(['b']);
+  });
+
+  it('leaves the search box untouched when a node is clicked', () => {
+    loadTree();
+    component.dirTreeControl.expand(root);
+    component.dirTreeControl.expand(groupA);
+    component.dirTreeControl.expand(nodeB);
+    fixture.detectChanges();
+
+    labelText('/b').click();
+    fixture.detectChanges();
+
+    expect(component.searchDirTreeName).toBe('');
+    const input = fixture.nativeElement.querySelector(
+      'input'
+    ) as HTMLInputElement;
+    expect(input.value).toBe('');
+    expect(labelText('/x')).toBeTruthy();
+    expect(emitted.length).toBe(1);
+    expect(emitted[0].fileKey).toBe('b');
+  });
+
+  it('shows every directory with the same name and highlights only the applied one', async () => {
+    const dupOne: DirTopDownTreeNode = { fileKey: 'dup-one', name: 'dup' };
+    const dupTwo: DirTopDownTreeNode = { fileKey: 'dup-two', name: 'dup' };
+    const groupOne: DirTopDownTreeNode = { name: 'one', child: [dupOne] };
+    const groupTwo: DirTopDownTreeNode = { name: 'two', child: [dupTwo] };
+    fixture.detectChanges();
+    httpMock.expectOne(TREE_URL).flush({
+      data: {
+        fileKey: 'root',
+        name: 'root',
+        child: [groupOne, groupTwo],
+      },
+    });
+    fixture.detectChanges();
+
+    component.selectedFileKey = 'dup-two';
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const dups = (
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.dir-tree-name')
+      ) as HTMLElement[]
+    ).filter((l) => (l.textContent || '').trim() === '/dup');
+    expect(dups.length).toBe(2);
+
+    const marked = dups.filter((l) =>
+      l.classList.contains('dir-tree-name-selected')
+    );
+    expect(marked.length).toBe(1);
+    expect(selectedLabels().length).toBe(1);
+
+    expect(pathTexts(marked[0])).toEqual(['/root', '/two', '/dup']);
+    const other = dups.find((l) => l !== marked[0]) as HTMLElement;
+    expect(pathTexts(other)).toEqual(['/root', '/one', '/dup']);
   });
 });

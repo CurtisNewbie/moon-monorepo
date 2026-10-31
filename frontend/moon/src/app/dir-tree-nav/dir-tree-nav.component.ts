@@ -206,6 +206,9 @@ export class DirTreeNavComponent implements OnInit, AfterViewChecked {
       return;
     }
     this.selectedNode = path[path.length - 1];
+    if (!fromClick) {
+      this.prefillSearch(this.selectedNode.name);
+    }
     this.expandPathAndReveal(path);
     const node = { ...this.selectedNode };
     if (fromClick) {
@@ -218,6 +221,19 @@ export class DirTreeNavComponent implements OnInit, AfterViewChecked {
         this.selectedEmiter.emit(node);
       }
     });
+  }
+
+  /**
+   * Fills the search box with the located directory's name and filters the tree
+   * to its matches, so an input-applied selection opens on its own branch. The
+   * search expands the path to every match, including the selected one.
+   */
+  private prefillSearch(name: string | undefined): void {
+    if (!name) {
+      return;
+    }
+    this.searchDirTreeName = name;
+    this.onSearchDirTreeNameChanged();
   }
 
   /** Expands every ancestor on the path, then schedules the reveal. */
