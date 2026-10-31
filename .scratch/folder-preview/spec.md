@@ -14,28 +14,29 @@ hover tooltip, but the list never draws it. The information is on screen and thr
 
 ## Solution
 
-A "Folder preview" checkbox in the manage-files toolbar. While it is on, a directory row whose cover
-image is known draws that image inside the folder glyph, so the row reads as a directory that has a
-picture in it. While it is off — and for a directory with no cover image — the row keeps today's
-plain folder glyph.
+Every directory row draws one folder shape, always: a tabbed silhouette at a fixed footprint that
+matches the height of a file row's thumbnail, so a column of directories and files lines up row for
+row. With the "Folder preview" checkbox in the toolbar on, a directory whose cover image is known
+draws that image inside the folder body, filling it but for a thin folder-coloured rail. With it off,
+or with no cover known, the body stays folder-coloured and empty.
 
-The checkbox starts off, so nobody's list changes until they ask for it, and the choice is remembered
-in the browser.
+The checkbox starts off, so a list gains pictures only when asked for, and the choice is remembered
+in the browser. The folder shape itself is not a preference: it is what a directory row looks like.
 
 ## User Stories
 
 1. As a moon user, I want an on/off switch for folder previews, so that I can choose between a
    compact familiar list and an informative one.
-2. As a moon user, I want the switch to start off, so that my list looks the same after this ships as
-   it did before.
+2. As a moon user, I want the switch to start off, so that no directory starts showing a picture
+   until I ask for one.
 3. As a moon user, I want my choice remembered across reloads, so that I do not re-tick it every
    visit.
 4. As a moon user, I want a folder row to show a picture when its folder has one, so that I can
    recognise a directory by content rather than by name.
 5. As a moon user, I want the picture drawn inside a folder shape, so that I never mistake a
    directory for an image file.
-6. As a moon user, I want a folder with no picture inside to keep the plain folder glyph, so that
-   empty and non-picture folders do not look broken.
+6. As a moon user, I want a folder with no picture to draw the same folder shape at the same size, so
+   that the column does not jump between big and small icons.
 7. As a moon user, I want the picture to appear as soon as the page knows it, so that I am not
    waiting on a second round-trip I already paid for.
 8. As a moon user, I want the preview to use the same cover the tooltip and the browse-history page
@@ -50,6 +51,12 @@ in the browser.
     mean opening a settings page.
 13. As a moon user with many folders on a page, I want no extra requests when I tick the box, so that
     turning previews on is instant rather than a page of new fetches.
+14. As a moon user, I want the picture large enough to tell two folders apart, so that the preview
+    answers "which folder is this" without opening it.
+15. As a moon user, I want every directory row to occupy the same height, so that switching previews
+    on and off never reflows the list.
+16. As a moon user, I want a directory row to look the same whether its cover has arrived yet or not,
+    so that a slow batch answer does not make the column jump.
 
 ## Implementation Decisions
 
@@ -73,16 +80,26 @@ component-only (unpersisted) state.
 tooltip checkbox it is shown in the compact layout as well as the wide one, because the compact
 layout keeps the Preview column.
 
-**Cell rendering.** For a directory row while the toggle is on and a cover URL is known, the cell
-draws the cover image clipped inside a folder-shaped frame whose tab stays visible: the row must read
-as a directory holding a picture, not as a picture. For a directory row with no known cover, and for
-every directory row while the toggle is off, the cell draws today's folder glyph. File rows are
-untouched.
+**Cell rendering.** Every directory row draws the folder shape, whether the toggle is on or off, and
+at one footprint for covered and uncovered alike. The shape is a tabbed silhouette with the body
+72x48 and the tab proud of it, 6px corner radius on the body, the tab joining square on the left. Its
+total height matches a file row's thumbnail so both line up.
 
-**Timing.** Covers arrive from the batch request that follows each listing, so with the toggle on a
-row may draw its folder glyph first and swap to the composite once the batch answers. No placeholder,
-spinner, or layout change is introduced for that gap; a directory whose batch entry is absent or has
-an empty token keeps the glyph.
+With the toggle on and a cover URL known, the cover fills the body inside a 2px folder-coloured rail
+that runs continuously into the tab: the row reads as a directory holding a picture, and the picture
+is large enough to tell two folders apart. With the toggle off, or with no cover known, the body stays
+folder-coloured and empty — never an inner rectangle, a grey box, or an image placeholder. File rows
+are untouched.
+
+**Row rhythm.** A covered directory, an uncovered directory and an image file must occupy the same
+row height, in the wide and the compact layout. The shape reserves the tab's height in the flow and
+sits on the text baseline, so its line box matches the existing thumbnail's; changing the toggle or
+receiving a cover must never resize a row.
+
+**Timing.** Covers arrive from the batch request that follows each listing, so a covered row draws the
+empty folder first and gains its picture once the batch answers. The row's size is the same in both
+states, so this is a picture appearing, not a layout change. A directory whose batch entry is absent
+or has an empty token keeps the empty folder.
 
 **Cache behavior.** The cover cache is keyed by directory uuid and already survives repeated listings
 and paging, so revisiting a page draws covers immediately. No eviction strategy is added.
@@ -92,18 +109,24 @@ and paging, so revisiting a page draws covers immediately. No eviction strategy 
 ## Testing Decisions
 
 Good tests assert what the user sees and what the browser remembers: whether a directory row renders
-an image or a glyph, and whether the choice persists. They do not assert CSS, DOM class names, or
-which private method computed a URL.
+an image or an empty folder shape, how big the rendered shape is, and whether the choice persists.
+They do not assert CSS declarations, DOM class names, or which private method computed a URL — a
+rendered element's box, measured in the browser, is fair game.
 
 One seam covers the feature: the manage-files component with its HTTP client stubbed, matching the
 existing component tests. New tests cover:
 
-- the toggle defaults to off on a fresh browser and the cell draws the folder glyph for directories;
+- the toggle defaults to off on a fresh browser and every directory row draws the folder shape with
+  no image in it;
 - ticking it persists the choice, and a fresh component instance reads it back as on;
-- with the toggle on and a cover present in the batch response, a directory row draws an image;
-- with the toggle on and the batch returning no token for a directory, that row keeps the folder
-  glyph;
-- with the toggle off, a directory row draws the folder glyph even when a cover is cached;
+- with the toggle on and a cover present in the batch response, a directory row draws an image inside
+  the folder shape;
+- with the toggle on and the batch returning no token for a directory, that row draws the same
+  folder shape with no image;
+- with the toggle off, a directory row draws no image even when a cover is cached;
+- a covered row, an uncovered row and an image-file row measure the same rendered height, and
+  switching the toggle changes no row's height;
+- a covered directory row measures the same overall size whether the toggle is on or off;
 - file rows render exactly as before under both toggle states.
 
 No backend test is added: the cover rule and endpoint are unchanged, and the existing tests for them
@@ -144,16 +167,23 @@ and the row is otherwise unaffected. A missing cover is never an error state the
 
 | Key | Type | Domain | Default | Owner | Effect |
 |---|---|---|---|---|---|
-| folder preview preference | boolean, localStorage | on / off | off | manage-files page | on: draw the cover inside the folder glyph for directory rows; off: today's folder glyph |
+| folder preview preference | boolean, localStorage | on / off | off | manage-files page | on: draw the cover inside the folder shape for directory rows; off: the same folder shape with an empty body |
 
 Absent or unreadable stored value resolves to off. The key is namespaced to the manage-files page so
 no other page reads it.
 
 ## Invariants
 
+- Every directory row draws the same folder shape at the same footprint, whatever its cover state and
+  whatever the toggle says. Nothing in the cell grows or shrinks when a cover arrives or the toggle
+  changes.
 - A directory row is always drawn as a folder. The cover, when present, is inside the folder shape,
   never a bare image.
 - A directory with no cover is never drawn as an empty frame, a grey box, or a broken image.
+- The whole shape, tab included, lives inside the cell's flow box: no part of it may overlap the row
+  above, the row's own text, or spill past the row boundary.
+- A covered directory row, an uncovered directory row and an image-file row are the same height in
+  the wide and the compact layout.
 - The preview toggle never changes which rows are listed, their order, their paging, or their
   actions.
 - File rows are identical under both toggle states.
@@ -162,10 +192,10 @@ no other page reads it.
 ## States and failure
 
 The switch has two states and no derived or disabled state. The cell has two states per directory
-row: glyph, or glyph-with-cover. A row moves glyph → glyph-with-cover when its cover becomes known,
-and back only when the toggle turns off or a later listing leaves it without a cover. The component
-holds no "loading cover" state. Unmounting the page clears the cover cache; the preference outlives
-it.
+row: an empty folder, and a folder with its cover. A row moves empty → covered when its cover becomes
+known, and back only when the toggle turns off, a later listing leaves it without a cover, or its
+cover fails to load. Both states occupy the same box. The component holds no "loading cover" state.
+Unmounting the page clears the cover cache; the preference outlives it.
 
 ## Boundaries
 
