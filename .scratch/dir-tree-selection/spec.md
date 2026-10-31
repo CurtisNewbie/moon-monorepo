@@ -32,6 +32,9 @@ The selection is display state in the shared tree component. What is remembered 
 12. As a moon user on a phone, I want the highlighted node readable inside the narrow tree box, so that the marker is visible without horizontal scrolling.
 13. As a moon user, I want the tree to load its directory data once per panel open, so that selecting nodes does not trigger repeated requests.
 14. As an implementer, I want one component to own the selection rules, so that the three embedding pages cannot drift apart.
+15. As a moon user opening the panel on a remembered directory, I want the tree to show only that directory's branch, so that the relevant folder is on screen instead of buried in a wide tree.
+16. As a moon user picking a different directory, I want the search box left alone, so that the tree does not collapse around my click.
+17. As a moon user clearing the search box, I want the selected directory still marked in the full tree, so that I can browse elsewhere without losing the target.
 
 ## Implementation Decisions
 
@@ -49,6 +52,8 @@ The shared directory tree component, used by Manage Drone Tasks, fape gallery cr
 
 **Search.** Search still collapses the tree to show matches. Clearing the search restores the expansion along the selected node's path, so the selection is visible again.
 
+**Search prefill.** When the remembered directory is applied through the input, the tree also fills its own search box with that directory's name, so the panel opens on the relevant branch: the matching directories and the path down to them, with the remembered one highlighted. The prefill belongs to input-applied selection only; a click never refills the search box, so picking another directory leaves the browse view as it is. Clearing the box returns the whole tree with the selected path restored.
+
 **Highlight style.** The label of the selected node gets a class that renders a distinct background in the theme's pink at low opacity, plus `aria-selected="true"` for screen readers. The component's stylesheet carries the rule.
 
 **Sources of the key.** Manage Drone Tasks keeps resolving the remembered directory from the backend after the tree reports it has loaded. Fape gallery keeps passing no key. No new client-side persistence is introduced.
@@ -57,7 +62,7 @@ The shared directory tree component, used by Manage Drone Tasks, fape gallery cr
 
 A good test here drives the component through its inputs and user clicks and asserts what a user would see or receive: the emitted node, which ancestors are expanded, whether the selected class is present, and whether scrolling was requested. Tests do not assert private fields or the BFS implementation.
 
-The primary seam is a new component spec for the directory tree, answering the top-down tree request through `HttpClientTestingModule`. It covers: a key set before load is applied after load and emits once; ancestors are expanded; the selected class lands on exactly one node; a deep key is revealed by scrolling the tree's own box; an unknown key clears the mark and emits nothing; the same input key twice emits once; a click marks and emits even on the node already selected, without collapsing; a pending input emit is dropped when a click supersedes it; clearing a search returns to the selected path without emitting or refetching.
+The primary seam is a new component spec for the directory tree, answering the top-down tree request through `HttpClientTestingModule`. It covers: a key set before load is applied after load and emits once; ancestors are expanded; the selected class lands on exactly one node; a deep key is revealed by scrolling the tree's own box; an unknown key clears the mark and emits nothing; the same input key twice emits once; a click marks and emits even on the node already selected, without collapsing; a pending input emit is dropped when a click supersedes it; clearing a search returns to the selected path without emitting or refetching; and an input-applied key fills the search box and filters the tree while a click leaves it alone.
 
 Mobile width is a stylesheet rule with no behaviour of its own, so the repo's breakpoint lint covers it rather than a test.
 
@@ -79,6 +84,8 @@ Verification runs through the frontend test command, which sets the Node options
 The top-down tree response is a single root, and the root itself is selectable like any other node, so the root can carry the highlight.
 
 Fape gallery already passes an input that is only ever undefined, so it gains the selected style and stable expansion but no remembered default. That page's remembered directory is a separate concern.
+
+Directory names repeat across the tree, so the prefilled search can match more than one directory. Every match and its ancestor path is shown, and only the remembered one carries the highlight.
 
 ## Contracts
 
@@ -107,6 +114,7 @@ N/A. No new configuration keys.
 - The selected style is never shown for a key that is absent from the loaded tree.
 - Whenever a selection is applied, by input or by click, every ancestor between the root and that node is expanded, unless a search is active.
 - Applying the same key to the input twice emits once; a click always emits, including on the node already selected.
+- The search box is filled only by an input-applied selection, never by a click.
 - A click never collapses the tree.
 - The tree data is fetched once per component instance; applying a selection never refetches.
 - The highlighted node always matches the key last applied by the input or last clicked.
