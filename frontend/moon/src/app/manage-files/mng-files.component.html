@@ -219,9 +219,11 @@
                     [imageUrl]="enableThumbnailTooltip && !env.isMobile() ? (f.isDir ? dirThumbnailCache.get(f.uuid) : (f.isFile ? f.thumbnailUrl : null)) : null"
                     [matTooltip]="enableThumbnailTooltip && !env.isMobile() ? ((f.isDir && !dirThumbnailCache.has(f.uuid)) ? 'Open \'' + f.name +'\'' : (f.isFile && !f.thumbnailUrl ? (f.isDisplayable ? 'Preview \'' + f.name + '\'' : '') : '')) : ''"
                     matTooltipShowDelay="200">
-                    <span class="dir-glyph" *ngIf="f.fileType == 'DIR'">
-                        <img class="dir-glyph-img" *ngIf="showDirCover(f)" [src]="dirThumbnailCache.get(f.uuid)" alt=""
-                            (error)="onDirCoverError(f)" />
+                    <span class="dir-glyph-slot" *ngIf="f.fileType == 'DIR'">
+                        <span class="dir-glyph">
+                            <img class="dir-glyph-img" *ngIf="showDirCover(f)" [src]="dirThumbnailCache.get(f.uuid)" alt=""
+                                (error)="onDirCoverError(f)" />
+                        </span>
                     </span>
                     <img style="max-height:60px; padding: 5px 0px 5px 0px;"
                         *ngIf="f.fileType != 'DIR' && f.thumbnailUrl" [src]="f.thumbnailUrl" />

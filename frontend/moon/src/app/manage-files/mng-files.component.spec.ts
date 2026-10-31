@@ -1127,7 +1127,7 @@ describe('MngFilesComponent folder preview', () => {
     expect(thumbnailCell().querySelector('i.bi')).toBeNull();
   });
 
-  it('draws the cover at the large body size behind a thin folder rail', () => {
+  it('draws the smaller body and cover behind a thin folder rail', () => {
     open([dirRow('dir-1', 'Album')]);
     component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
 
@@ -1137,12 +1137,33 @@ describe('MngFilesComponent folder preview', () => {
     const box = glyph.getBoundingClientRect();
     const cover = glyph.querySelector('img').getBoundingClientRect();
 
-    expect(box.width).toBeCloseTo(72, 0);
-    expect(box.height).toBeCloseTo(48, 0);
-    expect(cover.width).toBeCloseTo(68, 0);
-    expect(cover.height).toBeCloseTo(44, 0);
+    // body 54x34 with a 50x30 cover inside the 2px folder-coloured rail
+    expect(box.width).toBeCloseTo(54, 0);
+    expect(box.height).toBeCloseTo(34, 0);
+    expect(cover.width).toBeCloseTo(50, 0);
+    expect(cover.height).toBeCloseTo(30, 0);
     expect(cover.left - box.left).toBeCloseTo(2, 0);
     expect(cover.top - box.top).toBeCloseTo(2, 0);
+  });
+
+  it('holds a fixed 60px preview slot with the 54x44 silhouette inside it', () => {
+    open([dirRow('dir-1', 'Album')]);
+
+    const cell = thumbnailCell();
+    const slot = cell.querySelector('.dir-glyph-slot') as HTMLElement;
+    const glyph = glyphAt(0);
+
+    expect(slot).not.toBeNull();
+    const slotBox = slot.getBoundingClientRect();
+    const glyphBox = glyph.getBoundingClientRect();
+
+    // the row rhythm comes from this slot, not from the glyph
+    expect(slotBox.height).toBeCloseTo(60, 0);
+    expect(glyphBox.width).toBeCloseTo(54, 0);
+    expect(glyphBox.height).toBeCloseTo(34, 0);
+    // the tab is 10px proud of the body: silhouette 54x44, centred in the slot
+    expect(glyphBox.top - 10).toBeGreaterThanOrEqual(slotBox.top - 0.5);
+    expect(glyphBox.bottom).toBeLessThanOrEqual(slotBox.bottom + 0.5);
   });
 
   it('keeps a covered directory the same overall size with the toggle on and off', () => {
@@ -1188,11 +1209,11 @@ describe('MngFilesComponent folder preview', () => {
       // the tab stays inside the row's own flow box, clear of the row above
       const cell = cellAt(0).getBoundingClientRect();
       const glyphBox = glyphAt(0).getBoundingClientRect();
-      expect(glyphBox.top - 12).toBeGreaterThanOrEqual(cell.top - 0.5);
+      expect(glyphBox.top - 10).toBeGreaterThanOrEqual(cell.top - 0.5);
       expect(rowAt(1).getBoundingClientRect().top).toBeGreaterThanOrEqual(
         rowAt(0).getBoundingClientRect().bottom - 0.5
       );
-      expect(glyphAt(1).getBoundingClientRect().top - 12).toBeGreaterThanOrEqual(
+      expect(glyphAt(1).getBoundingClientRect().top - 10).toBeGreaterThanOrEqual(
         rowAt(0).getBoundingClientRect().bottom - 0.5
       );
     });
@@ -1246,12 +1267,12 @@ describe('MngFilesComponent folder preview', () => {
 
       const cell = cellAt(0).getBoundingClientRect();
       const glyph = glyphAt(0).getBoundingClientRect();
-      expect(glyph.width).toBeCloseTo(72, 0);
-      expect(glyph.height).toBeCloseTo(48, 0);
+      expect(glyph.width).toBeCloseTo(54, 0);
+      expect(glyph.height).toBeCloseTo(34, 0);
       expect(glyph.left).toBeGreaterThanOrEqual(cell.left - 0.5);
       expect(glyph.right).toBeLessThanOrEqual(cell.right + 0.5);
-      // tab included: nothing spills above or below the cell
-      expect(glyph.top - 12).toBeGreaterThanOrEqual(cell.top - 0.5);
+      // tab included (10px proud): nothing spills above or below the cell
+      expect(glyph.top - 10).toBeGreaterThanOrEqual(cell.top - 0.5);
       expect(glyph.bottom).toBeLessThanOrEqual(cell.bottom + 0.5);
     });
   });
