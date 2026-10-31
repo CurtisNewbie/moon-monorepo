@@ -1254,11 +1254,14 @@ describe('MngFilesComponent folder preview', () => {
       fileRow('f-1', 'photo.jpg', trustedImage(IMAGE_DATA_URL)),
     ]);
     component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
-    tickFolderPreview();
     await settleImages();
 
     atPhoneWidth((viewportWidth) => {
       expect(viewportWidth).toBeLessThanOrEqual(768);
+
+      // no switch on a phone: the known cover is drawn regardless
+      expect(glyphAt(0).querySelector('img')).not.toBeNull();
+      expect(glyphAt(1).querySelector('img')).toBeNull();
 
       const heights = [0, 1, 2].map(
         (i) => rowAt(i).getBoundingClientRect().height
@@ -1309,7 +1312,47 @@ describe('MngFilesComponent folder preview', () => {
     expect(labels).toEqual(['thumbnailTooltip', 'folderPreview']);
   });
 
-  it('keeps the checkbox on screen in the compact layout', () => {
+  it('does not offer the checkbox in the compact layout', () => {
+    mobile$.next(true);
+
+    open([dirRow('dir-1', 'Album')]);
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+      expect(checkbox('folderPreview')).toBeUndefined();
+    });
+  });
+
+  it('draws a known cover on a phone even with the stored preference off', () => {
+    localStorage.setItem(FOLDER_PREVIEW_KEY, '0');
+    mobile$.next(true);
+
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    fixture.detectChanges();
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+
+      const cell = thumbnailCell();
+      const glyph = glyphAt(0);
+      const cover = glyph.querySelector('img');
+      expect(glyph).not.toBeNull();
+      expect(cover).not.toBeNull();
+      expect(cover.getAttribute('src')).toBe(COVER_URL);
+      expect(cell.querySelector('i.bi')).toBeNull();
+
+      // the same 54x34 body with a 50x30 cover behind the 2px folder rail
+      const box = glyph.getBoundingClientRect();
+      const coverBox = cover.getBoundingClientRect();
+      expect(box.width).toBeCloseTo(54, 0);
+      expect(box.height).toBeCloseTo(34, 0);
+      expect(coverBox.width).toBeCloseTo(50, 0);
+      expect(coverBox.height).toBeCloseTo(30, 0);
+    });
+  });
+
+  it('draws the empty folder body on a phone when no cover is known', () => {
     mobile$.next(true);
 
     open([dirRow('dir-1', 'Album')]);
@@ -1317,18 +1360,13 @@ describe('MngFilesComponent folder preview', () => {
     atPhoneWidth((viewportWidth) => {
       expect(viewportWidth).toBeLessThanOrEqual(768);
 
-      const box = checkbox('folderPreview');
-      const strip = box.parentElement;
-      const boxRect = box.getBoundingClientRect();
-      const stripRect = strip.getBoundingClientRect();
-
-      expect(boxRect.width).toBeGreaterThan(0);
-      // inside the strip's visible area, not scrolled out to the right
-      expect(boxRect.left).toBeGreaterThanOrEqual(stripRect.left);
-      expect(boxRect.right).toBeLessThanOrEqual(stripRect.right);
-      // and inside the phone viewport
-      expect(boxRect.left).toBeGreaterThanOrEqual(0);
-      expect(boxRect.right).toBeLessThanOrEqual(viewportWidth);
+      const cell = thumbnailCell();
+      const glyph = glyphAt(0);
+      expect(glyph).not.toBeNull();
+      expect(glyph.querySelector('img')).toBeNull();
+      expect(glyph.children.length).toBe(0);
+      expect(cell.querySelector('i.bi')).toBeNull();
+      expect(glyph.getBoundingClientRect().height).toBeCloseTo(34, 0);
     });
   });
 });

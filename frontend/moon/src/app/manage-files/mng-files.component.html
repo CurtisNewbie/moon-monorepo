@@ -143,7 +143,7 @@
 
                 <mat-checkbox *ngIf="!env.isMobile()" [(ngModel)]="enableThumbnailTooltip">
                     {{'manage-files' | trl:'thumbnailTooltip'}}</mat-checkbox>
-                <mat-checkbox class="folder-preview-toggle" [(ngModel)]="folderPreview" (ngModelChange)="onFolderPreviewChange()">
+                <mat-checkbox *ngIf="!env.isMobile()" [(ngModel)]="folderPreview" (ngModelChange)="onFolderPreviewChange()">
                     {{'manage-files' | trl:'folderPreview'}}</mat-checkbox>
             </ng-container>
         </div>

@@ -186,12 +186,6 @@
 
 /* Mobile: compact file list */
 @media (max-width: 768px) {
-  /* the strip scrolls sideways on a phone, and this switch sits last in it;
-     order it first so it is on screen instead of off to the right */
-  .folder-preview-toggle {
-    order: -1;
-  }
-
   /* Native table layout: fix columns so wide thumbnails can't stretch the table */
   table.mat-table {
     table-layout: fixed !important;

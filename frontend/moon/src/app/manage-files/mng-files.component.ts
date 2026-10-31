@@ -1991,10 +1991,16 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   /**
    * Whether the Preview cell draws this directory's known cover inside its
-   * folder glyph. Off, unknown covers and every file row keep today's markup.
+   * folder glyph. The compact layout has no switch, so a phone always previews;
+   * unknown covers and every file row keep today's markup.
    */
   showDirCover(f: FileInfo): boolean {
-    return !!f && f.isDir && this.folderPreview && this.hasThumbnail(f);
+    return (
+      !!f &&
+      f.isDir &&
+      (this.folderPreview || this.env.isMobile()) &&
+      this.hasThumbnail(f)
+    );
   }
 
   /**
