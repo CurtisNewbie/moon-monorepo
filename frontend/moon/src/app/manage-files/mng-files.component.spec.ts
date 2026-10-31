@@ -1,5 +1,28 @@
-import { EventEmitter } from '@angular/core';
-import { of, Subject, throwError } from 'rxjs';
+import { CommonModule, Location } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { EventEmitter, Component, Input, Output } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
+import { BrowseHistoryRecorder } from 'src/common/browse-history';
+import { FileBookmark } from 'src/common/file-bookmark';
+import { I18n } from '../i18n.service';
+import { NavigationService } from '../navigation.service';
+import { FormsModule } from '@angular/forms';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 
 import { Env } from 'src/common/env-util';
 import { FileInfo, FileType } from 'src/common/file-info';
@@ -8,11 +31,32 @@ import {
   installFakeMatchMedia,
 } from 'src/testing/fake-media-query-list';
 import { FileInfoService } from '../file-info.service';
+import { ImageTooltipDirective } from '../shared/directives/image-tooltip.directive';
+import { TrlPipe } from '../trl.pipe';
 import { MngFilesComponent } from './mng-files.component';
+
+/** Placeholder for the paginator child: the folder preview tests render no rows through it. */
+@Component({ selector: 'app-controlled-paginator', template: '' })
+class StubPaginatorComponent {
+  @Input() showGotoPageOnMobile: any;
+  @Output() pageChanged = new EventEmitter<any>();
+  @Output() ready = new EventEmitter<void>();
+}
+
+/** Placeholder for the file tray child: it is only rendered when the tray opens. */
+@Component({ selector: 'app-file-tray', template: '' })
+class StubFileTrayComponent {
+  @Output() closed = new EventEmitter<void>();
+}
 
 /** Layout signal for tests that do not care which mode is active. */
 function staticEnv(isMobile: boolean): Env {
   return { isMobile: () => isMobile, mobile$: of(isMobile) } as any;
+}
+
+/** Lets the zone settle the async work a test started. */
+function flushAsync(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve));
 }
 
 /**
@@ -357,10 +401,6 @@ describe('MngFilesComponent size sort', () => {
     expect(listReq.orderDir).toBe('asc');
     expect(listReq.fileType).toBeUndefined();
   });
-
-  function flushAsync(): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve));
-  }
 
   function previewFour(files: FileInfo[]): void {
     component.fileInfoList = files;
@@ -795,5 +835,290 @@ describe('MngFilesComponent columns', () => {
 
     fake.fireChange(true);
     expect(component.displayedColumns).toEqual(COMPACT);
+  });
+});
+
+/**
+ * Folder preview, rendered through the real manage-files template with the
+ * HTTP client stubbed. The assertions are what the user sees in the Preview
+ * cell, plus what the browser remembers after the page is reopened.
+ */
+describe('MngFilesComponent folder preview', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let http: FakeHttp;
+  let mobile$: BehaviorSubject<boolean>;
+
+  const COVER_URL = 'fstore/file/raw?key=cover-token';
+  const FOLDER_PREVIEW_KEY = 'manage-files.folderPreview';
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true, fileType: 'DIR' } as FileInfo;
+  }
+
+  function fileRow(uuid: string, name: string, thumbnailUrl: string): FileInfo {
+    return { uuid, name, isFile: true, fileType: 'FILE', thumbnailUrl } as FileInfo;
+  }
+
+  function open(rows: FileInfo[]): void {
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    component.fileInfoList = rows;
+    fixture.detectChanges();
+  }
+
+  function checkbox(label: string, root: HTMLElement = fixture.nativeElement): HTMLElement {
+    const boxes = Array.from<HTMLElement>(root.querySelectorAll('mat-checkbox'));
+    return boxes.find((box) => (box.textContent || '').indexOf(label) >= 0);
+  }
+
+  function isChecked(label: string, root: HTMLElement = fixture.nativeElement): boolean {
+    return (checkbox(label, root).querySelector('input') as HTMLInputElement).checked;
+  }
+
+  function tickFolderPreview(): void {
+    (checkbox('folderPreview').querySelector('input') as HTMLInputElement).click();
+    fixture.detectChanges();
+  }
+
+  function thumbnailCell(): HTMLElement {
+    const rows = fixture.nativeElement.querySelectorAll('tr.file-row');
+    return rows[0].querySelector('td.mat-column-thumbnail');
+  }
+
+  /**
+   * Renders at a phone width for the duration of `run`. The compact rules live
+   * in a media query and Karma's own window is wider, so the runner iframe is
+   * given a phone size — the assertion is still layout a real browser did.
+   */
+  function atPhoneWidth(run: (viewportWidth: number) => void): void {
+    const frame = window.frameElement as HTMLElement;
+    const originalWidth = frame ? frame.style.width : null;
+    if (frame) {
+      frame.style.width = '412px';
+    }
+    try {
+      const viewportWidth = frame
+        ? frame.getBoundingClientRect().width
+        : document.body.getBoundingClientRect().width;
+      run(viewportWidth);
+    } finally {
+      if (frame) {
+        frame.style.width = originalWidth;
+      }
+    }
+  }
+
+  beforeEach(() => {
+    // a fresh browser for this page's preference only
+    localStorage.removeItem(FOLDER_PREVIEW_KEY);
+    http = new FakeHttp();
+    mobile$ = new BehaviorSubject<boolean>(false);
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        {
+          provide: FileInfoService,
+          useValue: {
+            generateFileTempToken: () => of({ error: true, msg: 'stubbed' }),
+          },
+        },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: http },
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of({ get: () => null }) },
+        },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+  });
+
+  it('starts off and draws the plain folder glyph for a directory with a cached cover', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    fixture.detectChanges();
+
+    expect(isChecked('folderPreview')).toBe(false);
+    const cell = thumbnailCell();
+    expect(cell.querySelector('.dir-cover')).toBeNull();
+    expect(cell.querySelector('i.bi')).not.toBeNull();
+  });
+
+  it('remembers a ticked box when the page is opened again', async () => {
+    open([dirRow('dir-1', 'Album')]);
+    expect(isChecked('folderPreview')).toBe(false);
+
+    tickFolderPreview();
+
+    // a page opened later in the same browser
+    const reopened = TestBed.createComponent(MngFilesComponent);
+    reopened.detectChanges();
+    await flushAsync();
+    reopened.detectChanges();
+
+    expect(isChecked('folderPreview', reopened.nativeElement)).toBe(true);
+  });
+
+  it('stays off when the stored value cannot be read', () => {
+    spyOn(Storage.prototype, 'getItem').and.throwError('storage is blocked');
+
+    open([dirRow('dir-1', 'Album')]);
+
+    expect(isChecked('folderPreview')).toBe(false);
+  });
+
+  it('draws a known cover inside the folder shape when it is on', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', COVER_URL);
+
+    tickFolderPreview();
+
+    const cell = thumbnailCell();
+    const cover = cell.querySelector('.dir-cover');
+    expect(cover).not.toBeNull();
+    expect(cover.querySelector('img').getAttribute('src')).toBe(COVER_URL);
+    // the plain glyph steps aside: never a glyph on top of a picture
+    expect(cell.querySelector('i.bi')).toBeNull();
+  });
+
+  it('falls back to the plain glyph when a cached cover fails to load', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    tickFolderPreview();
+    expect(thumbnailCell().querySelector('.dir-cover')).not.toBeNull();
+
+    thumbnailCell().querySelector('img').dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+
+    const cell = thumbnailCell();
+    expect(cell.querySelector('.dir-cover')).toBeNull();
+    expect(cell.querySelector('i.bi')).not.toBeNull();
+    // forgotten, so a later listing does not draw the same broken cover again
+    expect(component.dirThumbnailCache.has('dir-1')).toBe(false);
+  });
+
+  it('swaps the glyph for the cover when the batch answer arrives later', () => {
+    open([dirRow('dir-1', 'Album')]);
+    tickFolderPreview();
+    expect(thumbnailCell().querySelector('.dir-cover')).toBeNull();
+
+    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    fixture.detectChanges();
+
+    expect(thumbnailCell().querySelector('.dir-cover')).not.toBeNull();
+  });
+
+  it('keeps the plain glyph for a directory whose cover is unknown while it is on', () => {
+    open([dirRow('dir-1', 'Album')]);
+
+    tickFolderPreview();
+
+    const cell = thumbnailCell();
+    expect(cell.querySelector('.dir-cover')).toBeNull();
+    expect(cell.querySelector('img')).toBeNull();
+    expect(cell.querySelector('i.bi')).not.toBeNull();
+  });
+
+  it('returns a directory to the plain glyph when it is turned off', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', COVER_URL);
+    tickFolderPreview();
+    expect(thumbnailCell().querySelector('.dir-cover')).not.toBeNull();
+
+    tickFolderPreview();
+
+    expect(thumbnailCell().querySelector('.dir-cover')).toBeNull();
+    expect(thumbnailCell().querySelector('i.bi')).not.toBeNull();
+  });
+
+  it('leaves file rows exactly as they were under both states', () => {
+    open([fileRow('f-1', 'photo.jpg', 'fstore/file/raw?key=file-thumb')]);
+    const before = thumbnailCell().innerHTML;
+
+    tickFolderPreview();
+    expect(thumbnailCell().innerHTML).toBe(before);
+
+    tickFolderPreview();
+    expect(thumbnailCell().innerHTML).toBe(before);
+  });
+
+  it('issues no request when it is toggled', () => {
+    open([dirRow('dir-1', 'Album')]);
+    const posts = http.posts.length;
+    const gets = http.gets.length;
+
+    tickFolderPreview();
+
+    expect(http.posts.length).toBe(posts);
+    expect(http.gets.length).toBe(gets);
+  });
+
+  it('sits beside the tooltip checkbox in the wide layout', () => {
+    open([dirRow('dir-1', 'Album')]);
+
+    const labels = Array.from<HTMLElement>(
+      fixture.nativeElement.querySelectorAll('mat-checkbox')
+    ).map((box) => box.textContent.trim());
+
+    expect(labels).toEqual(['thumbnailTooltip', 'folderPreview']);
+  });
+
+  it('keeps the checkbox on screen in the compact layout', () => {
+    mobile$.next(true);
+
+    open([dirRow('dir-1', 'Album')]);
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+
+      const box = checkbox('folderPreview');
+      const strip = box.parentElement;
+      const boxRect = box.getBoundingClientRect();
+      const stripRect = strip.getBoundingClientRect();
+
+      expect(boxRect.width).toBeGreaterThan(0);
+      // inside the strip's visible area, not scrolled out to the right
+      expect(boxRect.left).toBeGreaterThanOrEqual(stripRect.left);
+      expect(boxRect.right).toBeLessThanOrEqual(stripRect.right);
+      // and inside the phone viewport
+      expect(boxRect.left).toBeGreaterThanOrEqual(0);
+      expect(boxRect.right).toBeLessThanOrEqual(viewportWidth);
+    });
   });
 });

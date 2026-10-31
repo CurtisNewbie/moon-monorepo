@@ -73,6 +73,9 @@ export interface DirBottomUpTreeNode {
   animations: [animateElementExpanding()],
 })
 export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
+  /** browser-local key for the folder preview choice, namespaced to this page */
+  private static readonly FOLDER_PREVIEW_STORAGE_KEY = 'manage-files.folderPreview';
+
   private readonly compactColumns = ["thumbnail", "name", "operation"];
   private readonly wideColumns = [
     "thumbnail",
@@ -126,6 +129,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   /** enable thumbnail tooltips */
   enableThumbnailTooltip: boolean = true;
+
+  /** draw a directory's known cover inside its folder glyph */
+  folderPreview = false;
 
   // isImage = (f: FileInfo): boolean => this._isImage(f);
   idEquals = isIdEqual;
@@ -281,6 +287,19 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnInit() {
     // select-all is handled by @HostListener
     // parseRouteParam is deferred to onPaginatorReady() — paginator must init first
+    this.folderPreview = this.readFolderPreviewPref();
+  }
+
+  /** Persist the folder preview choice for the next visit in this browser. */
+  onFolderPreviewChange(): void {
+    try {
+      localStorage.setItem(
+        MngFilesComponent.FOLDER_PREVIEW_STORAGE_KEY,
+        this.folderPreview ? '1' : '0'
+      );
+    } catch (e) {
+      // a browser that refuses storage keeps the choice for this visit only
+    }
   }
 
   onPaginatorReady() {
@@ -435,6 +454,18 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         }
       }
     });
+  }
+
+  /**
+   * The folder preview choice this browser stored, off when nothing usable is
+   * stored or the browser refuses storage.
+   */
+  private readFolderPreviewPref(): boolean {
+    try {
+      return localStorage.getItem(MngFilesComponent.FOLDER_PREVIEW_STORAGE_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
   }
 
   private resetToFirstPage() {
@@ -1956,6 +1987,24 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           // Silently fail if batch thumbnail fetch fails
         }
       });
+  }
+
+  /**
+   * Whether the Preview cell draws this directory's known cover inside its
+   * folder glyph. Off, unknown covers and every file row keep today's markup.
+   */
+  showDirCover(f: FileInfo): boolean {
+    return !!f && f.isDir && this.folderPreview && this.hasThumbnail(f);
+  }
+
+  /**
+   * A cached cover whose token expired (or that 404s) is forgotten, so the row
+   * falls back to the plain folder glyph instead of holding a broken image.
+   */
+  onDirCoverError(f: FileInfo): void {
+    if (f && f.uuid) {
+      this.dirThumbnailCache.delete(f.uuid);
+    }
   }
 
   /**

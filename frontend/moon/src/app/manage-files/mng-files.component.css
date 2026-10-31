@@ -128,8 +128,57 @@
   display: none;
 }
 
+/* Folder with cover: the row still reads as a directory, because the picture is
+   clipped inside a folder frame whose tab stays visible. Geometry from the
+   approved mock (.scratch/folder-preview/design/folder-glyph.html). The 3px
+   vertical margins keep the 48px row height, so a glyph -> cover swap never
+   shifts the list. */
+.dir-cover {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 34px;
+  margin: 3px 0;
+  /* square top-left: that is where the tab joins */
+  border-radius: 0 4px 4px 4px;
+  background: linear-gradient(180deg, #f4edf1 0%, #e7dfe4 55%, #c9c0c7 100%);
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.5));
+}
+
+.dir-cover::before {
+  /* the tab, 7px proud of the body with a clipped slope on its right edge */
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -7px;
+  width: 20px;
+  height: 9px;
+  border-radius: 4px 0 0 0;
+  background: linear-gradient(180deg, #f9f3f6, #eee6ea);
+  clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 100%, 0 100%);
+}
+
+.dir-cover-img {
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  right: 3px;
+  bottom: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 9px);
+  /* arbitrary aspect ratios are cropped, never squashed or spilling out */
+  object-fit: cover;
+  border-radius: 2px;
+}
+
 /* Mobile: compact file list */
 @media (max-width: 768px) {
+  /* the strip scrolls sideways on a phone, and this switch sits last in it;
+     order it first so it is on screen instead of off to the right */
+  .folder-preview-toggle {
+    order: -1;
+  }
+
   /* Native table layout: fix columns so wide thumbnails can't stretch the table */
   table.mat-table {
     table-layout: fixed !important;

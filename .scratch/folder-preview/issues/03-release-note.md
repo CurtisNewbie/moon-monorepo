@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The release notes file for the shipping release describes the folder preview switch and its off-by-default behavior, in the file's existing voice and structure
-- [ ] No schema snapshot or change-log entry is added, since nothing in the database changes
+- [x] The release notes file for the shipping release describes the folder preview switch and its off-by-default behavior, in the file's existing voice and structure
+- [x] No schema snapshot or change-log entry is added, since nothing in the database changes
