@@ -8,3 +8,6 @@ plans
 .slim/worktrees.json
 # END oh-my-opencode-slim worktrees
 dump.rdb
+
+
+.slim
