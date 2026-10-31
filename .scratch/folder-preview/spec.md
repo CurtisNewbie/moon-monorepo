@@ -21,7 +21,8 @@ draws that image inside the folder body, filling it but for a thin folder-colour
 or with no cover known, the body stays folder-coloured and empty.
 
 The checkbox starts off, so a list gains pictures only when asked for, and the choice is remembered
-in the browser. The folder shape itself is not a preference: it is what a directory row looks like.
+in the browser. A phone does not offer the checkbox and always draws the covers. The folder shape
+itself is not a preference: it is what a directory row looks like.
 
 ## User Stories
 
@@ -41,8 +42,8 @@ in the browser. The folder shape itself is not a preference: it is what a direct
    waiting on a second round-trip I already paid for.
 8. As a moon user, I want the preview to use the same cover the tooltip and the browse-history page
    use, so that the same folder looks the same everywhere.
-9. As a moon user on a phone, I want the same switch and the same previews, so that the compact list
-   is not a degraded version.
+9. As a moon user on a phone, I want folder previews on without having to find a switch, so that the
+   compact list is never a degraded version.
 10. As a moon user, I want file rows unchanged, so that a fix for folders does not disturb image
     thumbnails that already work.
 11. As a moon user, I want the hover tooltip to keep behaving as before, so that the two switches
@@ -76,9 +77,9 @@ survives reloads and applies per browser rather than per account. It is a new, s
 existing "Enable Thumbnail Tooltips" checkbox keeps its current behavior and its current
 component-only (unpersisted) state.
 
-**Placement and reach.** The checkbox sits in the toolbar beside the tooltip checkbox. Unlike the
-tooltip checkbox it is shown in the compact layout as well as the wide one, because the compact
-layout keeps the Preview column.
+**Placement and reach.** The checkbox sits in the toolbar beside the tooltip checkbox, in the wide
+layout only. The compact layout has no switch: a phone always draws folder covers, so the setting is
+never a dead control there.
 
 **Cell rendering.** Every directory row draws the folder shape, whether the toggle is on or off, and
 at one footprint for covered and uncovered alike. The shape is a tabbed silhouette with the body
@@ -168,7 +169,7 @@ and the row is otherwise unaffected. A missing cover is never an error state the
 
 | Key | Type | Domain | Default | Owner | Effect |
 |---|---|---|---|---|---|
-| folder preview preference | boolean, localStorage | on / off | off | manage-files page | on: draw the cover inside the folder shape for directory rows; off: the same folder shape with an empty body |
+| folder preview preference | boolean, localStorage | on / off | off | manage-files page (wide layout only) | on: draw the cover inside the folder shape for directory rows; off: the same folder shape with an empty body. Ignored in the compact layout, which always draws covers |
 
 Absent or unreadable stored value resolves to off. The key is namespaced to the manage-files page so
 no other page reads it.
