@@ -10,6 +10,7 @@ import {
   ViewChild,
 } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { MatMenuTrigger } from "@angular/material/menu";
 
 import {
   emptyUploadFileParam,
@@ -261,6 +262,22 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   @ViewChild("tableWrapper")
   tableWrapper: ElementRef;
 
+  /** hidden anchor carrying the row menu; it opens where the pointer is */
+  @ViewChild("rowMenuAnchor", { static: true })
+  rowMenuAnchor: ElementRef;
+  @ViewChild(MatMenuTrigger, { static: true })
+  rowMenuTrigger: MatMenuTrigger;
+  /** viewport position of the hidden menu anchor */
+  rowMenuPosition = { x: "0", y: "0" };
+  /** the row the menu that is open acts on */
+  menuRow: FileInfo = null;
+  /** pending long-press timer, cleared when the press is cancelled */
+  private longPressTimer: any = null;
+  private longPressStart = { x: 0, y: 0 };
+  /** swallows the click that follows a long press, so the row does not also open */
+  private suppressRowClick = false;
+  private suppressRowClickTimer: any = null;
+
   setSearchFileType = (fileType) => (this.searchParam.fileType = fileType);
 
   constructor(
@@ -282,6 +299,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngOnDestroy(): void {
     this.modeSub.unsubscribe();
     this.dirThumbnailCache.clear();
+    this.clearLongPress();
+    if (this.suppressRowClickTimer) {
+      clearTimeout(this.suppressRowClickTimer);
+      this.suppressRowClickTimer = null;
+    }
   }
 
   ngOnInit() {
@@ -1437,6 +1459,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   onRowClicked(evt: any, row: FileInfo, idx: number) {
+    // a long press already opened the menu; the click that follows must not act too
+    if (this.suppressRowClick) {
+      this.suppressRowClick = false;
+      return;
+    }
+
     if (this.inFolderNo) {
       if (row.isDisplayable) {
         this.preview(row, idx);
@@ -1456,6 +1484,142 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     }
     if (row.isDisplayable) {
       this.preview(row, idx);
+    }
+  }
+
+  /**
+   * Whether a row's menu has anything to say. Inside a directory every listed
+   * row already sits in the current directory, so both items would be no-ops.
+   */
+  canShowRowMenu(): boolean {
+    return !this.inDirFileKey;
+  }
+
+  /** Desktop entry: the browser menu is replaced only where ours applies */
+  onRowContextMenu(event: MouseEvent, row: FileInfo): void {
+    if (!this.canShowRowMenu()) {
+      return;
+    }
+    // a phone fires contextmenu for the same press the timer is watching
+    this.clearLongPress();
+    event.preventDefault();
+    this.openRowMenu(row, event.clientX, event.clientY);
+  }
+
+  /** Mobile entry: press and hold a row for half a second */
+  onRowTouchStart(event: TouchEvent, row: FileInfo): void {
+    if (!this.env.isMobile() || !this.canShowRowMenu()) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    this.clearLongPress();
+    this.longPressStart = { x: touch.clientX, y: touch.clientY };
+    this.longPressTimer = setTimeout(() => {
+      this.longPressTimer = null;
+      // the click that ends this press belongs to the menu, not to the row
+      this.suppressRowClick = true;
+      this.suppressRowClickTimer = setTimeout(() => {
+        this.suppressRowClick = false;
+        this.suppressRowClickTimer = null;
+      }, 800);
+      this.openRowMenu(row, touch.clientX, touch.clientY);
+    }, 500);
+  }
+
+  /** A finger that travels is scrolling, not holding */
+  onRowTouchMove(event: TouchEvent): void {
+    if (!this.longPressTimer) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    if (
+      Math.abs(touch.clientX - this.longPressStart.x) > 10 ||
+      Math.abs(touch.clientY - this.longPressStart.y) > 10
+    ) {
+      this.clearLongPress();
+    }
+  }
+
+  onRowTouchEnd(): void {
+    this.clearLongPress();
+  }
+
+  /** Open the directory that holds the row, landed on the page that holds it */
+  locateRowPage(): void {
+    const row = this.menuRow;
+    if (!row) {
+      return;
+    }
+    // a leftover "find this file" filter would ride into the destination listing
+    this.searchParam = {};
+    this.resolveRowParent(row, (parentKey) => {
+      if (parentKey) {
+        this.nav.navigateTo(NavType.MANAGE_FILES, [
+          {
+            parentDirKey: parentKey,
+            parentDirComic: this.dirComicCache[parentKey] || false,
+            targetFileKey: row.uuid,
+          },
+        ]);
+      } else {
+        this.nav.navigateTo(NavType.MANAGE_FILES, []);
+      }
+    });
+  }
+
+  /**
+   * Rows carry their parent's name only, so ask for its key when an item is
+   * picked. A null parent means the row sits in the root listing.
+   */
+  private resolveRowParent(
+    row: FileInfo,
+    then: (parentKey: string) => void
+  ): void {
+    this.http
+      .get<any>(`vfm/open/api/file/parent?fileKey=${row.uuid}`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          then(resp.data ? resp.data.fileKey : null);
+        },
+        error: (err) => {
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  private openRowMenu(row: FileInfo, x: number, y: number): void {
+    if (this.rowMenuTrigger.menuOpen) {
+      return;
+    }
+    this.menuRow = row;
+    this.rowMenuPosition = { x: x + "px", y: y + "px" };
+    // the overlay measures the anchor as it attaches, and change detection has
+    // not flushed the position binding yet, so write it to the element first
+    const anchor = this.rowMenuAnchor?.nativeElement as HTMLElement;
+    if (anchor) {
+      anchor.style.left = this.rowMenuPosition.x;
+      anchor.style.top = this.rowMenuPosition.y;
+    }
+    this.rowMenuTrigger.openMenu();
+  }
+
+  private clearLongPress(): void {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
     }
   }
 

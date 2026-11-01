@@ -373,6 +373,11 @@
                 [class.expanded-row]="curr != null && row.id == curr.id"
                 [class.drag-enabled]="orderBy === 'custom'"
                 (click)="onRowClicked($event, row, i)"
+                (contextmenu)="onRowContextMenu($event, row)"
+                (touchstart)="onRowTouchStart($event, row)"
+                (touchmove)="onRowTouchMove($event)"
+                (touchend)="onRowTouchEnd()"
+                (touchcancel)="onRowTouchEnd()"
                 cdkDrag
                 (cdkDragStarted)="onCdkDragStarted(i)"
                 (cdkDragMoved)="onCdkDragMoved($event, row, i)"
@@ -390,3 +395,16 @@
 </div>
 
 <app-file-tray *ngIf="trayOpen" (closed)="onTrayClosed()"></app-file-tray>
+
+<!-- Row menu: the hidden anchor sits where the pointer was when the row was
+     right-clicked or long-pressed, and the menu acts on that row -->
+<div #rowMenuAnchor style="visibility: hidden; position: fixed;" [style.left]="rowMenuPosition.x"
+    [style.top]="rowMenuPosition.y" [matMenuTriggerFor]="rowMenu"></div>
+
+<mat-menu #rowMenu="matMenu">
+    <ng-template matMenuContent>
+        <button mat-menu-item (click)="locateRowPage()">
+            <i class="bi bi-folder2-open"></i> {{'manage-files' | trl:'openDir'}}
+        </button>
+    </ng-template>
+</mat-menu>

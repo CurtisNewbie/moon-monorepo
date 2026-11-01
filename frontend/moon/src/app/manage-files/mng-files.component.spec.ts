@@ -9,6 +9,7 @@ import { BrowseHistoryRecorder } from 'src/common/browse-history';
 import { FileBookmark } from 'src/common/file-bookmark';
 import { I18n } from '../i18n.service';
 import { NavigationService } from '../navigation.service';
+import { NavType } from '../routes';
 import { FormsModule } from '@angular/forms';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +18,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -140,6 +142,10 @@ class FakeHttp {
   dirZipFails = false;
   /** when set, the directory zip request stays pending until the test answers it */
   dirZipPending: Subject<any> = null;
+  /** value the file parent endpoint answers with */
+  parentResp: any = { data: null };
+  /** when set, the file parent request fails at the transport level */
+  parentFails = false;
 
   post(url: string, body?: any): any {
     this.posts.push({ url, body });
@@ -168,6 +174,12 @@ class FakeHttp {
         return of({ error: true, msg: 'preference fetch failed' });
       }
       return of({ data: this.orderByPreference });
+    }
+    if (url.indexOf('/file/parent') >= 0) {
+      if (this.parentFails) {
+        return throwError(new Error('parent fetch failed'));
+      }
+      return of(this.parentResp);
     }
     return of({ data: null });
   }
@@ -981,6 +993,7 @@ describe('MngFilesComponent folder preview', () => {
         MatFormFieldModule,
         MatIconModule,
         MatInputModule,
+        MatMenuModule,
         MatSelectModule,
         MatTableModule,
         MatTooltipModule,
@@ -1368,5 +1381,311 @@ describe('MngFilesComponent folder preview', () => {
       expect(cell.querySelector('i.bi')).toBeNull();
       expect(glyph.getBoundingClientRect().height).toBeCloseTo(34, 0);
     });
+  });
+});
+
+/**
+ * Row menu: right-click on a wide screen, press and hold on a phone. The tests
+ * drive the handlers directly; the menu itself only needs to be told where to
+ * open and which row it acts on.
+ */
+describe('MngFilesComponent row menu', () => {
+  let component: MngFilesComponent;
+  let http: FakeHttp;
+  let snackBar: { open: jasmine.Spy };
+  let nav: { navigateTo: jasmine.Spy };
+  let trigger: { openMenu: jasmine.Spy; menuOpen: boolean };
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true } as FileInfo;
+  }
+
+  function contextMenuAt(x: number, y: number): any {
+    return { clientX: x, clientY: y, preventDefault: jasmine.createSpy('preventDefault') };
+  }
+
+  function touchAt(x: number, y: number): any {
+    return { touches: [{ clientX: x, clientY: y }] };
+  }
+
+  beforeEach(() => {
+    http = new FakeHttp();
+    snackBar = { open: jasmine.createSpy('open') };
+    nav = { navigateTo: jasmine.createSpy('navigateTo') };
+
+    component = new MngFilesComponent(
+      {} as any,
+      {} as any,
+      {} as any,
+      nav as any,
+      http as any,
+      {} as any,
+      {} as any,
+      snackBar as any,
+      {} as any,
+      {} as any,
+      staticEnv(true)
+    );
+
+    trigger = { openMenu: jasmine.createSpy('openMenu'), menuOpen: false };
+    (component as any).rowMenuTrigger = trigger;
+  });
+
+  it('opens at the pointer and keeps the browser menu out of the way', () => {
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.rowMenuPosition).toEqual({ x: '120px', y: '240px' });
+    expect(component.menuRow).toBe(FILE);
+  });
+
+  it('opens for a directory row in a virtual folder listing', () => {
+    component.inFolderNo = 'vf-1';
+
+    component.onRowContextMenu(contextMenuAt(10, 20), dirRow('dir-1', 'Album'));
+
+    expect(trigger.openMenu).toHaveBeenCalled();
+  });
+
+  it('leaves the browser menu alone inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).not.toHaveBeenCalled();
+    expect(trigger.openMenu).not.toHaveBeenCalled();
+  });
+
+  it('does not start a long press inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(10, 10), FILE);
+      jasmine.clock().tick(600);
+
+      expect(trigger.openMenu).not.toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('opens the containing directory landed on the page that holds the row', () => {
+    http.parentResp = { data: { fileKey: 'dir-9' } };
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(http.gets).toContain('vfm/open/api/file/parent?fileKey=u0');
+    expect(nav.navigateTo).toHaveBeenCalledWith(NavType.MANAGE_FILES, [
+      { parentDirKey: 'dir-9', parentDirComic: false, targetFileKey: 'u0' },
+    ]);
+  });
+
+  it('keeps the comic mark of the directory it opens', () => {
+    http.parentResp = { data: { fileKey: 'dir-9' } };
+    component.dirComicCache['dir-9'] = true;
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(nav.navigateTo).toHaveBeenCalledWith(NavType.MANAGE_FILES, [
+      { parentDirKey: 'dir-9', parentDirComic: true, targetFileKey: 'u0' },
+    ]);
+  });
+
+  it('falls back to the root listing when the row has no parent', () => {
+    http.parentResp = { data: null };
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(nav.navigateTo).toHaveBeenCalledWith(NavType.MANAGE_FILES, []);
+  });
+
+  it('shows the server message and stays put when the parent lookup is refused', () => {
+    http.parentResp = { error: true, msg: 'no such file' };
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(snackBar.open).toHaveBeenCalledWith('no such file', 'ok', {
+      duration: 6000,
+    });
+    expect(nav.navigateTo).not.toHaveBeenCalled();
+  });
+
+  it('reports a transport failure instead of doing nothing', () => {
+    http.parentFails = true;
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(nav.navigateTo).not.toHaveBeenCalled();
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Request failed, unknown error',
+      'ok',
+      { duration: 3000 }
+    );
+  });
+
+  it('opens at the touch point after a long press', () => {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(30, 60), FILE);
+      jasmine.clock().tick(499);
+      expect(trigger.openMenu).not.toHaveBeenCalled();
+
+      jasmine.clock().tick(1);
+      expect(trigger.openMenu).toHaveBeenCalled();
+      expect(component.rowMenuPosition).toEqual({ x: '30px', y: '60px' });
+      expect(component.menuRow).toBe(FILE);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('swallows the click that ends a long press, so the row does not also open', () => {
+    jasmine.clock().install();
+    try {
+      const row = dirRow('dir-1', 'Album');
+      component.onRowTouchStart(touchAt(30, 60), row);
+      jasmine.clock().tick(500);
+      component.onRowTouchEnd();
+
+      component.onRowClicked({} as any, row, 0);
+      expect(nav.navigateTo).not.toHaveBeenCalled();
+
+      // the next tap behaves normally again
+      component.onRowClicked({} as any, row, 0);
+      expect(nav.navigateTo).toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('cancels the press when the finger moves', () => {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(10, 10), FILE);
+      component.onRowTouchMove(touchAt(10, 40));
+      jasmine.clock().tick(600);
+
+      expect(trigger.openMenu).not.toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('cancels the press when the finger lifts early', () => {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(10, 10), FILE);
+      component.onRowTouchEnd();
+      jasmine.clock().tick(600);
+
+      expect(trigger.openMenu).not.toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('drops a stale file filter before landing on the row page', () => {
+    http.parentResp = { data: { fileKey: 'dir-9' } };
+    component.searchParam = { fileKey: 'u7' };
+    component.fileInfoList = [imgFile('u7', 'found.png')];
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(component.searchParam).toEqual({});
+    expect(http.gets).toEqual(['vfm/open/api/file/parent?fileKey=u0']);
+    expect(http.postsTo('/file/list')).toEqual([]);
+  });
+});
+
+/**
+ * The anchor has to hold the pointer's position in the DOM before the overlay
+ * attaches, so this page is rendered for real: the assertion is on inline
+ * style read at the moment the menu opens.
+ */
+describe('MngFilesComponent row menu anchor', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: {} },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        { provide: Env, useValue: staticEnv(false) },
+      ],
+    });
+
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    component.fileInfoList = [imgFile('u0', 'a.png')];
+    fixture.detectChanges();
+  });
+
+  function anchor(): HTMLElement {
+    // Material puts its own class on the trigger; the binding leaves no attribute
+    return fixture.nativeElement.querySelector('.mat-menu-trigger');
+  }
+
+  it('moves the hidden anchor before the menu attaches at the pointer', async () => {
+    let leftAtOpen: string = null;
+    let topAtOpen: string = null;
+    component.rowMenuTrigger.menuOpened.subscribe(() => {
+      leftAtOpen = anchor().style.left;
+      topAtOpen = anchor().style.top;
+    });
+
+    const row: HTMLElement = fixture.nativeElement.querySelector('tr.file-row');
+    row.dispatchEvent(
+      new MouseEvent('contextmenu', { bubbles: true, clientX: 120, clientY: 40 })
+    );
+    await flushAsync();
+    fixture.detectChanges();
+
+    expect(leftAtOpen).toBe('120px');
+    expect(topAtOpen).toBe('40px');
   });
 });

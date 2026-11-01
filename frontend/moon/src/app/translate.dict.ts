@@ -271,6 +271,7 @@ export const enUSDict = {
     unmarkComic: "Unmark Comic",
     continueReadingTitle: "Continue Browsing",
     continueReadingMsg: "You were on page ${page} last time. Jump to that page?",
+    openDir: "Open Directory",
   },
   "dir-tree-nav": {
     searchDirName: "Search Dir Name",
@@ -723,6 +724,7 @@ export const zhCNDict = {
     unmarkComic: "取消漫画标记",
     continueReadingTitle: "继续浏览",
     continueReadingMsg: "上次浏览到第${page}页，是否跳转到该页?",
+    openDir: "打开所在文件夹",
   },
   "dir-tree-nav": {
     searchDirName: "搜索文件夹名称",
