@@ -6,13 +6,13 @@ A write failure mid-archive stops the remaining work, is logged at ERROR level, 
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A completed unpack that dropped entries sends one notification naming how many were dropped and which paths.
-- [ ] A refused archive sends one notification naming the reason, and the action returns the refusal error to the caller.
-- [ ] An unpack that stops early sends one notification with how many entries were not created, and its handler returns no error.
-- [ ] A run that both dropped entries and stopped early sends one notification, not two.
-- [ ] A run that dropped nothing, was not refused, and did not stop early sends no notification.
-- [ ] The notification goes through user-vault with a title within 255 characters and a message within 1000, and a message longer than the limit is shortened rather than dropped.
-- [ ] A failed notification call is logged and never fails the unpack.
-- [ ] No retry header is added, and the handler acknowledges on write failure.
+- [x] A completed unpack that dropped entries sends one notification naming how many were dropped and which paths.
+- [x] A refused archive sends one notification naming the reason, and the action returns the refusal error to the caller.
+- [x] An unpack that stops early sends one notification with how many entries were not created, and its handler returns no error.
+- [x] A run that both dropped entries and stopped early sends one notification, not two.
+- [x] A run that dropped nothing, was not refused, and did not stop early sends no notification.
+- [x] The notification goes through user-vault with a title within 255 characters and a message within 1000, and a message longer than the limit is shortened rather than dropped.
+- [x] A failed notification call is logged and never fails the unpack.
+- [x] No retry header is added, and the handler acknowledges on write failure.

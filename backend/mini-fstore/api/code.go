@@ -6,5 +6,6 @@ const (
 	FileNotFound         = "FILE_NOT_FOUND"
 	FileDeleted          = "FILE_DELETED"
 	IllegalFormat        = "ILLEGAL_FORMAT"
+	ZipTooDeep           = "ZIP_TOO_DEEP"
 	InvalidAuthorization = "INVALID_AUTHORIZATION"
 )

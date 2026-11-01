@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Extracting an archive that contains directory entries yields no stored file for any of them.
-- [ ] No reply entry is produced for a directory entry.
-- [ ] File entries in the same archive are extracted exactly as before, with their paths intact.
-- [ ] Covered by a test that builds a real zip with both directory and file entries.
+- [x] Extracting an archive that contains directory entries yields no stored file for any of them.
+- [x] No reply entry is produced for a directory entry.
+- [x] File entries in the same archive are extracted exactly as before, with their paths intact.
+- [x] Covered by a test that builds a real zip with both directory and file entries.

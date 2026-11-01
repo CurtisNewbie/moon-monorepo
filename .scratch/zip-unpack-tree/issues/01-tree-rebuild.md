@@ -8,15 +8,15 @@ Nothing is written outside the target directory, and every row carries the reque
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] An entry at `Documents/doc/jdk-12.0.2_doc-all/docs/api/a.html` produces a chain of folders under the target directory, with `a.html` as a child of the deepest one and named only `a.html`.
-- [ ] Entries sharing ancestors create each folder once; the second entry reuses it.
-- [ ] A folder that already exists in the target directory under the same name is reused rather than duplicated.
-- [ ] A folder name held by an existing file gets a numbered suffix and its subtree still lands under it.
-- [ ] Two entries resolving to the same file path get ` (n)` before the extension on the later one, counting from one, in entry order.
-- [ ] An entry whose path escapes the target directory, contains a `..` segment, carries a control character, ends a segment with a dot or a space, or has a segment longer than 255 bytes is dropped and logged with its path and reason.
-- [ ] A leading separator is dropped and a backslash is read as a separator, so a Windows packed archive unpacks.
-- [ ] Archive directory entries never produce a row.
-- [ ] The path logic lives in a pure planner and is covered by table-driven tests that need no database.
-- [ ] The existing unpack path still writes rows through the current directory and file helpers, with the same ownership and parent rules.
+- [x] An entry at `Documents/doc/jdk-12.0.2_doc-all/docs/api/a.html` produces a chain of folders under the target directory, with `a.html` as a child of the deepest one and named only `a.html`.
+- [x] Entries sharing ancestors create each folder once; the second entry reuses it.
+- [x] A folder that already exists in the target directory under the same name is reused rather than duplicated.
+- [x] A folder name held by an existing file gets a numbered suffix and its subtree still lands under it.
+- [x] Two entries resolving to the same file path get ` (n)` before the extension on the later one, counting from one, in entry order.
+- [x] An entry whose path escapes the target directory, contains a `..` segment, carries a control character, ends a segment with a dot or a space, or has a segment longer than 255 bytes is dropped and logged with its path and reason.
+- [x] A leading separator is dropped and a backslash is read as a separator, so a Windows packed archive unpacks.
+- [x] Archive directory entries never produce a row.
+- [x] The path logic lives in a pure planner and is covered by table-driven tests that need no database.
+- [x] The existing unpack path still writes rows through the current directory and file helpers, with the same ownership and parent rules.
