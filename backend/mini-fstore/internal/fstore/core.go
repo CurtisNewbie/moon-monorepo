@@ -1083,6 +1083,17 @@ func checkZipDepth(path string, maxDepth int) error {
 	return nil
 }
 
+// newUnzipTempDir creates the temp dir the zip entries are extracted into. The
+// dir must be owner-traversable (0755), a file mode such as 0666 leaves it
+// without the execute bit and every extraction into it fails with EACCES.
+func newUnzipTempDir(fileId string) (string, error) {
+	tempDir := miso.GetPropStr(config.PropTempDir) + "/" + fileId + "_" + randutil.RandNum(5)
+	if err := osutil.MkdirAll(tempDir); err != nil {
+		return "", fmt.Errorf("failed to MkdirAll for tempDir %v, %w", tempDir, err)
+	}
+	return tempDir, nil
+}
+
 func UnzipFile(rail miso.Rail, db *gorm.DB, evt UnzipFileEvent) ([]SavedZipEntry, error) {
 	defer miso.TimeOp(rail, time.Now(), fmt.Sprintf("Unzip file %v", evt.FileId))
 
@@ -1103,9 +1114,9 @@ func UnzipFile(rail miso.Rail, db *gorm.DB, evt UnzipFileEvent) ([]SavedZipEntry
 		return nil, nil
 	}
 
-	tempDir := miso.GetPropStr(config.PropTempDir) + "/" + evt.FileId + "_" + randutil.RandNum(5)
-	if err := os.MkdirAll(tempDir, osutil.DefFileMode); err != nil {
-		return nil, fmt.Errorf("failed to MkdirAll for tempDir %v, %w", tempDir, err)
+	tempDir, err := newUnzipTempDir(evt.FileId)
+	if err != nil {
+		return nil, err
 	}
 
 	defer os.RemoveAll(tempDir)
