@@ -1689,3 +1689,167 @@ describe('MngFilesComponent row menu anchor', () => {
     expect(topAtOpen).toBe('40px');
   });
 });
+
+/**
+ * On a phone the per-row basket button is gone, so the row menu carries the
+ * action instead. Rendered for real: the assertions are on the menu the user
+ * sees, not on the handlers alone.
+ */
+describe('MngFilesComponent row menu basket', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let fileBookmark: FileBookmark;
+  let mobile$: BehaviorSubject<boolean>;
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function touchAt(x: number, y: number): any {
+    return { touches: [{ clientX: x, clientY: y }] };
+  }
+
+  /** Basket glyphs in the operation column, whichever state they draw. */
+  function rowBasketIcons(): HTMLElement[] {
+    return Array.from<HTMLElement>(
+      fixture.nativeElement.querySelectorAll(
+        'td.mat-column-operation i.bi-bag-plus, td.mat-column-operation i.bi-bag-x'
+      )
+    );
+  }
+
+  /** Long-press a row with the timer the component listens to. */
+  async function openMenuOn(row: FileInfo): Promise<void> {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(20, 20), row);
+      jasmine.clock().tick(500);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+    await flushAsync();
+    fixture.detectChanges();
+  }
+
+  /** Items of the menu panel most recently attached to the overlay. */
+  function menuItems(): HTMLElement[] {
+    const panels = document.querySelectorAll('.mat-menu-panel');
+    const panel = panels[panels.length - 1];
+    return panel ? Array.from<HTMLElement>(panel.querySelectorAll('.mat-menu-item')) : [];
+  }
+
+  function basketItem(): HTMLElement {
+    return menuItems().find(
+      (item) => item.querySelector('i.bi-bag-plus, i.bi-bag-x') != null
+    );
+  }
+
+  beforeEach(() => {
+    mobile$ = new BehaviorSubject<boolean>(true);
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: {} },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    fileBookmark = TestBed.inject(FileBookmark);
+    component.fileInfoList = [imgFile('u0', 'a.png')];
+  });
+
+  it('renders no per-row basket button on a compact screen', () => {
+    fixture.detectChanges();
+
+    expect(rowBasketIcons()).toEqual([]);
+    // the rest of the operation cell stays put
+    expect(
+      fixture.nativeElement.querySelector('td.mat-column-operation i.bi-gear')
+    ).not.toBeNull();
+  });
+
+  it('keeps the per-row basket button on a wide screen', () => {
+    mobile$.next(false);
+    fixture.detectChanges();
+
+    expect(rowBasketIcons().length).toBe(1);
+  });
+
+  it('offers the basket in the long-press menu and toggles the tray entry', async () => {
+    fixture.detectChanges();
+    expect(fileBookmark.has(FILE.uuid)).toBe(false);
+
+    await openMenuOn(FILE);
+
+    expect(component.menuRow).toBe(FILE);
+    const addItem = basketItem();
+    expect(addItem).not.toBeUndefined();
+    expect(addItem.querySelector('i.bi-bag-plus')).not.toBeNull();
+
+    addItem.click();
+    fixture.detectChanges();
+    expect(fileBookmark.has(FILE.uuid)).toBe(true);
+
+    // reopening reflects the new state: the entry now offers the undo
+    await flushAsync();
+    fixture.detectChanges();
+    await openMenuOn(FILE);
+
+    const removeItem = basketItem();
+    expect(removeItem).not.toBeUndefined();
+    expect(removeItem.querySelector('i.bi-bag-x')).not.toBeNull();
+
+    removeItem.click();
+    fixture.detectChanges();
+    expect(fileBookmark.has(FILE.uuid)).toBe(false);
+  });
+
+  it('leaves the basket out of the menu where the old button was unavailable', async () => {
+    component.inFolderNo = 'vf-1';
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(component.menuRow).toBe(FILE);
+    expect(menuItems().length).toBeGreaterThan(0);
+    expect(basketItem()).toBeUndefined();
+  });
+});

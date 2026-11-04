@@ -276,7 +276,8 @@
                 <th mat-header-cell *matHeaderCellDef> <b>{{'manage-files' | trl:'operation'}}</b> </th>
                 <td mat-cell *matCellDef="let f">
                     <ng-container *ngIf="!inFolderNo">
-                        <button mat-icon-button  [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
+                        <button mat-icon-button *ngIf="!env.isMobile()"
+                            [class]="this.fileBookmark.has(f.uuid) ? 'shakebutton': ''"
                             [matBadge]="this.fileBookmark.has(f.uuid) ? '✓' : ''" matBadgeColor="warn"
                             matBadgeOverlap="true" matBadgeSize="small"
                             [matTooltip]="'manage-files' | trl:'bookmarkFileForBatchOp'"
@@ -403,6 +404,10 @@
 
 <mat-menu #rowMenu="matMenu">
     <ng-template matMenuContent>
+        <button mat-menu-item *ngIf="!inFolderNo" (click)="bookmarkFile(menuRow)">
+            <i class="bi" [class]="fileBookmark.has(menuRow?.uuid) ? 'bi-bag-x' : 'bi-bag-plus'"></i>
+            {{'manage-files' | trl:(fileBookmark.has(menuRow?.uuid) ? 'removeFromTray' : 'addToTray')}}
+        </button>
         <button mat-menu-item (click)="locateRowPage()">
             <i class="bi bi-folder2-open"></i> {{'manage-files' | trl:'openDir'}}
         </button>
