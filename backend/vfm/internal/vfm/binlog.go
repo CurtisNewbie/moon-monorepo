@@ -46,7 +46,7 @@ func SubscribeBinlogChanges(rail miso.Rail) error {
 				ColumnChanged: []string{"name"},
 			},
 		},
-		Concurrency:   2,
+		Concurrency:   3,
 		ContinueOnErr: true,
 		Listener:      OnDirNameUpdated,
 	})
@@ -61,7 +61,7 @@ func SubscribeBinlogChanges(rail miso.Rail) error {
 				ColumnChanged: []string{"is_logic_deleted"},
 			},
 		},
-		Concurrency:   2,
+		Concurrency:   4,
 		ContinueOnErr: true,
 		Listener:      OnFileDeleted,
 	})
@@ -76,7 +76,7 @@ func SubscribeBinlogChanges(rail miso.Rail) error {
 				ColumnChanged: []string{"parent_file"},
 			},
 		},
-		Concurrency:   2,
+		Concurrency:   3,
 		ContinueOnErr: true,
 		Listener:      OnFileMoved,
 	})

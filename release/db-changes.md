@@ -21,7 +21,8 @@ Apply before deploying `vfm`.
 
 ## Release v0.0.6
 
-Apply before deploying `vfm`.
+Apply before deploying `vfm` and `user-vault`.
 
 1. [docs/schema/v0.0.6/vfm.sql](../docs/schema/v0.0.6/vfm.sql)
+2. [docs/schema/v0.0.6/user-vault.sql](../docs/schema/v0.0.6/user-vault.sql)
 

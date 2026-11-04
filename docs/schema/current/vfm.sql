@@ -109,7 +109,8 @@ CREATE TABLE vfm.gallery_image (
   PRIMARY KEY (`id`),
   UNIQUE KEY `image_no_uniq` (`image_no`),
   UNIQUE KEY `gallery_no_file_key_uk` (`gallery_no`,`file_key`),
-  KEY `gallery_name_idx` (`gallery_no`,`name`)
+  KEY `gallery_name_idx` (`gallery_no`,`name`),
+  KEY `file_key_idx` (`file_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Gallery Image';
 
 CREATE TABLE vfm.gallery_user_access (
