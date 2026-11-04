@@ -196,7 +196,9 @@
     user-select: none;
   }
 
-  /* Native table layout: fix columns so wide thumbnails can't stretch the table */
+  /* Native table layout: fix columns so wide thumbnails can't stretch the table.
+     Fixed layout makes the widths below authoritative, so the one column left
+     without a width owns everything the other two do not need. */
   table.mat-table {
     table-layout: fixed !important;
   }
@@ -208,14 +210,18 @@
     padding-left: 8px !important;
   }
 
+  /* the flexible column: it takes every pixel the two fixed neighbours leave */
   .mat-column-name {
     width: auto !important;
     max-width: none !important;
   }
 
+  /* just the row's icon buttons: the gear, plus the download for a file, are
+     40px each, and the cell insets them by 8px on either side — 96px in all.
+     The tray button that used to widen this column is in the row menu now. */
   .mat-column-operation {
-    width: 132px !important;
-    max-width: 132px !important;
+    width: 96px !important;
+    max-width: 96px !important;
     padding-right: 8px !important;
     white-space: nowrap !important;
   }

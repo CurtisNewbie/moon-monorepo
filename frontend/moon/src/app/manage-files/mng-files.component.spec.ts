@@ -1853,3 +1853,183 @@ describe('MngFilesComponent row menu basket', () => {
     expect(basketItem()).toBeUndefined();
   });
 });
+
+/**
+ * The compact table splits its width three ways: the preview column sized for
+ * the 60px thumbnails, the action column sized for the row's icon buttons, and
+ * the name taking whatever the other two leave. Measured on the rendered table
+ * at phone widths, so a stray width in the stylesheet shows up here as a
+ * number instead of as a report from a phone.
+ */
+describe('MngFilesComponent compact column widths', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let mobile$: BehaviorSubject<boolean>;
+
+  const LONG_NAME = 'a-very-long-file-name-that-cannot-fit-on-one-phone-row.png';
+
+  beforeEach(() => {
+    mobile$ = new BehaviorSubject<boolean>(true);
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: {} },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+  });
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true, fileType: 'DIR' } as FileInfo;
+  }
+
+  function fileRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isFile: true, fileType: 'FILE' } as FileInfo;
+  }
+
+  function open(rows: FileInfo[], mobile: boolean): void {
+    mobile$.next(mobile);
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    component.fileInfoList = rows;
+    fixture.detectChanges();
+  }
+
+  /**
+   * Renders for the duration of `run` at the given width. The tiers live in
+   * media queries and the runner's own window is 756px wide, so the iframe is
+   * resized: the numbers still come from layout a real browser did.
+   */
+  function atViewportWidth(width: number, run: () => void): void {
+    const frame = window.frameElement as HTMLElement;
+    const originalWidth = frame ? frame.style.width : null;
+    if (frame) {
+      frame.style.width = `${width}px`;
+    }
+    try {
+      run();
+    } finally {
+      if (frame) {
+        frame.style.width = originalWidth;
+      }
+    }
+  }
+
+  function rowAt(index: number): HTMLElement {
+    return fixture.nativeElement.querySelectorAll('tr.file-row')[index];
+  }
+
+  function cellAt(index: number, column: string): HTMLElement {
+    return rowAt(index).querySelector('td.mat-column-' + column);
+  }
+
+  function widthOf(el: Element): number {
+    return Math.round(el.getBoundingClientRect().width);
+  }
+
+  it('gives the space the preview and the actions leave to the name', () => {
+    open([dirRow('dir-1', 'Album'), fileRow('f-1', 'photo.jpg')], true);
+
+    [320, 390].forEach((viewport) =>
+      atViewportWidth(viewport, () => {
+        const table = fixture.nativeElement.querySelector('table') as HTMLElement;
+        const tableWidth = widthOf(table);
+
+        // 100px of preview (60px-tall thumbnails, up to ~89px wide, plus the inset)
+        expect(widthOf(cellAt(0, 'thumbnail'))).toBe(100);
+        // two 40px icon buttons and the 8px inset on each side, and nothing else
+        expect(widthOf(cellAt(1, 'operation'))).toBe(96);
+        // the name takes the rest, at every phone width
+        expect(widthOf(cellAt(1, 'name'))).toBe(tableWidth - 196);
+        // the expanded panel still spans the whole table, not one column
+        const detail = fixture.nativeElement.querySelector('tr.detail-row td');
+        expect(widthOf(detail)).toBe(tableWidth);
+      })
+    );
+  });
+
+  it('keeps the file row actions inside the operation column', () => {
+    open([fileRow('f-1', 'photo.jpg')], true);
+
+    [320, 390].forEach((viewport) =>
+      atViewportWidth(viewport, () => {
+        const cell = cellAt(0, 'operation');
+        const cellBox = cell.getBoundingClientRect();
+        // the tray button is in the row menu on a phone: gear and download only
+        const buttons = Array.from<HTMLElement>(cell.querySelectorAll('button'));
+        expect(buttons.length).toBe(2);
+        expect(widthOf(buttons[0]) + widthOf(buttons[1])).toBe(80);
+
+        const first = buttons[0].getBoundingClientRect();
+        const last = buttons[1].getBoundingClientRect();
+        expect(first.left - cellBox.left).toBeCloseTo(8, 0);
+        expect(cellBox.right - last.right).toBeCloseTo(8, 0);
+      })
+    );
+  });
+
+  it('keeps a long name on one line instead of growing the row', () => {
+    open([fileRow('f-1', LONG_NAME), fileRow('f-2', 'photo.jpg')], true);
+
+    atViewportWidth(320, () => {
+      const longRow = rowAt(0).getBoundingClientRect().height;
+      const shortRow = rowAt(1).getBoundingClientRect().height;
+      expect(longRow).toBeCloseTo(shortRow, 0);
+
+      // truncated by scrolling inside the cell, not by wrapping
+      const name = cellAt(0, 'name').querySelector('.overflow-cell') as HTMLElement;
+      expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+    });
+  });
+
+  it('leaves the wide table on its own share-out', () => {
+    open([dirRow('dir-1', 'Album'), fileRow('f-1', 'photo.jpg')], false);
+
+    atViewportWidth(1280, () => {
+      expect(component.displayedColumns.length).toBe(6);
+      // neither compact width survives the boundary
+      expect(widthOf(cellAt(0, 'thumbnail'))).toBeGreaterThan(100);
+      expect(widthOf(cellAt(1, 'operation'))).toBeGreaterThan(96);
+      expect(widthOf(cellAt(1, 'name'))).toBeGreaterThan(96);
+    });
+  });
+});
