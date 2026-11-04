@@ -2,11 +2,13 @@ import { HttpClient } from "@angular/common/http";
 import { ActivatedRoute } from "@angular/router";
 import {
   Component,
+  ElementRef,
   Inject,
   OnDestroy,
   OnInit,
   ViewChild,
 } from "@angular/core";
+import { MatMenuTrigger } from "@angular/material/menu";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
@@ -147,6 +149,19 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
   tabdata: ListedTask[] = [];
   listTaskReq: ListTaskReq = {};
   isEnterKey = isEnterKey;
+
+  /** hidden anchor carrying the row menu; it opens where the touch lands */
+  @ViewChild("rowMenuAnchor", { static: true })
+  rowMenuAnchor: ElementRef;
+  @ViewChild(MatMenuTrigger, { static: true })
+  rowMenuTrigger: MatMenuTrigger;
+  /** viewport position of the hidden menu anchor */
+  rowMenuPosition = { x: "0", y: "0" };
+  /** the row the open menu acts on */
+  menuRow: ListedTask = null;
+  /** pending long-press timer, cleared when the press is cancelled */
+  private longPressTimer: any = null;
+  private longPressStart = { x: 0, y: 0 };
 
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
@@ -437,6 +452,108 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
   copyRemark(r) {
     copyToClipboard(r);
     this.snackBar.open("Copied to clipboard", "ok", { duration: 3000 });
+  }
+
+  /**
+   * Which actions a row offers. The wide buttons and the compact row menu read
+   * the same predicates, so a phone never shows an action the row lacks.
+   */
+  canCancel(u: ListedTask): boolean {
+    return u.status == "PENDING" || u.status == "UNRESOLVED";
+  }
+
+  canResolve(u: ListedTask): boolean {
+    return u.status == "UNRESOLVED" || u.status == "RESOLVE_FAILED";
+  }
+
+  canRetry(u: ListedTask): boolean {
+    return (
+      u.status != "PENDING" &&
+      u.status != "UNRESOLVED" &&
+      u.status != "RESOLVE_FAILED" &&
+      !!u.dirFileKey
+    );
+  }
+
+  canUpdate(u: ListedTask): boolean {
+    return (u.status == "COMPLETED" || u.status == "CANCELLED") && !!u.dirFileKey;
+  }
+
+  /** Whether the row's menu has anything to say; an empty menu is not opened. */
+  canShowRowMenu(u: ListedTask): boolean {
+    return (
+      !!u &&
+      (this.canCancel(u) ||
+        this.canResolve(u) ||
+        this.canRetry(u) ||
+        this.canUpdate(u))
+    );
+  }
+
+  /** Mobile entry: press and hold a row for half a second */
+  onRowTouchStart(event: TouchEvent, row: ListedTask): void {
+    if (!this.env.isMobile() || !this.canShowRowMenu(row)) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    // a press that starts on a button is that button's, not the row's
+    const target = event.target as Element;
+    if (target?.closest?.("button")) {
+      return;
+    }
+    this.clearLongPress();
+    this.longPressStart = { x: touch.clientX, y: touch.clientY };
+    this.longPressTimer = setTimeout(() => {
+      this.longPressTimer = null;
+      this.openRowMenu(row, touch.clientX, touch.clientY);
+    }, 500);
+  }
+
+  /** A finger that travels is scrolling, not holding */
+  onRowTouchMove(event: TouchEvent): void {
+    if (!this.longPressTimer) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    if (
+      Math.abs(touch.clientX - this.longPressStart.x) > 10 ||
+      Math.abs(touch.clientY - this.longPressStart.y) > 10
+    ) {
+      this.clearLongPress();
+    }
+  }
+
+  onRowTouchEnd(): void {
+    this.clearLongPress();
+  }
+
+  private openRowMenu(row: ListedTask, x: number, y: number): void {
+    if (this.rowMenuTrigger.menuOpen) {
+      return;
+    }
+    this.menuRow = row;
+    this.rowMenuPosition = { x: x + "px", y: y + "px" };
+    // the overlay measures the anchor as it attaches, and change detection has
+    // not flushed the position binding yet, so write it to the element first
+    const anchor = this.rowMenuAnchor?.nativeElement as HTMLElement;
+    if (anchor) {
+      anchor.style.left = this.rowMenuPosition.x;
+      anchor.style.top = this.rowMenuPosition.y;
+    }
+    this.rowMenuTrigger.openMenu();
+  }
+
+  private clearLongPress(): void {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
   }
 
   clickUpdateTaskUrl(d) {

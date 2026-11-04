@@ -9,8 +9,10 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatPaginatorModule } from "@angular/material/paginator";
+import { MatMenuModule } from "@angular/material/menu";
 import { MatSelectModule } from "@angular/material/select";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatTableModule } from "@angular/material/table";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { By } from "@angular/platform-browser";
@@ -26,7 +28,7 @@ import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { I18n } from "../i18n.service";
 import { NavigationService } from "../navigation.service";
 import { TrlPipe } from "../trl.pipe";
-import { DroneTaskComponent } from "./drone-task.component";
+import { DroneTaskComponent, ListedTask } from "./drone-task.component";
 
 const LIST_URL = "/drone/open/api/list-task";
 
@@ -51,6 +53,7 @@ describe("DroneTaskComponent search", () => {
         MatFormFieldModule,
         MatSelectModule,
         MatInputModule,
+        MatMenuModule,
       ],
       providers: [
         { provide: MatSnackBar, useValue: { open: () => undefined } },
@@ -197,6 +200,7 @@ describe("DroneTaskComponent directory tree", () => {
         MatSelectModule,
         MatInputModule,
         MatTreeModule,
+        MatMenuModule,
       ],
       providers: [
         { provide: MatSnackBar, useValue: { open: () => undefined } },
@@ -344,5 +348,298 @@ describe("DroneTaskComponent directory tree", () => {
     expect(selected.getAttribute("aria-selected")).toBe("true");
     expect(tree.dirTreeControl.isExpanded(root)).toBe(true);
     expect(tree.dirTreeControl.isExpanded(groupDocs)).toBe(true);
+  });
+});
+
+/**
+ * A phone keeps one action inline (Open) and moves the rest into a menu opened
+ * by holding the row. Rendered for real: the assertions are on the buttons and
+ * menu items the user sees, not on the handlers alone.
+ */
+describe("DroneTaskComponent row actions", () => {
+  let fixture: ComponentFixture<DroneTaskComponent>;
+  let component: DroneTaskComponent;
+  let httpMock: HttpTestingController;
+
+  const PENDING: ListedTask = {
+    taskId: "t1",
+    status: "PENDING",
+    dirFileKey: "k1",
+    url: "https://example.com/1",
+    platform: "youtube",
+  };
+  const UNRESOLVED: ListedTask = {
+    taskId: "t2",
+    status: "UNRESOLVED",
+    dirFileKey: "k2",
+    url: "https://example.com/2",
+    platform: "youtube",
+  };
+  const RESOLVE_FAILED: ListedTask = {
+    taskId: "t3",
+    status: "RESOLVE_FAILED",
+    url: "https://example.com/3",
+    platform: "youtube",
+  };
+  const COMPLETED: ListedTask = {
+    taskId: "t4",
+    status: "COMPLETED",
+    dirFileKey: "k4",
+    url: "https://example.com/4",
+    platform: "youtube",
+  };
+  const CANCELLED_NO_DIR: ListedTask = {
+    taskId: "t5",
+    status: "CANCELLED",
+    url: "https://example.com/5",
+    platform: "youtube",
+  };
+
+  function configure(mobile: boolean): void {
+    installFakeMatchMedia(mobile);
+    TestBed.configureTestingModule({
+      declarations: [DroneTaskComponent, ControlledPaginatorComponent, TrlPipe],
+      imports: [
+        HttpClientTestingModule,
+        NoopAnimationsModule,
+        FormsModule,
+        MatPaginatorModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTableModule,
+        MatMenuModule,
+      ],
+      providers: [
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: MatDialog, useValue: {} },
+        { provide: I18n, useValue: { trl: (_m: string, k: string) => k } },
+        { provide: NavigationService, useValue: {} },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParams: {} } },
+        },
+      ],
+      schemas: [NO_ERRORS_SCHEMA],
+    });
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(DroneTaskComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    flushAll();
+  }
+
+  function flushAll(): void {
+    httpMock
+      .match(LIST_URL)
+      .forEach((r) => r.flush({ data: { payload: [], paging: { total: 0 } } }));
+    httpMock
+      .match("/drone/open/api/list-platforms")
+      .forEach((r) => r.flush({ data: [] }));
+    httpMock
+      .match("/drone/open/api/list-last-page-platforms")
+      .forEach((r) => r.flush({ data: [] }));
+  }
+
+  /** Renders the given rows the way a fetch would. */
+  function showRows(rows: ListedTask[]): void {
+    component.tabdata = rows;
+    fixture.detectChanges();
+  }
+
+  function rowElements(): HTMLElement[] {
+    return Array.from(fixture.nativeElement.querySelectorAll("tr.task-row"));
+  }
+
+  function operationCell(row: HTMLElement): HTMLElement {
+    return row.querySelector("td.mat-column-operation") as HTMLElement;
+  }
+
+  function buttonLabels(cell: HTMLElement): string[] {
+    return Array.from(cell.querySelectorAll("button")).map((b) =>
+      (b.textContent || "").trim()
+    );
+  }
+
+  function operationLabels(): string[][] {
+    return rowElements().map((row) => buttonLabels(operationCell(row)));
+  }
+
+  /** A touch event the component's handler can read, delivered for real. */
+  function dispatchTouch(
+    element: HTMLElement,
+    type: string,
+    x: number,
+    y: number
+  ): void {
+    const event = new Event(type, { bubbles: true });
+    Object.defineProperty(event, "touches", {
+      value: [{ clientX: x, clientY: y }],
+    });
+    element.dispatchEvent(event);
+  }
+
+  /** Presses a row for half a second with the timer the component listens to. */
+  async function holdRow(index: number, x = 20, y = 40): Promise<void> {
+    const row = rowElements()[index];
+    jasmine.clock().install();
+    try {
+      dispatchTouch(row, "touchstart", x, y);
+      jasmine.clock().tick(500);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+  }
+
+  /** Items of the menu panel most recently attached to the overlay. */
+  function menuItems(): HTMLElement[] {
+    const panels = document.querySelectorAll(".mat-menu-panel");
+    const panel = panels[panels.length - 1];
+    return panel
+      ? Array.from<HTMLElement>(panel.querySelectorAll(".mat-menu-item"))
+      : [];
+  }
+
+  function menuLabels(): string[] {
+    return menuItems().map((item) => (item.textContent || "").trim());
+  }
+
+  afterEach(() => {
+    fixture.destroy();
+    httpMock.verify();
+    document
+      .querySelectorAll(".cdk-overlay-container")
+      .forEach((e) => e.remove());
+  });
+
+  it("keeps only Open inline on a phone", () => {
+    configure(true);
+    showRows([PENDING, COMPLETED]);
+
+    expect(operationLabels()).toEqual([["open"], ["open"]]);
+  });
+
+  it("keeps every action inline on a wide screen", () => {
+    configure(false);
+    showRows([PENDING, UNRESOLVED, RESOLVE_FAILED, COMPLETED]);
+
+    expect(operationLabels()).toEqual([
+      ["open", "cancel"],
+      ["open", "cancel", "resolve"],
+      ["resolve"],
+      ["open", "retry", "update"],
+    ]);
+  });
+
+  it("offers only Cancel for a pending row and calls it with the row's task", async () => {
+    configure(true);
+    showRows([PENDING]);
+    const cancel = spyOn(component, "cancelTask");
+
+    await holdRow(0);
+
+    expect(component.rowMenuTrigger.menuOpen).toBe(true);
+    expect(component.rowMenuPosition).toEqual({ x: "20px", y: "40px" });
+    expect(menuLabels()).toEqual(["cancel"]);
+
+    menuItems()[0].click();
+
+    expect(cancel).toHaveBeenCalledWith("t1");
+  });
+
+  it("offers Cancel and Resolve for an unresolved row", async () => {
+    configure(true);
+    showRows([UNRESOLVED]);
+    const resolve = spyOn(component, "resolveTask");
+
+    await holdRow(0);
+
+    expect(menuLabels()).toEqual(["cancel", "resolve"]);
+
+    menuItems()[1].click();
+
+    expect(resolve).toHaveBeenCalledWith(UNRESOLVED);
+  });
+
+  it("offers Resolve for a failed row", async () => {
+    configure(true);
+    showRows([RESOLVE_FAILED]);
+
+    await holdRow(0);
+
+    expect(menuLabels()).toEqual(["resolve"]);
+  });
+
+  it("offers Retry and Update for a completed row and calls the dialog handler", async () => {
+    configure(true);
+    showRows([COMPLETED]);
+    const update = spyOn(component, "clickUpdateTaskUrl");
+
+    await holdRow(0);
+
+    expect(menuLabels()).toEqual(["retry", "update"]);
+
+    menuItems()[1].click();
+
+    expect(update).toHaveBeenCalledWith(COMPLETED);
+  });
+
+  it("treats a finger that travels as a scroll, not a hold", async () => {
+    configure(true);
+    showRows([PENDING]);
+    const row = rowElements()[0];
+
+    jasmine.clock().install();
+    try {
+      dispatchTouch(row, "touchstart", 10, 10);
+      dispatchTouch(row, "touchmove", 10, 40);
+      jasmine.clock().tick(600);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(component.rowMenuTrigger.menuOpen).toBe(false);
+    expect(menuItems()).toEqual([]);
+  });
+
+  it("opens no menu for a row with nothing to offer", async () => {
+    configure(true);
+    showRows([CANCELLED_NO_DIR]);
+
+    await holdRow(0);
+
+    expect(component.rowMenuTrigger.menuOpen).toBe(false);
+    expect(component.menuRow).toBeNull();
+  });
+
+  it("adds no hold behaviour on a wide screen", async () => {
+    configure(false);
+    showRows([PENDING]);
+
+    await holdRow(0);
+
+    expect(component.rowMenuTrigger.menuOpen).toBe(false);
+  });
+
+  it("leaves a press that starts on the Open button to the button", async () => {
+    configure(true);
+    showRows([PENDING]);
+    const open = operationCell(rowElements()[0]).querySelector(
+      "button"
+    ) as HTMLElement;
+
+    jasmine.clock().install();
+    try {
+      dispatchTouch(open, "touchstart", 10, 10);
+      jasmine.clock().tick(600);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(component.rowMenuTrigger.menuOpen).toBe(false);
   });
 });

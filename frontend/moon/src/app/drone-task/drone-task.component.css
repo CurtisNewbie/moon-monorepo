@@ -43,6 +43,13 @@
 
 /* Mobile: keep the Operation buttons compact on a single row so rows stay short */
 @media (max-width: 768px) {
+  /* A hold on a row is the row menu, never a text selection or the iOS magnifier */
+  .task-row {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
   /* auto layout so the Operation column can shrink to its buttons (see below) */
   table.mat-table {
     table-layout: auto !important;
