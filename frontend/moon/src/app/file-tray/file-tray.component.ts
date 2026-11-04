@@ -15,10 +15,23 @@ import { I18n } from "../i18n.service";
 @Component({
   selector: "app-file-tray",
   template: `
+    <!-- Compact only: the panel is modal on a phone, so the strip of screen
+         beside it dismisses it. Hidden on wide screens, where the panel is a
+         side panel and the file list behind it stays droppable. -->
+    <div class="file-tray-backdrop only-compact" (click)="closed.emit()"></div>
+
     <div class="file-tray-panel">
       <div class="d-flex align-items-center justify-content-between mb-4">
         <h2 class="m-0 file-tray-title">{{'file-tray' | trl:'fileTray'}}</h2>
-        <span class="badge bg-secondary" *ngIf="dat.length > 0">{{'file-tray' | trl:'itemCount':'count':dat.length}}</span>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-secondary" *ngIf="dat.length > 0">{{'file-tray' | trl:'itemCount':'count':dat.length}}</span>
+          <!-- Compact only: the footer sits under the browser chrome on a
+               phone, so the close control also lives in the always-visible header. -->
+          <button mat-icon-button class="only-compact file-tray-close"
+                  [attr.aria-label]="'file-tray' | trl:'close'" (click)="closed.emit()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
       </div>
 
       <div class="file-tray-content p-0 pt-2">
@@ -59,20 +72,37 @@ import { I18n } from "../i18n.service";
         </div>
       </div>
 
-      <div class="file-tray-footer mt-3 mb-2 me-2 d-flex justify-content-end">
+      <div class="file-tray-footer only-wide mt-3 mb-2 me-2 d-flex justify-content-end">
         <button mat-stroked-button (click)="closed.emit()">{{'file-tray' | trl:'close'}}</button>
       </div>
     </div>
   `,
   styles: [`
-    .file-tray-panel {
+    /* Compact only: scrim behind the panel, the same tint Material dialogs use.
+       display:none on a wide screen comes from the global .only-compact rule.
+       Both this scrim and the panel sit under Material's overlay layer
+       (z-index 1000), so a dialog, menu or tooltip opened from the tray paints
+       on top of the tray instead of behind it. */
+    .file-tray-backdrop {
       position: fixed;
       top: 0;
       right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 899;
+      background: rgba(0, 0, 0, 0.32);
+    }
+    .file-tray-panel {
+      position: fixed;
+      /* top+bottom rather than height:100vh, so a phone's collapsible browser
+         chrome cannot push the footer below the visible area. */
+      top: 0;
+      bottom: 0;
+      right: 0;
       width: 420px;
       max-width: 90vw;
-      height: 100vh;
-      z-index: 1050;
+      /* Below cdk's 1000: the tray's own dialogs are overlay content. */
+      z-index: 900;
       background: #1e1e1e;
       box-shadow: -4px 0 24px rgba(0,0,0,0.4);
       display: flex;
@@ -81,6 +111,8 @@ import { I18n } from "../i18n.service";
       box-sizing: border-box;
       overflow: hidden;
     }
+    .file-tray-close { color: #adb5bd; }
+    .file-tray-close i { font-size: 20px; }
     .file-tray-title {
       font-size: 1.4rem;
       font-weight: 500;
