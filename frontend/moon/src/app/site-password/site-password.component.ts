@@ -1,5 +1,11 @@
 import { HttpClient } from "@angular/common/http";
-import { Component, Inject, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -9,6 +15,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { copyToClipboard } from "src/common/clipboard";
 import { isEnterKey } from "src/common/condition";
 import { ConfirmDialog } from "src/common/dialog";
+import { dialogSize } from "src/common/dialog-size";
 import { Env } from "src/common/env-util";
 import { Paging } from "src/common/paging";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
@@ -428,10 +435,10 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="col"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr
           mat-row
-          *matRowDef="let row; columns: col"
+          *matRowDef="let row; columns: displayedColumns"
           (click)="$any($event).stopPropagation() || preview(row)"
         ></tr>
       </table>
@@ -443,10 +450,20 @@ export class SitePasswordDecryptedDialogComponent implements OnInit {
   `,
   styles: [],
 })
-export class SitePasswordComponent implements OnInit {
-  readonly col = this.env.isMobile()
-    ? ["alias", "site", "username"]
-    : ["recordId", "alias", "site", "username", "createTime", "operation"];
+export class SitePasswordComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["alias", "site", "username"];
+  private readonly wideColumns = [
+    "recordId",
+    "alias",
+    "site",
+    "username",
+    "createTime",
+    "operation",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   constructor(
     public env: Env,
@@ -466,6 +483,10 @@ export class SitePasswordComponent implements OnInit {
   pagingController: ControlledPaginatorComponent;
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   togglePanel() {
     this.panelDisplayed = !this.panelDisplayed;
@@ -537,19 +558,19 @@ export class SitePasswordComponent implements OnInit {
       n = u.alias;
     }
     this.dialog.open(SitePasswordDecryptedDialogComponent, {
+      ...dialogSize(400),
       data: {
         title: `View Password for '${n}'`,
         sitePassword: u,
       },
-      width: "400px",
     });
   }
 
   edit(u: ListSitePasswordRes) {
     this.dialog
       .open(EditSitePasswordDialogComponent, {
+        ...dialogSize(600),
         data: { ...u },
-        width: "600px",
       })
       .afterClosed()
       .subscribe(() => {

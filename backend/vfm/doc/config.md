@@ -10,6 +10,7 @@ For more configuration, see [github.com/curtisnewbie/miso](https://github.com/Cu
 
 ## VFM Configuration
 
-| property      | description                             | default value |
-| ------------- | --------------------------------------- | ------------- |
-| vfm.temp-path | Temporary file path for bootmarks files | "/tmp/vfm"    |
+| property             | description                                                                                       | default value |
+| -------------------- | ------------------------------------------------------------------------------------------------- | ------------- |
+| vfm.temp-path        | Temporary file path for bootmarks files                                                           | "/tmp/vfm"    |
+| vfm.unpack.max-depth | Maximum depth of an archive's folder tree when unpacking, counted in path segments from the target directory | 32            |

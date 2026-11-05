@@ -43,7 +43,14 @@
 
 /* Mobile: keep the Operation buttons compact on a single row so rows stay short */
 @media (max-width: 768px) {
-  /* auto layout so the Operation column can shrink to its buttons (see below) */
+  /* A hold on a row is the row menu, never a text selection or the iOS magnifier */
+  .task-row {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* auto layout so the Directory column absorbs the leftover width */
   table.mat-table {
     table-layout: auto !important;
   }
@@ -82,19 +89,8 @@
     white-space: nowrap !important;
   }
 
-  /* Operation column: shrink to the widest button row on the current page, so
-     the freed width goes to Directory. 1% leaves the column at its content
-     width and hands the rest to the 100% Directory cell */
-  .mat-column-operation {
-    width: 1% !important;
-    max-width: none !important;
-    padding-left: 1px !important;
-    padding-right: 8px !important;
-    white-space: nowrap !important;
-  }
-
-  /* Directory takes whatever Operation leaves; the 150px desktop cap would
-     otherwise clip it back down */
+  /* Directory takes whatever the pinned Thumbnail and Status columns leave;
+     the 150px desktop cap would otherwise clip it back down */
   .mat-column-dirName {
     width: 100% !important;
     max-width: none !important;
@@ -113,26 +109,4 @@
     min-width: 100%;
   }
 
-  /* Single line, no wrapping. Intentionally NO overflow/scroll container here:
-     a scroll box would clip the buttons' raised box-shadow and rounded edge, so
-     the absence of overflow on this row is the fix. Neutralize the Bootstrap
-     m-2 / gap-2 / flex-wrap utilities on mobile only. */
-  td.mat-column-operation .d-flex {
-    flex-wrap: nowrap !important;
-    margin: 0 !important;
-    gap: 4px !important;
-  }
-
-  /* Compact footprint so several buttons fit the narrow column (native button
-     shape/border/background and the global .mat-raised-button shadow untouched).
-     Tap accuracy comes from the wider left/right padding plus the 4px gap
-     between buttons; no vertical padding is added. */
-  td.mat-column-operation button {
-    min-width: 0 !important;
-    margin: 0 !important;
-    padding: 0 6px !important;
-    font-size: 9px !important;
-    line-height: 24px !important;
-    white-space: nowrap !important;
-  }
 }

@@ -30,6 +30,16 @@ _Avoid_: Count event, notification push, count message
 The period during which a user's repeated count changes are folded into a single Count-Changed Push. It opens on the first change for that user and defaults to one second.
 _Avoid_: Throttle interval, debounce, batch
 
+### Layout
+
+**Compact Layout**:
+The layout a client uses when its viewport is 768px wide or narrower. It changes presentation, the column list a table shows, and the shape of an interaction; it never removes a capability.
+_Avoid_: mobile layout, phone view, small screen
+
+**Wide Layout**:
+The layout a client uses when its viewport is 769px wide or wider. A phone held sideways reaches it, and so does a narrow desktop window that grew past the boundary.
+_Avoid_: desktop layout, full view, large screen
+
 ### File Browsing
 
 **Resume Cursor**:

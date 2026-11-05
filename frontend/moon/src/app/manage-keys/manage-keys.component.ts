@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import {
   animateElementExpanding,
   getExpanded,
@@ -34,18 +34,20 @@ export interface UserToken {
   styleUrls: ["./manage-keys.component.css"],
   animations: [animateElementExpanding()],
 })
-export class ManageKeysComponent implements OnInit {
-  readonly columns: string[] = this.env.isMobile()?[
-    "name",
-    "secretKey",
-    "expirationTime",
-  ]:[
+export class ManageKeysComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["name", "secretKey", "expirationTime"];
+  private readonly wideColumns = [
     "id",
     "name",
     "secretKey",
     "expirationTime",
     "createTime",
   ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   expandedElement: UserToken = null;
   tokens: UserToken[] = [];
   query = {
@@ -71,6 +73,10 @@ export class ManageKeysComponent implements OnInit {
   ) {}
 
   ngOnInit() {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   mask(k: string): string {
     return k.length > 0

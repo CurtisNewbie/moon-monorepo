@@ -1,5 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute } from "@angular/router";
 import { Env } from "src/common/env-util";
@@ -31,8 +31,19 @@ interface ListGalleryRes {
   templateUrl: "./watched-gallery.component.html",
   styleUrls: ["./watched-gallery.component.css"],
 })
-export class WatchedGalleryComponent implements OnInit {
-  headers: string[] = ["thumbnail", "name", "url", "createdAt", "operation"];
+export class WatchedGalleryComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["thumbnail", "name", "operation"];
+  private readonly wideColumns = [
+    "thumbnail",
+    "name",
+    "url",
+    "createdAt",
+    "operation",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   taskId: string = "";
   platform: string = '';
@@ -60,6 +71,10 @@ export class WatchedGalleryComponent implements OnInit {
     this.taskId = this.route.snapshot.queryParams['taskId'] || '';
     this.listGalleryReq.taskId = this.taskId;
     this.fetchWatchTask();
+  }
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
   }
 
   searchGalleries() {

@@ -1004,11 +1004,94 @@ func TriggerUnzipFilePipeline(rail miso.Rail, db *gorm.DB, req api.UnzipFileReq)
 		return ErrNotZipFile
 	}
 
-	err := UnzipPipeline.Send(rail, UnzipFileEvent(req))
+	maxDepth := req.MaxDepth
+	if maxDepth <= 0 {
+		maxDepth = api.DefaultUnzipMaxDepth
+	}
+	if err := checkZipDepth(f.StoragePath(), maxDepth); err != nil {
+		return err
+	}
+
+	err := UnzipPipeline.Send(rail, UnzipFileEvent{
+		FileId:          req.FileId,
+		ReplyToEventBus: req.ReplyToEventBus,
+		Extra:           req.Extra,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to send event, req: %+v, %v", req, err)
 	}
 	return nil
+}
+
+// deepestZipEntryDepth returns the number of path segments in the deepest file
+// entry among names, counted from the unpack target, together with that entry's
+// name. Both '/' and '\' separate segments, so an archive packed on another
+// platform counts the same tree. Directory entries, marked by a trailing slash,
+// are ignored, as are empty segments. A '..' segment counts as any other
+// segment. The first entry wins when several share the deepest level. It
+// returns 0 and an empty name when there is no file entry.
+func deepestZipEntryDepth(names []string) (int, string) {
+	deepest, deepestName := 0, ""
+	for _, name := range names {
+		if strings.HasSuffix(name, "/") {
+			continue
+		}
+		depth := len(strings.FieldsFunc(name, func(r rune) bool {
+			return r == '/' || r == '\\'
+		}))
+		if depth > deepest {
+			deepest, deepestName = depth, name
+		}
+	}
+	return deepest, deepestName
+}
+
+// zipArchiveDepth reads the archive's central directory, without decompressing
+// anything, and returns the depth and name of its deepest file entry.
+func zipArchiveDepth(path string) (int, string, error) {
+	r, err := zip.OpenReader(path)
+	if err != nil {
+		return 0, "", err
+	}
+	defer r.Close()
+
+	names := make([]string, 0, len(r.File))
+	for _, entry := range r.File {
+		if entry.FileInfo().IsDir() {
+			continue
+		}
+		names = append(names, entry.Name)
+	}
+	depth, deepest := deepestZipEntryDepth(names)
+	return depth, deepest, nil
+}
+
+// checkZipDepth refuses an archive whose deepest file entry sits deeper than
+// maxDepth, and an archive that cannot be read at all.
+func checkZipDepth(path string, maxDepth int) error {
+	depth, deepest, err := zipArchiveDepth(path)
+	if err != nil {
+		return errs.NewErrfCode(api.IllegalFormat, "Zip file cannot be read").
+			WithInternalMsg("failed to open zip file, %v", err)
+	}
+	if depth > maxDepth {
+		return errs.NewErrfCode(api.ZipTooDeep,
+			"Zip file is nested too deeply, max depth: %v, deepest entry: %v", maxDepth, deepest).
+			WithInternalMsg("zip file is nested %v levels deep, max depth: %v, deepest entry: %v, path: %v",
+				depth, maxDepth, deepest, path)
+	}
+	return nil
+}
+
+// newUnzipTempDir creates the temp dir the zip entries are extracted into. The
+// dir must be owner-traversable (0755), a file mode such as 0666 leaves it
+// without the execute bit and every extraction into it fails with EACCES.
+func newUnzipTempDir(fileId string) (string, error) {
+	tempDir := miso.GetPropStr(config.PropTempDir) + "/" + fileId + "_" + randutil.RandNum(5)
+	if err := osutil.MkdirAll(tempDir); err != nil {
+		return "", fmt.Errorf("failed to MkdirAll for tempDir %v, %w", tempDir, err)
+	}
+	return tempDir, nil
 }
 
 func UnzipFile(rail miso.Rail, db *gorm.DB, evt UnzipFileEvent) ([]SavedZipEntry, error) {
@@ -1031,9 +1114,9 @@ func UnzipFile(rail miso.Rail, db *gorm.DB, evt UnzipFileEvent) ([]SavedZipEntry
 		return nil, nil
 	}
 
-	tempDir := miso.GetPropStr(config.PropTempDir) + "/" + evt.FileId + "_" + randutil.RandNum(5)
-	if err := os.MkdirAll(tempDir, osutil.DefFileMode); err != nil {
-		return nil, fmt.Errorf("failed to MkdirAll for tempDir %v, %w", tempDir, err)
+	tempDir, err := newUnzipTempDir(evt.FileId)
+	if err != nil {
+		return nil, err
 	}
 
 	defer os.RemoveAll(tempDir)
@@ -1070,6 +1153,11 @@ func UnpackZip(rail miso.Rail, f File, tempDir string) ([]UnpackedZipEntry, erro
 	entries := make([]UnpackedZipEntry, 0, 15)
 
 	for _, f := range r.File {
+		if f.FileInfo().IsDir() {
+			// directory entries are never created: the tree is rebuilt from the files' paths
+			continue
+		}
+
 		entryReader, err := f.Open()
 		if err != nil {
 			return nil, fmt.Errorf("failed to open zip entry file %v, %w", f.Name, err)

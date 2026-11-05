@@ -1726,7 +1726,9 @@ type UnpackZipReq struct {
 
 type UnpackZipExtra struct {
 	FileKey       string // file key of the zip file
+	FileName      string // name of the zip file, for the notification
 	ParentFileKey string // file key of the target directory
+	TargetName    string // name of the target directory, for the notification
 	UserNo        string
 	Username      string
 }
@@ -1754,8 +1756,9 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user flow.User, req UnpackZipReq) er
 		return errs.NewErrf("File is not a zip")
 	}
 
+	dirName := fi.Name + " unpacked " + time.Now().Format("20060102_150405")
 	dir, err := MakeDir(rail, db, MakeDirReq{
-		Name:       fi.Name + " unpacked " + time.Now().Format("20060102_150405"),
+		Name:       dirName,
 		ParentFile: req.ParentFileKey,
 	}, user)
 	if err != nil {
@@ -1764,7 +1767,9 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user flow.User, req UnpackZipReq) er
 
 	extra, err := json.WriteJson(UnpackZipExtra{
 		FileKey:       req.FileKey,
+		FileName:      fi.Name,
 		ParentFileKey: dir,
+		TargetName:    dirName,
 		UserNo:        user.UserNo,
 		Username:      user.Username,
 	})
@@ -1772,12 +1777,23 @@ func UnpackZip(rail miso.Rail, db *gorm.DB, user flow.User, req UnpackZipReq) er
 		return errs.Wrapf(err, "failed to write json as extra")
 	}
 
+	maxDepth := miso.GetPropInt(PropUnpackMaxDepth)
 	err = fstore.TriggerFileUnzip(rail, fstore.UnzipFileReq{
 		FileId:          fi.FstoreFileId,
+		MaxDepth:        maxDepth,
 		ReplyToEventBus: UnzipResultNotifyEventBus,
 		Extra:           string(extra),
 	})
 	if err != nil {
+		// the target directory stays as it is, nothing was extracted
+		if reason := unpackRefusalReason(err); reason != "" {
+			sendUnpackNotification(rail, user.UserNo, "Archive not unpacked",
+				fmt.Sprintf("The archive %q was not unpacked into %q: %s. Nothing was extracted.",
+					fi.Name, dirName, reason))
+		} else {
+			// a transport failure is not something the user can act on
+			rail.Errorf("Unpack request failed, fileKey: %v, %v", req.FileKey, err)
+		}
 		return errs.Wrapf(err, "failed to TriggerFileUnZip")
 	}
 	return nil
@@ -1793,21 +1809,118 @@ func HandleZipUnpackResult(rail miso.Rail, db *gorm.DB, evt fstore.UnzipFileRepl
 		return nil
 	}
 
-	for _, ze := range evt.ZipEntries {
-		_, err := SaveFileRecord(rail, db, SaveFileReq{
-			Filename:   ze.Name,
-			FileId:     ze.FileId,
-			Size:       ze.Size,
-			ParentFile: extra.ParentFileKey,
-		}, flow.User{
-			UserNo:   extra.UserNo,
-			Username: extra.Username,
-		})
-		if err != nil {
-			return miso.UnknownErrf(err, "failed to save zip entry, entry: %#v", ze)
+	user := flow.User{
+		UserNo:   extra.UserNo,
+		Username: extra.Username,
+	}
+	report := unpackReport{
+		ArchiveName: extra.FileName,
+		TargetName:  extra.TargetName,
+		TotalFiles:  len(evt.ZipEntries),
+	}
+
+	existing, err := listUnpackTargetChildren(rail, db, extra.ParentFileKey)
+	if err != nil {
+		rail.Errorf("Unpack stopped before writing, targetDir: %v, %v", extra.ParentFileKey, err)
+		report.Stopped = true
+		report.notify(rail, extra.UserNo)
+		return nil
+	}
+
+	names := make([]string, len(evt.ZipEntries))
+	for i, ze := range evt.ZipEntries {
+		names[i] = ze.Name
+	}
+	plan := planUnpackTree(names, existing)
+	report.Drops = plan.Drops
+	for _, d := range plan.Drops {
+		rail.Warnf("Skipping zip entry %v, %v", d.Path, d.Reason)
+	}
+
+	// keys maps a planned folder path to the uuid that holds it. The folders
+	// reused from the target directory are known before the loop.
+	keys := make(map[string]string, len(plan.Dirs)+len(existing))
+	for _, c := range existing {
+		if c.IsDir {
+			keys[c.Name] = c.FileKey
 		}
 	}
+
+	// folders are created as the loop reaches a file that lives in them, so a
+	// stop never leaves a folder for an entry that was not created
+	stopped := false
+	var writeErr error
+	createdDirs := make([]string, 0, len(plan.Dirs))
+	nextDir := 0
+	for _, f := range plan.Files {
+		fresh := 0
+		for nextDir < len(plan.Dirs) && plan.Dirs[nextDir].Index <= f.Index {
+			d := plan.Dirs[nextDir]
+			parentKey := extra.ParentFileKey
+			if d.Parent != "" {
+				parentKey = keys[d.Parent]
+			}
+			key, err := MakeDir(rail, db, MakeDirReq{Name: d.Name, ParentFile: parentKey}, user)
+			if err != nil {
+				writeErr = errs.Wrapf(err, "failed to make directory for zip entry, path: %v", d.Path)
+				stopped = true
+				break
+			}
+			keys[d.Path] = key
+			createdDirs = append(createdDirs, d.Path)
+			nextDir++
+			fresh++
+		}
+		if stopped {
+			discardEmptyUnpackDirs(rail, db, keys, createdDirs[len(createdDirs)-fresh:], user)
+			break
+		}
+
+		parentKey := extra.ParentFileKey
+		if f.Parent != "" {
+			parentKey = keys[f.Parent]
+		}
+		ze := evt.ZipEntries[f.Index]
+		if _, err := SaveFileRecord(rail, db, SaveFileReq{
+			Filename:   f.Name,
+			FileId:     ze.FileId,
+			Size:       ze.Size,
+			ParentFile: parentKey,
+		}, user); err != nil {
+			writeErr = errs.Wrapf(err, "failed to save zip entry, path: %v", f.Path)
+			stopped = true
+			discardEmptyUnpackDirs(rail, db, keys, createdDirs[len(createdDirs)-fresh:], user)
+			break
+		}
+		report.Created++
+	}
+
+	if stopped {
+		// the message is acknowledged, so a partial tree is never retried
+		rail.Errorf("Unpack stopped early, targetDir: %v, created: %d/%d, %v",
+			extra.ParentFileKey, report.Created, report.TotalFiles, writeErr)
+		report.Stopped = true
+	}
+	report.notify(rail, extra.UserNo)
 	return nil
+}
+
+// discardEmptyUnpackDirs removes the folders an entry created but left empty
+// because its file was not written. They are given deepest first so each one is
+// empty when it is deleted.
+func discardEmptyUnpackDirs(rail miso.Rail, db *gorm.DB, keys map[string]string, paths []string, user flow.User) {
+	for i := len(paths) - 1; i >= 0; i-- {
+		p := paths[i]
+		key := keys[p]
+		if key == "" {
+			continue
+		}
+		if err := DeleteFile(rail, db, DeleteFileReq{Uuid: key}, user, nil); err != nil {
+			rail.Warnf("Failed to remove empty folder after unpack stop, path: %v, %v", p, err)
+			continue
+		}
+		delete(keys, p)
+	}
 }
 
 func TruncateDir(rail miso.Rail, db *gorm.DB, req DeleteFileReq, user flow.User, async bool) error {
@@ -2253,7 +2366,9 @@ func findFirstThumbnailFileId(rail miso.Rail, db *gorm.DB, dirFileKey string) (s
 	ok, err := dbquery.NewQuery(rail, db).
 		Table("file_info").
 		Eq("parent_file", dirFileKey).
+		Eq("is_logic_deleted", DelN).
 		Eq("is_del", 0).
+		Eq("hidden", 0).
 		Ne("thumbnail", "").
 		OrderAsc("id").
 		Limit(1).
@@ -2283,12 +2398,15 @@ func findFirstThumbnailFileIds(rail miso.Rail, db *gorm.DB, dirKeys []string, us
 			(SELECT f.thumbnail
 			 FROM file_info f
 			 WHERE f.parent_file = d.uuid
+			   AND f.is_logic_deleted = 0
 			   AND f.is_del = 0
+			   AND f.hidden = 0
 			   AND f.thumbnail != ''
 			 ORDER BY f.id ASC
 			 LIMIT 1) as fstore_file_id
 		FROM file_info d
 		WHERE d.uuid IN ?
+			AND d.is_logic_deleted = 0
 			AND d.is_del = 0
 			AND d.uploader_no = ?
 	`

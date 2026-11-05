@@ -14,7 +14,10 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 
 import { ConfirmDialog } from "src/common/dialog";
-import { Env } from "src/common/env-util";
+import {
+  FakeMediaQueryList,
+  installFakeMatchMedia,
+} from "src/testing/fake-media-query-list";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { I18n } from "../i18n.service";
 import { NavigationService } from "../navigation.service";
@@ -26,8 +29,10 @@ const LIST_URL = "/drone/open/api/fape/gallery/list";
 describe("FapeGalleryComponent paginator fetch", () => {
   let fixture: ComponentFixture<FapeGalleryComponent>;
   let httpMock: HttpTestingController;
+  let fake: FakeMediaQueryList;
 
   function configure(isMobile: boolean): void {
+    fake = installFakeMatchMedia(isMobile);
     TestBed.configureTestingModule({
       declarations: [
         FapeGalleryComponent,
@@ -50,7 +55,6 @@ describe("FapeGalleryComponent paginator fetch", () => {
         { provide: ConfirmDialog, useValue: { show: () => undefined } },
         { provide: I18n, useValue: { trl: (_m: string, k: string) => k } },
         { provide: NavigationService, useValue: {} },
-        { provide: Env, useValue: { isMobile: () => isMobile } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     });
@@ -87,5 +91,34 @@ describe("FapeGalleryComponent paginator fetch", () => {
 
     expect(reqs.length).toBe(1);
     expect(reqs[0].request.body.paging.limit).toBe(10);
+  });
+
+  it("shows the compact columns at 390px, the wide columns at 1280px, and follows a flip", () => {
+    configure(true);
+    fixture = TestBed.createComponent(FapeGalleryComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    const compact = ["name", "dirFileKey", "enabled", "operation"];
+    const wide = [
+      "name",
+      "dirFileKey",
+      "enabled",
+      "maxPages",
+      "createdAt",
+      "operation",
+    ];
+
+    httpMock.match(LIST_URL).forEach((r) =>
+      r.flush({ data: { payload: [], paging: { total: 0 } } })
+    );
+
+    expect(component.displayedColumns).toEqual(compact);
+
+    fake.fireChange(false);
+    expect(component.displayedColumns).toEqual(wide);
+
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(compact);
   });
 });

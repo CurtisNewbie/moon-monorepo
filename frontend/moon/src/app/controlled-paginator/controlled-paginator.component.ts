@@ -63,10 +63,8 @@ export class ControlledPaginatorComponent implements OnInit, AfterViewInit {
       this.pageChangedEmitter.emit(this.paging);
     });
 
-    if (this.env.isMobile()) {
-      this.paginator.hidePageSize = true;
-    }
-
+    // A narrow screen keeps the page-size control; the compact stylesheet
+    // tightens it to fit rather than dropping it. See doc/agents/responsive.md.
     if (!this.disableMobileOpts && this.env.isMobile()) {
       this.setPageLimitOptions([5, 10, 30], false);
     }

@@ -1,5 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Env } from "src/common/env-util";
 import { I18n } from "../i18n.service";
@@ -32,8 +32,24 @@ interface TriggerWatchTaskReq {
   templateUrl: "./gallery-watch.component.html",
   styleUrls: ["./gallery-watch.component.css"],
 })
-export class GalleryWatchComponent implements OnInit {
-  headers: string[] = ["platform", "keywords", "maxItems", "enabled", "operation"];
+export class GalleryWatchComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = [
+    "platform",
+    "keywords",
+    "enabled",
+    "operation",
+  ];
+  private readonly wideColumns = [
+    "platform",
+    "keywords",
+    "maxItems",
+    "enabled",
+    "operation",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   // Create Watch Task
   selectedPlatform: string = "";
@@ -55,6 +71,10 @@ export class GalleryWatchComponent implements OnInit {
   ngOnInit(): void {
     this.listPlatforms();
     this.listWatchTasks();
+  }
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
   }
 
   listPlatforms() {

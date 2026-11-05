@@ -8,6 +8,10 @@ const (
 	FileStatusPhysicDel = "PHY_DEL" // file.status - physically deleted
 )
 
+// DefaultUnzipMaxDepth is the fallback depth limit applied when an unpack
+// request carries no limit (zero).
+const DefaultUnzipMaxDepth = 32
+
 type FetchFileInfoReq struct {
 	FileId       string
 	UploadFileId string
@@ -27,6 +31,10 @@ type FstoreFile struct {
 type UnzipFileReq struct {
 	// zip file's mini-fstore file_id.
 	FileId string `valid:"notEmpty" desc:"file_id of zip file" json:"fileId"`
+
+	// Maximum number of path segments, counted from the unpack target, that any
+	// file entry in the archive may sit at. Zero means the server default.
+	MaxDepth int `desc:"maximum depth of the archive's tree, zero means the server default" json:"maxDepth"`
 
 	// rabbitmq exchange (both the exchange and queue must all use the same name, and are bound together using routing key '#').
 	//

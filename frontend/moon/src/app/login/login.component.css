@@ -1,0 +1,39 @@
+/*
+ * iOS Safari zooms the page when it focuses a control whose computed
+ * font-size is under 16px, and the app's compact tier renders form fields at
+ * 9px, so tapping either login field zoomed the phone in for good.
+ *
+ * The whole field goes to 16px, not just the input: the label, the floating
+ * label's em-based transform, the infix padding and the underline are all
+ * sized off `.mat-form-field`, so raising only the input would leave the
+ * label and underline at 9px and pull the floating label out of the field.
+ * `mat-label` needs its own rule because `src/styles.css` sizes it directly,
+ * which beats the font-size inherited from the field.
+ *
+ * Values are px on purpose: `1rem` is 9px under the compact root font size,
+ * which is the size this block exists to escape.
+ *
+ * A field grows from 36px to 65px tall at 375px wide. The card has no fixed
+ * height and both buttons stay in normal flow below the fields, so they move
+ * down rather than clip, and the clear button scales with the field.
+ */
+@media only screen and (max-width: 768px) {
+  mat-form-field,
+  mat-label {
+    font-size: 16px;
+  }
+
+  #usernameInput,
+  #passwordInput {
+    font-size: 16px;
+  }
+
+  /*
+   * `manipulation` keeps panning and pinch zoom, and drops the double-tap zoom
+   * (and its tap delay) on the fields and buttons of this page.
+   */
+  input,
+  button {
+    touch-action: manipulation;
+  }
+}

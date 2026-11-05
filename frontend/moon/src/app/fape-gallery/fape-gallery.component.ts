@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/common/dialog';
+import { dialogSize } from 'src/common/dialog-size';
+import { Env } from 'src/common/env-util';
 import { ControlledPaginatorComponent } from '../controlled-paginator/controlled-paginator.component';
-import { DirTreeNavComponent } from '../dir-tree-nav/dir-tree-nav.component';
 import { I18n } from '../i18n.service';
 import { NavigationService } from '../navigation.service';
 import { NavType } from '../routes';
@@ -47,8 +48,20 @@ interface DeleteFapeGalleryReq {
   templateUrl: './fape-gallery.component.html',
   styleUrls: ['./fape-gallery.component.css'],
 })
-export class FapeGalleryComponent implements OnInit {
-  headers: string[] = ['name', 'dirFileKey', 'enabled', 'maxPages', 'createdAt', 'operation'];
+export class FapeGalleryComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ['name', 'dirFileKey', 'enabled', 'operation'];
+  private readonly wideColumns = [
+    'name',
+    'dirFileKey',
+    'enabled',
+    'maxPages',
+    'createdAt',
+    'operation',
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   // Create gallery
   showCreatePanel = false;
@@ -58,7 +71,7 @@ export class FapeGalleryComponent implements OnInit {
     maxPages: 3,
   };
   createDirName = '';
-  prevSelectedFileKey: string | undefined;
+  selectedFileKey: string | undefined;
 
   // Gallery list
   galleries: ListedFapeGallery[] = [];
@@ -70,19 +83,21 @@ export class FapeGalleryComponent implements OnInit {
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
-  @ViewChild(DirTreeNavComponent)
-  dirTreeNav: DirTreeNavComponent;
-
   constructor(
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private dialog: MatDialog,
     private confirmDialog: ConfirmDialog,
     private i18n: I18n,
-    private nav: NavigationService
+    private nav: NavigationService,
+    private env: Env
   ) {}
 
   ngOnInit(): void {
+  }
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
   }
 
   listGalleries() {
@@ -122,14 +137,13 @@ export class FapeGalleryComponent implements OnInit {
   toggleCreatePanel(): void {
     this.showCreatePanel = !this.showCreatePanel;
     if (this.showCreatePanel) {
-      this.prevSelectedFileKey = undefined;
+      this.selectedFileKey = undefined;
     }
   }
 
   selectDir(n) {
     this.createGalleryReq.dirFileKey = n.fileKey;
     this.createDirName = n.name;
-    this.dirTreeNav.collapseAll();
   }
 
   createGallery() {
@@ -203,7 +217,7 @@ export class FapeGalleryComponent implements OnInit {
   clickTrigger(g: ListedFapeGallery) {
     this.dialog
       .open(TriggerFapeGalleryDialogComponent, {
-        width: '450px',
+        ...dialogSize(450),
         data: {
           galleryNo: g.galleryNo,
           maxPage: 3,
@@ -295,11 +309,11 @@ export class FapeGalleryComponent implements OnInit {
   template: `
     <h1 mat-dialog-title>{{ 'fape-gallery' | trl:'triggerGallery' }}</h1>
     <div mat-dialog-content>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'fape-gallery' | trl:'galleryNo' }}</mat-label>
         <input readonly disabled matInput [ngModel]="data.galleryNo" />
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'fape-gallery' | trl:'maxPageOptional' }}</mat-label>
         <input matInput type="number" [(ngModel)]="data.maxPage" />
       </mat-form-field>

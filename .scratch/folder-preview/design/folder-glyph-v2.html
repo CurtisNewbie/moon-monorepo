@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<!--
+  Folder-with-cover glyph v2: three variants, one footprint (~72x60) for every
+  directory row whatever its cover state.
+
+  Shared geometry (all variants):  body 72x48, tab 32x16 with 12px proud,
+  total silhouette 72x60 — the file thumbnail's 60px box, so rows do not jump.
+
+  A  fill         cover flush with the body, no rails, tab is the only cue
+  B  thin frame   cover inset 2px on all four sides (68x44)
+  C  tabbed       picture is the surface; folder-coloured wedge over its
+                  top-left corner + 2px folder-coloured edge, no mat
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Folder with cover v2 — A fill / B thin frame / C tabbed</title>
+<style>
+  :root{
+    --page:#303030;
+    --row:#424242;
+    --row-hover:#4b4b4b;
+    --text:#fff;
+    --dim:rgba(255,255,255,.56);
+    --line:rgba(255,255,255,.12);
+
+    /* folder palette, unchanged from v1 */
+    --folder:linear-gradient(180deg,#f4edf1 0%,#e7dfe4 55%,#c9c0c7 100%);
+    --folder-top:linear-gradient(180deg,#f9f3f6,#eee6ea);
+    --folder-edge:#eee6ea;
+
+    /* shared footprint */
+    --dc-w:72px;
+    --dc-h:48px;
+    --dc-tab-w:32px;
+    --dc-tab-h:16px;
+    --dc-tab-proud:12px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--page);color:var(--text);
+    font:14px/1.4 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    padding:26px 28px 40px;
+  }
+  .mono{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);
+  }
+  h1{font-size:15px;font-weight:500;margin:2px 0 6px}
+  header{margin-bottom:24px}
+
+  section.variant{margin:0 0 28px}
+  .vhead{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+  .tag{
+    font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;
+    color:#111;background:#f0e6de;border-radius:2px;padding:3px 6px;
+  }
+  .vname{font-size:13.5px}
+  .pair{display:flex;gap:20px;align-items:flex-start}
+  .wide{flex:0 0 auto;background:var(--row);border-radius:2px}
+  .phone{width:412px;background:var(--row);border-radius:2px;overflow:hidden}
+
+  table{border-collapse:collapse;table-layout:fixed}
+  th,td{
+    text-align:left;padding:0 8px;font-weight:400;border-bottom:1px solid var(--line);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  td.thumb{overflow:visible}
+  th{height:40px;font-size:11px;color:var(--dim);letter-spacing:.04em}
+  td{height:auto}
+  td.name{font-size:13.5px;padding-left:12px}
+  td.thumb{width:100px;padding-left:8px}
+  td.size{width:66px;color:var(--dim);font-size:12.5px}
+  td.op{width:40px;padding:0 8px 0 0;text-align:right}
+  td.op i{display:inline-block;width:3px;height:13px;background:rgba(255,255,255,.25);border-radius:2px;
+          box-shadow:7px 0 0 rgba(255,255,255,.25),14px 0 0 rgba(255,255,255,.25)}
+
+  /* file thumbnail, exactly as the app draws it (border-box => 60px box) */
+  img.plain-thumb{max-height:60px;max-width:100%;width:auto;padding:5px 0;display:inline-block;border-radius:1px}
+
+  /* =====================================================================
+     SHARED FOLDER SHAPE — one footprint for cover and no-cover
+     ===================================================================== */
+  .dc{
+    position:relative;display:inline-block;vertical-align:baseline;
+    width:var(--dc-w);height:var(--dc-h);
+    margin-top:var(--dc-tab-proud);          /* the tab paints inside this reserve, never clipped */
+    border-radius:0 6px 6px 6px;              /* square top-left: the tab joins there */
+    background:var(--folder);
+    filter:drop-shadow(0 1.5px 2px rgba(0,0,0,.5));
+  }
+  .dc::before{                                 /* the tab */
+    content:"";position:absolute;left:0;
+    top:calc(-1 * var(--dc-tab-proud));
+    width:var(--dc-tab-w);height:var(--dc-tab-h);
+    border-radius:5px 0 0 0;
+    background:var(--folder-top);
+    clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 100%, 0 100%);
+  }
+  .dc-img{position:absolute;display:block;object-fit:cover}
+
+  /* A — fill: cover flush with the body, no rails */
+  .dc--a .dc-img{left:0;top:0;width:100%;height:100%;border-radius:0 6px 6px 6px}
+
+  /* B — thin frame: 2px rails all round, cover 68x46 */
+  .dc--b .dc-img{left:2px;top:2px;width:calc(100% - 4px);height:calc(100% - 4px);border-radius:0 4px 4px 4px}
+
+  /* C — tabbed: the picture is the surface, tab wedge painted over it */
+  .dc--c .dc-img{left:0;top:0;width:100%;height:100%;border-radius:0 6px 6px 6px;
+                 outline:2px solid var(--folder-edge);outline-offset:-2px}
+  .dc--c::before{
+    top:calc(-1 * var(--dc-tab-proud));
+    height:calc(var(--dc-tab-h) + 8px);        /* wedge runs 8px down over the picture */
+    width:var(--dc-tab-w);
+    clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
+  }
+
+  .note{color:var(--dim);font-size:11px;margin-top:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mono">manage-files · preview column · v2</div>
+  <h1>Folder with cover — three treatments, one footprint</h1>
+  <div class="mono">body 72×48 · tab 32×16 (12px proud) · silhouette 72×60 · file thumb 89×60</div>
+  <div class="mono" style="margin-top:4px">measured: every row 66.6px — folder with cover, folder without cover, file thumbnail · compact column 100px</div>
+</header>
+
+<!-- ============================ A — FILL ============================ -->
+<section class="variant">
+  <div class="vhead"><span class="tag">A</span><span class="vname">Fill the folder — cover flush with the body, no rails</span></div>
+  <div class="pair">
+    <table class="wide" style="width:560px">
+      <colgroup><col><col style="width:100px"><col style="width:66px"></colgroup>
+      <thead><tr><th style="padding-left:12px">Name</th><th>Preview</th><th>Size</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="name">2024-06 — Lisbon</td>
+          <td class="thumb"><span class="dc dc--a"><img class="dc-img" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nOTAnIHZpZXdCb3g9JzAgMCAxNjAgOTAnPgo8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2EnIHgxPScwJyB5MT0nMCcgeDI9JzAnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPScjZmZkMjdhJy8+PHN0b3Agb2Zmc2V0PScuNScgc3RvcC1jb2xvcj0nI2YyNzYyZScvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nIzZkMjE0NScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzkwJyBmaWxsPSd1cmwoI2EpJy8+CjxjaXJjbGUgY3g9JzExMicgY3k9JzUwJyByPScxMicgZmlsbD0nI2ZmZjNjNCcgb3BhY2l0eT0nLjknLz4KPHBhdGggZD0nTTAgNzIgTDM0IDU4IEw2NiA3MCBMMTAyIDYwIEwxNjAgNzQgTDE2MCA5MCBMMCA5MFonIGZpbGw9JyMzMzE0MmEnIG9wYWNpdHk9Jy44NScvPgo8L3N2Zz4="></span></td>
+          <td class="size">2.4 GB</td>
+        </tr>
+        <tr>
+          <td class="name">Screenshots</td>
+          <td class="thumb"><span class="dc dc--a"></span></td>
+          <td class="size">—</td>
+        </tr>
+        <tr>
+          <td class="name">IMG_2041.jpg</td>
+          <td class="thumb"><img class="plain-thumb" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nMTAwJyB2aWV3Qm94PScwIDAgMTYwIDEwMCc+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0nZCcgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzEnPgo8c3RvcCBvZmZzZXQ9JzAnIHN0b3AtY29sb3I9JyM3ZmQzZTgnLz48c3RvcCBvZmZzZXQ9Jy41NScgc3RvcC1jb2xvcj0nIzJmOWJjNCcvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nI2U2ZDNhMycvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEwMCcgZmlsbD0ndXJsKCNkKScvPgo8cGF0aCBkPSdNMCA2MiBRNDAgNTQgODAgNjIgVDE2MCA2MiBMMTYwIDEwMCBMMCAxMDBaJyBmaWxsPScjZTlkN2FiJyBvcGFjaXR5PScuOScvPgo8cGF0aCBkPSdNMCA1OCBRNDAgNTAgODAgNTggVDE2MCA1OCBMMTYwIDY0IEwwIDY0WicgZmlsbD0nI2ZmZmZmZicgb3BhY2l0eT0nLjc1Jy8+Cjwvc3ZnPg=="></td>
+          <td class="size">6.2 MB</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="phone">
+      <table style="width:100%">
+        <colgroup><col><col style="width:100px"><col style="width:40px"></colgroup>
+        <thead><tr><th style="padding-left:12px">Name</th><th></th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="name">2024-06 — Lisbon</td>
+            <td class="thumb"><span class="dc dc--a"><img class="dc-img" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nOTAnIHZpZXdCb3g9JzAgMCAxNjAgOTAnPgo8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2EnIHgxPScwJyB5MT0nMCcgeDI9JzAnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPScjZmZkMjdhJy8+PHN0b3Agb2Zmc2V0PScuNScgc3RvcC1jb2xvcj0nI2YyNzYyZScvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nIzZkMjE0NScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzkwJyBmaWxsPSd1cmwoI2EpJy8+CjxjaXJjbGUgY3g9JzExMicgY3k9JzUwJyByPScxMicgZmlsbD0nI2ZmZjNjNCcgb3BhY2l0eT0nLjknLz4KPHBhdGggZD0nTTAgNzIgTDM0IDU4IEw2NiA3MCBMMTAyIDYwIEwxNjAgNzQgTDE2MCA5MCBMMCA5MFonIGZpbGw9JyMzMzE0MmEnIG9wYWNpdHk9Jy44NScvPgo8L3N2Zz4="></span></td>
+            <td class="op"><i></i></td>
+          </tr>
+          <tr>
+            <td class="name">Screenshots</td>
+            <td class="thumb"><span class="dc dc--a"></span></td>
+            <td class="op"><i></i></td>
+          </tr>
+          <tr>
+            <td class="name">IMG_2041.jpg</td>
+            <td class="thumb"><img class="plain-thumb" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nMTAwJyB2aWV3Qm94PScwIDAgMTYwIDEwMCc+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0nZCcgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzEnPgo8c3RvcCBvZmZzZXQ9JzAnIHN0b3AtY29sb3I9JyM3ZmQzZTgnLz48c3RvcCBvZmZzZXQ9Jy41NScgc3RvcC1jb2xvcj0nIzJmOWJjNCcvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nI2U2ZDNhMycvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEwMCcgZmlsbD0ndXJsKCNkKScvPgo8cGF0aCBkPSdNMCA2MiBRNDAgNTQgODAgNjIgVDE2MCA2MiBMMTYwIDEwMCBMMCAxMDBaJyBmaWxsPScjZTlkN2FiJyBvcGFjaXR5PScuOScvPgo8cGF0aCBkPSdNMCA1OCBRNDAgNTAgODAgNTggVDE2MCA1OCBMMTYwIDY0IEwwIDY0WicgZmlsbD0nI2ZmZmZmZicgb3BhY2l0eT0nLjc1Jy8+Cjwvc3ZnPg=="></td>
+            <td class="op"><i></i></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="note">cover 72×48, inset 0 · no-cover: same 72×60 silhouette, body filled with the folder gradient</div>
+</section>
+
+<!-- ========================= B — THIN FRAME ========================= -->
+<section class="variant">
+  <div class="vhead"><span class="tag">B</span><span class="vname">Thin frame — 2px rails, cover gets the pixels</span></div>
+  <div class="pair">
+    <table class="wide" style="width:560px">
+      <colgroup><col><col style="width:100px"><col style="width:66px"></colgroup>
+      <thead><tr><th style="padding-left:12px">Name</th><th>Preview</th><th>Size</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="name">2024-06 — Lisbon</td>
+          <td class="thumb"><span class="dc dc--b"><img class="dc-img" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nOTAnIHZpZXdCb3g9JzAgMCAxNjAgOTAnPgo8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2EnIHgxPScwJyB5MT0nMCcgeDI9JzAnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPScjZmZkMjdhJy8+PHN0b3Agb2Zmc2V0PScuNScgc3RvcC1jb2xvcj0nI2YyNzYyZScvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nIzZkMjE0NScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzkwJyBmaWxsPSd1cmwoI2EpJy8+CjxjaXJjbGUgY3g9JzExMicgY3k9JzUwJyByPScxMicgZmlsbD0nI2ZmZjNjNCcgb3BhY2l0eT0nLjknLz4KPHBhdGggZD0nTTAgNzIgTDM0IDU4IEw2NiA3MCBMMTAyIDYwIEwxNjAgNzQgTDE2MCA5MCBMMCA5MFonIGZpbGw9JyMzMzE0MmEnIG9wYWNpdHk9Jy44NScvPgo8L3N2Zz4="></span></td>
+          <td class="size">2.4 GB</td>
+        </tr>
+        <tr>
+          <td class="name">Screenshots</td>
+          <td class="thumb"><span class="dc dc--b"></span></td>
+          <td class="size">—</td>
+        </tr>
+        <tr>
+          <td class="name">IMG_2041.jpg</td>
+          <td class="thumb"><img class="plain-thumb" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nMTAwJyB2aWV3Qm94PScwIDAgMTYwIDEwMCc+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0nZCcgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzEnPgo8c3RvcCBvZmZzZXQ9JzAnIHN0b3AtY29sb3I9JyM3ZmQzZTgnLz48c3RvcCBvZmZzZXQ9Jy41NScgc3RvcC1jb2xvcj0nIzJmOWJjNCcvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nI2U2ZDNhMycvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEwMCcgZmlsbD0ndXJsKCNkKScvPgo8cGF0aCBkPSdNMCA2MiBRNDAgNTQgODAgNjIgVDE2MCA2MiBMMTYwIDEwMCBMMCAxMDBaJyBmaWxsPScjZTlkN2FiJyBvcGFjaXR5PScuOScvPgo8cGF0aCBkPSdNMCA1OCBRNDAgNTAgODAgNTggVDE2MCA1OCBMMTYwIDY0IEwwIDY0WicgZmlsbD0nI2ZmZmZmZicgb3BhY2l0eT0nLjc1Jy8+Cjwvc3ZnPg=="></td>
+          <td class="size">6.2 MB</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="phone">
+      <table style="width:100%">
+        <colgroup><col><col style="width:100px"><col style="width:40px"></colgroup>
+        <thead><tr><th style="padding-left:12px">Name</th><th></th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="name">2024-06 — Lisbon</td>
+            <td class="thumb"><span class="dc dc--b"><img class="dc-img" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nOTAnIHZpZXdCb3g9JzAgMCAxNjAgOTAnPgo8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2EnIHgxPScwJyB5MT0nMCcgeDI9JzAnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPScjZmZkMjdhJy8+PHN0b3Agb2Zmc2V0PScuNScgc3RvcC1jb2xvcj0nI2YyNzYyZScvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nIzZkMjE0NScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzkwJyBmaWxsPSd1cmwoI2EpJy8+CjxjaXJjbGUgY3g9JzExMicgY3k9JzUwJyByPScxMicgZmlsbD0nI2ZmZjNjNCcgb3BhY2l0eT0nLjknLz4KPHBhdGggZD0nTTAgNzIgTDM0IDU4IEw2NiA3MCBMMTAyIDYwIEwxNjAgNzQgTDE2MCA5MCBMMCA5MFonIGZpbGw9JyMzMzE0MmEnIG9wYWNpdHk9Jy44NScvPgo8L3N2Zz4="></span></td>
+            <td class="op"><i></i></td>
+          </tr>
+          <tr>
+            <td class="name">Screenshots</td>
+            <td class="thumb"><span class="dc dc--b"></span></td>
+            <td class="op"><i></i></td>
+          </tr>
+          <tr>
+            <td class="name">IMG_2041.jpg</td>
+            <td class="thumb"><img class="plain-thumb" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nMTAwJyB2aWV3Qm94PScwIDAgMTYwIDEwMCc+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0nZCcgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzEnPgo8c3RvcCBvZmZzZXQ9JzAnIHN0b3AtY29sb3I9JyM3ZmQzZTgnLz48c3RvcCBvZmZzZXQ9Jy41NScgc3RvcC1jb2xvcj0nIzJmOWJjNCcvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nI2U2ZDNhMycvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEwMCcgZmlsbD0ndXJsKCNkKScvPgo8cGF0aCBkPSdNMCA2MiBRNDAgNTQgODAgNjIgVDE2MCA2MiBMMTYwIDEwMCBMMCAxMDBaJyBmaWxsPScjZTlkN2FiJyBvcGFjaXR5PScuOScvPgo8cGF0aCBkPSdNMCA1OCBRNDAgNTAgODAgNTggVDE2MCA1OCBMMTYwIDY0IEwwIDY0WicgZmlsbD0nI2ZmZmZmZicgb3BhY2l0eT0nLjc1Jy8+Cjwvc3ZnPg=="></td>
+            <td class="op"><i></i></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="note">cover 68×44, rails 2px · no-cover: same silhouette, solid folder colour (no inner rectangle)</div>
+</section>
+
+<!-- =========================== C — TABBED =========================== -->
+<section class="variant">
+  <div class="vhead"><span class="tag">C</span><span class="vname">Tabbed thumbnail — picture is the surface, folder wedge on top</span></div>
+  <div class="pair">
+    <table class="wide" style="width:560px">
+      <colgroup><col><col style="width:100px"><col style="width:66px"></colgroup>
+      <thead><tr><th style="padding-left:12px">Name</th><th>Preview</th><th>Size</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="name">2024-06 — Lisbon</td>
+          <td class="thumb"><span class="dc dc--c"><img class="dc-img" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nOTAnIHZpZXdCb3g9JzAgMCAxNjAgOTAnPgo8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2EnIHgxPScwJyB5MT0nMCcgeDI9JzAnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPScjZmZkMjdhJy8+PHN0b3Agb2Zmc2V0PScuNScgc3RvcC1jb2xvcj0nI2YyNzYyZScvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nIzZkMjE0NScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzkwJyBmaWxsPSd1cmwoI2EpJy8+CjxjaXJjbGUgY3g9JzExMicgY3k9JzUwJyByPScxMicgZmlsbD0nI2ZmZjNjNCcgb3BhY2l0eT0nLjknLz4KPHBhdGggZD0nTTAgNzIgTDM0IDU4IEw2NiA3MCBMMTAyIDYwIEwxNjAgNzQgTDE2MCA5MCBMMCA5MFonIGZpbGw9JyMzMzE0MmEnIG9wYWNpdHk9Jy44NScvPgo8L3N2Zz4="></span></td>
+          <td class="size">2.4 GB</td>
+        </tr>
+        <tr>
+          <td class="name">Screenshots</td>
+          <td class="thumb"><span class="dc dc--c"></span></td>
+          <td class="size">—</td>
+        </tr>
+        <tr>
+          <td class="name">IMG_2041.jpg</td>
+          <td class="thumb"><img class="plain-thumb" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nMTAwJyB2aWV3Qm94PScwIDAgMTYwIDEwMCc+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0nZCcgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzEnPgo8c3RvcCBvZmZzZXQ9JzAnIHN0b3AtY29sb3I9JyM3ZmQzZTgnLz48c3RvcCBvZmZzZXQ9Jy41NScgc3RvcC1jb2xvcj0nIzJmOWJjNCcvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nI2U2ZDNhMycvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEwMCcgZmlsbD0ndXJsKCNkKScvPgo8cGF0aCBkPSdNMCA2MiBRNDAgNTQgODAgNjIgVDE2MCA2MiBMMTYwIDEwMCBMMCAxMDBaJyBmaWxsPScjZTlkN2FiJyBvcGFjaXR5PScuOScvPgo8cGF0aCBkPSdNMCA1OCBRNDAgNTAgODAgNTggVDE2MCA1OCBMMTYwIDY0IEwwIDY0WicgZmlsbD0nI2ZmZmZmZicgb3BhY2l0eT0nLjc1Jy8+Cjwvc3ZnPg=="></td>
+          <td class="size">6.2 MB</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="phone">
+      <table style="width:100%">
+        <colgroup><col><col style="width:100px"><col style="width:40px"></colgroup>
+        <thead><tr><th style="padding-left:12px">Name</th><th></th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="name">2024-06 — Lisbon</td>
+            <td class="thumb"><span class="dc dc--c"><img class="dc-img" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nOTAnIHZpZXdCb3g9JzAgMCAxNjAgOTAnPgo8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2EnIHgxPScwJyB5MT0nMCcgeDI9JzAnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPScjZmZkMjdhJy8+PHN0b3Agb2Zmc2V0PScuNScgc3RvcC1jb2xvcj0nI2YyNzYyZScvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nIzZkMjE0NScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzkwJyBmaWxsPSd1cmwoI2EpJy8+CjxjaXJjbGUgY3g9JzExMicgY3k9JzUwJyByPScxMicgZmlsbD0nI2ZmZjNjNCcgb3BhY2l0eT0nLjknLz4KPHBhdGggZD0nTTAgNzIgTDM0IDU4IEw2NiA3MCBMMTAyIDYwIEwxNjAgNzQgTDE2MCA5MCBMMCA5MFonIGZpbGw9JyMzMzE0MmEnIG9wYWNpdHk9Jy44NScvPgo8L3N2Zz4="></span></td>
+            <td class="op"><i></i></td>
+          </tr>
+          <tr>
+            <td class="name">Screenshots</td>
+            <td class="thumb"><span class="dc dc--c"></span></td>
+            <td class="op"><i></i></td>
+          </tr>
+          <tr>
+            <td class="name">IMG_2041.jpg</td>
+            <td class="thumb"><img class="plain-thumb" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNjAnIGhlaWdodD0nMTAwJyB2aWV3Qm94PScwIDAgMTYwIDEwMCc+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0nZCcgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzEnPgo8c3RvcCBvZmZzZXQ9JzAnIHN0b3AtY29sb3I9JyM3ZmQzZTgnLz48c3RvcCBvZmZzZXQ9Jy41NScgc3RvcC1jb2xvcj0nIzJmOWJjNCcvPjxzdG9wIG9mZnNldD0nMScgc3RvcC1jb2xvcj0nI2U2ZDNhMycvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEwMCcgZmlsbD0ndXJsKCNkKScvPgo8cGF0aCBkPSdNMCA2MiBRNDAgNTQgODAgNjIgVDE2MCA2MiBMMTYwIDEwMCBMMCAxMDBaJyBmaWxsPScjZTlkN2FiJyBvcGFjaXR5PScuOScvPgo8cGF0aCBkPSdNMCA1OCBRNDAgNTAgODAgNTggVDE2MCA1OCBMMTYwIDY0IEwwIDY0WicgZmlsbD0nI2ZmZmZmZicgb3BhY2l0eT0nLjc1Jy8+Cjwvc3ZnPg=="></td>
+            <td class="op"><i></i></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="note">cover 72×48 full-bleed, 2px folder-coloured edge · tab wedge 32×24 painted over the picture · no-cover: same silhouette, solid folder colour</div>
+</section>
+
+</body>
+</html>

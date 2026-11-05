@@ -1,9 +1,66 @@
-import { EventEmitter } from '@angular/core';
-import { of, Subject, throwError } from 'rxjs';
+import { CommonModule, Location } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { EventEmitter, Component, Input, Output } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
+import { BrowseHistoryRecorder } from 'src/common/browse-history';
+import { FileBookmark } from 'src/common/file-bookmark';
+import { I18n } from '../i18n.service';
+import { NavigationService } from '../navigation.service';
+import { NavType } from '../routes';
+import { FormsModule } from '@angular/forms';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { DomSanitizer } from '@angular/platform-browser';
+import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 
+import { Env } from 'src/common/env-util';
 import { FileInfo, FileType } from 'src/common/file-info';
+import {
+  FakeMediaQueryList,
+  installFakeMatchMedia,
+} from 'src/testing/fake-media-query-list';
 import { FileInfoService } from '../file-info.service';
+import { ImageTooltipDirective } from '../shared/directives/image-tooltip.directive';
+import { TrlPipe } from '../trl.pipe';
 import { MngFilesComponent } from './mng-files.component';
+
+/** Placeholder for the paginator child: the folder preview tests render no rows through it. */
+@Component({ selector: 'app-controlled-paginator', template: '' })
+class StubPaginatorComponent {
+  @Input() showGotoPageOnMobile: any;
+  @Output() pageChanged = new EventEmitter<any>();
+  @Output() ready = new EventEmitter<void>();
+}
+
+/** Placeholder for the file tray child: it is only rendered when the tray opens. */
+@Component({ selector: 'app-file-tray', template: '' })
+class StubFileTrayComponent {
+  @Output() closed = new EventEmitter<void>();
+}
+
+/** Layout signal for tests that do not care which mode is active. */
+function staticEnv(isMobile: boolean): Env {
+  return { isMobile: () => isMobile, mobile$: of(isMobile) } as any;
+}
+
+/** Lets the zone settle the async work a test started. */
+function flushAsync(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve));
+}
 
 /**
  * Controllable stand-in for the MatDialogRef returned by MatDialog.open().
@@ -85,6 +142,10 @@ class FakeHttp {
   dirZipFails = false;
   /** when set, the directory zip request stays pending until the test answers it */
   dirZipPending: Subject<any> = null;
+  /** value the file parent endpoint answers with */
+  parentResp: any = { data: null };
+  /** when set, the file parent request fails at the transport level */
+  parentFails = false;
 
   post(url: string, body?: any): any {
     this.posts.push({ url, body });
@@ -113,6 +174,12 @@ class FakeHttp {
         return of({ error: true, msg: 'preference fetch failed' });
       }
       return of({ data: this.orderByPreference });
+    }
+    if (url.indexOf('/file/parent') >= 0) {
+      if (this.parentFails) {
+        return throwError(new Error('parent fetch failed'));
+      }
+      return of(this.parentResp);
     }
     return of({ data: null });
   }
@@ -166,7 +233,7 @@ describe('MngFilesComponent size sort', () => {
       { open: jasmine.createSpy('open') } as any,
       browseHistoryRecorder as any,
       {} as any,
-      { isMobile: () => false } as any
+      staticEnv(false)
     );
 
     component.pagingController = {
@@ -348,10 +415,6 @@ describe('MngFilesComponent size sort', () => {
     expect(listReq.fileType).toBeUndefined();
   });
 
-  function flushAsync(): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve));
-  }
-
   function previewFour(files: FileInfo[]): void {
     component.fileInfoList = files;
     for (let i = 0; i < files.length; i++) {
@@ -528,7 +591,7 @@ describe('MngFilesComponent preview nav coalescing', () => {
       snackBar as any,
       browseHistoryRecorder as any,
       {} as any,
-      { isMobile: () => false } as any
+      staticEnv(false)
     );
 
     component.fileInfoList = [
@@ -630,7 +693,7 @@ describe('MngFilesComponent directory zip download', () => {
       snackBar as any,
       {} as any,
       {} as any,
-      { isMobile: () => false } as any
+      staticEnv(false)
     );
   });
 
@@ -737,5 +800,1586 @@ describe('MngFilesComponent directory zip download', () => {
 
     expect(http.postsTo('/file/dir/zip').length).toBe(2);
     expect(openSpy).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('MngFilesComponent columns', () => {
+  let fake: FakeMediaQueryList;
+  let component: MngFilesComponent;
+
+  const WIDE = ['thumbnail', 'name', 'parentFileName', 'uploadTime', 'size', 'operation'];
+  const COMPACT = ['thumbnail', 'name'];
+
+  beforeEach(() => {
+    fake = installFakeMatchMedia(false);
+    component = new MngFilesComponent(
+      {} as any,
+      { open: () => ({ afterClosed: () => of(false) }) } as any,
+      {} as any,
+      { navigateTo: jasmine.createSpy('navigateTo') } as any,
+      {} as any,
+      { paramMap: of({ get: () => null }) } as any,
+      {} as any,
+      { open: jasmine.createSpy('open') } as any,
+      { record: jasmine.createSpy('record') } as any,
+      {} as any,
+      new Env()
+    );
+  });
+
+  it('shows the wide columns at 1280px and the compact columns at 390px', () => {
+    expect(component.displayedColumns).toEqual(WIDE);
+
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(COMPACT);
+  });
+
+  it('reassigns the columns when the layout flips mid-life', () => {
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(COMPACT);
+
+    fake.fireChange(false);
+    expect(component.displayedColumns).toEqual(WIDE);
+  });
+
+  it('keeps the drag handle out of the compact list', () => {
+    component.orderBy = 'custom';
+    expect(component.displayedColumns[0]).toBe('dragHandle');
+
+    fake.fireChange(true);
+    expect(component.displayedColumns).toEqual(COMPACT);
+  });
+});
+
+/**
+ * Folder preview, rendered through the real manage-files template with the
+ * HTTP client stubbed. The assertions are what the user sees in the Preview
+ * cell, plus what the browser remembers after the page is reopened.
+ */
+describe('MngFilesComponent folder preview', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let http: FakeHttp;
+  let mobile$: BehaviorSubject<boolean>;
+
+  /** a real, decodable image so intrinsic thumbnail sizes are measurable */
+  const IMAGE_DATA_URL =
+    'data:image/svg+xml;charset=utf-8,' +
+    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="100"></svg>');
+  const COVER_URL = IMAGE_DATA_URL;
+  const FOLDER_PREVIEW_KEY = 'manage-files.folderPreview';
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true, fileType: 'DIR' } as FileInfo;
+  }
+
+  /** A data URL the browser will actually decode; Angular would prefix it as unsafe otherwise. */
+  function trustedImage(url: string): any {
+    return TestBed.inject(DomSanitizer).bypassSecurityTrustUrl(url);
+  }
+
+  function fileRow(uuid: string, name: string, thumbnailUrl: string): FileInfo {
+    return { uuid, name, isFile: true, fileType: 'FILE', thumbnailUrl } as FileInfo;
+  }
+
+  function open(rows: FileInfo[]): void {
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    component.fileInfoList = rows;
+    fixture.detectChanges();
+  }
+
+  function checkbox(label: string, root: HTMLElement = fixture.nativeElement): HTMLElement {
+    const boxes = Array.from<HTMLElement>(root.querySelectorAll('mat-checkbox'));
+    return boxes.find((box) => (box.textContent || '').indexOf(label) >= 0);
+  }
+
+  function isChecked(label: string, root: HTMLElement = fixture.nativeElement): boolean {
+    return (checkbox(label, root).querySelector('input') as HTMLInputElement).checked;
+  }
+
+  function tickFolderPreview(): void {
+    (checkbox('folderPreview').querySelector('input') as HTMLInputElement).click();
+    fixture.detectChanges();
+  }
+
+  function rowAt(index: number): HTMLElement {
+    return fixture.nativeElement.querySelectorAll('tr.file-row')[index];
+  }
+
+  function cellAt(index: number): HTMLElement {
+    return rowAt(index).querySelector('td.mat-column-thumbnail');
+  }
+
+  function thumbnailCell(): HTMLElement {
+    return cellAt(0);
+  }
+
+  function glyphAt(index: number): HTMLElement {
+    return cellAt(index).querySelector('.dir-glyph');
+  }
+
+  /** Lets real image decoding finish before the test measures a box. */
+  async function settleImages(): Promise<void> {
+    fixture.detectChanges();
+    const imgs = Array.from<HTMLImageElement>(
+      fixture.nativeElement.querySelectorAll('img')
+    );
+    await Promise.all(
+      imgs.map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              img.addEventListener('load', () => resolve(), { once: true });
+              img.addEventListener('error', () => resolve(), { once: true });
+            })
+      )
+    );
+    fixture.detectChanges();
+  }
+
+  /**
+   * Renders at a given width for the duration of `run`. The layout tiers live
+   * in media queries and Karma's own window is 756px wide, so the runner iframe
+   * is resized — the assertion is still layout a real browser did.
+   */
+  function atViewportWidth(
+    width: number,
+    run: (viewportWidth: number) => void
+  ): void {
+    const frame = window.frameElement as HTMLElement;
+    const originalWidth = frame ? frame.style.width : null;
+    if (frame) {
+      frame.style.width = `${width}px`;
+    }
+    try {
+      const viewportWidth = frame
+        ? frame.getBoundingClientRect().width
+        : document.body.getBoundingClientRect().width;
+      run(viewportWidth);
+    } finally {
+      if (frame) {
+        frame.style.width = originalWidth;
+      }
+    }
+  }
+
+  function atPhoneWidth(run: (viewportWidth: number) => void): void {
+    atViewportWidth(412, run);
+  }
+
+  beforeEach(() => {
+    // a fresh browser for this page's preference only
+    localStorage.removeItem(FOLDER_PREVIEW_KEY);
+    http = new FakeHttp();
+    mobile$ = new BehaviorSubject<boolean>(false);
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        {
+          provide: FileInfoService,
+          useValue: {
+            generateFileTempToken: () => of({ error: true, msg: 'stubbed' }),
+          },
+        },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: http },
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of({ get: () => null }) },
+        },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+  });
+
+  it('starts off and draws the empty folder shape for a directory with a cached cover', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    fixture.detectChanges();
+
+    expect(isChecked('folderPreview')).toBe(false);
+    const cell = thumbnailCell();
+    const glyph = glyphAt(0);
+    expect(glyph).not.toBeNull();
+    expect(glyph.querySelector('img')).toBeNull();
+    // the shape itself is the surface: no inner rectangle and no bootstrap glyph
+    expect(glyph.children.length).toBe(0);
+    expect(cell.querySelector('i.bi')).toBeNull();
+  });
+
+  it('remembers a ticked box when the page is opened again', async () => {
+    open([dirRow('dir-1', 'Album')]);
+    expect(isChecked('folderPreview')).toBe(false);
+
+    tickFolderPreview();
+
+    // a page opened later in the same browser
+    const reopened = TestBed.createComponent(MngFilesComponent);
+    reopened.detectChanges();
+    await flushAsync();
+    reopened.detectChanges();
+
+    expect(isChecked('folderPreview', reopened.nativeElement)).toBe(true);
+  });
+
+  it('stays off when the stored value cannot be read', () => {
+    spyOn(Storage.prototype, 'getItem').and.throwError('storage is blocked');
+
+    open([dirRow('dir-1', 'Album')]);
+
+    expect(isChecked('folderPreview')).toBe(false);
+  });
+
+  it('draws a known cover inside the folder shape when it is on', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+
+    tickFolderPreview();
+
+    const cell = thumbnailCell();
+    const glyph = glyphAt(0);
+    const cover = glyph.querySelector('img');
+    expect(glyph).not.toBeNull();
+    expect(cover).not.toBeNull();
+    expect(cover.getAttribute('src')).toBe(COVER_URL);
+    // the folder shape is the only frame: never a glyph on top of a picture
+    expect(cell.querySelector('i.bi')).toBeNull();
+  });
+
+  it('falls back to the empty folder shape when a cached cover fails to load', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    tickFolderPreview();
+    const before = glyphAt(0).getBoundingClientRect();
+
+    glyphAt(0).querySelector('img').dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+
+    const cell = thumbnailCell();
+    const glyph = glyphAt(0);
+    expect(glyph).not.toBeNull();
+    expect(glyph.querySelector('img')).toBeNull();
+    expect(cell.querySelector('i.bi')).toBeNull();
+    const after = glyph.getBoundingClientRect();
+    expect(after.width).toBeCloseTo(before.width, 0);
+    expect(after.height).toBeCloseTo(before.height, 0);
+    // forgotten, so a later listing does not draw the same broken cover again
+    expect(component.dirThumbnailCache.has('dir-1')).toBe(false);
+  });
+
+  it('keeps the folder shape and adds the cover when the batch answer arrives later', () => {
+    open([dirRow('dir-1', 'Album')]);
+    tickFolderPreview();
+    expect(glyphAt(0)).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).toBeNull();
+
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    fixture.detectChanges();
+
+    expect(glyphAt(0).querySelector('img')).not.toBeNull();
+  });
+
+  it('draws the empty folder body for a directory whose cover is unknown while it is on', () => {
+    open([dirRow('dir-1', 'Album')]);
+
+    tickFolderPreview();
+
+    const cell = thumbnailCell();
+    expect(glyphAt(0)).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).toBeNull();
+    expect(cell.querySelector('i.bi')).toBeNull();
+  });
+
+  it('keeps the folder shape with an empty body when it is turned off', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    tickFolderPreview();
+    expect(glyphAt(0).querySelector('img')).not.toBeNull();
+
+    tickFolderPreview();
+
+    expect(glyphAt(0)).not.toBeNull();
+    expect(glyphAt(0).querySelector('img')).toBeNull();
+    expect(thumbnailCell().querySelector('i.bi')).toBeNull();
+  });
+
+  it('draws the smaller body and cover behind a thin folder rail', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+
+    tickFolderPreview();
+
+    const glyph = glyphAt(0);
+    const box = glyph.getBoundingClientRect();
+    const cover = glyph.querySelector('img').getBoundingClientRect();
+
+    // body 54x34 with a 50x30 cover inside the 2px folder-coloured rail
+    expect(box.width).toBeCloseTo(54, 0);
+    expect(box.height).toBeCloseTo(34, 0);
+    expect(cover.width).toBeCloseTo(50, 0);
+    expect(cover.height).toBeCloseTo(30, 0);
+    expect(cover.left - box.left).toBeCloseTo(2, 0);
+    expect(cover.top - box.top).toBeCloseTo(2, 0);
+  });
+
+  it('holds a fixed 60px preview slot with the 54x44 silhouette inside it', () => {
+    open([dirRow('dir-1', 'Album')]);
+
+    const cell = thumbnailCell();
+    const slot = cell.querySelector('.dir-glyph-slot') as HTMLElement;
+    const glyph = glyphAt(0);
+
+    expect(slot).not.toBeNull();
+    const slotBox = slot.getBoundingClientRect();
+    const glyphBox = glyph.getBoundingClientRect();
+
+    // the row rhythm comes from this slot, not from the glyph
+    expect(slotBox.height).toBeCloseTo(60, 0);
+    expect(glyphBox.width).toBeCloseTo(54, 0);
+    expect(glyphBox.height).toBeCloseTo(34, 0);
+    // the tab is 10px proud of the body: silhouette 54x44, centred in the slot
+    expect(glyphBox.top - 10).toBeGreaterThanOrEqual(slotBox.top - 0.5);
+    expect(glyphBox.bottom).toBeLessThanOrEqual(slotBox.bottom + 0.5);
+  });
+
+  it('keeps a covered directory the same overall size with the toggle on and off', () => {
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    const off = glyphAt(0).getBoundingClientRect();
+    const offRow = rowAt(0).getBoundingClientRect().height;
+
+    tickFolderPreview();
+    const on = glyphAt(0).getBoundingClientRect();
+    const onRow = rowAt(0).getBoundingClientRect().height;
+
+    tickFolderPreview();
+    const offAgain = glyphAt(0).getBoundingClientRect();
+
+    expect(on.width).toBeCloseTo(off.width, 0);
+    expect(on.height).toBeCloseTo(off.height, 0);
+    expect(offAgain.width).toBeCloseTo(off.width, 0);
+    expect(offAgain.height).toBeCloseTo(off.height, 0);
+    expect(onRow).toBeCloseTo(offRow, 0);
+  });
+
+  it('gives a covered directory, an uncovered directory and an image file the same row height', async () => {
+    open([
+      dirRow('dir-1', 'Album'),
+      dirRow('dir-2', 'Screenshots'),
+      fileRow('f-1', 'photo.jpg', trustedImage(IMAGE_DATA_URL)),
+    ]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    tickFolderPreview();
+    await settleImages();
+
+    expect(glyphAt(0).querySelector('img')).not.toBeNull();
+    expect(glyphAt(1).querySelector('img')).toBeNull();
+
+    atViewportWidth(1200, (viewportWidth) => {
+      expect(viewportWidth).toBeGreaterThan(768);
+
+      const heights = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5);
+      // the tab stays inside the row's own flow box, clear of the row above
+      const cell = cellAt(0).getBoundingClientRect();
+      const glyphBox = glyphAt(0).getBoundingClientRect();
+      expect(glyphBox.top - 10).toBeGreaterThanOrEqual(cell.top - 0.5);
+      expect(rowAt(1).getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        rowAt(0).getBoundingClientRect().bottom - 0.5
+      );
+      expect(glyphAt(1).getBoundingClientRect().top - 10).toBeGreaterThanOrEqual(
+        rowAt(0).getBoundingClientRect().bottom - 0.5
+      );
+    });
+  });
+
+  it('changes no row height when the preview toggle is switched', async () => {
+    open([
+      dirRow('dir-1', 'Album'),
+      dirRow('dir-2', 'Screenshots'),
+      fileRow('f-1', 'photo.jpg', trustedImage(IMAGE_DATA_URL)),
+    ]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    await settleImages();
+
+    atViewportWidth(1200, (viewportWidth) => {
+      expect(viewportWidth).toBeGreaterThan(768);
+
+      const before = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+      tickFolderPreview();
+      const after = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+
+      expect(glyphAt(0).querySelector('img')).not.toBeNull();
+      before.forEach((height, i) =>
+        expect(Math.abs(after[i] - height)).toBeLessThanOrEqual(0.5)
+      );
+    });
+  });
+
+  it('keeps the same footprint in the compact layout without clipping the shape', async () => {
+    mobile$.next(true);
+    open([
+      dirRow('dir-1', 'Album'),
+      dirRow('dir-2', 'Screenshots'),
+      fileRow('f-1', 'photo.jpg', trustedImage(IMAGE_DATA_URL)),
+    ]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    await settleImages();
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+
+      // no switch on a phone: the known cover is drawn regardless
+      expect(glyphAt(0).querySelector('img')).not.toBeNull();
+      expect(glyphAt(1).querySelector('img')).toBeNull();
+
+      const heights = [0, 1, 2].map(
+        (i) => rowAt(i).getBoundingClientRect().height
+      );
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5);
+
+      const cell = cellAt(0).getBoundingClientRect();
+      const glyph = glyphAt(0).getBoundingClientRect();
+      expect(glyph.width).toBeCloseTo(54, 0);
+      expect(glyph.height).toBeCloseTo(34, 0);
+      expect(glyph.left).toBeGreaterThanOrEqual(cell.left - 0.5);
+      expect(glyph.right).toBeLessThanOrEqual(cell.right + 0.5);
+      // tab included (10px proud): nothing spills above or below the cell
+      expect(glyph.top - 10).toBeGreaterThanOrEqual(cell.top - 0.5);
+      expect(glyph.bottom).toBeLessThanOrEqual(cell.bottom + 0.5);
+    });
+  });
+
+  it('leaves file rows exactly as they were under both states', () => {
+    open([fileRow('f-1', 'photo.jpg', 'fstore/file/raw?key=file-thumb')]);
+    const before = thumbnailCell().innerHTML;
+
+    tickFolderPreview();
+    expect(thumbnailCell().innerHTML).toBe(before);
+
+    tickFolderPreview();
+    expect(thumbnailCell().innerHTML).toBe(before);
+  });
+
+  it('issues no request when it is toggled', () => {
+    open([dirRow('dir-1', 'Album')]);
+    const posts = http.posts.length;
+    const gets = http.gets.length;
+
+    tickFolderPreview();
+
+    expect(http.posts.length).toBe(posts);
+    expect(http.gets.length).toBe(gets);
+  });
+
+  it('sits beside the tooltip checkbox in the wide layout', () => {
+    open([dirRow('dir-1', 'Album')]);
+
+    const labels = Array.from<HTMLElement>(
+      fixture.nativeElement.querySelectorAll('mat-checkbox')
+    ).map((box) => box.textContent.trim());
+
+    expect(labels).toEqual(['thumbnailTooltip', 'folderPreview']);
+  });
+
+  it('does not offer the checkbox in the compact layout', () => {
+    mobile$.next(true);
+
+    open([dirRow('dir-1', 'Album')]);
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+      expect(checkbox('folderPreview')).toBeUndefined();
+    });
+  });
+
+  it('draws a known cover on a phone even with the stored preference off', () => {
+    localStorage.setItem(FOLDER_PREVIEW_KEY, '0');
+    mobile$.next(true);
+
+    open([dirRow('dir-1', 'Album')]);
+    component.dirThumbnailCache.set('dir-1', trustedImage(COVER_URL));
+    fixture.detectChanges();
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+
+      const cell = thumbnailCell();
+      const glyph = glyphAt(0);
+      const cover = glyph.querySelector('img');
+      expect(glyph).not.toBeNull();
+      expect(cover).not.toBeNull();
+      expect(cover.getAttribute('src')).toBe(COVER_URL);
+      expect(cell.querySelector('i.bi')).toBeNull();
+
+      // the same 54x34 body with a 50x30 cover behind the 2px folder rail
+      const box = glyph.getBoundingClientRect();
+      const coverBox = cover.getBoundingClientRect();
+      expect(box.width).toBeCloseTo(54, 0);
+      expect(box.height).toBeCloseTo(34, 0);
+      expect(coverBox.width).toBeCloseTo(50, 0);
+      expect(coverBox.height).toBeCloseTo(30, 0);
+    });
+  });
+
+  it('draws the empty folder body on a phone when no cover is known', () => {
+    mobile$.next(true);
+
+    open([dirRow('dir-1', 'Album')]);
+
+    atPhoneWidth((viewportWidth) => {
+      expect(viewportWidth).toBeLessThanOrEqual(768);
+
+      const cell = thumbnailCell();
+      const glyph = glyphAt(0);
+      expect(glyph).not.toBeNull();
+      expect(glyph.querySelector('img')).toBeNull();
+      expect(glyph.children.length).toBe(0);
+      expect(cell.querySelector('i.bi')).toBeNull();
+      expect(glyph.getBoundingClientRect().height).toBeCloseTo(34, 0);
+    });
+  });
+});
+
+/**
+ * Row menu: right-click on a wide screen, press and hold on a phone. The tests
+ * drive the handlers directly; the menu itself only needs to be told where to
+ * open and which row it acts on.
+ */
+describe('MngFilesComponent row menu', () => {
+  let component: MngFilesComponent;
+  let http: FakeHttp;
+  let snackBar: { open: jasmine.Spy };
+  let nav: { navigateTo: jasmine.Spy };
+  let trigger: { openMenu: jasmine.Spy; menuOpen: boolean };
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true } as FileInfo;
+  }
+
+  function contextMenuAt(x: number, y: number): any {
+    return { clientX: x, clientY: y, preventDefault: jasmine.createSpy('preventDefault') };
+  }
+
+  function touchAt(x: number, y: number): any {
+    return { touches: [{ clientX: x, clientY: y }] };
+  }
+
+  beforeEach(() => {
+    http = new FakeHttp();
+    snackBar = { open: jasmine.createSpy('open') };
+    nav = { navigateTo: jasmine.createSpy('navigateTo') };
+
+    component = new MngFilesComponent(
+      {} as any,
+      {} as any,
+      {} as any,
+      nav as any,
+      http as any,
+      {} as any,
+      {} as any,
+      snackBar as any,
+      {} as any,
+      {} as any,
+      staticEnv(true)
+    );
+
+    trigger = { openMenu: jasmine.createSpy('openMenu'), menuOpen: false };
+    (component as any).rowMenuTrigger = trigger;
+  });
+
+  it('opens at the pointer and keeps the browser menu out of the way', () => {
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.rowMenuPosition).toEqual({ x: '120px', y: '240px' });
+    expect(component.menuRow).toBe(FILE);
+  });
+
+  it('does not open for a directory row in a virtual folder listing', () => {
+    component.inFolderNo = 'vf-1';
+
+    component.onRowContextMenu(contextMenuAt(10, 20), dirRow('dir-1', 'Album'));
+
+    expect(trigger.openMenu).not.toHaveBeenCalled();
+  });
+
+  it('keeps the native menu out of the way in a virtual folder on a phone', () => {
+    component.inFolderNo = 'vf-1';
+    const evt = contextMenuAt(10, 20);
+
+    component.onRowContextMenu(evt, dirRow('dir-1', 'Album'));
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).not.toHaveBeenCalled();
+  });
+
+  it('opens the menu inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.menuRow).toBe(FILE);
+  });
+
+  it('starts a long press inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(10, 10), FILE);
+      jasmine.clock().tick(600);
+
+      expect(trigger.openMenu).toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('opens the containing directory landed on the page that holds the row', () => {
+    http.parentResp = { data: { fileKey: 'dir-9' } };
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(http.gets).toContain('vfm/open/api/file/parent?fileKey=u0');
+    expect(nav.navigateTo).toHaveBeenCalledWith(NavType.MANAGE_FILES, [
+      { parentDirKey: 'dir-9', parentDirComic: false, targetFileKey: 'u0' },
+    ]);
+  });
+
+  it('keeps the comic mark of the directory it opens', () => {
+    http.parentResp = { data: { fileKey: 'dir-9' } };
+    component.dirComicCache['dir-9'] = true;
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(nav.navigateTo).toHaveBeenCalledWith(NavType.MANAGE_FILES, [
+      { parentDirKey: 'dir-9', parentDirComic: true, targetFileKey: 'u0' },
+    ]);
+  });
+
+  it('falls back to the root listing when the row has no parent', () => {
+    http.parentResp = { data: null };
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(nav.navigateTo).toHaveBeenCalledWith(NavType.MANAGE_FILES, []);
+  });
+
+  it('shows the server message and stays put when the parent lookup is refused', () => {
+    http.parentResp = { error: true, msg: 'no such file' };
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(snackBar.open).toHaveBeenCalledWith('no such file', 'ok', {
+      duration: 6000,
+    });
+    expect(nav.navigateTo).not.toHaveBeenCalled();
+  });
+
+  it('reports a transport failure instead of doing nothing', () => {
+    http.parentFails = true;
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(nav.navigateTo).not.toHaveBeenCalled();
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Request failed, unknown error',
+      'ok',
+      { duration: 3000 }
+    );
+  });
+
+  it('opens at the touch point after a long press', () => {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(30, 60), FILE);
+      jasmine.clock().tick(499);
+      expect(trigger.openMenu).not.toHaveBeenCalled();
+
+      jasmine.clock().tick(1);
+      expect(trigger.openMenu).toHaveBeenCalled();
+      expect(component.rowMenuPosition).toEqual({ x: '30px', y: '60px' });
+      expect(component.menuRow).toBe(FILE);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('swallows the click that ends a long press, so the row does not also open', () => {
+    jasmine.clock().install();
+    try {
+      const row = dirRow('dir-1', 'Album');
+      component.onRowTouchStart(touchAt(30, 60), row);
+      jasmine.clock().tick(500);
+      component.onRowTouchEnd();
+
+      component.onRowClicked({} as any, row, 0);
+      expect(nav.navigateTo).not.toHaveBeenCalled();
+
+      // the next tap behaves normally again
+      component.onRowClicked({} as any, row, 0);
+      expect(nav.navigateTo).toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('cancels the press when the finger moves', () => {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(10, 10), FILE);
+      component.onRowTouchMove(touchAt(10, 40));
+      jasmine.clock().tick(600);
+
+      expect(trigger.openMenu).not.toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('cancels the press when the finger lifts early', () => {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(10, 10), FILE);
+      component.onRowTouchEnd();
+      jasmine.clock().tick(600);
+
+      expect(trigger.openMenu).not.toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('drops a stale file filter before landing on the row page', () => {
+    http.parentResp = { data: { fileKey: 'dir-9' } };
+    component.searchParam = { fileKey: 'u7' };
+    component.fileInfoList = [imgFile('u7', 'found.png')];
+    component.menuRow = FILE;
+
+    component.locateRowPage();
+
+    expect(component.searchParam).toEqual({});
+    expect(http.gets).toEqual(['vfm/open/api/file/parent?fileKey=u0']);
+    expect(http.postsTo('/file/list')).toEqual([]);
+  });
+});
+
+/**
+ * The wide right-click entry keeps its old reach: the browser menu inside a
+ * directory, and only Open Directory in a virtual folder.
+ */
+describe('MngFilesComponent row menu on a wide screen', () => {
+  let component: MngFilesComponent;
+  let trigger: { openMenu: jasmine.Spy; menuOpen: boolean };
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function contextMenuAt(x: number, y: number): any {
+    return { clientX: x, clientY: y, preventDefault: jasmine.createSpy('preventDefault') };
+  }
+
+  beforeEach(() => {
+    component = new MngFilesComponent(
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      { open: jasmine.createSpy('open') } as any,
+      {} as any,
+      {} as any,
+      staticEnv(false)
+    );
+
+    trigger = { openMenu: jasmine.createSpy('openMenu'), menuOpen: false };
+    (component as any).rowMenuTrigger = trigger;
+  });
+
+  it('leaves the browser menu alone inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).not.toHaveBeenCalled();
+    expect(trigger.openMenu).not.toHaveBeenCalled();
+  });
+
+  it('reports no menu inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+
+    expect(component.canShowRowMenu(FILE)).toBe(false);
+  });
+
+  it('reports a menu for a directory row in a virtual folder', () => {
+    component.inFolderNo = 'vf-1';
+
+    expect(
+      component.canShowRowMenu({ uuid: 'dir-1', name: 'Album', isDir: true } as FileInfo)
+    ).toBe(true);
+  });
+
+  it('opens for a row in a virtual folder', () => {
+    component.inFolderNo = 'vf-1';
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.menuRow).toBe(FILE);
+  });
+
+  it('opens for a directory row in a virtual folder', () => {
+    component.inFolderNo = 'vf-1';
+    const dir = { uuid: 'dir-1', name: 'Album', isDir: true } as FileInfo;
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, dir);
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.menuRow).toBe(dir);
+  });
+});
+
+/**
+ * The anchor has to hold the pointer's position in the DOM before the overlay
+ * attaches, so this page is rendered for real: the assertion is on inline
+ * style read at the moment the menu opens.
+ */
+describe('MngFilesComponent row menu anchor', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: {} },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        { provide: Env, useValue: staticEnv(false) },
+      ],
+    });
+
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    component.fileInfoList = [imgFile('u0', 'a.png')];
+    fixture.detectChanges();
+  });
+
+  function anchor(): HTMLElement {
+    // Material puts its own class on the trigger; the binding leaves no attribute
+    return fixture.nativeElement.querySelector('.mat-menu-trigger');
+  }
+
+  it('moves the hidden anchor before the menu attaches at the pointer', async () => {
+    let leftAtOpen: string = null;
+    let topAtOpen: string = null;
+    component.rowMenuTrigger.menuOpened.subscribe(() => {
+      leftAtOpen = anchor().style.left;
+      topAtOpen = anchor().style.top;
+    });
+
+    const row: HTMLElement = fixture.nativeElement.querySelector('tr.file-row');
+    row.dispatchEvent(
+      new MouseEvent('contextmenu', { bubbles: true, clientX: 120, clientY: 40 })
+    );
+    await flushAsync();
+    fixture.detectChanges();
+
+    expect(leftAtOpen).toBe('120px');
+    expect(topAtOpen).toBe('40px');
+  });
+});
+
+/**
+ * On a phone the per-row basket button is gone, so the row menu carries the
+ * action instead. Rendered for real: the assertions are on the menu the user
+ * sees, not on the handlers alone.
+ */
+describe('MngFilesComponent row menu basket', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let fileBookmark: FileBookmark;
+  let mobile$: BehaviorSubject<boolean>;
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function touchAt(x: number, y: number): any {
+    return { touches: [{ clientX: x, clientY: y }] };
+  }
+
+  /** Basket glyphs in the operation column, whichever state they draw. */
+  function rowBasketIcons(): HTMLElement[] {
+    return Array.from<HTMLElement>(
+      fixture.nativeElement.querySelectorAll(
+        'td.mat-column-operation i.bi-bag-plus, td.mat-column-operation i.bi-bag-x'
+      )
+    );
+  }
+
+  /** Long-press a row with the timer the component listens to. */
+  async function openMenuOn(row: FileInfo): Promise<void> {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(20, 20), row);
+      jasmine.clock().tick(500);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+    await flushAsync();
+    fixture.detectChanges();
+  }
+
+  /** Items of the menu panel most recently attached to the overlay. */
+  function menuItems(): HTMLElement[] {
+    const panels = document.querySelectorAll('.mat-menu-panel');
+    const panel = panels[panels.length - 1];
+    return panel ? Array.from<HTMLElement>(panel.querySelectorAll('.mat-menu-item')) : [];
+  }
+
+  function basketItem(): HTMLElement {
+    return menuItems().find(
+      (item) => item.querySelector('i.bi-bag-plus, i.bi-bag-x') != null
+    );
+  }
+
+  beforeEach(() => {
+    mobile$ = new BehaviorSubject<boolean>(true);
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: {} },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    fileBookmark = TestBed.inject(FileBookmark);
+    component.fileInfoList = [imgFile('u0', 'a.png')];
+  });
+
+  it('renders no per-row basket button on a compact screen', () => {
+    fixture.detectChanges();
+
+    expect(rowBasketIcons()).toEqual([]);
+    // the whole operation cell is gone on a phone
+    expect(
+      fixture.nativeElement.querySelector('td.mat-column-operation')
+    ).toBeNull();
+  });
+
+  it('keeps the per-row basket button on a wide screen', () => {
+    mobile$.next(false);
+    fixture.detectChanges();
+
+    expect(rowBasketIcons().length).toBe(1);
+  });
+
+  it('offers the basket in the long-press menu and toggles the tray entry', async () => {
+    fixture.detectChanges();
+    expect(fileBookmark.has(FILE.uuid)).toBe(false);
+
+    await openMenuOn(FILE);
+
+    expect(component.menuRow).toBe(FILE);
+    const addItem = basketItem();
+    expect(addItem).not.toBeUndefined();
+    expect(addItem.querySelector('i.bi-bag-plus')).not.toBeNull();
+
+    addItem.click();
+    fixture.detectChanges();
+    expect(fileBookmark.has(FILE.uuid)).toBe(true);
+
+    // reopening reflects the new state: the entry now offers the undo
+    await flushAsync();
+    fixture.detectChanges();
+    await openMenuOn(FILE);
+
+    const removeItem = basketItem();
+    expect(removeItem).not.toBeUndefined();
+    expect(removeItem.querySelector('i.bi-bag-x')).not.toBeNull();
+
+    removeItem.click();
+    fixture.detectChanges();
+    expect(fileBookmark.has(FILE.uuid)).toBe(false);
+  });
+
+  it('leaves the basket out of the menu where the old button was unavailable', async () => {
+    component.inFolderNo = 'vf-1';
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(component.menuRow).toBe(FILE);
+    expect(menuItems().length).toBeGreaterThan(0);
+    expect(basketItem()).toBeUndefined();
+  });
+});
+
+/**
+ * On a phone the operation cell is gone, so the hold menu carries the row's
+ * actions. Rendered for real: the assertions are on the menu items the user
+ * sees, not on the predicates alone.
+ */
+describe('MngFilesComponent compact row menu actions', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let fileService: { jumpToDownloadUrl: jasmine.Spy };
+  let mobile$: BehaviorSubject<boolean>;
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true } as FileInfo;
+  }
+
+  function touchAt(x: number, y: number): any {
+    return { touches: [{ clientX: x, clientY: y }] };
+  }
+
+  beforeEach(() => {
+    mobile$ = new BehaviorSubject<boolean>(true);
+    fileService = {
+      jumpToDownloadUrl: jasmine.createSpy('jumpToDownloadUrl'),
+    };
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: fileService },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    fixture.destroy();
+    document
+      .querySelectorAll('.cdk-overlay-container')
+      .forEach((e) => e.remove());
+  });
+
+  /** Long-press a row with the timer the component listens to. */
+  async function openMenuOn(row: FileInfo): Promise<void> {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(20, 20), row);
+      jasmine.clock().tick(500);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+    await flushAsync();
+    fixture.detectChanges();
+  }
+
+  /** Items of the menu panel most recently attached to the overlay. */
+  function menuItems(): HTMLElement[] {
+    const panels = document.querySelectorAll('.mat-menu-panel');
+    const panel = panels[panels.length - 1];
+    return panel ? Array.from<HTMLElement>(panel.querySelectorAll('.mat-menu-item')) : [];
+  }
+
+  function menuLabels(): string[] {
+    return menuItems().map((item) => (item.textContent || '').trim());
+  }
+
+  function clickItem(label: string): void {
+    const item = menuItems().find((i) => (i.textContent || '').trim() === label);
+    if (!item) {
+      throw new Error(`no menu item '${label}'`);
+    }
+    item.click();
+    fixture.detectChanges();
+  }
+
+  it('offers tray, download, settings and open-directory for a file', async () => {
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(menuLabels()).toEqual(['addToTray', 'download', 'settings', 'openDir']);
+  });
+
+  it('offers no Download for a directory', async () => {
+    component.fileInfoList = [dirRow('dir-1', 'Album')];
+    fixture.detectChanges();
+
+    await openMenuOn(component.fileInfoList[0]);
+
+    expect(menuLabels()).toEqual(['addToTray', 'settings', 'openDir']);
+  });
+
+  it('offers download only, for files, in a virtual folder', async () => {
+    component.inFolderNo = 'vf-1';
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(menuLabels()).toEqual(['download']);
+  });
+
+  it('opens no menu for a directory in a virtual folder', async () => {
+    const dir = dirRow('dir-1', 'Album');
+    component.inFolderNo = 'vf-1';
+    component.fileInfoList = [dir];
+    fixture.detectChanges();
+
+    await openMenuOn(dir);
+
+    expect(component.menuRow).toBeNull();
+    expect(menuItems()).toEqual([]);
+  });
+
+  it('offers tray, download and settings inside a directory, without open-directory', async () => {
+    component.inDirFileKey = 'dir-9';
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(menuLabels()).toEqual(['addToTray', 'download', 'settings']);
+  });
+
+  it('offers tray and settings inside a directory for a directory row', async () => {
+    const dir = dirRow('dir-1', 'Album');
+    component.inDirFileKey = 'dir-9';
+    component.fileInfoList = [dir];
+    fixture.detectChanges();
+
+    await openMenuOn(dir);
+
+    expect(menuLabels()).toEqual(['addToTray', 'settings']);
+  });
+
+  it('keeps the wide right-click menu unchanged', async () => {
+    mobile$.next(false);
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    component.onRowContextMenu(
+      { clientX: 40, clientY: 50, preventDefault: () => undefined } as any,
+      FILE
+    );
+    await flushAsync();
+    fixture.detectChanges();
+
+    expect(menuLabels()).toEqual(['addToTray', 'openDir']);
+  });
+
+  it('expands a collapsed row from Settings', async () => {
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+    clickItem('settings');
+
+    expect(component.curr.uuid).toBe('u0');
+  });
+
+  it('folds an already expanded row from Settings', async () => {
+    component.fileInfoList = [FILE];
+    component.curr = { ...FILE };
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+    clickItem('settings');
+
+    expect(component.curr).toBeNull();
+  });
+
+  it('offers only open-directory in a virtual folder on a wide screen', async () => {
+    mobile$.next(false);
+    fixture.detectChanges();
+    component.inFolderNo = 'vf-1';
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    component.onRowContextMenu(
+      { clientX: 40, clientY: 50, preventDefault: () => undefined } as any,
+      FILE
+    );
+    await flushAsync();
+    fixture.detectChanges();
+
+    expect(menuLabels()).toEqual(['openDir']);
+  });
+
+  it('downloads the held file from the menu', async () => {
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+    clickItem('download');
+
+    expect(fileService.jumpToDownloadUrl).toHaveBeenCalledWith('u0');
+  });
+
+  it('renders the file panel download button on a phone', () => {
+    component.fileInfoList = [FILE];
+    component.curr = { ...FILE };
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector(
+        'tr.detail-row button i.bi-cloud-download'
+      )
+    ).not.toBeNull();
+  });
+
+  it('keeps the file panel download button compact-only', () => {
+    component.fileInfoList = [FILE];
+    component.curr = { ...FILE };
+    fixture.detectChanges();
+
+    const icon = fixture.nativeElement.querySelector(
+      'tr.detail-row button i.bi-cloud-download'
+    ) as HTMLElement;
+    expect(icon).not.toBeNull();
+    expect(icon.closest('div').classList).toContain('only-compact');
+  });
+});
+
+/**
+ * The compact table splits its width three ways: the preview column sized for
+ * the 60px thumbnails, the action column sized for the row's icon buttons, and
+ * the name taking whatever the other two leave. Measured on the rendered table
+ * at phone widths, so a stray width in the stylesheet shows up here as a
+ * number instead of as a report from a phone.
+ */
+describe('MngFilesComponent compact column widths', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let mobile$: BehaviorSubject<boolean>;
+
+  const LONG_NAME = 'a-very-long-file-name-that-cannot-fit-on-one-phone-row.png';
+
+  beforeEach(() => {
+    mobile$ = new BehaviorSubject<boolean>(true);
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: {} },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+  });
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true, fileType: 'DIR' } as FileInfo;
+  }
+
+  function fileRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isFile: true, fileType: 'FILE' } as FileInfo;
+  }
+
+  function open(rows: FileInfo[], mobile: boolean): void {
+    mobile$.next(mobile);
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    component.fileInfoList = rows;
+    fixture.detectChanges();
+  }
+
+  /**
+   * Renders for the duration of `run` at the given width. The tiers live in
+   * media queries and the runner's own window is 756px wide, so the iframe is
+   * resized: the numbers still come from layout a real browser did.
+   */
+  function atViewportWidth(width: number, run: () => void): void {
+    const frame = window.frameElement as HTMLElement;
+    const originalWidth = frame ? frame.style.width : null;
+    if (frame) {
+      frame.style.width = `${width}px`;
+    }
+    try {
+      run();
+    } finally {
+      if (frame) {
+        frame.style.width = originalWidth;
+      }
+    }
+  }
+
+  function rowAt(index: number): HTMLElement {
+    return fixture.nativeElement.querySelectorAll('tr.file-row')[index];
+  }
+
+  function cellAt(index: number, column: string): HTMLElement {
+    return rowAt(index).querySelector('td.mat-column-' + column);
+  }
+
+  function widthOf(el: Element): number {
+    return Math.round(el.getBoundingClientRect().width);
+  }
+
+  it('gives the space the preview leaves to the name', () => {
+    open([dirRow('dir-1', 'Album'), fileRow('f-1', 'photo.jpg')], true);
+
+    [320, 390].forEach((viewport) =>
+      atViewportWidth(viewport, () => {
+        const table = fixture.nativeElement.querySelector('table') as HTMLElement;
+        const tableWidth = widthOf(table);
+
+        // 100px of preview (60px-tall thumbnails, up to ~89px wide, plus the inset)
+        expect(widthOf(cellAt(0, 'thumbnail'))).toBe(100);
+        // no action column on a phone: the actions live in the hold menu
+        expect(cellAt(1, 'operation')).toBeNull();
+        // the name takes the rest, at every phone width
+        expect(widthOf(cellAt(1, 'name'))).toBe(tableWidth - 100);
+        // the expanded panel still spans the whole table, not one column
+        const detail = fixture.nativeElement.querySelector('tr.detail-row td');
+        expect(widthOf(detail)).toBe(tableWidth);
+      })
+    );
+  });
+
+  it('shows no Operation column on a compact screen', () => {
+    open([fileRow('f-1', 'photo.jpg')], true);
+
+    [320, 390].forEach((viewport) =>
+      atViewportWidth(viewport, () => {
+        expect(cellAt(0, 'operation')).toBeNull();
+        expect(component.displayedColumns).toEqual(['thumbnail', 'name']);
+      })
+    );
+  });
+
+  it('keeps a long name on one line instead of growing the row', () => {
+    open([fileRow('f-1', LONG_NAME), fileRow('f-2', 'photo.jpg')], true);
+
+    atViewportWidth(320, () => {
+      const longRow = rowAt(0).getBoundingClientRect().height;
+      const shortRow = rowAt(1).getBoundingClientRect().height;
+      expect(longRow).toBeCloseTo(shortRow, 0);
+
+      // truncated by scrolling inside the cell, not by wrapping
+      const name = cellAt(0, 'name').querySelector('.overflow-cell') as HTMLElement;
+      expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+    });
+  });
+
+  it('leaves the wide table on its own share-out', () => {
+    open([dirRow('dir-1', 'Album'), fileRow('f-1', 'photo.jpg')], false);
+
+    atViewportWidth(1280, () => {
+      expect(component.displayedColumns.length).toBe(6);
+      // neither compact width survives the boundary
+      expect(widthOf(cellAt(0, 'thumbnail'))).toBeGreaterThan(100);
+      expect(widthOf(cellAt(1, 'operation'))).toBeGreaterThan(96);
+      expect(widthOf(cellAt(1, 'name'))).toBeGreaterThan(96);
+    });
   });
 });

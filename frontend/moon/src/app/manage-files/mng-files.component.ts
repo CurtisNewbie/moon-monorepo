@@ -10,6 +10,7 @@ import {
   ViewChild,
 } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { MatMenuTrigger } from "@angular/material/menu";
 
 import {
   emptyUploadFileParam,
@@ -39,6 +40,7 @@ import {
 import { MediaStreamerComponent } from "../media-streamer/media-streamer.component";
 import { Option } from "src/common/select-util";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { NavType } from "../routes";
 import { ShareFileQrcodeDialogComponent } from "../share-file-qrcode-dialog/share-file-qrcode-dialog.component";
 import { Subscription } from "rxjs";
@@ -72,7 +74,11 @@ export interface DirBottomUpTreeNode {
   animations: [animateElementExpanding()],
 })
 export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
-  readonly desktopColumns = [
+  /** browser-local key for the folder preview choice, namespaced to this page */
+  private static readonly FOLDER_PREVIEW_STORAGE_KEY = 'manage-files.folderPreview';
+
+  private readonly compactColumns = ["thumbnail", "name"];
+  private readonly wideColumns = [
     "thumbnail",
     "name",
     "parentFileName",
@@ -80,7 +86,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     "size",
     "operation",
   ];
-  readonly desktopFolderColumns = [
+  private readonly wideFolderColumns = [
     "thumbnail",
     "name",
     "uploader",
@@ -88,7 +94,11 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     "size",
     "operation",
   ];
-  readonly mobileColumns = ["thumbnail", "name", "operation"];
+  /** whether the layout signal currently selects the wide layout */
+  private wideLayout: boolean = true;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.wideLayout = !mobile;
+  });
 
   allFileTypeOpts: Option<FileType>[] = getFileTypeOpts(true);
   guessFileIcon = guessFileIconClz;
@@ -104,8 +114,12 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   progress: string = null;
   /** currently displayed columns */
   get displayedColumns(): string[] {
-    const cols = this._selectColumns();
-    if (this.orderBy === 'custom' && !this.env.isMobile() && !this.inFolderNo) {
+    const cols = this.wideLayout
+      ? this.inFolderNo
+        ? this.wideFolderColumns
+        : this.wideColumns
+      : this.compactColumns;
+    if (this.orderBy === 'custom' && this.wideLayout && !this.inFolderNo) {
       return ['dragHandle', ...cols];
     }
     return cols;
@@ -116,6 +130,9 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   /** enable thumbnail tooltips */
   enableThumbnailTooltip: boolean = true;
+
+  /** draw a directory's known cover inside its folder glyph */
+  folderPreview = false;
 
   // isImage = (f: FileInfo): boolean => this._isImage(f);
   idEquals = isIdEqual;
@@ -245,6 +262,22 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   @ViewChild("tableWrapper")
   tableWrapper: ElementRef;
 
+  /** hidden anchor carrying the row menu; it opens where the pointer is */
+  @ViewChild("rowMenuAnchor", { static: true })
+  rowMenuAnchor: ElementRef;
+  @ViewChild(MatMenuTrigger, { static: true })
+  rowMenuTrigger: MatMenuTrigger;
+  /** viewport position of the hidden menu anchor */
+  rowMenuPosition = { x: "0", y: "0" };
+  /** the row the menu that is open acts on */
+  menuRow: FileInfo = null;
+  /** pending long-press timer, cleared when the press is cancelled */
+  private longPressTimer: any = null;
+  private longPressStart = { x: 0, y: 0 };
+  /** swallows the click that follows a long press, so the row does not also open */
+  private suppressRowClick = false;
+  private suppressRowClickTimer: any = null;
+
   setSearchFileType = (fileType) => (this.searchParam.fileType = fileType);
 
   constructor(
@@ -264,12 +297,31 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   ngDoCheck(): void {}
 
   ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
     this.dirThumbnailCache.clear();
+    this.clearLongPress();
+    if (this.suppressRowClickTimer) {
+      clearTimeout(this.suppressRowClickTimer);
+      this.suppressRowClickTimer = null;
+    }
   }
 
   ngOnInit() {
     // select-all is handled by @HostListener
     // parseRouteParam is deferred to onPaginatorReady() — paginator must init first
+    this.folderPreview = this.readFolderPreviewPref();
+  }
+
+  /** Persist the folder preview choice for the next visit in this browser. */
+  onFolderPreviewChange(): void {
+    try {
+      localStorage.setItem(
+        MngFilesComponent.FOLDER_PREVIEW_STORAGE_KEY,
+        this.folderPreview ? '1' : '0'
+      );
+    } catch (e) {
+      // a browser that refuses storage keeps the choice for this visit only
+    }
   }
 
   onPaginatorReady() {
@@ -389,7 +441,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
                 const savedPage = posResp.data?.page || 1;
                 if (savedPage > 1) {
                   this.dialog.open(ConfirmDialogComponent, {
-                    width: "500px",
+                    ...dialogSize(500),
                     data: {
                       title: this.i18n.trl("manage-files", "continueReadingTitle"),
                       msg: [this.i18n.trl("manage-files", "continueReadingMsg", "page", String(savedPage))],
@@ -424,6 +476,18 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
         }
       }
     });
+  }
+
+  /**
+   * The folder preview choice this browser stored, off when nothing usable is
+   * stored or the browser refuses storage.
+   */
+  private readFolderPreviewPref(): boolean {
+    try {
+      return localStorage.getItem(MngFilesComponent.FOLDER_PREVIEW_STORAGE_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
   }
 
   private resetToFirstPage() {
@@ -756,7 +820,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     ];
     this.dialog
       .open(ConfirmDialogComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: {
           title: "Truncate Directory",
           msg: msgs,
@@ -1394,12 +1458,13 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     return this.uploadParam.files.length > 1;
   }
 
-  private _selectColumns() {
-    if (this.env.isMobile()) return this.mobileColumns;
-    return this.inFolderNo ? this.desktopFolderColumns : this.desktopColumns;
-  }
-
   onRowClicked(evt: any, row: FileInfo, idx: number) {
+    // a long press already opened the menu; the click that follows must not act too
+    if (this.suppressRowClick) {
+      this.suppressRowClick = false;
+      return;
+    }
+
     if (this.inFolderNo) {
       if (row.isDisplayable) {
         this.preview(row, idx);
@@ -1419,6 +1484,157 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     }
     if (row.isDisplayable) {
       this.preview(row, idx);
+    }
+  }
+
+  /**
+   * Whether the row's menu opens. A wide screen keeps the native menu inside a
+   * directory; elsewhere the tray and Open Directory apply, and a phone's
+   * virtual folder has Download for files only.
+   */
+  canShowRowMenu(row: FileInfo): boolean {
+    if (!row) {
+      return false;
+    }
+    if (!this.env.isMobile() && this.inDirFileKey) {
+      return false;
+    }
+    if (!this.inFolderNo) {
+      return true;
+    }
+    return !this.env.isMobile() || !!row.isFile;
+  }
+
+  /**
+   * Desktop entry, plus the contextmenu a phone fires for the same press the
+   * long-press timer watches: the native menu is replaced wherever ours opens,
+   * and on a phone never appears over a row at all.
+   */
+  onRowContextMenu(event: MouseEvent, row: FileInfo): void {
+    this.clearLongPress();
+    const menuWillOpen = this.canShowRowMenu(row);
+    if (this.env.isMobile() || menuWillOpen) {
+      event.preventDefault();
+    }
+    if (menuWillOpen) {
+      this.openRowMenu(row, event.clientX, event.clientY);
+    }
+  }
+
+  /** Mobile entry: press and hold a row for half a second */
+  onRowTouchStart(event: TouchEvent, row: FileInfo): void {
+    if (!this.env.isMobile() || !this.canShowRowMenu(row)) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    this.clearLongPress();
+    this.longPressStart = { x: touch.clientX, y: touch.clientY };
+    this.longPressTimer = setTimeout(() => {
+      this.longPressTimer = null;
+      // the click that ends this press belongs to the menu, not to the row
+      this.suppressRowClick = true;
+      this.suppressRowClickTimer = setTimeout(() => {
+        this.suppressRowClick = false;
+        this.suppressRowClickTimer = null;
+      }, 800);
+      this.openRowMenu(row, touch.clientX, touch.clientY);
+    }, 500);
+  }
+
+  /** A finger that travels is scrolling, not holding */
+  onRowTouchMove(event: TouchEvent): void {
+    if (!this.longPressTimer) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    if (
+      Math.abs(touch.clientX - this.longPressStart.x) > 10 ||
+      Math.abs(touch.clientY - this.longPressStart.y) > 10
+    ) {
+      this.clearLongPress();
+    }
+  }
+
+  onRowTouchEnd(): void {
+    this.clearLongPress();
+  }
+
+  /** Open the directory that holds the row, landed on the page that holds it */
+  locateRowPage(): void {
+    const row = this.menuRow;
+    if (!row) {
+      return;
+    }
+    // a leftover "find this file" filter would ride into the destination listing
+    this.searchParam = {};
+    this.resolveRowParent(row, (parentKey) => {
+      if (parentKey) {
+        this.nav.navigateTo(NavType.MANAGE_FILES, [
+          {
+            parentDirKey: parentKey,
+            parentDirComic: this.dirComicCache[parentKey] || false,
+            targetFileKey: row.uuid,
+          },
+        ]);
+      } else {
+        this.nav.navigateTo(NavType.MANAGE_FILES, []);
+      }
+    });
+  }
+
+  /**
+   * Rows carry their parent's name only, so ask for its key when an item is
+   * picked. A null parent means the row sits in the root listing.
+   */
+  private resolveRowParent(
+    row: FileInfo,
+    then: (parentKey: string) => void
+  ): void {
+    this.http
+      .get<any>(`vfm/open/api/file/parent?fileKey=${row.uuid}`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+            return;
+          }
+          then(resp.data ? resp.data.fileKey : null);
+        },
+        error: (err) => {
+          console.log(err);
+          this.snackBar.open("Request failed, unknown error", "ok", {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  private openRowMenu(row: FileInfo, x: number, y: number): void {
+    if (this.rowMenuTrigger.menuOpen) {
+      return;
+    }
+    this.menuRow = row;
+    this.rowMenuPosition = { x: x + "px", y: y + "px" };
+    // the overlay measures the anchor as it attaches, and change detection has
+    // not flushed the position binding yet, so write it to the element first
+    const anchor = this.rowMenuAnchor?.nativeElement as HTMLElement;
+    if (anchor) {
+      anchor.style.left = this.rowMenuPosition.x;
+      anchor.style.top = this.rowMenuPosition.y;
+    }
+    this.rowMenuTrigger.openMenu();
+  }
+
+  private clearLongPress(): void {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
     }
   }
 
@@ -1465,7 +1681,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
         const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
           this.dialog.open(ConfirmDialogComponent, {
-            width: "700px",
+            ...dialogSize(700),
             data: {
               title: "Share File",
               msg: ["Link to download this file:", url],
@@ -1517,7 +1733,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   popDirTree() {
     let ref = this.dialog.open(DirTreeNavComponent, {
-      width: "800px",
+      ...dialogSize(800),
       data: {},
     });
     ref.componentInstance.selectedEmiter.subscribe((dat) => {
@@ -1950,6 +2166,30 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
           // Silently fail if batch thumbnail fetch fails
         }
       });
+  }
+
+  /**
+   * Whether the Preview cell draws this directory's known cover inside its
+   * folder glyph. The compact layout has no switch, so a phone always previews;
+   * unknown covers and every file row keep today's markup.
+   */
+  showDirCover(f: FileInfo): boolean {
+    return (
+      !!f &&
+      f.isDir &&
+      (this.folderPreview || this.env.isMobile()) &&
+      this.hasThumbnail(f)
+    );
+  }
+
+  /**
+   * A cached cover whose token expired (or that 404s) is forgotten, so the row
+   * falls back to the plain folder glyph instead of holding a broken image.
+   */
+  onDirCoverError(f: FileInfo): void {
+    if (f && f.uuid) {
+      this.dirThumbnailCache.delete(f.uuid);
+    }
   }
 
   /**

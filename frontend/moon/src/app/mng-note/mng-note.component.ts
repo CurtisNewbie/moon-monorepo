@@ -1,8 +1,9 @@
 import { HttpClient } from "@angular/common/http";
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { Paging } from "src/common/paging";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
 import { EditNoteDialogComponent } from "../edit-note-dialog/edit-note-dialog.component";
@@ -36,7 +37,19 @@ export interface PageRes {
   templateUrl: "./mng-note.component.html",
   styleUrls: ["./mng-note.component.css"],
 })
-export class MngNoteComponent implements OnInit {
+export class MngNoteComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["title", "updatedAt"];
+  private readonly wideColumns = [
+    "recordId",
+    "title",
+    "createdAt",
+    "updatedAt",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   addNotePanelDisplayed: boolean = false;
   isEnter = isEnterKey;
   tabdata = [];
@@ -56,6 +69,10 @@ export class MngNoteComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchList();
+  }
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
   }
 
   fetchList() {
@@ -108,7 +125,7 @@ export class MngNoteComponent implements OnInit {
   onRowClick(row: Note) {
     this.dialog
       .open(EditNoteDialogComponent, {
-        width: "800px",
+        ...dialogSize(800),
         data: {
           note: { ...row },
         },

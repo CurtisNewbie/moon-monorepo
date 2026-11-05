@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatPaginator } from "@angular/material/paginator";
 import {
@@ -6,6 +6,7 @@ import {
   getExpanded,
   isIdEqual,
 } from "src/animate/animate-util";
+import { dialogSize } from "src/common/dialog-size";
 import { Gallery } from "src/common/gallery";
 import { Paging } from "src/common/paging";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
@@ -29,8 +30,9 @@ export interface ListGalleriesResp {
   styleUrls: ["./gallery.component.css"],
   animations: [animateElementExpanding()],
 })
-export class GalleryComponent implements OnInit {
-  readonly DESKTOP_COLUMNS = [
+export class GalleryComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["thumbnail", "name", "operation"];
+  private readonly wideColumns = [
     "thumbnail",
     "galleryNo",
     "name",
@@ -38,7 +40,10 @@ export class GalleryComponent implements OnInit {
     "updateTime",
     "createBy",
   ];
-  readonly MOBILE_COLUMNS = ["thumbnail", "name"];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   @ViewChild(ControlledPaginatorComponent)
   pagingController: ControlledPaginatorComponent;
@@ -61,6 +66,10 @@ export class GalleryComponent implements OnInit {
   ) {}
 
   ngOnInit() {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   fetchGalleries() {
     this.http
@@ -122,7 +131,7 @@ export class GalleryComponent implements OnInit {
 
     this.dialog
       .open(ConfirmDialogComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: {
           title: "Delete Gallery",
           msg: [`You sure you want to delete '${galleryName}'`],
@@ -186,7 +195,7 @@ export class GalleryComponent implements OnInit {
 
     const dialogRef: MatDialogRef<GalleryAccessComponent, boolean> =
       this.dialog.open(GalleryAccessComponent, {
-        width: "700px",
+        ...dialogSize(700),
         data: { galleryNo: g.galleryNo, name: g.name },
       });
 

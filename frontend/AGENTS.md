@@ -44,6 +44,10 @@ See `frontend/moon/doc/agents/i18n.md` for full guidelines.
 
 Paged lists are driven by `ControlledPaginatorComponent`. See `frontend/moon/doc/agents/pagination.md` before wiring a list fetch or configuring a page limit — the limit has to be applied before the paginator's first fetch, which its `pageChanged` output triggers.
 
+## Responsive layout
+
+Layout changes at one boundary: compact at 768px and below, wide at 769px and above. `Env.isMobile()` and `Env.mobile$` (`src/common/env-util.ts`) are the only width source. See `frontend/moon/doc/agents/responsive.md` before adapting a screen — it holds the decision table, the table-column pattern, the dialog helper and the banned patterns that `npm run lint:breakpoints` enforces.
+
 ## Code review
 
 Frontend code answers to the review contract in `frontend/moon/doc/agents/code-review.md`.

@@ -8,6 +8,7 @@ import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.compone
 import { WPath } from "../manage-paths/manage-paths.component";
 import { WRes } from "../manage-resources/manage-resources.component";
 import { ConfirmDialog } from "src/common/dialog";
+import { dialogSize } from "src/common/dialog-size";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
@@ -77,7 +78,7 @@ export class MngResDialogComponent implements OnInit {
   deleteResource() {
     const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
       this.dialog.open(ConfirmDialogComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: {
           title: "Remove Resource",
           msg: [`You sure you want to delete resource '${this.dat.res.name}'`],

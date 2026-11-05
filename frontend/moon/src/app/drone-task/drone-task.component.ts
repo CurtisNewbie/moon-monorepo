@@ -1,15 +1,23 @@
 import { HttpClient } from "@angular/common/http";
 import { ActivatedRoute } from "@angular/router";
-import { Component, Inject, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  Inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
+import { MatMenuTrigger } from "@angular/material/menu";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Paging } from "src/common/paging";
 import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { Env } from "src/common/env-util";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
-import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
 import { isEnterKey } from "src/common/condition";
 import { copyToClipboard } from "src/common/clipboard";
+import { dialogSize } from "src/common/dialog-size";
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -88,8 +96,27 @@ export interface ResolveTaskReq {
   templateUrl: "./drone-task.component.html",
   styleUrls: ["./drone-task.component.css"],
 })
-export class DroneTaskComponent implements OnInit {
-  headers: string[] = [];
+export class DroneTaskComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["thumbnail", "status", "dirName"];
+  private readonly wideColumns = [
+    "thumbnail",
+    "taskId",
+    "status",
+    "url",
+    "platform",
+    "attempt",
+    "lastPage",
+    "dirName",
+    "fileCount",
+    "updatedAt",
+    "remark",
+    "operation",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   createTaskPanelShown: boolean = false;
   bulkUrlFields: string[] = [""];
 
@@ -111,37 +138,31 @@ export class DroneTaskComponent implements OnInit {
   }
   createTaskDirName: string = "";
   createTaskReq: CreateTaskReq = {};
-  prevSelectedFileKey: string | undefined;
+  selectedFileKey: string | undefined;
   platforms: string[] = [];
   lastPagePlatforms: string[] = [];
   tabdata: ListedTask[] = [];
   listTaskReq: ListTaskReq = {};
   isEnterKey = isEnterKey;
 
+  /** hidden anchor carrying the row menu; it opens where the touch lands */
+  @ViewChild("rowMenuAnchor", { static: true })
+  rowMenuAnchor: ElementRef;
+  @ViewChild(MatMenuTrigger, { static: true })
+  rowMenuTrigger: MatMenuTrigger;
+  /** viewport position of the hidden menu anchor */
+  rowMenuPosition = { x: "0", y: "0" };
+  /** the row the open menu acts on */
+  menuRow: ListedTask = null;
+  /** pending long-press timer, cleared when the press is cancelled */
+  private longPressTimer: any = null;
+  private longPressStart = { x: 0, y: 0 };
+
   @ViewChild(ControlledPaginatorComponent, { static: true })
   pagingController: ControlledPaginatorComponent;
 
-  @ViewChild(DirTreeNavComponent)
-  dirTreeNav: DirTreeNavComponent;
-
   ngOnInit(): void {
     this.pagingController.setPageLimitOptions([5, 10, 30, 50, 100]);
-    this.headers = this.env.isMobile()
-      ? ["thumbnail", "status", "dirName", "operation"]
-      : [
-          "thumbnail",
-          "taskId",
-          "status",
-          "url",
-          "platform",
-          "attempt",
-          "lastPage",
-          "dirName",
-          "fileCount",
-          "updatedAt",
-          "remark",
-          "operation",
-        ];
     this.listPlatforms();
     this.listLastPagePlatforms();
     const prefillUrl = this.route.snapshot.queryParams['url'] || '';
@@ -149,6 +170,10 @@ export class DroneTaskComponent implements OnInit {
       this.bulkUrlFields = [prefillUrl];
       this.createTaskPanelShown = true;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
   }
 
   constructor(
@@ -312,7 +337,6 @@ export class DroneTaskComponent implements OnInit {
   selectDir(n) {
     this.createTaskReq.dirFileKey = n.fileKey;
     this.createTaskDirName = n.name;
-    this.dirTreeNav.collapseAll();
   }
 
   fetchLastSelectedDir() {
@@ -325,7 +349,7 @@ export class DroneTaskComponent implements OnInit {
             return;
           }
           let dat: { fileKey?: string } = resp.data;
-          this.prevSelectedFileKey = dat?.fileKey || undefined;
+          this.selectedFileKey = dat?.fileKey || undefined;
         },
         error: (err) => {
           console.log(err);
@@ -340,7 +364,7 @@ export class DroneTaskComponent implements OnInit {
   toggleCreateTaskPanelShown() {
     this.createTaskPanelShown = !this.createTaskPanelShown;
     if (this.createTaskPanelShown) {
-      this.prevSelectedFileKey = undefined;
+      this.selectedFileKey = undefined;
       this.listPlatforms();
     }
   }
@@ -425,11 +449,114 @@ export class DroneTaskComponent implements OnInit {
     this.snackBar.open("Copied to clipboard", "ok", { duration: 3000 });
   }
 
+  /**
+   * Which actions a row offers. The wide buttons and the compact row menu read
+   * the same predicates, so a phone never shows an action the row lacks.
+   */
+  canCancel(u: ListedTask): boolean {
+    return u.status == "PENDING" || u.status == "UNRESOLVED";
+  }
+
+  canResolve(u: ListedTask): boolean {
+    return u.status == "UNRESOLVED" || u.status == "RESOLVE_FAILED";
+  }
+
+  canRetry(u: ListedTask): boolean {
+    return (
+      u.status != "PENDING" &&
+      u.status != "UNRESOLVED" &&
+      u.status != "RESOLVE_FAILED" &&
+      !!u.dirFileKey
+    );
+  }
+
+  canUpdate(u: ListedTask): boolean {
+    return (u.status == "COMPLETED" || u.status == "CANCELLED") && !!u.dirFileKey;
+  }
+
+  /** Whether the row's menu has anything to say; an empty menu is not opened. */
+  canShowRowMenu(u: ListedTask): boolean {
+    return (
+      !!u &&
+      (!!u.dirFileKey ||
+        this.canCancel(u) ||
+        this.canResolve(u) ||
+        this.canRetry(u) ||
+        this.canUpdate(u))
+    );
+  }
+
+  /** Mobile entry: press and hold a row for half a second */
+  onRowTouchStart(event: TouchEvent, row: ListedTask): void {
+    if (!this.env.isMobile() || !this.canShowRowMenu(row)) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    // a press that starts on a button is that button's, not the row's
+    const target = event.target as Element;
+    if (target?.closest?.("button")) {
+      return;
+    }
+    this.clearLongPress();
+    this.longPressStart = { x: touch.clientX, y: touch.clientY };
+    this.longPressTimer = setTimeout(() => {
+      this.longPressTimer = null;
+      this.openRowMenu(row, touch.clientX, touch.clientY);
+    }, 500);
+  }
+
+  /** A finger that travels is scrolling, not holding */
+  onRowTouchMove(event: TouchEvent): void {
+    if (!this.longPressTimer) {
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    if (
+      Math.abs(touch.clientX - this.longPressStart.x) > 10 ||
+      Math.abs(touch.clientY - this.longPressStart.y) > 10
+    ) {
+      this.clearLongPress();
+    }
+  }
+
+  onRowTouchEnd(): void {
+    this.clearLongPress();
+  }
+
+  private openRowMenu(row: ListedTask, x: number, y: number): void {
+    if (this.rowMenuTrigger.menuOpen) {
+      return;
+    }
+    this.menuRow = row;
+    this.rowMenuPosition = { x: x + "px", y: y + "px" };
+    // the overlay measures the anchor as it attaches, and change detection has
+    // not flushed the position binding yet, so write it to the element first
+    const anchor = this.rowMenuAnchor?.nativeElement as HTMLElement;
+    if (anchor) {
+      anchor.style.left = this.rowMenuPosition.x;
+      anchor.style.top = this.rowMenuPosition.y;
+    }
+    this.rowMenuTrigger.openMenu();
+  }
+
+  private clearLongPress(): void {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+  }
+
   clickUpdateTaskUrl(d) {
     const lastPageSupported = this.lastPagePlatforms.includes(d.platform);
     this.dialog
       .open(UpdateDroneTaskDialogComponent, {
-        width: "700px",
+        ...dialogSize(700),
         data: {
           taskId: d.taskId,
           url: d.url,
@@ -464,7 +591,7 @@ export class DroneTaskComponent implements OnInit {
   resolveTask(d) {
     this.dialog
       .open(ResolveDroneTaskDialogComponent, {
-        width: "600px",
+        ...dialogSize(600),
         data: {
           taskId: d.taskId,
           url: d.url,
@@ -509,15 +636,15 @@ export class DroneTaskComponent implements OnInit {
   template: `
     <h1 mat-dialog-title>{{ 'drone-task' | trl:'updateDroneTask' }}</h1>
     <div mat-dialog-content>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'taskId' }}</mat-label>
         <input readonly disabled matInput [(ngModel)]="data.taskId" />
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'url' }}</mat-label>
         <input matInput [(ngModel)]="data.url" />
       </mat-form-field>
-      <mat-form-field style="width: 400px" *ngIf="data.lastPageSupported">
+      <mat-form-field style="width: 100%; max-width: 400px" *ngIf="data.lastPageSupported">
         <mat-label>{{ 'drone-task' | trl:'lastPage' }}</mat-label>
         <input matInput type="number" min="1" [(ngModel)]="data.lastPage" />
       </mat-form-field>
@@ -544,15 +671,15 @@ export class UpdateDroneTaskDialogComponent {
   template: `
     <h1 mat-dialog-title>{{ 'drone-task' | trl:'resolve' }}</h1>
     <div mat-dialog-content>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'taskId' }}</mat-label>
         <input readonly disabled matInput [ngModel]="data.taskId" />
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'url' }}</mat-label>
         <input readonly disabled matInput [ngModel]="data.url" />
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'platform' }}</mat-label>
         <mat-select [(ngModel)]="data.platform">
           <mat-option [value]="option" *ngFor="let option of data.platforms">
@@ -560,7 +687,7 @@ export class UpdateDroneTaskDialogComponent {
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field style="width: 400px">
+      <mat-form-field style="width: 100%; max-width: 400px">
         <mat-label>{{ 'drone-task' | trl:'newDirectoryNameOptional' }}</mat-label>
         <input matInput [(ngModel)]="data.makeDirName" />
       </mat-form-field>

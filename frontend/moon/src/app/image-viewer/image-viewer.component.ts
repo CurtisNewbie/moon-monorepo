@@ -138,53 +138,44 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
 
                 // image rendered
                 if (img.clientWidth > 0) {
-                  const viewportWidth = window.innerWidth;
+                  // The layout mode picks the target and the target is a
+                  // viewport unit, so no pixel width is read from the window.
+                  const compact = this.env.isMobile();
                   const currentWidth = img.clientWidth;
                   const currentHeight = img.clientHeight;
-                  let targetWidth = currentWidth;
-                  let scale = 1.0;
+                  let targetWidth: string = null;
 
-                  // Check if it's a long portrait image
                   if (this.isLongPortraitImage(img)) {
-                    // Long portrait images
-                    if (viewportWidth < 600) {
-                      // Mobile: viewport-aware zoom (85-90%)
-                      const targetPercentage = viewportWidth < 400 ? 0.85 : 0.90;
-                      targetWidth = viewportWidth * targetPercentage;
-                      scale = targetWidth / currentWidth;
-                    } else {
-                      // Desktop: 40-50% viewport width
-                      const targetPercentage = 0.40;
-                      targetWidth = viewportWidth * targetPercentage;
-                      scale = targetWidth / currentWidth;
-                    }
-                  } else {
-                    // Normal images
-                    if (viewportWidth < 600) {
-                      // Mobile: 60-70% viewport width (constrained)
-                      const targetPercentage = viewportWidth < 400 ? 0.60 : 0.70;
-                      targetWidth = viewportWidth * targetPercentage;
-                      scale = targetWidth / currentWidth;
-                    } else {
-                      // Desktop: keep pixel thresholds (only scale truly tiny images)
-                      if (currentWidth < 150) {
-                        scale = 2.5;
-                      }
-                      targetWidth = currentWidth * scale;
-                    }
+                    // Long portrait images take a slice of the screen width.
+                    targetWidth = compact ? "85vw" : "40vw";
+                  } else if (compact) {
+                    // Normal images on a phone: wide enough to read, narrow
+                    // enough to leave the screen around them.
+                    targetWidth = "65vw";
+                  } else if (currentWidth < 150) {
+                    // Wide screens keep the pixel threshold: only truly tiny
+                    // images are enlarged, and that needs no viewport width.
+                    targetWidth = currentWidth * 2.5 + "px";
                   }
 
-                  // Apply width adjustment if scaling is needed
-                  if (scale > 1.0) {
-                    const newHeight = currentHeight * scale;
-                    img.style.width = targetWidth + 'px';
-                    img.style.height = newHeight + 'px';
-                    img.style.maxWidth = 'none';
+                  if (targetWidth) {
+                    // Apply the target, then keep the fitted size when the
+                    // target would have shrunk the image: fitImageInViewPort
+                    // already sized it to the screen.
+                    img.style.width = targetWidth;
+                    img.style.height = "auto";
+                    img.style.maxWidth = "none";
 
-                    // Update container width to match scaled image
-                    const container = this.lightboxdiv.querySelector('.lb-outerContainer');
-                    if (container) {
-                      container.style.width = targetWidth + 'px';
+                    if (img.clientWidth > currentWidth) {
+                      // Update container width to match scaled image
+                      const container = this.lightboxdiv.querySelector('.lb-outerContainer');
+                      if (container) {
+                        container.style.width = targetWidth;
+                      }
+                    } else {
+                      img.style.width = currentWidth + 'px';
+                      img.style.height = currentHeight + 'px';
+                      img.style.maxWidth = '';
                     }
                   }
                 } else if (resizeRetry < resizeMaxRetry) {

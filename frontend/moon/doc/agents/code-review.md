@@ -10,7 +10,7 @@ standards sources below.
 ## Standards sources
 
 - `frontend/AGENTS.md` — Angular 11 / NgModule, TSLint, test commands, i18n, pagination.
-- `frontend/moon/doc/agents/` — `http.md`, `i18n.md`, `pagination.md`.
+- `frontend/moon/doc/agents/` — `http.md`, `i18n.md`, `pagination.md`, `responsive.md`.
 - `frontend/moon/tslint.json` — the lint rules tooling enforces.
 
 ## Reviewing a diff

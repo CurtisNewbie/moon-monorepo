@@ -419,9 +419,45 @@ func testMySQLConn(t *testing.T) *gorm.DB {
 // insertTestDir inserts a dir row and returns its uuid
 func insertTestDir(t *testing.T, db *gorm.DB, userNo string) string {
 	t.Helper()
+	return insertTestDirState(t, db, userNo, false)
+}
+
+// insertTestDirState inserts a dir row with an explicit logic-delete flag, returns its uuid
+func insertTestDirState(t *testing.T, db *gorm.DB, userNo string, logicDel bool) string {
+	t.Helper()
+	isLogicDeleted := 0
+	if logicDel {
+		isLogicDeleted = 1
+	}
 	uuid := "tdt-dir-" + randutil.ERand(8)
-	if err := db.Exec("INSERT INTO file_info (name, uuid, size_in_bytes, file_type, parent_file, thumbnail, uploader_no) VALUES (?,?,?,?,?,?,?)",
-		"test-dir", uuid, 0, "DIR", "", "", userNo).Error; err != nil {
+	if err := db.Exec("INSERT INTO file_info (name, uuid, size_in_bytes, file_type, parent_file, thumbnail, uploader_no, is_logic_deleted) VALUES (?,?,?,?,?,?,?,?)",
+		"test-dir", uuid, 0, "DIR", "", "", userNo, isLogicDeleted).Error; err != nil {
+		t.Fatal(err)
+	}
+	return uuid
+}
+
+// testChildState describes the visibility flags of a seeded child row
+type testChildState struct {
+	Thumbnail string
+	IsDel     int
+	Hidden    bool
+	LogicDel  bool
+}
+
+// insertTestChildState inserts a child file row with explicit visibility flags, returns its uuid
+func insertTestChildState(t *testing.T, db *gorm.DB, parent string, name string, st testChildState) string {
+	t.Helper()
+	hidden, logicDel := 0, 0
+	if st.Hidden {
+		hidden = 1
+	}
+	if st.LogicDel {
+		logicDel = 1
+	}
+	uuid := "tdt-child-" + randutil.ERand(8)
+	if err := db.Exec("INSERT INTO file_info (name, uuid, size_in_bytes, file_type, parent_file, thumbnail, uploader_no, is_del, hidden, is_logic_deleted) VALUES (?,?,?,?,?,?,?,?,?,?)",
+		name, uuid, 0, "FILE", parent, st.Thumbnail, testUser().UserNo, st.IsDel, hidden, logicDel).Error; err != nil {
 		t.Fatal(err)
 	}
 	return uuid
@@ -430,12 +466,7 @@ func insertTestDir(t *testing.T, db *gorm.DB, userNo string) string {
 // insertTestChild inserts a child file row under parent, returns its uuid
 func insertTestChild(t *testing.T, db *gorm.DB, parent string, name string, thumbnail string, isDel int) string {
 	t.Helper()
-	uuid := "tdt-child-" + randutil.ERand(8)
-	if err := db.Exec("INSERT INTO file_info (name, uuid, size_in_bytes, file_type, parent_file, thumbnail, uploader_no, is_del) VALUES (?,?,?,?,?,?,?,?)",
-		name, uuid, 0, "FILE", parent, thumbnail, testUser().UserNo, isDel).Error; err != nil {
-		t.Fatal(err)
-	}
-	return uuid
+	return insertTestChildState(t, db, parent, name, testChildState{Thumbnail: thumbnail, IsDel: isDel})
 }
 
 func TestFindFirstThumbnailFileId(t *testing.T) {
@@ -525,5 +556,120 @@ func TestFindFirstThumbnailFileIds(t *testing.T) {
 	}
 	if _, ok := m[dir4]; ok {
 		t.Fatalf("dir4 owned by another user should be excluded, got %v", m[dir4])
+	}
+}
+
+// A child the listing hides cannot supply the cover, even when it is the oldest one.
+func TestFindFirstThumbnailFileIdSkipsInvisibleChild(t *testing.T) {
+	cases := []struct {
+		name      string
+		invisible testChildState
+	}{
+		{"logic deleted", testChildState{Thumbnail: "THUMB_TRASH", LogicDel: true}},
+		{"hidden", testChildState{Thumbnail: "THUMB_HIDDEN", Hidden: true}},
+		{"physically deleted", testChildState{Thumbnail: "THUMB_PHYS_DEL", IsDel: 1}},
+		{"no thumbnail", testChildState{}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			rail := miso.EmptyRail()
+			db := testMySQLConn(t)
+
+			dirKey := insertTestDir(t, db, testUser().UserNo)
+			t.Cleanup(func() {
+				db.Exec("DELETE FROM file_info WHERE parent_file = ? OR uuid = ?", dirKey, dirKey)
+			})
+
+			insertTestChildState(t, db, dirKey, "invisible.jpg", c.invisible)
+			insertTestChild(t, db, dirKey, "visible.jpg", "THUMB_VISIBLE", 0)
+			insertTestChild(t, db, dirKey, "newer.jpg", "THUMB_NEWER", 0)
+
+			fst, ok, err := findFirstThumbnailFileId(rail, db, dirKey)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !ok {
+				t.Fatal("expected to find a thumbnail")
+			}
+			if fst != "THUMB_VISIBLE" {
+				t.Fatalf("expected THUMB_VISIBLE, got %v", fst)
+			}
+		})
+	}
+}
+
+// A directory whose children are all invisible answers with no cover.
+func TestFindFirstThumbnailFileIdAllChildrenInvisible(t *testing.T) {
+	rail := miso.EmptyRail()
+	db := testMySQLConn(t)
+
+	dirKey := insertTestDir(t, db, testUser().UserNo)
+	t.Cleanup(func() {
+		db.Exec("DELETE FROM file_info WHERE parent_file = ? OR uuid = ?", dirKey, dirKey)
+	})
+
+	insertTestChildState(t, db, dirKey, "a.jpg", testChildState{Thumbnail: "THUMB_TRASH", LogicDel: true})
+	insertTestChildState(t, db, dirKey, "b.jpg", testChildState{Thumbnail: "THUMB_HIDDEN", Hidden: true})
+	insertTestChildState(t, db, dirKey, "c.jpg", testChildState{Thumbnail: "THUMB_PHYS_DEL", IsDel: 1})
+
+	fst, ok, err := findFirstThumbnailFileId(rail, db, dirKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok || fst != "" {
+		t.Fatalf("expected no cover, got ok=%v fst=%v", ok, fst)
+	}
+}
+
+// The batch lookup applies the visibility rule per directory: one directory's
+// invisible children never change another directory's cover.
+func TestFindFirstThumbnailFileIdsSkipsInvisibleChildren(t *testing.T) {
+	rail := miso.EmptyRail()
+	db := testMySQLConn(t)
+
+	dir1 := insertTestDir(t, db, testUser().UserNo) // oldest child trashed
+	dir2 := insertTestDir(t, db, testUser().UserNo) // oldest child hidden
+	dir3 := insertTestDir(t, db, testUser().UserNo) // only invisible children
+	dir4 := insertTestDir(t, db, testUser().UserNo) // untouched live directory
+	dir5 := insertTestDirState(t, db, testUser().UserNo, true)
+	dirKeys := []string{dir1, dir2, dir3, dir4, dir5}
+	t.Cleanup(func() {
+		db.Exec("DELETE FROM file_info WHERE parent_file IN (?,?,?,?,?) OR uuid IN (?,?,?,?,?)", dir1, dir2, dir3, dir4, dir5, dir1, dir2, dir3, dir4, dir5)
+	})
+
+	// dir1: the oldest child is trashed and must not win
+	insertTestChildState(t, db, dir1, "a.jpg", testChildState{Thumbnail: "D1_TRASH", LogicDel: true})
+	insertTestChild(t, db, dir1, "b.jpg", "D1_VISIBLE", 0)
+	insertTestChild(t, db, dir1, "c.jpg", "D1_NEWER", 0)
+	// dir2: the oldest child is hidden and must not win
+	insertTestChildState(t, db, dir2, "x.jpg", testChildState{Thumbnail: "D2_HIDDEN", Hidden: true})
+	insertTestChild(t, db, dir2, "y.jpg", "D2_VISIBLE", 0)
+	// dir3: nothing the listing would show
+	insertTestChildState(t, db, dir3, "p.jpg", testChildState{Thumbnail: "D3_TRASH", LogicDel: true})
+	insertTestChildState(t, db, dir3, "q.jpg", testChildState{Thumbnail: "D3_HIDDEN", Hidden: true})
+	insertTestChildState(t, db, dir3, "r.jpg", testChildState{Thumbnail: "D3_PHYS_DEL", IsDel: 1})
+	// dir4: plain live cover
+	insertTestChild(t, db, dir4, "w.jpg", "D4_THUMB", 0)
+	// dir5: a logic-deleted directory row, even with a live child
+	insertTestChild(t, db, dir5, "v.jpg", "D5_THUMB", 0)
+
+	m, err := findFirstThumbnailFileIds(rail, db, dirKeys, testUser().UserNo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m[dir1] != "D1_VISIBLE" {
+		t.Fatalf("expected dir1 D1_VISIBLE, got %v", m[dir1])
+	}
+	if m[dir2] != "D2_VISIBLE" {
+		t.Fatalf("expected dir2 D2_VISIBLE, got %v", m[dir2])
+	}
+	if _, ok := m[dir3]; ok {
+		t.Fatalf("dir3 has only invisible children and should have no cover, got %v", m[dir3])
+	}
+	if m[dir4] != "D4_THUMB" {
+		t.Fatalf("expected dir4 D4_THUMB, got %v", m[dir4])
+	}
+	if _, ok := m[dir5]; ok {
+		t.Fatalf("dir5 is logic deleted and should be excluded, got %v", m[dir5])
 	}
 }

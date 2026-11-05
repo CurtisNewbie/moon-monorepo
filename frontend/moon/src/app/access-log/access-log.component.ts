@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
@@ -19,10 +19,20 @@ export interface AccessLog {
   templateUrl: "./access-log.component.html",
   styleUrls: ["./access-log.component.css"],
 })
-export class AccessLogComponent implements OnInit {
-  readonly COLUMNS_TO_BE_DISPLAYED: string[] = this.env.isMobile()
-    ? ["accessTime", "success", "ipAddress"]
-    : ["accessTime", "success", "ipAddress", "userAgent", "url"];
+export class AccessLogComponent implements OnInit, OnDestroy {
+  private readonly compactColumns = ["accessTime", "success", "ipAddress"];
+  private readonly wideColumns = [
+    "accessTime",
+    "success",
+    "ipAddress",
+    "userAgent",
+    "url",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
+
   accessLogList: AccessLog[] = [];
 
   @ViewChild(ControlledPaginatorComponent)
@@ -35,6 +45,10 @@ export class AccessLogComponent implements OnInit {
   ) {}
 
   ngOnInit() {}
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
+  }
 
   fetchAccessLogList(): void {
     this.http

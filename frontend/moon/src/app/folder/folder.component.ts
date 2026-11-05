@@ -20,6 +20,7 @@ import { NavigationService } from "../navigation.service";
 import { NavType } from "../routes";
 import { UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ControlledPaginatorComponent } from "../controlled-paginator/controlled-paginator.component";
@@ -88,7 +89,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
     const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
       this.dialog.open(ConfirmDialogComponent, {
-        width: "700px",
+        ...dialogSize(700),
         data: {
           title: this.i18n.trl("folder", "deleteVirtualFolder"),
           msg: [`${this.i18n.trl("folder", "sureToDelete")} '${f.name}'`],
@@ -128,7 +129,7 @@ export class FolderComponent implements OnInit, DoCheck, OnDestroy {
 
     const dialogRef: MatDialogRef<GrantAccessDialogComponent, boolean> =
       this.dialog.open(GrantAccessDialogComponent, {
-        width: "700px",
+        ...dialogSize(700),
         data: { folderNo: f.folderNo, name: f.name },
       });
 

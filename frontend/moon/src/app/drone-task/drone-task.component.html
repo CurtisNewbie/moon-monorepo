@@ -40,7 +40,7 @@
                 <input matInput readonly [ngModel]="createTaskDirName" />
             </mat-form-field>
             <div class="ms-3">
-                <app-dir-tree-nav [title]="'drone-task' | trl:'directoryTree'" [prevSelectedFileKey]="prevSelectedFileKey" (treeLoaded)="onTreeLoaded()" (selected)="selectDir($event)"></app-dir-tree-nav>
+                <app-dir-tree-nav [title]="'drone-task' | trl:'directoryTree'" [selectedFileKey]="selectedFileKey" (treeLoaded)="onTreeLoaded()" (selected)="selectDir($event)"></app-dir-tree-nav>
             </div>
 
             <div class="justify-content-end d-flex">
@@ -147,25 +147,58 @@
                     <ng-container *ngIf="u.dirFileKey">
                         <button class="mat-raised-button small-btn" (click)="gotoDir(u.dirFileKey)">{{'drone-task' | trl:'open'}}</button>
                     </ng-container>
-                    <ng-container *ngIf="u.status == 'PENDING' || u.status == 'UNRESOLVED'">
-                        <button class="mat-raised-button small-btn" (click)="cancelTask(u.taskId)">{{'drone-task' | trl:'cancel'}}</button>
-                    </ng-container>
-                    <ng-container *ngIf="u.status == 'UNRESOLVED' || u.status == 'RESOLVE_FAILED'">
-                        <button class="mat-raised-button small-btn" (click)="resolveTask(u)">{{'drone-task' | trl:'resolve'}}</button>
-                    </ng-container>
-                    <ng-container *ngIf="u.status != 'PENDING' && u.status != 'UNRESOLVED' && u.status != 'RESOLVE_FAILED' && u.dirFileKey">
-                        <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">{{'drone-task' | trl:'retry'}}</button>
-                    </ng-container>
-                    <ng-container *ngIf="!env.isMobile() && (u.status == 'COMPLETED' || u.status == 'CANCELLED') && u.dirFileKey">
-                        <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">{{'drone-task' | trl:'update'}}</button>
+                    <!-- on a phone the rest of the row's actions live in the hold menu -->
+                    <ng-container *ngIf="!env.isMobile()">
+                        <ng-container *ngIf="canCancel(u)">
+                            <button class="mat-raised-button small-btn" (click)="cancelTask(u.taskId)">{{'drone-task' | trl:'cancel'}}</button>
+                        </ng-container>
+                        <ng-container *ngIf="canResolve(u)">
+                            <button class="mat-raised-button small-btn" (click)="resolveTask(u)">{{'drone-task' | trl:'resolve'}}</button>
+                        </ng-container>
+                        <ng-container *ngIf="canRetry(u)">
+                            <button class="mat-raised-button small-btn" (click)="retryTask(u.taskId)">{{'drone-task' | trl:'retry'}}</button>
+                        </ng-container>
+                        <ng-container *ngIf="canUpdate(u)">
+                            <button class="mat-raised-button small-btn" (click)="clickUpdateTaskUrl(u)">{{'drone-task' | trl:'update'}}</button>
+                        </ng-container>
                     </ng-container>
                 </div>
             </td>
         </ng-container>
-        <tr mat-header-row *matHeaderRowDef="headers">
+        <tr mat-header-row *matHeaderRowDef="displayedColumns">
         </tr>
-        <tr mat-row *matRowDef="let row; columns: headers">
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="task-row"
+            (touchstart)="onRowTouchStart($event, row)"
+            (touchmove)="onRowTouchMove($event)"
+            (touchend)="onRowTouchEnd()"
+            (touchcancel)="onRowTouchEnd()">
         </tr>
     </table>
 </div>
+
+<!-- Row menu: the hidden anchor sits where the finger was when the row was
+     held, and the menu acts on that row -->
+<div #rowMenuAnchor style="visibility: hidden; position: fixed;" [style.left]="rowMenuPosition.x"
+    [style.top]="rowMenuPosition.y" [matMenuTriggerFor]="rowMenu"></div>
+
+<mat-menu #rowMenu="matMenu">
+    <ng-template matMenuContent>
+        <button mat-menu-item *ngIf="menuRow?.dirFileKey" (click)="gotoDir(menuRow.dirFileKey)">
+            {{'drone-task' | trl:'open'}}
+        </button>
+        <button mat-menu-item *ngIf="canCancel(menuRow)" (click)="cancelTask(menuRow.taskId)">
+            {{'drone-task' | trl:'cancel'}}
+        </button>
+        <button mat-menu-item *ngIf="canResolve(menuRow)" (click)="resolveTask(menuRow)">
+            {{'drone-task' | trl:'resolve'}}
+        </button>
+        <button mat-menu-item *ngIf="canRetry(menuRow)" (click)="retryTask(menuRow.taskId)">
+            {{'drone-task' | trl:'retry'}}
+        </button>
+        <button mat-menu-item *ngIf="canUpdate(menuRow)" (click)="clickUpdateTaskUrl(menuRow)">
+            {{'drone-task' | trl:'update'}}
+        </button>
+    </ng-template>
+</mat-menu>
+
 <app-controlled-paginator (pageChanged)="listTasks()"></app-controlled-paginator>

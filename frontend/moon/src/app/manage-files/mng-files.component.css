@@ -128,9 +128,77 @@
   display: none;
 }
 
+/* Every directory row draws this tabbed folder. The row rhythm comes from the
+   60px slot below (the file thumbnail's box), not from the glyph: the slot is
+   an inline-block whose fixed height and line-height hold the line, and the
+   glyph is centred inside it. The glyph body is 54x34 with a 10px-proud tab,
+   so the whole silhouette is 54x44. Its 10px top margin reserves the tab in
+   the flow. Covered, uncovered and file rows therefore share one row height,
+   and the toggle never resizes a row. Geometry from the approved mock:
+   .scratch/folder-preview/design/folder-glyph-v3.html (variant M). */
+.dir-glyph-slot {
+  display: inline-block;
+  height: 60px;
+  line-height: 60px;
+  font-size: 0;
+  vertical-align: baseline;
+}
+
+.dir-glyph {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: 54px;
+  height: 34px;
+  /* the tab paints inside this reserve, never over the row above */
+  margin-top: 10px;
+  /* square top-left: that is where the tab joins */
+  border-radius: 0 5px 5px 5px;
+  background: linear-gradient(180deg, #f4edf1 0%, #e7dfe4 55%, #c9c0c7 100%);
+  filter: drop-shadow(0 1.5px 2px rgba(0, 0, 0, 0.5));
+}
+
+.dir-glyph::before {
+  /* the tab: 10px proud of the body, with a 1px tuck at its base so no seam
+     shows where it meets the body, and a clipped slope on its right edge */
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -10px;
+  width: 24px;
+  height: 11px;
+  border-radius: 5px 0 0 0;
+  background: linear-gradient(180deg, #f9f3f6, #eee6ea);
+  clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 100%, 0 100%);
+}
+
+.dir-glyph-img {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  display: block;
+  /* arbitrary aspect ratios are cropped, never squashed or spilling out */
+  object-fit: cover;
+  border-radius: 0 3px 3px 3px;
+}
+
+/* A hold on a row is the row menu, never a text selection or the iOS magnifier */
+.file-row {
+  -webkit-touch-callout: none;
+}
+
 /* Mobile: compact file list */
 @media (max-width: 768px) {
-  /* Native table layout: fix columns so wide thumbnails can't stretch the table */
+  .file-row {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Native table layout: fix columns so wide thumbnails can't stretch the table.
+     Fixed layout makes the widths below authoritative, so the one column left
+     without a width owns everything the other two do not need. */
   table.mat-table {
     table-layout: fixed !important;
   }
@@ -142,16 +210,10 @@
     padding-left: 8px !important;
   }
 
+  /* the flexible column: it takes every pixel the two fixed neighbours leave */
   .mat-column-name {
     width: auto !important;
     max-width: none !important;
-  }
-
-  .mat-column-operation {
-    width: 132px !important;
-    max-width: 132px !important;
-    padding-right: 8px !important;
-    white-space: nowrap !important;
   }
 
   /* keep original 60px thumbnail size; clamp only the width so ultra-wide images can't spill out */

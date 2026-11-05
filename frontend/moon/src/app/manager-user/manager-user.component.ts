@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import {
   animateElementExpanding,
@@ -14,6 +14,7 @@ import {
 import { ConfirmDialogComponent } from "../dialog/confirm/confirm-dialog.component";
 import { RoleBrief, UserService } from "../user.service";
 import { isEnterKey } from "src/common/condition";
+import { dialogSize } from "src/common/dialog-size";
 import { HttpClient } from "@angular/common/http";
 import { Env } from "src/common/env-util";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -30,22 +31,25 @@ export interface ClearUserFailedLoginAttemptsReq {
   styleUrls: ["./manager-user.component.css"],
   animations: [animateElementExpanding()],
 })
-export class ManagerUserComponent implements OnInit {
+export class ManagerUserComponent implements OnInit, OnDestroy {
   readonly USER_IS_NORMAL = UserIsDisabledEnum.NORMAL;
   readonly USER_IS_DISABLED = UserIsDisabledEnum.IS_DISABLED;
-  readonly COLUMNS = this.env.isMobile()
-    ? ["name", "role", "status"]
-    : [
-        "userno",
-        "name",
-        "role",
-        "status",
-        "reviewStatus",
-        "createBy",
-        "createTime",
-        "updateBy",
-        "updateTime",
-      ];
+  private readonly compactColumns = ["name", "role", "status"];
+  private readonly wideColumns = [
+    "userno",
+    "name",
+    "role",
+    "status",
+    "reviewStatus",
+    "createBy",
+    "createTime",
+    "updateBy",
+    "updateTime",
+  ];
+  displayedColumns: string[] = this.wideColumns;
+  private readonly modeSub = this.env.mobile$.subscribe((mobile) => {
+    this.displayedColumns = mobile ? this.compactColumns : this.wideColumns;
+  });
 
   readonly USER_IS_DISABLED_OPTS = USER_IS_DISABLED_OPTIONS;
 
@@ -81,6 +85,10 @@ export class ManagerUserComponent implements OnInit {
 
   ngOnInit() {
     this.fetchRoleBriefs();
+  }
+
+  ngOnDestroy(): void {
+    this.modeSub.unsubscribe();
   }
 
   /**
@@ -192,7 +200,7 @@ export class ManagerUserComponent implements OnInit {
   deleteUser(): void {
     const dialogRef: MatDialogRef<ConfirmDialogComponent, boolean> =
       this.dialog.open(ConfirmDialogComponent, {
-        width: "500px",
+        ...dialogSize(500),
         data: {
           title: this.trl("deleteUser"),
           msg: [

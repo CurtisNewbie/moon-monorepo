@@ -1,23 +1,13 @@
-/* fix lightbox image overflow issue */
-@media all and (max-width: 499px) {
-  #outerContainer {
-    max-height: 70svh !important;
-    overflow: scroll !important;
-  }
-}
-
-@media all and (min-width: 500px) and (max-width: 699px) {
-  #outerContainer {
-    max-height: 80svh !important;
-    overflow: scroll !important;
-  }
-}
-
-@media all and (min-width: 700px) {
-  #outerContainer {
-    max-height: 85vh !important;
-    overflow: scroll !important;
-  }
+/*
+ * The lightbox container fills the screen. It takes its height from the
+ * viewport itself, not from a width tier: dvh follows the visible viewport when
+ * a phone's browser chrome slides away, and vh is the fallback where dvh is
+ * unknown.
+ */
+#outerContainer {
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: auto !important;
 }
 
 /* Align zoom buttons side by side */
