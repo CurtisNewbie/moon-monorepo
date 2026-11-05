@@ -417,7 +417,7 @@
             (click)="jumpToDownloadUrl(menuRow.uuid)">
             <i class="bi bi-cloud-download"></i> {{'manage-files' | trl:'download'}}
         </button>
-        <button mat-menu-item *ngIf="env.isMobile() && !inFolderNo" (click)="expandRow(menuRow)">
+        <button mat-menu-item *ngIf="env.isMobile() && !inFolderNo" (click)="selectExpanded(menuRow)">
             <i class="bi bi-gear"></i> {{'manage-files' | trl:'settings'}}
         </button>
         <button mat-menu-item *ngIf="!inDirFileKey && !(env.isMobile() && inFolderNo)" (click)="locateRowPage()">

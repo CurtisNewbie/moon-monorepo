@@ -141,14 +141,6 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
     this.curr = this.curr != null && row.id == this.curr.id ? null : { ...row };
   };
 
-  /** Always expand the detail panel; the row menu's Settings item uses this. */
-  expandRow(f: FileInfo): void {
-    if (!f) {
-      return;
-    }
-    this.curr = { ...f };
-  }
-
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
   orderBy: string = 'time';

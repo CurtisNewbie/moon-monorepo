@@ -2140,7 +2140,17 @@ describe('MngFilesComponent compact row menu actions', () => {
     expect(menuLabels()).toEqual(['addToTray', 'openDir']);
   });
 
-  it('expands an already expanded row from Settings', async () => {
+  it('expands a collapsed row from Settings', async () => {
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+    clickItem('settings');
+
+    expect(component.curr.uuid).toBe('u0');
+  });
+
+  it('folds an already expanded row from Settings', async () => {
     component.fileInfoList = [FILE];
     component.curr = { ...FILE };
     fixture.detectChanges();
@@ -2148,8 +2158,7 @@ describe('MngFilesComponent compact row menu actions', () => {
     await openMenuOn(FILE);
     clickItem('settings');
 
-    expect(component.curr).not.toBeNull();
-    expect(component.curr.uuid).toBe('u0');
+    expect(component.curr).toBeNull();
   });
 
   it('offers only open-directory in a virtual folder on a wide screen', async () => {
