@@ -39,7 +39,46 @@ ngOnDestroy(): void {
 
 The subscription's first emission carries the current value and sets `displayedColumns` before the view renders, so do not assign it from `isMobile()` in `ngOnInit` as well. A mid-life rotation or resize reassigns it with no reload.
 
-Why not CSS: a cell hidden with `display: none` still renders and still holds its width under `table-layout: fixed`, and the CSS list drifts from the TypeScript one. That drift is what this rule removes.
+Why not CSS: the CSS list drifts from the TypeScript one, and a column dropped with `display: none` still renders its cells. That drift is what this rule removes.
+
+### Column widths
+
+Angular Material tags both the header cell and the body cell of a column with
+`mat-column-<matColumnDef>`. Size the column once, in the component stylesheet:
+
+```css
+.mat-column-notifiNo {
+  width: 220px;
+  max-width: 220px;
+}
+```
+
+`max-width` is not optional for anything wider than 200px. `src/styles.css` caps
+every cell for wrapping:
+
+```css
+td,
+th {
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 200px;
+}
+```
+
+A column that asks for more keeps rendering at exactly 200px, however the width
+was declared — inline on the cell or in the stylesheet — and devtools shows
+`width: 200px; max-width: 200px` on the header. Put both properties on the
+`.mat-column-*` rule: the class beats the `td, th` element selector on
+specificity, and one rule reaches the header and the body cells.
+
+- The width includes cell padding. The first cell of a row has 24px left padding
+  and the last cell 24px right padding (Material's own rules; some components
+  override `.mat-cell`), so usable content is `width - padding`.
+- Size to the widest value the column holds, not to the header label. A long
+  unbreakable ID wraps mid-token instead of widening the column, so a width a
+  few pixels short shows up as one stray character on a second line.
+- Under 200px, a `max-width` alone is enough; that is what the other tables do
+  (`.mat-column-name { max-width: 150px }`). Above 200px, both are required.
 
 ## Dialogs
 
