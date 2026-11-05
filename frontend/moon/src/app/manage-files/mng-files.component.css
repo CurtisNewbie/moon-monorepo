@@ -216,16 +216,6 @@
     max-width: none !important;
   }
 
-  /* just the row's icon buttons: the gear, plus the download for a file, are
-     40px each, and the cell insets them by 8px on either side — 96px in all.
-     The tray button that used to widen this column is in the row menu now. */
-  .mat-column-operation {
-    width: 96px !important;
-    max-width: 96px !important;
-    padding-right: 8px !important;
-    white-space: nowrap !important;
-  }
-
   /* keep original 60px thumbnail size; clamp only the width so ultra-wide images can't spill out */
   td.mat-column-thumbnail img {
     max-width: 100% !important;

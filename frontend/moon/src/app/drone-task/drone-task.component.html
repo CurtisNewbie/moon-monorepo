@@ -183,6 +183,9 @@
 
 <mat-menu #rowMenu="matMenu">
     <ng-template matMenuContent>
+        <button mat-menu-item *ngIf="menuRow?.dirFileKey" (click)="gotoDir(menuRow.dirFileKey)">
+            {{'drone-task' | trl:'open'}}
+        </button>
         <button mat-menu-item *ngIf="canCancel(menuRow)" (click)="cancelTask(menuRow.taskId)">
             {{'drone-task' | trl:'cancel'}}
         </button>

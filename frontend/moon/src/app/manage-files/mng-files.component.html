@@ -343,6 +343,11 @@
                                             <button mat-icon-button [matTooltip]="'manage-files' | trl:'update'" (click)="update(curr)">
                                                 <i class="bi bi-floppy icon-button-large"></i> </button>
                                         </div>
+                                        <div class="only-compact">
+                                            <button mat-icon-button [matTooltip]="'manage-files' | trl:'download'"
+                                                (click)="jumpToDownloadUrl(curr.uuid)"> <i
+                                                    class="bi bi-cloud-download icon-button-large"></i> </button>
+                                        </div>
                                         <div>
                                             <button mat-icon-button [matTooltip]="'manage-files' | trl:'shareByLink'"
                                                 (click)="generateTempToken(curr)"> <i
@@ -408,7 +413,14 @@
             <i class="bi" [class]="fileBookmark.has(menuRow?.uuid) ? 'bi-bag-x' : 'bi-bag-plus'"></i>
             {{'manage-files' | trl:(fileBookmark.has(menuRow?.uuid) ? 'removeFromTray' : 'addToTray')}}
         </button>
-        <button mat-menu-item (click)="locateRowPage()">
+        <button mat-menu-item *ngIf="env.isMobile() && menuRow?.isFile"
+            (click)="jumpToDownloadUrl(menuRow.uuid)">
+            <i class="bi bi-cloud-download"></i> {{'manage-files' | trl:'download'}}
+        </button>
+        <button mat-menu-item *ngIf="env.isMobile() && !inFolderNo" (click)="expandRow(menuRow)">
+            <i class="bi bi-gear"></i> {{'manage-files' | trl:'settings'}}
+        </button>
+        <button mat-menu-item *ngIf="!inDirFileKey && !(env.isMobile() && inFolderNo)" (click)="locateRowPage()">
             <i class="bi bi-folder2-open"></i> {{'manage-files' | trl:'openDir'}}
         </button>
     </ng-template>

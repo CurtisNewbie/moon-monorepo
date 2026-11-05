@@ -808,7 +808,7 @@ describe('MngFilesComponent columns', () => {
   let component: MngFilesComponent;
 
   const WIDE = ['thumbnail', 'name', 'parentFileName', 'uploadTime', 'size', 'operation'];
-  const COMPACT = ['thumbnail', 'name', 'operation'];
+  const COMPACT = ['thumbnail', 'name'];
 
   beforeEach(() => {
     fake = installFakeMatchMedia(false);
@@ -1444,32 +1444,43 @@ describe('MngFilesComponent row menu', () => {
     expect(component.menuRow).toBe(FILE);
   });
 
-  it('opens for a directory row in a virtual folder listing', () => {
+  it('does not open for a directory row in a virtual folder listing', () => {
     component.inFolderNo = 'vf-1';
 
     component.onRowContextMenu(contextMenuAt(10, 20), dirRow('dir-1', 'Album'));
 
-    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(trigger.openMenu).not.toHaveBeenCalled();
   });
 
-  it('leaves the browser menu alone inside a directory', () => {
+  it('keeps the native menu out of the way in a virtual folder on a phone', () => {
+    component.inFolderNo = 'vf-1';
+    const evt = contextMenuAt(10, 20);
+
+    component.onRowContextMenu(evt, dirRow('dir-1', 'Album'));
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).not.toHaveBeenCalled();
+  });
+
+  it('opens the menu inside a directory', () => {
     component.inDirFileKey = 'dir-9';
     const evt = contextMenuAt(120, 240);
 
     component.onRowContextMenu(evt, FILE);
 
-    expect(evt.preventDefault).not.toHaveBeenCalled();
-    expect(trigger.openMenu).not.toHaveBeenCalled();
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.menuRow).toBe(FILE);
   });
 
-  it('does not start a long press inside a directory', () => {
+  it('starts a long press inside a directory', () => {
     component.inDirFileKey = 'dir-9';
     jasmine.clock().install();
     try {
       component.onRowTouchStart(touchAt(10, 10), FILE);
       jasmine.clock().tick(600);
 
-      expect(trigger.openMenu).not.toHaveBeenCalled();
+      expect(trigger.openMenu).toHaveBeenCalled();
     } finally {
       jasmine.clock().uninstall();
     }
@@ -1606,6 +1617,87 @@ describe('MngFilesComponent row menu', () => {
     expect(component.searchParam).toEqual({});
     expect(http.gets).toEqual(['vfm/open/api/file/parent?fileKey=u0']);
     expect(http.postsTo('/file/list')).toEqual([]);
+  });
+});
+
+/**
+ * The wide right-click entry keeps its old reach: the browser menu inside a
+ * directory, and only Open Directory in a virtual folder.
+ */
+describe('MngFilesComponent row menu on a wide screen', () => {
+  let component: MngFilesComponent;
+  let trigger: { openMenu: jasmine.Spy; menuOpen: boolean };
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function contextMenuAt(x: number, y: number): any {
+    return { clientX: x, clientY: y, preventDefault: jasmine.createSpy('preventDefault') };
+  }
+
+  beforeEach(() => {
+    component = new MngFilesComponent(
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      { open: jasmine.createSpy('open') } as any,
+      {} as any,
+      {} as any,
+      staticEnv(false)
+    );
+
+    trigger = { openMenu: jasmine.createSpy('openMenu'), menuOpen: false };
+    (component as any).rowMenuTrigger = trigger;
+  });
+
+  it('leaves the browser menu alone inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).not.toHaveBeenCalled();
+    expect(trigger.openMenu).not.toHaveBeenCalled();
+  });
+
+  it('reports no menu inside a directory', () => {
+    component.inDirFileKey = 'dir-9';
+
+    expect(component.canShowRowMenu(FILE)).toBe(false);
+  });
+
+  it('reports a menu for a directory row in a virtual folder', () => {
+    component.inFolderNo = 'vf-1';
+
+    expect(
+      component.canShowRowMenu({ uuid: 'dir-1', name: 'Album', isDir: true } as FileInfo)
+    ).toBe(true);
+  });
+
+  it('opens for a row in a virtual folder', () => {
+    component.inFolderNo = 'vf-1';
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, FILE);
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.menuRow).toBe(FILE);
+  });
+
+  it('opens for a directory row in a virtual folder', () => {
+    component.inFolderNo = 'vf-1';
+    const dir = { uuid: 'dir-1', name: 'Album', isDir: true } as FileInfo;
+    const evt = contextMenuAt(120, 240);
+
+    component.onRowContextMenu(evt, dir);
+
+    expect(evt.preventDefault).toHaveBeenCalled();
+    expect(trigger.openMenu).toHaveBeenCalled();
+    expect(component.menuRow).toBe(dir);
   });
 });
 
@@ -1800,10 +1892,10 @@ describe('MngFilesComponent row menu basket', () => {
     fixture.detectChanges();
 
     expect(rowBasketIcons()).toEqual([]);
-    // the rest of the operation cell stays put
+    // the whole operation cell is gone on a phone
     expect(
-      fixture.nativeElement.querySelector('td.mat-column-operation i.bi-gear')
-    ).not.toBeNull();
+      fixture.nativeElement.querySelector('td.mat-column-operation')
+    ).toBeNull();
   });
 
   it('keeps the per-row basket button on a wide screen', () => {
@@ -1851,6 +1943,264 @@ describe('MngFilesComponent row menu basket', () => {
     expect(component.menuRow).toBe(FILE);
     expect(menuItems().length).toBeGreaterThan(0);
     expect(basketItem()).toBeUndefined();
+  });
+});
+
+/**
+ * On a phone the operation cell is gone, so the hold menu carries the row's
+ * actions. Rendered for real: the assertions are on the menu items the user
+ * sees, not on the predicates alone.
+ */
+describe('MngFilesComponent compact row menu actions', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let fileService: { jumpToDownloadUrl: jasmine.Spy };
+  let mobile$: BehaviorSubject<boolean>;
+
+  const FILE = imgFile('u0', 'a.png');
+
+  function dirRow(uuid: string, name: string): FileInfo {
+    return { uuid, name, isDir: true } as FileInfo;
+  }
+
+  function touchAt(x: number, y: number): any {
+    return { touches: [{ clientX: x, clientY: y }] };
+  }
+
+  beforeEach(() => {
+    mobile$ = new BehaviorSubject<boolean>(true);
+    fileService = {
+      jumpToDownloadUrl: jasmine.createSpy('jumpToDownloadUrl'),
+    };
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: new FakeDialog() },
+        { provide: FileInfoService, useValue: fileService },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: () => undefined } },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    fixture.destroy();
+    document
+      .querySelectorAll('.cdk-overlay-container')
+      .forEach((e) => e.remove());
+  });
+
+  /** Long-press a row with the timer the component listens to. */
+  async function openMenuOn(row: FileInfo): Promise<void> {
+    jasmine.clock().install();
+    try {
+      component.onRowTouchStart(touchAt(20, 20), row);
+      jasmine.clock().tick(500);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+    await flushAsync();
+    fixture.detectChanges();
+  }
+
+  /** Items of the menu panel most recently attached to the overlay. */
+  function menuItems(): HTMLElement[] {
+    const panels = document.querySelectorAll('.mat-menu-panel');
+    const panel = panels[panels.length - 1];
+    return panel ? Array.from<HTMLElement>(panel.querySelectorAll('.mat-menu-item')) : [];
+  }
+
+  function menuLabels(): string[] {
+    return menuItems().map((item) => (item.textContent || '').trim());
+  }
+
+  function clickItem(label: string): void {
+    const item = menuItems().find((i) => (i.textContent || '').trim() === label);
+    if (!item) {
+      throw new Error(`no menu item '${label}'`);
+    }
+    item.click();
+    fixture.detectChanges();
+  }
+
+  it('offers tray, download, settings and open-directory for a file', async () => {
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(menuLabels()).toEqual(['addToTray', 'download', 'settings', 'openDir']);
+  });
+
+  it('offers no Download for a directory', async () => {
+    component.fileInfoList = [dirRow('dir-1', 'Album')];
+    fixture.detectChanges();
+
+    await openMenuOn(component.fileInfoList[0]);
+
+    expect(menuLabels()).toEqual(['addToTray', 'settings', 'openDir']);
+  });
+
+  it('offers download only, for files, in a virtual folder', async () => {
+    component.inFolderNo = 'vf-1';
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(menuLabels()).toEqual(['download']);
+  });
+
+  it('opens no menu for a directory in a virtual folder', async () => {
+    const dir = dirRow('dir-1', 'Album');
+    component.inFolderNo = 'vf-1';
+    component.fileInfoList = [dir];
+    fixture.detectChanges();
+
+    await openMenuOn(dir);
+
+    expect(component.menuRow).toBeNull();
+    expect(menuItems()).toEqual([]);
+  });
+
+  it('offers tray, download and settings inside a directory, without open-directory', async () => {
+    component.inDirFileKey = 'dir-9';
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+
+    expect(menuLabels()).toEqual(['addToTray', 'download', 'settings']);
+  });
+
+  it('offers tray and settings inside a directory for a directory row', async () => {
+    const dir = dirRow('dir-1', 'Album');
+    component.inDirFileKey = 'dir-9';
+    component.fileInfoList = [dir];
+    fixture.detectChanges();
+
+    await openMenuOn(dir);
+
+    expect(menuLabels()).toEqual(['addToTray', 'settings']);
+  });
+
+  it('keeps the wide right-click menu unchanged', async () => {
+    mobile$.next(false);
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    component.onRowContextMenu(
+      { clientX: 40, clientY: 50, preventDefault: () => undefined } as any,
+      FILE
+    );
+    await flushAsync();
+    fixture.detectChanges();
+
+    expect(menuLabels()).toEqual(['addToTray', 'openDir']);
+  });
+
+  it('expands an already expanded row from Settings', async () => {
+    component.fileInfoList = [FILE];
+    component.curr = { ...FILE };
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+    clickItem('settings');
+
+    expect(component.curr).not.toBeNull();
+    expect(component.curr.uuid).toBe('u0');
+  });
+
+  it('offers only open-directory in a virtual folder on a wide screen', async () => {
+    mobile$.next(false);
+    fixture.detectChanges();
+    component.inFolderNo = 'vf-1';
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    component.onRowContextMenu(
+      { clientX: 40, clientY: 50, preventDefault: () => undefined } as any,
+      FILE
+    );
+    await flushAsync();
+    fixture.detectChanges();
+
+    expect(menuLabels()).toEqual(['openDir']);
+  });
+
+  it('downloads the held file from the menu', async () => {
+    component.fileInfoList = [FILE];
+    fixture.detectChanges();
+
+    await openMenuOn(FILE);
+    clickItem('download');
+
+    expect(fileService.jumpToDownloadUrl).toHaveBeenCalledWith('u0');
+  });
+
+  it('renders the file panel download button on a phone', () => {
+    component.fileInfoList = [FILE];
+    component.curr = { ...FILE };
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector(
+        'tr.detail-row button i.bi-cloud-download'
+      )
+    ).not.toBeNull();
+  });
+
+  it('keeps the file panel download button compact-only', () => {
+    component.fileInfoList = [FILE];
+    component.curr = { ...FILE };
+    fixture.detectChanges();
+
+    const icon = fixture.nativeElement.querySelector(
+      'tr.detail-row button i.bi-cloud-download'
+    ) as HTMLElement;
+    expect(icon).not.toBeNull();
+    expect(icon.closest('div').classList).toContain('only-compact');
   });
 });
 
@@ -1966,7 +2316,7 @@ describe('MngFilesComponent compact column widths', () => {
     return Math.round(el.getBoundingClientRect().width);
   }
 
-  it('gives the space the preview and the actions leave to the name', () => {
+  it('gives the space the preview leaves to the name', () => {
     open([dirRow('dir-1', 'Album'), fileRow('f-1', 'photo.jpg')], true);
 
     [320, 390].forEach((viewport) =>
@@ -1976,10 +2326,10 @@ describe('MngFilesComponent compact column widths', () => {
 
         // 100px of preview (60px-tall thumbnails, up to ~89px wide, plus the inset)
         expect(widthOf(cellAt(0, 'thumbnail'))).toBe(100);
-        // two 40px icon buttons and the 8px inset on each side, and nothing else
-        expect(widthOf(cellAt(1, 'operation'))).toBe(96);
+        // no action column on a phone: the actions live in the hold menu
+        expect(cellAt(1, 'operation')).toBeNull();
         // the name takes the rest, at every phone width
-        expect(widthOf(cellAt(1, 'name'))).toBe(tableWidth - 196);
+        expect(widthOf(cellAt(1, 'name'))).toBe(tableWidth - 100);
         // the expanded panel still spans the whole table, not one column
         const detail = fixture.nativeElement.querySelector('tr.detail-row td');
         expect(widthOf(detail)).toBe(tableWidth);
@@ -1987,22 +2337,13 @@ describe('MngFilesComponent compact column widths', () => {
     );
   });
 
-  it('keeps the file row actions inside the operation column', () => {
+  it('shows no Operation column on a compact screen', () => {
     open([fileRow('f-1', 'photo.jpg')], true);
 
     [320, 390].forEach((viewport) =>
       atViewportWidth(viewport, () => {
-        const cell = cellAt(0, 'operation');
-        const cellBox = cell.getBoundingClientRect();
-        // the tray button is in the row menu on a phone: gear and download only
-        const buttons = Array.from<HTMLElement>(cell.querySelectorAll('button'));
-        expect(buttons.length).toBe(2);
-        expect(widthOf(buttons[0]) + widthOf(buttons[1])).toBe(80);
-
-        const first = buttons[0].getBoundingClientRect();
-        const last = buttons[1].getBoundingClientRect();
-        expect(first.left - cellBox.left).toBeCloseTo(8, 0);
-        expect(cellBox.right - last.right).toBeCloseTo(8, 0);
+        expect(cellAt(0, 'operation')).toBeNull();
+        expect(component.displayedColumns).toEqual(['thumbnail', 'name']);
       })
     );
   });

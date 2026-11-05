@@ -77,7 +77,7 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   /** browser-local key for the folder preview choice, namespaced to this page */
   private static readonly FOLDER_PREVIEW_STORAGE_KEY = 'manage-files.folderPreview';
 
-  private readonly compactColumns = ["thumbnail", "name", "operation"];
+  private readonly compactColumns = ["thumbnail", "name"];
   private readonly wideColumns = [
     "thumbnail",
     "name",
@@ -140,6 +140,14 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   selectExpanded = (row: FileInfo) => {
     this.curr = this.curr != null && row.id == this.curr.id ? null : { ...row };
   };
+
+  /** Always expand the detail panel; the row menu's Settings item uses this. */
+  expandRow(f: FileInfo): void {
+    if (!f) {
+      return;
+    }
+    this.curr = { ...f };
+  }
 
   isEnterKeyPressed = isEnterKey;
   inSensitiveMode = false;
@@ -1488,27 +1496,42 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   /**
-   * Whether a row's menu has anything to say. Inside a directory every listed
-   * row already sits in the current directory, so both items would be no-ops.
+   * Whether the row's menu opens. A wide screen keeps the native menu inside a
+   * directory; elsewhere the tray and Open Directory apply, and a phone's
+   * virtual folder has Download for files only.
    */
-  canShowRowMenu(): boolean {
-    return !this.inDirFileKey;
+  canShowRowMenu(row: FileInfo): boolean {
+    if (!row) {
+      return false;
+    }
+    if (!this.env.isMobile() && this.inDirFileKey) {
+      return false;
+    }
+    if (!this.inFolderNo) {
+      return true;
+    }
+    return !this.env.isMobile() || !!row.isFile;
   }
 
-  /** Desktop entry: the browser menu is replaced only where ours applies */
+  /**
+   * Desktop entry, plus the contextmenu a phone fires for the same press the
+   * long-press timer watches: the native menu is replaced wherever ours opens,
+   * and on a phone never appears over a row at all.
+   */
   onRowContextMenu(event: MouseEvent, row: FileInfo): void {
-    if (!this.canShowRowMenu()) {
-      return;
-    }
-    // a phone fires contextmenu for the same press the timer is watching
     this.clearLongPress();
-    event.preventDefault();
-    this.openRowMenu(row, event.clientX, event.clientY);
+    const menuWillOpen = this.canShowRowMenu(row);
+    if (this.env.isMobile() || menuWillOpen) {
+      event.preventDefault();
+    }
+    if (menuWillOpen) {
+      this.openRowMenu(row, event.clientX, event.clientY);
+    }
   }
 
   /** Mobile entry: press and hold a row for half a second */
   onRowTouchStart(event: TouchEvent, row: FileInfo): void {
-    if (!this.env.isMobile() || !this.canShowRowMenu()) {
+    if (!this.env.isMobile() || !this.canShowRowMenu(row)) {
       return;
     }
     const touch = event.touches[0];

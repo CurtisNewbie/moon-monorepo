@@ -159,7 +159,7 @@ describe("DroneTaskComponent search", () => {
       "remark",
       "operation",
     ];
-    const compact = ["thumbnail", "status", "dirName", "operation"];
+    const compact = ["thumbnail", "status", "dirName"];
 
     expect(component.displayedColumns).toEqual(wide);
 
@@ -352,9 +352,9 @@ describe("DroneTaskComponent directory tree", () => {
 });
 
 /**
- * A phone keeps one action inline (Open) and moves the rest into a menu opened
- * by holding the row. Rendered for real: the assertions are on the buttons and
- * menu items the user sees, not on the handlers alone.
+ * A phone keeps no action inline: holding a row opens a menu that carries them
+ * all, Open first. Rendered for real: the assertions are on the menu items the
+ * user sees, not on the handlers alone.
  */
 describe("DroneTaskComponent row actions", () => {
   let fixture: ComponentFixture<DroneTaskComponent>;
@@ -514,11 +514,16 @@ describe("DroneTaskComponent row actions", () => {
       .forEach((e) => e.remove());
   });
 
-  it("keeps only Open inline on a phone", () => {
+  it("drops the Operation column on a phone", () => {
     configure(true);
     showRows([PENDING, COMPLETED]);
 
-    expect(operationLabels()).toEqual([["open"], ["open"]]);
+    expect(component.displayedColumns).toEqual([
+      "thumbnail",
+      "status",
+      "dirName",
+    ]);
+    expect(fixture.nativeElement.querySelector("td.mat-column-operation")).toBeNull();
   });
 
   it("keeps every action inline on a wide screen", () => {
@@ -533,7 +538,7 @@ describe("DroneTaskComponent row actions", () => {
     ]);
   });
 
-  it("offers only Cancel for a pending row and calls it with the row's task", async () => {
+  it("offers Open and Cancel for a pending row and calls Cancel with the row's task", async () => {
     configure(true);
     showRows([PENDING]);
     const cancel = spyOn(component, "cancelTask");
@@ -542,28 +547,51 @@ describe("DroneTaskComponent row actions", () => {
 
     expect(component.rowMenuTrigger.menuOpen).toBe(true);
     expect(component.rowMenuPosition).toEqual({ x: "20px", y: "40px" });
-    expect(menuLabels()).toEqual(["cancel"]);
+    expect(menuLabels()).toEqual(["open", "cancel"]);
 
-    menuItems()[0].click();
+    menuItems()[1].click();
 
     expect(cancel).toHaveBeenCalledWith("t1");
   });
 
-  it("offers Cancel and Resolve for an unresolved row", async () => {
+  it("puts Open first and opens the task's directory", async () => {
+    configure(true);
+    showRows([PENDING]);
+    const gotoDir = spyOn(component, "gotoDir");
+
+    await holdRow(0);
+    menuItems()[0].click();
+
+    expect(gotoDir).toHaveBeenCalledWith("k1");
+  });
+
+  it("counts Open when deciding whether a row has a menu", () => {
+    configure(true);
+    spyOn(component, "canCancel").and.returnValue(false);
+    spyOn(component, "canResolve").and.returnValue(false);
+    spyOn(component, "canRetry").and.returnValue(false);
+    spyOn(component, "canUpdate").and.returnValue(false);
+
+    expect(
+      component.canShowRowMenu({ taskId: "t9", status: "PENDING", dirFileKey: "k9" })
+    ).toBe(true);
+  });
+
+  it("offers Open, Cancel and Resolve for an unresolved row", async () => {
     configure(true);
     showRows([UNRESOLVED]);
     const resolve = spyOn(component, "resolveTask");
 
     await holdRow(0);
 
-    expect(menuLabels()).toEqual(["cancel", "resolve"]);
+    expect(menuLabels()).toEqual(["open", "cancel", "resolve"]);
 
-    menuItems()[1].click();
+    menuItems()[2].click();
 
     expect(resolve).toHaveBeenCalledWith(UNRESOLVED);
   });
 
-  it("offers Resolve for a failed row", async () => {
+  it("offers Resolve for a failed row without a directory", async () => {
     configure(true);
     showRows([RESOLVE_FAILED]);
 
@@ -572,16 +600,16 @@ describe("DroneTaskComponent row actions", () => {
     expect(menuLabels()).toEqual(["resolve"]);
   });
 
-  it("offers Retry and Update for a completed row and calls the dialog handler", async () => {
+  it("offers Open, Retry and Update for a completed row and calls the dialog handler", async () => {
     configure(true);
     showRows([COMPLETED]);
     const update = spyOn(component, "clickUpdateTaskUrl");
 
     await holdRow(0);
 
-    expect(menuLabels()).toEqual(["retry", "update"]);
+    expect(menuLabels()).toEqual(["open", "retry", "update"]);
 
-    menuItems()[1].click();
+    menuItems()[2].click();
 
     expect(update).toHaveBeenCalledWith(COMPLETED);
   });
@@ -624,16 +652,15 @@ describe("DroneTaskComponent row actions", () => {
     expect(component.rowMenuTrigger.menuOpen).toBe(false);
   });
 
-  it("leaves a press that starts on the Open button to the button", async () => {
+  it("leaves a press that starts on a button to the button", async () => {
     configure(true);
     showRows([PENDING]);
-    const open = operationCell(rowElements()[0]).querySelector(
-      "button"
-    ) as HTMLElement;
+    const button = document.createElement("button");
+    rowElements()[0].appendChild(button);
 
     jasmine.clock().install();
     try {
-      dispatchTouch(open, "touchstart", 10, 10);
+      dispatchTouch(button, "touchstart", 10, 10);
       jasmine.clock().tick(600);
     } finally {
       jasmine.clock().uninstall();

@@ -97,12 +97,7 @@ export interface ResolveTaskReq {
   styleUrls: ["./drone-task.component.css"],
 })
 export class DroneTaskComponent implements OnInit, OnDestroy {
-  private readonly compactColumns = [
-    "thumbnail",
-    "status",
-    "dirName",
-    "operation",
-  ];
+  private readonly compactColumns = ["thumbnail", "status", "dirName"];
   private readonly wideColumns = [
     "thumbnail",
     "taskId",
@@ -483,7 +478,8 @@ export class DroneTaskComponent implements OnInit, OnDestroy {
   canShowRowMenu(u: ListedTask): boolean {
     return (
       !!u &&
-      (this.canCancel(u) ||
+      (!!u.dirFileKey ||
+        this.canCancel(u) ||
         this.canResolve(u) ||
         this.canRetry(u) ||
         this.canUpdate(u))
