@@ -10,7 +10,7 @@ A user looking at a Zip file on the manage-files page cannot see what is inside 
 
 A Zip file's expanded row gains a button that opens a dialog containing the archive's internal tree. The tree is read from the Zip central directory without decompressing any entry. Folders show their children. Files show their name and uncompressed size. The view is read-only. It writes no rows and extracts no files.
 
-The tree is capped at 32 levels and 10,000 entries. When a cap cuts the tree, the dialog says the tree was truncated and why. The response is cached for five minutes, so reopening the same archive is immediate.
+The tree is capped at 32 levels and 10,000 nodes. When a cap cuts the tree, the dialog says the tree was truncated and why. The response is cached for five minutes, so reopening the same archive is immediate.
 
 Only the file's uploader can open the preview.
 
@@ -24,7 +24,7 @@ Only the file's uploader can open the preview.
 6. As a moon user, I want explicit empty folders to appear, so that the tree shows the archive's full structure.
 7. As a moon user, I want a Zip packed on Windows, with backslash separators, to render as a normal tree, so that the preview does not depend on the packing platform.
 8. As a moon user, I want a deeply nested archive to show its first 32 levels and tell me the view was cut, so that the preview still opens.
-9. As a moon user, I want an archive with more than 10,000 entries to show the first 10,000 and tell me the view was cut, so that the dialog stays responsive.
+9. As a moon user, I want an archive with more than 10,000 nodes to show the first 10,000 and tell me the view was cut, so that the dialog stays responsive.
 10. As a moon user, I want to know when the tree is truncated, so that I do not mistake a partial tree for the whole archive.
 11. As a moon user, I want the preview to open in a dialog from the expanded row, so that I keep my place in the file list.
 12. As a moon user, I want the button to appear only on Zip files, so that I am not offered a preview that cannot work.
@@ -59,7 +59,7 @@ Only the file's uploader can open the preview.
 
 **Depth cap.** Depth counts path segments from the archive root, so `a/b/c.txt` sits at depth 3. Entries deeper than the configured maximum are left out and the response is marked truncated by depth.
 
-**Entry cap.** The maximum counts archive entries represented in the tree. A merged duplicate directory entry counts once. A repeated file entry counts once per node. Once the cap is reached, later entries are left out and the response is marked truncated by entry count. The total entry count is not reported. The response reports how many entries it included. The scan stops when the cap is reached.
+**Entry cap.** The cap counts every node created in the tree, and the synthetic root is not counted. That means file nodes, explicit folder nodes, and folders inferred from file paths. A merged duplicate directory entry creates one node and counts once. A repeated file entry creates one node each time. The scan stops at the first entry that would create a node beyond the cap; entries that create no node, such as a repeated folder or an entry deeper than the depth cap, do not stop it. Later entries are left out, the response is marked truncated by entry count, and the total is not reported. The response reports how many nodes it included.
 
 **Five-minute cache.** vfm caches the successful tree in Redis for five minutes, keyed by the stored file id. The cache read happens after the vfm row exists and belongs to the requester. Cached trees are returned unchanged, caps included. A failed preview is never cached. A cache read or write failure falls back to a direct mini-fstore call.
 
@@ -67,9 +67,9 @@ Only the file's uploader can open the preview.
 
 **No invalidation.** Stored file content is immutable for a given file id. Deleting or renaming the vfm row does not change the tree, and a deleted row fails the owner check before the cache is consulted. The five-minute expiry is the only bound on staleness.
 
-**Frontend entry point.** The expanded row of a Zip file gains a Show tree button. The button fetches the tree and opens a dialog on success. On failure, the dialog does not open and the error message appears in the existing snackbar. The dialog renders the tree with the app's existing tree control, shows file sizes with the existing size formatter, and displays the truncation notice when the response is truncated. Top-level nodes start expanded. Deeper folders start collapsed.
+**Frontend entry point.** The expanded row of a Zip file gains a Show tree button. The button fetches the tree and opens a dialog on success. On failure, the dialog does not open and the error message appears in the existing snackbar. The dialog renders the tree with the app's existing tree control, shows file sizes with the existing size formatter, displays the number of nodes the response included, and shows the truncation notice when the response is truncated. Top-level nodes start expanded. Deeper folders start collapsed.
 
-**Zip detection.** The frontend treats a file as a Zip when its name ends in `.zip`, matching the existing unpack action. The backend does not trust the suffix. mini-fstore attempts to read the archive and returns the illegal-format failure when it cannot.
+**Zip detection.** The frontend offers the button for files whose name ends in `.zip`; a folder whose name ends in `.zip` is excluded. The backend does not trust the suffix. mini-fstore attempts to read the archive and returns the illegal-format failure when it cannot.
 
 ## Contracts
 
@@ -83,17 +83,17 @@ The tree payload is JSON inside the response's data field. Node shape:
 |---|---|---|---|
 | `name` | string | no | One path segment, as stored in the archive. Empty for the root node only. |
 | `dir` | boolean | no | True for a folder node, false for a file node. |
-| `size` | integer | yes for folders, no for files | Uncompressed size in bytes, from the central directory. Absent on folder nodes. |
-| `children` | array of nodes | yes for files, no for folders | Ordered children. Absent on file nodes. |
+| `size` | integer | yes for folders and zero-byte files | Uncompressed size in bytes, from the central directory. Absent on folder nodes and zero-byte files. |
+| `children` | array of nodes | yes for files and empty folders | Ordered children. Absent on file nodes and empty folders. |
 
 Response data shape:
 
 | Field | Type | Nullable | Meaning |
 |---|---|---|---|
 | `tree` | node | no | Root folder node. |
-| `truncated` | boolean | no | True when a cap left entries out. |
+| `truncated` | boolean | no | True when a cap left nodes out. |
 | `truncatedReasons` | array of strings | no | Zero or more of `depth` and `entries`. Empty when not truncated. |
-| `includedEntries` | integer | no | Number of archive entries represented in the tree. |
+| `includedEntries` | integer | no | Number of tree nodes represented, root excluded. |
 
 ### Interfaces
 
@@ -117,7 +117,7 @@ mini-fstore endpoint, called by vfm:
 | Method and path | `POST /file/zip/tree` |
 | Request `fileId` | string, required. The stored file id. |
 | Request `maxDepth` | integer, zero means the server default. |
-| Request `maxEntries` | integer, zero means the server default. |
+| Request `maxEntries` | integer, zero means the server default. Maximum tree nodes represented. |
 | Success body | The response data shape above. |
 | Failure `FILE_NOT_FOUND` | No stored file for `fileId`, or it is logically deleted. |
 | Failure `ILLEGAL_FORMAT` | The file cannot be read as a Zip. |
@@ -129,7 +129,7 @@ mini-fstore applies no user authorization. vfm is the only caller and performs t
 | Key | Type | Default | Owner | Effect |
 |---|---|---|---|---|
 | `vfm.zip-tree.max-depth` | integer | 32 | vfm | Deepest path segment count included in a preview. Sent to mini-fstore with each request. |
-| `vfm.zip-tree.max-entries` | integer | 10000 | vfm | Maximum archive entries represented in a preview. Sent to mini-fstore with each request. |
+| `vfm.zip-tree.max-entries` | integer | 10000 | vfm | Maximum tree nodes represented in a preview. Sent to mini-fstore with each request. |
 
 mini-fstore falls back to 32 and 10000 when a request field is zero or absent, and owns no preview configuration. A changed value applies to the next cache miss. A cached tree keeps the caps it was built with until it expires.
 
@@ -139,11 +139,11 @@ A preview writes nothing to the database, to storage, or to any other service.
 
 A successful preview is returned only to the file's uploader.
 
-A tree never contains a node whose path exceeds the depth cap, and never represents more entries than the entry cap.
+A tree never contains a node whose path exceeds the depth cap, and never represents more nodes than the entry cap.
 
-When any entry is left out, `truncated` is true and `truncatedReasons` names at least one cause.
+When any node is left out, `truncated` is true and `truncatedReasons` names at least one cause.
 
-`includedEntries` equals the number of archive entries represented in the returned tree.
+`includedEntries` equals the number of tree nodes in the returned tree, root excluded.
 
 File sizes are uncompressed sizes from the central directory.
 
@@ -159,7 +159,7 @@ A preview attempt ends in one of five outcomes.
 
 **Built and cached.** The row checks pass and no cached tree exists. mini-fstore reads the archive, builds the tree, and vfm caches the result before returning it.
 
-**Truncated.** The archive is readable but a cap leaves entries out. The response is a success with `truncated` true, and it is cached like any other success.
+**Truncated.** The archive is readable but a cap leaves nodes out. The response is a success with `truncated` true, and it is cached like any other success.
 
 **Refused as unreadable.** mini-fstore cannot read the central directory. vfm returns `ILLEGAL_FORMAT`, and nothing is cached.
 
@@ -189,13 +189,13 @@ Good tests assert what a user or an operator can observe. That means the nodes a
 
 Four seams carry the feature.
 
-**Tree assembly.** A pure function in mini-fstore takes a flat entry list plus the two caps and returns the tree, the truncation flags, and the included count. Table tests cover nesting, both separators, leading separators, `..` and control characters, explicit directory entries, empty folders, repeated file entries, repeated directory entries, a file and folder at one path, ordering, the depth boundary, the entry boundary, and an empty archive. Prior art is the unpack plan tests.
+**Tree assembly.** A pure function in mini-fstore takes a flat entry list plus the two caps and returns the tree, the truncation flags, and the included count. Table tests cover nesting, both separators, leading separators, `..` and control characters, explicit directory entries, empty folders, repeated file entries, repeated directory entries, a file and folder at one path, ordering, the depth boundary, the node boundary with inferred folders, and an empty archive. Prior art is the unpack plan tests.
 
 **Archive reading.** One test builds a real Zip in a temporary directory with `archive/zip` and reads it through the new reader. It covers a normal tree, an explicit directory entry, a backslash path, a non-Zip file, a truncated file, and a cap small enough to truncate. Prior art is the unpack depth and temp directory tests.
 
 **vfm handler.** Tests replace the mini-fstore client and the cache with fakes. They cover the owner path, a non-owner, a missing row, a deleted row, a folder key, a cache hit that skips mini-fstore, a cache miss that passes the configured caps, a cache write failure that still returns the tree, a cache read failure that still returns the tree, and an illegal-format failure that is not cached.
 
-**Frontend.** A component test renders the dialog with a fake HTTP response and asserts the node names, the sizes, the truncation notice, the empty state, and the error snackbar. The existing manage-files spec asserts that the Show tree button appears only for `.zip` rows and opens the dialog with that row's file key. Prior art is the directory tree navigation spec and the manage-files spec.
+**Frontend.** The dialog component test renders the tree with a fixed response and asserts the node names, the sizes, the entry count, the truncation notice, the empty state, and crafted-name handling. The existing manage-files spec asserts that the Show tree button appears only for `.zip` rows, requests that row's file key, opens the dialog, and shows the snackbar on a refused or failed request. Prior art is the directory tree navigation spec and the manage-files spec.
 
 No full-stack integration test is needed. The archive reader test covers the real parser, and the handler tests cover the service boundary with fakes.
 
@@ -227,6 +227,6 @@ Showing duplicate file entries keeps the preview faithful to the archive. Mergin
 
 A crafted entry name is safe because the frontend renders names as text with Angular interpolation. The backend never turns a name into a path.
 
-The cached tree is at most 10,000 nodes, roughly one to two megabytes of JSON, stored as one Redis string with no compression. The entry cap is what bounds it. A cache fill uses the cache library's default lock, so concurrent first opens of the same large archive do not all read the archive.
+The cached tree is at most 10,000 nodes besides the root, roughly one to two megabytes of JSON, stored as one Redis string with no compression. The entry cap counts every node, including inferred folders, and is what bounds it. A cache fill reads the cache and writes the result with separate calls. The write takes the cache library's lock, but two concurrent first opens can both read the archive. That trade keeps a Redis failure from failing the preview, and the node cap bounds each read.
 
 The related specs are `.scratch/zip-unpack-tree/spec.md`, which covers unpacking into real folder rows, and `.scratch/dir-zip-download/spec.md`, which covers the opposite archive direction. Neither is changed by this feature.

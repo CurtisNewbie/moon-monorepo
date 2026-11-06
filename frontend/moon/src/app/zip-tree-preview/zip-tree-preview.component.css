@@ -1,0 +1,167 @@
+/*
+ * The dialog is a read-only view of one archive: a title that names the file,
+ * the entry count, an optional cut notice, and the tree. It follows the app's
+ * dark Material surface and uses only the theme's own text colours, so it
+ * reads the same in either language.
+ */
+
+.zip-tree-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zip-tree-title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zip-tree-meta {
+  margin-bottom: 8px;
+  font-size: 0.85em;
+  opacity: 0.6;
+}
+
+.zip-tree-truncated {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-left: 3px solid #ffc107;
+  border-radius: 2px;
+  background-color: rgba(255, 193, 7, 0.12);
+}
+
+.zip-tree-truncated > i {
+  margin-top: 2px;
+  color: #ffc107;
+}
+
+.zip-tree-truncated-title {
+  font-weight: 500;
+}
+
+.zip-tree-empty {
+  padding: 40px 8px;
+  text-align: center;
+  opacity: 0.65;
+}
+
+.zip-tree-empty > i {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 36px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.zip-tree-empty-title {
+  font-size: 1.05em;
+}
+
+.zip-tree-empty-hint {
+  margin-top: 4px;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+.zip-tree-row {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  border-radius: 4px;
+}
+
+/* The branch under an expanded folder is indented by the component, not the
+   page's list defaults, so a deep path keeps its names on a phone. A faint
+   guide line makes the depth scannable in a long archive. */
+.zip-tree ul {
+  margin: 0;
+  padding-left: 19px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  list-style: none;
+}
+
+.zip-tree li {
+  list-style: none;
+}
+
+/* Material gives a tree node 48px of air, which is more than a structure view
+   of ten thousand entries can afford; the row height above is the one used. */
+mat-tree-node,
+mat-nested-tree-node {
+  display: block;
+  min-height: 0;
+}
+
+.zip-tree-row:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* The left glyph column is one width for both kinds: the folder glyph doubles
+   as the toggle, and a file's icon sits in the same slot, so names line up
+   whatever the archive mixes at one level. */
+.zip-tree-toggle {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  line-height: 32px;
+}
+
+.zip-tree-toggle > i {
+  font-size: 17px;
+}
+
+.zip-tree-icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zip-tree-icon {
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.zip-tree-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zip-tree-size {
+  flex: none;
+  margin-left: 12px;
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+/* A phone carries the same tree, one step tighter, with a touch target tall
+   enough to open a folder reliably. */
+@media (max-width: 768px) {
+  .zip-tree-row {
+    min-height: 36px;
+  }
+
+  .zip-tree-toggle {
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+  }
+
+  .zip-tree-size {
+    margin-left: 8px;
+  }
+
+  .zip-tree ul {
+    padding-left: 13px;
+  }
+}

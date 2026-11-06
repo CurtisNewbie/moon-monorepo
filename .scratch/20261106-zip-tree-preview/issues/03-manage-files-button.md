@@ -8,15 +8,15 @@ All user-facing copy goes through the existing i18n mechanism, and the dialog is
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The Show tree button appears in the expanded row only for files whose name ends in `.zip`.
-- [ ] Clicking the button requests the preview for that file key and opens the dialog with the returned tree.
-- [ ] The dialog renders folder and file nodes with names and icons, file sizes through the existing size formatter, and no size on folders.
-- [ ] Top-level nodes start expanded and deeper folders start collapsed.
-- [ ] A truncated reply shows the cut notice with its causes. A complete reply shows no notice.
-- [ ] An archive with no entries shows an empty state.
-- [ ] A failed request shows the error in the snackbar and opens no dialog.
-- [ ] Entry names render as text, never as markup.
-- [ ] Copy is added through the i18n dictionary and the dialog uses the responsive size helper.
-- [ ] Component tests cover rendering, sizes, truncation, empty state, and error handling. The manage-files spec covers button visibility and opening the dialog with the row's file key.
+- [x] The Show tree button appears in the expanded row only for files whose name ends in `.zip`.
+- [x] Clicking the button requests the preview for that file key and opens the dialog with the returned tree.
+- [x] The dialog renders folder and file nodes with names and icons, file sizes through the existing size formatter, and no size on folders.
+- [x] Top-level nodes start expanded and deeper folders start collapsed.
+- [x] A truncated reply shows the cut notice with its causes. A complete reply shows no notice.
+- [x] An archive with no entries shows an empty state.
+- [x] A failed request shows the error in the snackbar and opens no dialog.
+- [x] Entry names render as text, never as markup.
+- [x] Copy is added through the i18n dictionary and the dialog uses the responsive size helper.
+- [x] Component tests cover rendering, sizes, truncation, empty state, and error handling. The manage-files spec covers button visibility and opening the dialog with the row's file key.

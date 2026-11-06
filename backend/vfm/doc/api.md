@@ -20,6 +20,7 @@
 - [POST /open/api/file/token/generate](#post-openapifiletokengenerate)
 - [POST /open/api/file/dir/zip](#post-openapifiledirzip)
 - [POST /open/api/file/unpack](#post-openapifileunpack)
+- [GET /open/api/file/zip/tree](#get-openapifileziptree)
 - [GET /open/api/file/token/qrcode](#get-openapifiletokenqrcode)
 - [GET /open/api/vfolder/brief/owned](#get-openapivfolderbriefowned)
 - [POST /open/api/vfolder/list](#post-openapivfolderlist)
@@ -1662,6 +1663,114 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## GET /open/api/file/zip/tree
+
+- Description: User preview a zip file's folder and file tree
+- Bound to Resource: `"manage-files"`
+- Query Parameter:
+  - "fileKey": vfm file uuid of the zip file
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (ZipTreeResp) response data
+      - "tree": (ZipTreeNode) root folder node, its name is empty
+        - "name": (string) one path segment, empty for the root node only
+        - "dir": (bool) true for a folder node, false for a file node
+        - "size": (int64) uncompressed size in bytes, files only
+        - "children": ([]*api.ZipTreeNode) ordered children, folders only
+      - "truncated": (bool) true when a cap left nodes out
+      - "truncatedReasons": ([]string) zero or more of 'depth' and 'entries', empty when not truncated
+      - "includedEntries": (int) number of tree nodes represented in the tree
+- cURL:
+  ```sh
+  curl -X GET 'http://localhost:8086/open/api/file/zip/tree?fileKey='
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type ZipTreeResp struct {
+  	Tree ZipTreeNode `json:"tree"`
+  	Truncated bool `json:"truncated"` // true when a cap left nodes out
+  	TruncatedReasons []string `json:"truncatedReasons"` // zero or more of 'depth' and 'entries', empty when not truncated
+  	IncludedEntries int `json:"includedEntries"` // number of tree nodes represented in the tree
+  }
+
+  type ZipTreeNode struct {
+  	Name string `json:"name"`      // one path segment, empty for the root node only
+  	Dir bool `json:"dir"`          // true for a folder node, false for a file node
+  	Size int64 `json:"size,omitempty"` // uncompressed size in bytes, files only
+  	Children []*ZipTreeNode `json:"children,omitempty"` // ordered children, folders only
+  }
+
+  // User preview a zip file's folder and file tree
+  func ApiZipTreePreview(rail miso.Rail, fileKey string) (ZipTreeResp, error) {
+  	var res miso.GnResp[ZipTreeResp]
+  	err := miso.NewDynClient(rail, "/open/api/file/zip/tree", "vfm").
+  		AddQuery("fileKey", fileKey).
+  		Get().
+  		Json(&res)
+  	if err != nil {
+  		var dat ZipTreeResp
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: ZipTreeResp;
+  }
+
+  export interface ZipTreeResp {
+    tree?: ZipTreeNode;
+    truncated?: boolean;           // true when a cap left nodes out
+    truncatedReasons?: string[];   // zero or more of 'depth' and 'entries', empty when not truncated
+    includedEntries?: number;      // number of tree nodes represented in the tree
+  }
+
+  export interface ZipTreeNode {
+    name?: string;                 // one path segment, empty for the root node only
+    dir?: boolean;                 // true for a folder node, false for a file node
+    size?: number;                 // uncompressed size in bytes, files only
+    children?: ZipTreeNode[];      // ordered children, folders only
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  zipTreePreview() {
+    let fileKey: any | null = null;
+    this.http.get<any>(`/vfm/open/api/file/zip/tree?fileKey=${fileKey}`)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: ZipTreeResp = resp.data;
         },
         error: (err) => {
           console.log(err)

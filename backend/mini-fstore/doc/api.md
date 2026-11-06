@@ -12,6 +12,7 @@
 - [GET /file/direct](#get-filedirect)
 - [DELETE /file](#delete-file)
 - [POST /file/unzip](#post-fileunzip)
+- [POST /file/zip/tree](#post-fileziptree)
 - [POST /backup/file/list](#post-backupfilelist)
 - [GET /backup/file/raw](#get-backupfileraw)
 - [POST /maintenance/remove-deleted](#post-maintenanceremove-deleted)
@@ -644,6 +645,7 @@
 - Description: Unzip archive, upload all the zip entries, and reply the final results back to the caller asynchronously
 - JSON Request:
     - "fileId": (string) file_id of zip file. Required.
+    - "maxDepth": (int) maximum depth of the archive's tree, zero means the server default
     - "replyToEventBus": (string) name of the rabbitmq exchange to reply to, routing_key is '#'. Required.
     - "extra": (string) extra information that will be passed around for the caller
 - JSON Response:
@@ -654,13 +656,14 @@
   ```sh
   curl -X POST 'http://localhost:8084/file/unzip' \
     -H 'Content-Type: application/json' \
-    -d '{"extra":"","fileId":"","replyToEventBus":""}'
+    -d '{"extra":"","fileId":"","maxDepth":0,"replyToEventBus":""}'
   ```
 
 - Miso HTTP Client (experimental, demo may not work):
   ```go
   type UnzipFileReq struct {
   	FileId string `json:"fileId"`  // file_id of zip file. Required.
+  	MaxDepth int `json:"maxDepth"` // maximum depth of the archive's tree, zero means the server default
   	ReplyToEventBus string `json:"replyToEventBus"` // name of the rabbitmq exchange to reply to, routing_key is '#'. Required.
   	Extra string `json:"extra"`    // extra information that will be passed around for the caller
   }
@@ -682,6 +685,7 @@
   ```ts
   export interface UnzipFileReq {
     fileId?: string;               // file_id of zip file. Required.
+    maxDepth?: number;             // maximum depth of the archive's tree, zero means the server default
     replyToEventBus?: string;      // name of the rabbitmq exchange to reply to, routing_key is '#'. Required.
     extra?: string;                // extra information that will be passed around for the caller
   }
@@ -712,6 +716,128 @@
             this.snackBar.open(resp.msg, "ok", { duration: 6000 })
             return;
           }
+        },
+        error: (err) => {
+          console.log(err)
+          this.snackBar.open("Request failed, unknown error", "ok", { duration: 3000 })
+        }
+      });
+  }
+  ```
+
+## POST /file/zip/tree
+
+- Description: Read a stored zip file's folder and file tree from its central directory. No entry is decompressed and nothing is written. The depth and entry caps fall back to the server defaults when zero.
+- JSON Request:
+    - "fileId": (string) file_id of the zip file
+    - "maxDepth": (int) maximum path segment depth included, zero means the server default
+    - "maxEntries": (int) maximum tree nodes represented, zero means the server default
+- JSON Response:
+    - "errorCode": (string) error code
+    - "msg": (string) message
+    - "error": (bool) whether the request was successful
+    - "data": (ZipTreeResp) response data
+      - "tree": (ZipTreeNode) root folder node, its name is empty
+        - "name": (string) one path segment, empty for the root node only
+        - "dir": (bool) true for a folder node, false for a file node
+        - "size": (int64) uncompressed size in bytes, files only
+        - "children": ([]*api.ZipTreeNode) ordered children, folders only
+      - "truncated": (bool) true when a cap left nodes out
+      - "truncatedReasons": ([]string) zero or more of 'depth' and 'entries', empty when not truncated
+      - "includedEntries": (int) number of tree nodes represented in the tree
+- cURL:
+  ```sh
+  curl -X POST 'http://localhost:8084/file/zip/tree' \
+    -H 'Content-Type: application/json' \
+    -d '{"fileId":"","maxDepth":0,"maxEntries":0}'
+  ```
+
+- Miso HTTP Client (experimental, demo may not work):
+  ```go
+  type ZipTreeReq struct {
+  	FileId string `json:"fileId"`  // file_id of the zip file
+  	MaxDepth int `json:"maxDepth"` // maximum path segment depth included, zero means the server default
+  	MaxEntries int `json:"maxEntries"` // maximum tree nodes represented, zero means the server default
+  }
+
+  type ZipTreeResp struct {
+  	Tree ZipTreeNode `json:"tree"`
+  	Truncated bool `json:"truncated"` // true when a cap left nodes out
+  	TruncatedReasons []string `json:"truncatedReasons"` // zero or more of 'depth' and 'entries', empty when not truncated
+  	IncludedEntries int `json:"includedEntries"` // number of tree nodes represented in the tree
+  }
+
+  type ZipTreeNode struct {
+  	Name string `json:"name"`      // one path segment, empty for the root node only
+  	Dir bool `json:"dir"`          // true for a folder node, false for a file node
+  	Size int64 `json:"size,omitempty"` // uncompressed size in bytes, files only
+  	Children []*ZipTreeNode `json:"children,omitempty"` // ordered children, folders only
+  }
+
+  // Read a stored zip file's folder and file tree from its central directory. No entry is decompressed and nothing is written. The depth and entry caps fall back to the server defaults when zero.
+  func ApiZipTree(rail miso.Rail, req ZipTreeReq) (ZipTreeResp, error) {
+  	var res miso.GnResp[ZipTreeResp]
+  	err := miso.NewDynClient(rail, "/file/zip/tree", "fstore").
+  		PostJson(req).
+  		Json(&res)
+  	if err != nil {
+  		var dat ZipTreeResp
+  		return dat, err
+  	}
+  	return res.Data, nil
+  }
+  ```
+
+- JSON Request / Response Object In TypeScript:
+  ```ts
+  export interface ZipTreeReq {
+    fileId?: string;               // file_id of the zip file
+    maxDepth?: number;             // maximum path segment depth included, zero means the server default
+    maxEntries?: number;           // maximum tree nodes represented, zero means the server default
+  }
+
+  export interface Resp {
+    errorCode?: string;            // error code
+    msg?: string;                  // message
+    error?: boolean;               // whether the request was successful
+    data?: ZipTreeResp;
+  }
+
+  export interface ZipTreeResp {
+    tree?: ZipTreeNode;
+    truncated?: boolean;           // true when a cap left nodes out
+    truncatedReasons?: string[];   // zero or more of 'depth' and 'entries', empty when not truncated
+    includedEntries?: number;      // number of tree nodes represented in the tree
+  }
+
+  export interface ZipTreeNode {
+    name?: string;                 // one path segment, empty for the root node only
+    dir?: boolean;                 // true for a folder node, false for a file node
+    size?: number;                 // uncompressed size in bytes, files only
+    children?: ZipTreeNode[];      // ordered children, folders only
+  }
+  ```
+
+- Angular HttpClient Demo:
+  ```ts
+  import { MatSnackBar } from "@angular/material/snack-bar";
+  import { HttpClient } from "@angular/common/http";
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {}
+
+  zipTree() {
+    let req: ZipTreeReq | null = null;
+    this.http.post<any>(`/fstore/file/zip/tree`, req)
+      .subscribe({
+        next: (resp) => {
+          if (resp.error) {
+            this.snackBar.open(resp.msg, "ok", { duration: 6000 })
+            return;
+          }
+          let dat: ZipTreeResp = resp.data;
         },
         error: (err) => {
           console.log(err)

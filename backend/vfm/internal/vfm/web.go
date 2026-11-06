@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 
+	fstore "github.com/curtisnewbie/mini-fstore/api"
 	"github.com/curtisnewbie/miso/errs"
 	"github.com/curtisnewbie/miso/flow"
 	"github.com/curtisnewbie/miso/middleware/redis"
@@ -272,6 +273,19 @@ func ApiGenDirBundleKey(rail miso.Rail, db *gorm.DB, req GenerateDirZipReq, user
 func ApiUnpackZip(rail miso.Rail, db *gorm.DB, req UnpackZipReq, user flow.User) error {
 	err := UnpackZip(rail, db, user, req)
 	return err
+}
+
+type ZipTreePreviewReq struct {
+	FileKey string `form:"fileKey" json:"fileKey" valid:"notEmpty:fileKey is required" desc:"vfm file uuid of the zip file"`
+}
+
+// Preview a zip file's internal tree.
+//
+//   - misoapi-http: GET /open/api/file/zip/tree
+//   - misoapi-desc: User preview a zip file's folder and file tree
+//   - misoapi-resource: ref(ResManageFiles)
+func ApiZipTreePreview(rail miso.Rail, db *gorm.DB, req ZipTreePreviewReq, user flow.User) (fstore.ZipTreeResp, error) {
+	return PreviewZipTree(rail, db, req.FileKey, user)
 }
 
 // Generate file token in QRCode.

@@ -363,6 +363,12 @@
                                                 (click)="unpack(curr)"><i
                                                     class="bi bi-box-seam icon-button-large"></i></button>
                                         </div>
+                                        <div *ngIf="canPreviewZipTree(curr)">
+                                            <button mat-icon-button class="zip-tree-btn"
+                                                [matTooltip]="'manage-files' | trl:'showZipTree'"
+                                                (click)="previewZipTree(curr)"><i
+                                                    class="bi bi-list-nested icon-button-large"></i></button>
+                                        </div>
                                     </ng-container>
                                 </div>
                             </div>

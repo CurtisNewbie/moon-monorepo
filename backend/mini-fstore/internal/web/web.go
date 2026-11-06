@@ -355,6 +355,15 @@ func ApiUnzipFile(inb *miso.Inbound, req api.UnzipFileReq) (any, error) {
 	return nil, fstore.TriggerUnzipFilePipeline(rail, mysql.GetMySQL(), req)
 }
 
+// Read a zip file's internal tree.
+//
+//   - misoapi-http: POST /file/zip/tree
+//   - misoapi-desc: Read a stored zip file's folder and file tree from its central directory. No entry is decompressed
+//     and nothing is written. The depth and entry caps fall back to the server defaults when zero.
+func ApiZipTree(inb *miso.Inbound, req api.ZipTreeReq) (api.ZipTreeResp, error) {
+	return fstore.ZipTree(inb.Rail(), mysql.GetMySQL(), req.FileId, req.MaxDepth, req.MaxEntries)
+}
+
 // List files (for backup).
 //
 //   - misoapi-http: POST /backup/file/list

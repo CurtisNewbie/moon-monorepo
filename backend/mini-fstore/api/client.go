@@ -109,3 +109,14 @@ func DownloadFileDirect(rail miso.Rail, fileId string, writer io.Writer) error {
 		WriteTo(writer)
 	return err
 }
+
+// ZipTree reads a stored zip file's folder and file tree from its central
+// directory. The response error, when present, keeps mini-fstore's code
+// (FILE_NOT_FOUND, ILLEGAL_FORMAT).
+func ZipTree(rail miso.Rail, req ZipTreeReq) (ZipTreeResp, error) {
+	var r miso.GnResp[ZipTreeResp]
+	err := miso.NewDynClient(rail, "/file/zip/tree", "fstore").
+		PostJson(req).
+		Json(&r)
+	return r.Data, err
+}

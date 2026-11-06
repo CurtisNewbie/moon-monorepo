@@ -4,6 +4,7 @@ import { Observable } from "rxjs";
 import { environment } from "src/environments/environment";
 import { UploadFileParam } from "src/common/file-info";
 import { Resp } from "src/common/resp";
+import { ZipTreePreview } from "src/common/zip-tree";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 export enum TokenType {
@@ -41,6 +42,16 @@ export class FileInfoService {
       fileKey: fileKey,
       tokenType: tokenType,
     });
+  }
+
+  /**
+   * Read the folder and file structure inside a Zip file, without extracting
+   * anything. Only the file's uploader is served.
+   */
+  public fetchZipTree(fileKey: string): Observable<Resp<ZipTreePreview>> {
+    return this.http.get<Resp<ZipTreePreview>>(
+      `vfm/open/api/file/zip/tree?fileKey=${encodeURIComponent(fileKey)}`
+    );
   }
 
   public jumpToDownloadUrl(fileKey: string): void {

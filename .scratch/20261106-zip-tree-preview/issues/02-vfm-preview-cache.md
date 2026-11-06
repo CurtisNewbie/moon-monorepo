@@ -8,13 +8,13 @@ mini-fstore's `FILE_NOT_FOUND` and `ILLEGAL_FORMAT` failures reach the caller as
 
 **Blocked by:** 01, Read a Zip's tree in mini-fstore
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The endpoint requires a logged-in session and accepts a vfm file key.
-- [ ] Only the file's uploader is served. A non-owner and a folder key return `NOT_PERMITTED`, a missing row returns `FILE_NOT_FOUND`, and a deleted row returns `FILE_DELETED`.
-- [ ] `vfm.zip-tree.max-depth` defaults to 32 and `vfm.zip-tree.max-entries` defaults to 10000. Both are sent on every mini-fstore request.
-- [ ] A successful reply is cached for five minutes under the stored file id. A cache hit returns the cached tree without calling mini-fstore.
-- [ ] A failed preview is not cached.
-- [ ] A cache read or write failure still returns a freshly built tree.
-- [ ] mini-fstore's missing-file and illegal-format failures reach the caller unchanged.
-- [ ] Handler tests with fakes cover owner, non-owner, missing row, deleted row, folder key, cache hit, cache miss with caps, cache read failure, cache write failure, and illegal format not cached.
+- [x] The endpoint requires a logged-in session and accepts a vfm file key.
+- [x] Only the file's uploader is served. A non-owner and a folder key return `NOT_PERMITTED`, a missing row returns `FILE_NOT_FOUND`, and a deleted row returns `FILE_DELETED`.
+- [x] `vfm.zip-tree.max-depth` defaults to 32 and `vfm.zip-tree.max-entries` defaults to 10000. Both are sent on every mini-fstore request.
+- [x] A successful reply is cached for five minutes under the stored file id. A cache hit returns the cached tree without calling mini-fstore.
+- [x] A failed preview is not cached.
+- [x] A cache read or write failure still returns a freshly built tree.
+- [x] mini-fstore's missing-file and illegal-format failures reach the caller unchanged.
+- [x] Handler tests with fakes cover owner, non-owner, missing row, deleted row, folder key, cache hit, cache miss with caps, cache read failure, cache write failure, and illegal format not cached.

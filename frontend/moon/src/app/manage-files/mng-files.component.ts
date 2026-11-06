@@ -48,6 +48,7 @@ import { CdkDragDrop, CdkDragMove, moveItemInArray } from "@angular/cdk/drag-dro
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { BrowseHistoryRecorder } from "src/common/browse-history";
 import { DirTreeNavComponent } from "../dir-tree-nav/dir-tree-nav.component";
+import { ZipTreePreviewComponent } from "../zip-tree-preview/zip-tree-preview.component";
 import { copyToClipboard } from "src/common/clipboard";
 import { Env } from "src/common/env-util";
 import { FileBookmark } from "src/common/file-bookmark";
@@ -1645,6 +1646,38 @@ export class MngFilesComponent implements OnInit, OnDestroy, DoCheck {
 
   canUnpack(fi: FileInfo): boolean {
     return fi.name && fi.name.toLowerCase().endsWith(".zip");
+  }
+
+  /** A Zip file's tree can be previewed; the suffix test matches unpacking and isFile excludes a folder. */
+  canPreviewZipTree(fi: FileInfo): boolean {
+    return !!fi && fi.isFile && !!fi.name && fi.name.toLowerCase().endsWith(".zip");
+  }
+
+  /** Read the archive's structure and show it, without extracting anything. */
+  previewZipTree(fi: FileInfo): void {
+    if (!fi) {
+      return;
+    }
+    this.fileService.fetchZipTree(fi.uuid).subscribe({
+      next: (resp) => {
+        if (resp.error) {
+          this.snackBar.open(resp.msg, "ok", { duration: 6000 });
+          return;
+        }
+        this.dialog.open(ZipTreePreviewComponent, {
+          ...dialogSize(720),
+          data: { name: fi.name, preview: resp.data },
+        });
+      },
+      error: (err) => {
+        console.log(err);
+        this.snackBar.open(
+          this.i18n.trl("manage-files", "requestFailedUnknownError"),
+          "ok",
+          { duration: 3000 }
+        );
+      },
+    });
   }
 
   unpack(fi: FileInfo) {

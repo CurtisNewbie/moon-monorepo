@@ -36,6 +36,7 @@ import {
 import { FileInfoService } from '../file-info.service';
 import { ImageTooltipDirective } from '../shared/directives/image-tooltip.directive';
 import { TrlPipe } from '../trl.pipe';
+import { ZipTreePreviewComponent } from '../zip-tree-preview/zip-tree-preview.component';
 import { MngFilesComponent } from './mng-files.component';
 
 /** Placeholder for the paginator child: the folder preview tests render no rows through it. */
@@ -2210,6 +2211,192 @@ describe('MngFilesComponent compact row menu actions', () => {
     ) as HTMLElement;
     expect(icon).not.toBeNull();
     expect(icon.closest('div').classList).toContain('only-compact');
+  });
+});
+
+/**
+ * A Zip row's expanded panel offers the archive tree in a dialog. Rendered for
+ * real, so the assertions are on the button the user sees and on the dialog
+ * the page asks Material to open.
+ */
+describe('MngFilesComponent zip tree preview', () => {
+  let fixture: ComponentFixture<MngFilesComponent>;
+  let component: MngFilesComponent;
+  let fileService: {
+    fetchZipTree: jasmine.Spy;
+    jumpToDownloadUrl: jasmine.Spy;
+    generateFileTempToken: jasmine.Spy;
+  };
+  let dialog: { open: jasmine.Spy };
+  let snackBar: { open: jasmine.Spy };
+  let mobile$: BehaviorSubject<boolean>;
+
+  const ZIP = imgFile('zip-1', 'photos.zip');
+  const PNG = imgFile('png-1', 'photo.png');
+  const DIR = { uuid: 'dir-1', name: 'Album', isDir: true } as FileInfo;
+
+  const PREVIEW = {
+    tree: {
+      name: '',
+      dir: true,
+      children: [{ name: 'readme.txt', dir: false, size: 2048 }],
+    },
+    truncated: false,
+    truncatedReasons: [],
+    includedEntries: 1,
+  };
+
+  beforeEach(() => {
+    mobile$ = new BehaviorSubject<boolean>(false);
+    fileService = {
+      fetchZipTree: jasmine
+        .createSpy('fetchZipTree')
+        .and.returnValue(of({ error: false, data: PREVIEW })),
+      jumpToDownloadUrl: jasmine.createSpy('jumpToDownloadUrl'),
+      generateFileTempToken: jasmine.createSpy('generateFileTempToken'),
+    };
+    dialog = { open: jasmine.createSpy('open').and.returnValue({ afterClosed: () => of(true) }) };
+    snackBar = { open: jasmine.createSpy('open') };
+
+    TestBed.configureTestingModule({
+      declarations: [
+        MngFilesComponent,
+        TrlPipe,
+        ImageTooltipDirective,
+        StubPaginatorComponent,
+        StubFileTrayComponent,
+      ],
+      imports: [
+        CommonModule,
+        FormsModule,
+        NoopAnimationsModule,
+        MatBadgeModule,
+        MatButtonModule,
+        MatCardModule,
+        MatCheckboxModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
+        MatSelectModule,
+        MatTableModule,
+        MatTooltipModule,
+        DragDropModule,
+      ],
+      providers: [
+        { provide: I18n, useValue: { trl: (mod: string, key: string) => key } },
+        { provide: MatDialog, useValue: dialog },
+        { provide: FileInfoService, useValue: fileService },
+        { provide: NavigationService, useValue: { navigateTo: () => undefined } },
+        { provide: HttpClient, useValue: new FakeHttp() },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } },
+        { provide: Location, useValue: {} },
+        { provide: MatSnackBar, useValue: snackBar },
+        { provide: BrowseHistoryRecorder, useValue: { record: () => undefined } },
+        { provide: FileBookmark, useValue: { isEmpty: () => true, has: () => false } },
+        {
+          provide: Env,
+          useValue: {
+            isMobile: () => mobile$.value,
+            mobile$: mobile$.asObservable(),
+          },
+        },
+      ],
+    });
+
+    fixture = TestBed.createComponent(MngFilesComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    fixture.destroy();
+    document
+      .querySelectorAll('.cdk-overlay-container')
+      .forEach((e) => e.remove());
+  });
+
+  function expand(row: FileInfo): void {
+    component.curr = { ...row };
+    fixture.detectChanges();
+  }
+
+  function showTreeButton(): HTMLButtonElement {
+    return fixture.nativeElement.querySelector(
+      'tr.detail-row button.zip-tree-btn'
+    ) as HTMLButtonElement;
+  }
+
+  it('offers the tree on a Zip file', () => {
+    component.fileInfoList = [ZIP];
+    expand(ZIP);
+
+    expect(showTreeButton()).not.toBeNull();
+  });
+
+  it('offers no tree on a file that is not a Zip', () => {
+    component.fileInfoList = [PNG];
+    expand(PNG);
+
+    expect(showTreeButton()).toBeNull();
+  });
+
+  it('offers no tree on a directory whose name ends in zip', () => {
+    const zipDir = { uuid: 'dir-2', name: 'archive.zip', isDir: true } as FileInfo;
+    component.fileInfoList = [zipDir];
+    expand(zipDir);
+
+    expect(showTreeButton()).toBeNull();
+  });
+
+  it('requests the preview for the expanded row and opens the dialog with it', () => {
+    component.fileInfoList = [ZIP];
+    expand(ZIP);
+
+    showTreeButton().click();
+    fixture.detectChanges();
+
+    expect(fileService.fetchZipTree).toHaveBeenCalledWith('zip-1');
+    expect(dialog.open).toHaveBeenCalledTimes(1);
+    const [componentType, options] = dialog.open.calls.mostRecent().args;
+    expect(componentType).toBe(ZipTreePreviewComponent);
+    expect(options.data).toEqual({ name: 'photos.zip', preview: PREVIEW });
+    expect(options.width).toBe('min(720px, 95vw)');
+    expect(options.maxWidth).toBe('95vw');
+  });
+
+  it('shows a refused preview in the snackbar and opens no dialog', () => {
+    fileService.fetchZipTree.and.returnValue(
+      of({ error: true, msg: 'Unsupported archive' })
+    );
+    component.fileInfoList = [ZIP];
+    expand(ZIP);
+
+    showTreeButton().click();
+    fixture.detectChanges();
+
+    expect(snackBar.open).toHaveBeenCalledWith('Unsupported archive', 'ok', {
+      duration: 6000,
+    });
+    expect(dialog.open).not.toHaveBeenCalled();
+  });
+
+  it('shows a failed preview request in the snackbar and opens no dialog', () => {
+    fileService.fetchZipTree.and.returnValue(
+      throwError(new Error('preview request failed'))
+    );
+    component.fileInfoList = [ZIP];
+    expand(ZIP);
+
+    showTreeButton().click();
+    fixture.detectChanges();
+
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'requestFailedUnknownError',
+      'ok',
+      { duration: 3000 }
+    );
+    expect(dialog.open).not.toHaveBeenCalled();
   });
 });
 

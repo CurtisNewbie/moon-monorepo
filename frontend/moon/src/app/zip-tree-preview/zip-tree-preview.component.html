@@ -1,0 +1,56 @@
+<h2 mat-dialog-title class="zip-tree-title">
+    <i class="bi bi-file-zip"></i>
+    <span class="zip-tree-title-text">{{ data.name }}</span>
+</h2>
+
+<div mat-dialog-content>
+    <div class="zip-tree-meta">
+        {{'zip-tree-preview' | trl:'entries':'count':data.preview.includedEntries}}
+    </div>
+
+    <div *ngIf="data.preview.truncated" class="zip-tree-truncated" role="status">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+            <div class="zip-tree-truncated-title">{{'zip-tree-preview' | trl:'truncatedTitle'}}</div>
+            <div *ngIf="hasReason(depthReason)">{{'zip-tree-preview' | trl:'truncatedDepth'}}</div>
+            <div *ngIf="hasReason(entriesReason)">{{'zip-tree-preview' | trl:'truncatedEntries'}}</div>
+        </div>
+    </div>
+
+    <div *ngIf="!dataSource.data.length" class="zip-tree-empty">
+        <i class="bi bi-inbox"></i>
+        <div class="zip-tree-empty-title">{{'zip-tree-preview' | trl:'emptyTitle'}}</div>
+        <div class="zip-tree-empty-hint">{{'zip-tree-preview' | trl:'emptyHint'}}</div>
+    </div>
+
+    <mat-tree *ngIf="dataSource.data.length" class="zip-tree" [dataSource]="dataSource"
+        [treeControl]="treeControl">
+        <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
+            <div class="zip-tree-row">
+                <button mat-icon-button class="zip-tree-toggle" matTreeNodeToggle
+                    [attr.aria-label]="'zip-tree-preview' | trl:'toggleFolder'"
+                    [matTooltip]="'zip-tree-preview' | trl:'toggleFolder'">
+                    <i class="bi" [ngClass]="treeControl.isExpanded(node) ? 'bi-folder2-open' : 'bi-folder-fill'"></i>
+                </button>
+                <span class="zip-tree-name" [attr.title]="node.name">{{ node.name }}</span>
+            </div>
+            <ul [class.tree-invisible]="!treeControl.isExpanded(node)">
+                <ng-container matTreeNodeOutlet></ng-container>
+            </ul>
+        </mat-nested-tree-node>
+
+        <mat-tree-node *matTreeNodeDef="let node">
+            <div class="zip-tree-row">
+                <span class="zip-tree-toggle zip-tree-icon-slot">
+                    <i class="bi zip-tree-icon" [ngClass]="iconOf(node)"></i>
+                </span>
+                <span class="zip-tree-name" [attr.title]="node.name">{{ node.name }}</span>
+                <span *ngIf="!node.dir" class="zip-tree-size">{{ sizeOf(node) }}</span>
+            </div>
+        </mat-tree-node>
+    </mat-tree>
+</div>
+
+<div mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="true">{{'zip-tree-preview' | trl:'close'}}</button>
+</div>

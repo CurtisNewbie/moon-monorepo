@@ -14,16 +14,16 @@ A missing or logically deleted stored file returns `FILE_NOT_FOUND`. A file that
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The endpoint reads the central directory without decompressing an entry, creating a temporary file, or writing anywhere.
-- [ ] The reply is one root folder node with an empty name, containing file nodes with uncompressed sizes and folder nodes with children and no size.
-- [ ] Siblings are folders first, then files, each group case-insensitive by name. Duplicate names keep archive order.
-- [ ] Explicit directory entries become folder nodes. Inferred parents and repeated directory entries merge. Repeated file entries appear once each. A file and folder at one path appear as two nodes.
-- [ ] `/` and `\` both act as separators. Leading separators and empty segments are ignored. All other characters are kept and returned as text.
-- [ ] Entries deeper than the request maximum are omitted and `truncated` is true with `depth` in `truncatedReasons`.
-- [ ] No more than the request maximum entries are represented. The scan stops at the cap, `truncated` is true with `entries` in `truncatedReasons`, and `includedEntries` matches the reply.
-- [ ] A zero or absent depth and entry count fall back to 32 and 10000.
-- [ ] A missing or logically deleted stored file returns `FILE_NOT_FOUND`. An unreadable Zip returns `ILLEGAL_FORMAT`.
-- [ ] The pure tree builder is covered by table tests. They cover nesting, both separators, leading separators, `..` and control characters, explicit folders, empty folders, repeated files, repeated folders, file and folder at one path, ordering, depth boundary, entry boundary, empty archive.
-- [ ] One test builds a real Zip and covers a normal tree, an explicit directory entry, a backslash path, a non-Zip file, a truncated file, and a cap small enough to truncate.
+- [x] The endpoint reads the central directory without decompressing an entry, creating a temporary file, or writing anywhere.
+- [x] The reply is one root folder node with an empty name, containing file nodes with uncompressed sizes and folder nodes with children and no size.
+- [x] Siblings are folders first, then files, each group case-insensitive by name. Duplicate names keep archive order.
+- [x] Explicit directory entries become folder nodes. Inferred parents and repeated directory entries merge. Repeated file entries appear once each. A file and folder at one path appear as two nodes.
+- [x] `/` and `\` both act as separators. Leading separators and empty segments are ignored. All other characters are kept and returned as text.
+- [x] Entries deeper than the request maximum are omitted and `truncated` is true with `depth` in `truncatedReasons`.
+- [x] No more than the request maximum entries are represented. The scan stops at the cap, `truncated` is true with `entries` in `truncatedReasons`, and `includedEntries` matches the reply.
+- [x] A zero or absent depth and entry count fall back to 32 and 10000.
+- [x] A missing or logically deleted stored file returns `FILE_NOT_FOUND`. An unreadable Zip returns `ILLEGAL_FORMAT`.
+- [x] The pure tree builder is covered by table tests. They cover nesting, both separators, leading separators, `..` and control characters, explicit folders, empty folders, repeated files, repeated folders, file and folder at one path, ordering, depth boundary, entry boundary, empty archive.
+- [x] One test builds a real Zip and covers a normal tree, an explicit directory entry, a backslash path, a non-Zip file, a truncated file, and a cap small enough to truncate.

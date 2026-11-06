@@ -118,6 +118,7 @@ import {
   FapeGalleryComponent,
   TriggerFapeGalleryDialogComponent,
 } from './fape-gallery/fape-gallery.component';
+import { ZipTreePreviewComponent } from './zip-tree-preview/zip-tree-preview.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -187,6 +188,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     WatchedGalleryComponent,
     FapeGalleryComponent,
     TriggerFapeGalleryDialogComponent,
+    ZipTreePreviewComponent,
   ],
   imports: [
     PlotlyModule,
