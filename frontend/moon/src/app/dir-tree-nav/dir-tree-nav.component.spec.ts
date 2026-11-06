@@ -78,6 +78,14 @@ describe('DirTreeNavComponent selection', () => {
     fixture.detectChanges();
   }
 
+  function loadExpandedTree(): void {
+    loadTree();
+    component.dirTreeControl.expand(root);
+    component.dirTreeControl.expand(groupA);
+    component.dirTreeControl.expand(nodeB);
+    fixture.detectChanges();
+  }
+
   function selectedLabels(): HTMLElement[] {
     return Array.from(
       fixture.nativeElement.querySelectorAll('.dir-tree-name-selected')
@@ -157,6 +165,47 @@ describe('DirTreeNavComponent selection', () => {
     expect(component.dirTreeControl.isExpanded(nodeX)).toBe(false);
   });
 
+  it('shows the directory name alone with the full name as a tooltip', () => {
+    loadExpandedTree();
+
+    const label = labelText('c');
+    expect((label.textContent || '').trim()).toBe('c');
+    expect(label.getAttribute('title')).toBe('c');
+  });
+
+  it('ellipsizes the name instead of scrolling it sideways', () => {
+    loadExpandedTree();
+
+    const label = labelText('c');
+    const style = getComputedStyle(label);
+    expect(style.whiteSpace).toBe('nowrap');
+    expect(style.textOverflow).toBe('ellipsis');
+    expect(style.minWidth).toBe('0px');
+
+    const box = fixture.nativeElement.querySelector(
+      '.dir-tree-box'
+    ) as HTMLElement;
+    expect(getComputedStyle(box).overflowY).toBe('auto');
+  });
+
+  it('gives every row one leading slot, with a toggle only where children exist', () => {
+    loadExpandedTree();
+
+    const rows = Array.from(
+      fixture.nativeElement.querySelectorAll('.dir-tree-row')
+    ) as HTMLElement[];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row.querySelectorAll('.dir-tree-icon-slot').length).toBe(1);
+    }
+
+    const leafRow = labelText('c').closest('.dir-tree-row') as HTMLElement;
+    expect(leafRow.querySelector('button')).toBeNull();
+
+    const parentRow = labelText('b').closest('.dir-tree-row') as HTMLElement;
+    expect(parentRow.querySelector('button.mat-icon-button')).toBeTruthy();
+  });
+
   it('marks exactly the selected node with the class and aria-selected', () => {
     loadTree();
 
@@ -165,7 +214,7 @@ describe('DirTreeNavComponent selection', () => {
 
     const labels = selectedLabels();
     expect(labels.length).toBe(1);
-    expect(labels[0].textContent).toContain('/c');
+    expect(labels[0].textContent).toContain('c');
     expect(labels[0].getAttribute('aria-selected')).toBe('true');
 
     const marked = fixture.nativeElement.querySelectorAll(
@@ -238,13 +287,13 @@ describe('DirTreeNavComponent selection', () => {
     component.dirTreeControl.expand(nodeB);
     fixture.detectChanges();
 
-    labelText('/b').click();
+    labelText('b').click();
     fixture.detectChanges();
 
     expect(emitted.length).toBe(1);
     expect(emitted[0].fileKey).toBe('b');
     expect(selectedLabels().length).toBe(1);
-    expect(selectedLabels()[0].textContent).toContain('/b');
+    expect(selectedLabels()[0].textContent).toContain('b');
     expect(component.dirTreeControl.isExpanded(root)).toBe(true);
     expect(component.dirTreeControl.isExpanded(groupA)).toBe(true);
     expect(component.dirTreeControl.isExpanded(nodeB)).toBe(true);
@@ -257,11 +306,11 @@ describe('DirTreeNavComponent selection', () => {
     component.dirTreeControl.expand(nodeB);
     fixture.detectChanges();
 
-    labelText('/b').click();
+    labelText('b').click();
     fixture.detectChanges();
     expect(emitted.length).toBe(1);
 
-    labelText('/b').click();
+    labelText('b').click();
     fixture.detectChanges();
 
     expect(emitted.map((n) => n.fileKey)).toEqual(['b', 'b']);
@@ -304,7 +353,7 @@ describe('DirTreeNavComponent selection', () => {
     fixture.detectChanges();
 
     expect(component.dirTreeControl.isExpanded(nodeB)).toBe(true);
-    expect(labelText('/c').classList).toContain('dir-tree-name-selected');
+    expect(labelText('c').classList).toContain('dir-tree-name-selected');
     expect(selectedLabels().length).toBe(1);
   });
 
@@ -328,7 +377,7 @@ describe('DirTreeNavComponent selection', () => {
     expect(component.dirTreeControl.isExpanded(groupA)).toBe(true);
     expect(component.dirTreeControl.isExpanded(nodeB)).toBe(true);
     expect(selectedLabels().length).toBe(1);
-    expect(selectedLabels()[0].textContent).toContain('/c');
+    expect(selectedLabels()[0].textContent).toContain('c');
     expect(scrollSpy).not.toHaveBeenCalled();
   });
 
@@ -365,14 +414,14 @@ describe('DirTreeNavComponent selection', () => {
     ) as HTMLInputElement;
     expect(input.value).toBe('c');
 
-    expect(labelText('/c').classList).toContain('dir-tree-name-selected');
+    expect(labelText('c').classList).toContain('dir-tree-name-selected');
     expect(selectedLabels().length).toBe(1);
 
     const rendered = Array.from(
       fixture.nativeElement.querySelectorAll('.dir-tree-name')
     ).map((l: HTMLElement) => (l.textContent || '').trim());
-    expect(rendered).toContain('/c');
-    expect(rendered).not.toContain('/x');
+    expect(rendered).toContain('c');
+    expect(rendered).not.toContain('x');
 
     expect(component.dirTreeControl.isExpanded(root)).toBe(true);
     expect(component.dirTreeControl.isExpanded(groupA)).toBe(true);
@@ -387,7 +436,7 @@ describe('DirTreeNavComponent selection', () => {
 
     component.selectedFileKey = 'c';
     fixture.detectChanges();
-    labelText('/b').click();
+    labelText('b').click();
 
     expect(emitted.length).toBe(1);
     expect(emitted[0].fileKey).toBe('b');
@@ -404,7 +453,7 @@ describe('DirTreeNavComponent selection', () => {
     component.dirTreeControl.expand(nodeB);
     fixture.detectChanges();
 
-    labelText('/b').click();
+    labelText('b').click();
     fixture.detectChanges();
 
     expect(component.searchDirTreeName).toBe('');
@@ -412,7 +461,7 @@ describe('DirTreeNavComponent selection', () => {
       'input'
     ) as HTMLInputElement;
     expect(input.value).toBe('');
-    expect(labelText('/x')).toBeTruthy();
+    expect(labelText('x')).toBeTruthy();
     expect(emitted.length).toBe(1);
     expect(emitted[0].fileKey).toBe('b');
   });
@@ -440,7 +489,7 @@ describe('DirTreeNavComponent selection', () => {
       Array.from(
         fixture.nativeElement.querySelectorAll('.dir-tree-name')
       ) as HTMLElement[]
-    ).filter((l) => (l.textContent || '').trim() === '/dup');
+    ).filter((l) => (l.textContent || '').trim() === 'dup');
     expect(dups.length).toBe(2);
 
     const marked = dups.filter((l) =>
@@ -449,8 +498,8 @@ describe('DirTreeNavComponent selection', () => {
     expect(marked.length).toBe(1);
     expect(selectedLabels().length).toBe(1);
 
-    expect(pathTexts(marked[0])).toEqual(['/root', '/two', '/dup']);
+    expect(pathTexts(marked[0])).toEqual(['root', 'two', 'dup']);
     const other = dups.find((l) => l !== marked[0]) as HTMLElement;
-    expect(pathTexts(other)).toEqual(['/root', '/one', '/dup']);
+    expect(pathTexts(other)).toEqual(['root', 'one', 'dup']);
   });
 });

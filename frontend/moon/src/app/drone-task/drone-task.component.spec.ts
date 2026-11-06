@@ -318,7 +318,7 @@ describe("DroneTaskComponent directory tree", () => {
     expect(parentDirectoryValue()).toBe("deep");
 
     const selected = selectedTreeLabel();
-    expect(selected.textContent).toContain("/deep");
+    expect((selected.textContent || "").trim()).toBe("deep");
     expect(selected.getAttribute("aria-selected")).toBe("true");
     expect(tree.dirTreeControl.isExpanded(root)).toBe(true);
     expect(tree.dirTreeControl.isExpanded(groupDocs)).toBe(true);
@@ -327,7 +327,7 @@ describe("DroneTaskComponent directory tree", () => {
     const rendered = Array.from(
       fixture.nativeElement.querySelectorAll(".dir-tree-name")
     ).map((l: HTMLElement) => (l.textContent || "").trim());
-    expect(rendered).not.toContain("/other");
+    expect(rendered).not.toContain("other");
   });
 
   it("leaves the tree expanded after a click and rebinds the parent directory", async () => {
@@ -335,7 +335,7 @@ describe("DroneTaskComponent directory tree", () => {
     await applyRememberedDir("deep");
     clearTreeSearch(tree);
 
-    treeLabel("/other").click();
+    treeLabel("other").click();
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -344,7 +344,7 @@ describe("DroneTaskComponent directory tree", () => {
     expect(parentDirectoryValue()).toBe("other");
 
     const selected = selectedTreeLabel();
-    expect(selected.textContent).toContain("/other");
+    expect((selected.textContent || "").trim()).toBe("other");
     expect(selected.getAttribute("aria-selected")).toBe("true");
     expect(tree.dirTreeControl.isExpanded(root)).toBe(true);
     expect(tree.dirTreeControl.isExpanded(groupDocs)).toBe(true);

@@ -39,20 +39,20 @@ interface ApplySelectionOptions {
       </div>
       <div
         #treeScrollBox
-        class="mt-1 mb-1 dir-tree-box"
-        style="max-height: 500px; overflow: scroll;"
+        class="mt-1 mb-1 dir-tree-box app-scroll"
+        style="max-height: 500px; overflow: auto;"
       >
         <mat-tree
           [dataSource]="dirTreeDataSource"
           [treeControl]="dirTreeControl"
-          class="tree"
+          class="dir-tree"
         >
           <mat-nested-tree-node
             *matTreeNodeDef="let node; when: dirTree.treeHasChild"
           >
             <li>
               <div
-                class="mat-tree-node"
+                class="dir-tree-row"
                 *ngIf="
                   !searchDirTreeName ||
                   (searchDirTreeName &&
@@ -66,6 +66,7 @@ interface ApplySelectionOptions {
                 <button
                   *ngIf="dirTree.treeHasChild(0, node)"
                   mat-icon-button
+                  class="dir-tree-icon-slot"
                   matTreeNodeToggle
                 >
                   <i
@@ -77,22 +78,25 @@ interface ApplySelectionOptions {
                     class="bi bi-folder-fill"
                   ></i>
                 </button>
-                <button *ngIf="!dirTree.treeHasChild(0, node)" mat-icon-button>
-                  <i class="bi bi-folder2-open"></i>
-                </button>
+                <span
+                  *ngIf="!dirTree.treeHasChild(0, node)"
+                  class="dir-tree-icon-slot"
+                >
+                  <i class="bi bi-folder-fill dir-tree-icon"></i>
+                </span>
 
                 <span
                   (click)="selectDir(node)"
                   class="dir-tree-name"
                   [class.dir-tree-name-selected]="node === selectedNode"
                   [attr.aria-selected]="node === selectedNode ? 'true' : null"
-                  style="text-align: left; white-space: nowrap; overflow: scroll;"
+                  [attr.title]="node.name"
                   [ngStyle]="{
                     'font-weight': dirTree.matchNode(node, searchDirTreeName)
                       ? 'bold'
                       : null
                   }"
-                  >/{{ node.name }}</span
+                  >{{ node.name }}</span
                 >
               </div>
               <ul [class.tree-invisible]="!dirTreeControl.isExpanded(node)">

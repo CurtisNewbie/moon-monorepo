@@ -3,13 +3,82 @@
   border-radius: 3px;
 }
 
-/*
- * A deep path is clipped only where the compact layout runs out of width, so
- * the tree row stays readable at 390px. The width comes from the layout tier,
- * never from a width read in TypeScript.
- */
+/* One row shape for every directory, modelled on the Zip preview tree: a
+   fixed leading icon slot, a name that ellipsizes, and a tint on hover. */
+.dir-tree-row {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  border-radius: 4px;
+}
+
+.dir-tree-row:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* The branch indents by the component, not the page's list defaults, and a
+   faint guide line keeps a deep path scannable. */
+.dir-tree ul {
+  margin: 0;
+  padding-left: 19px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  list-style: none;
+}
+
+.dir-tree li {
+  list-style: none;
+}
+
+.dir-tree mat-nested-tree-node {
+  display: block;
+  min-height: 0;
+}
+
+/* The left glyph column is one slot for both kinds: the folder glyph doubles
+   as the toggle, and a leaf folder's glyph sits in the same slot, so names
+   line up whatever the branch mixes at one level. */
+.dir-tree-icon-slot {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  line-height: 32px;
+}
+
+.dir-tree-icon-slot > i {
+  font-size: 17px;
+}
+
+.dir-tree-icon {
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.dir-tree-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A phone carries the same tree one step tighter, with a touch target tall
+   enough to open a folder reliably. */
 @media (max-width: 768px) {
-  .dir-tree-name {
-    max-width: 200px;
+  .dir-tree-row {
+    min-height: 36px;
+  }
+
+  .dir-tree-icon-slot {
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+  }
+
+  .dir-tree ul {
+    padding-left: 13px;
   }
 }
