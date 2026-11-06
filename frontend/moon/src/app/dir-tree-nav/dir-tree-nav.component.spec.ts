@@ -207,6 +207,19 @@ describe('DirTreeNavComponent selection', () => {
     expect(parentRow.querySelector('button.dir-tree-toggle')).toBeTruthy();
   });
 
+  it('sizes leaf and toggle folder glyphs the same', () => {
+    loadExpandedTree();
+
+    const toggleRow = labelText('b').closest('.dir-tree-row') as HTMLElement;
+    const leafRow = labelText('c').closest('.dir-tree-row') as HTMLElement;
+    const toggleIcon = toggleRow.querySelector('button i') as HTMLElement;
+    const leafIcon = leafRow.querySelector('span i') as HTMLElement;
+
+    expect(getComputedStyle(leafIcon).fontSize).toBe(
+      getComputedStyle(toggleIcon).fontSize
+    );
+  });
+
   it('marks exactly the selected node with the class and aria-selected', () => {
     loadTree();
 

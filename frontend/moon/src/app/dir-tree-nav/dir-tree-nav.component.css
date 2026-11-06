@@ -45,8 +45,10 @@
   line-height: 32px;
 }
 
-.dir-tree-toggle > i {
-  font-size: 17px;
+/* Material wraps a button's content, so the selector must be a descendant:
+   the toggle glyph and a leaf folder's glyph take the same size. */
+.dir-tree-toggle i {
+  font-size: 14px;
 }
 
 .dir-tree-icon-slot {
