@@ -66,21 +66,21 @@ interface ApplySelectionOptions {
                 <button
                   *ngIf="dirTree.treeHasChild(0, node)"
                   mat-icon-button
-                  class="dir-tree-icon-slot"
+                  class="dir-tree-toggle"
                   matTreeNodeToggle
                 >
                   <i
-                    *ngIf="dirTreeControl.isExpanded(node)"
-                    class="bi bi-folder2-open"
-                  ></i>
-                  <i
-                    *ngIf="!dirTreeControl.isExpanded(node)"
-                    class="bi bi-folder-fill"
+                    class="bi"
+                    [ngClass]="
+                      dirTreeControl.isExpanded(node)
+                        ? 'bi-folder2-open'
+                        : 'bi-folder-fill'
+                    "
                   ></i>
                 </button>
                 <span
                   *ngIf="!dirTree.treeHasChild(0, node)"
-                  class="dir-tree-icon-slot"
+                  class="dir-tree-toggle dir-tree-icon-slot"
                 >
                   <i class="bi bi-folder-fill dir-tree-icon"></i>
                 </span>

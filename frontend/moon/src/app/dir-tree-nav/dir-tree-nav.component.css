@@ -37,19 +37,22 @@
 /* The left glyph column is one slot for both kinds: the folder glyph doubles
    as the toggle, and a leaf folder's glyph sits in the same slot, so names
    line up whatever the branch mixes at one level. */
-.dir-tree-icon-slot {
+.dir-tree-toggle {
   flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
   padding: 0;
   line-height: 32px;
 }
 
-.dir-tree-icon-slot > i {
+.dir-tree-toggle > i {
   font-size: 17px;
+}
+
+.dir-tree-icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dir-tree-icon {
@@ -72,7 +75,7 @@
     min-height: 36px;
   }
 
-  .dir-tree-icon-slot {
+  .dir-tree-toggle {
     width: 36px;
     height: 36px;
     line-height: 36px;

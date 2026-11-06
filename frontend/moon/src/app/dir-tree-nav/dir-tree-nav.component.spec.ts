@@ -196,14 +196,15 @@ describe('DirTreeNavComponent selection', () => {
     ) as HTMLElement[];
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
-      expect(row.querySelectorAll('.dir-tree-icon-slot').length).toBe(1);
+      expect(row.querySelectorAll('.dir-tree-toggle').length).toBe(1);
     }
 
     const leafRow = labelText('c').closest('.dir-tree-row') as HTMLElement;
     expect(leafRow.querySelector('button')).toBeNull();
+    expect(leafRow.querySelector('.dir-tree-icon-slot')).toBeTruthy();
 
     const parentRow = labelText('b').closest('.dir-tree-row') as HTMLElement;
-    expect(parentRow.querySelector('button.mat-icon-button')).toBeTruthy();
+    expect(parentRow.querySelector('button.dir-tree-toggle')).toBeTruthy();
   });
 
   it('marks exactly the selected node with the class and aria-selected', () => {
