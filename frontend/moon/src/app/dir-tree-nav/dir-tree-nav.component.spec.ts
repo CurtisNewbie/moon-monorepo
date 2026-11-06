@@ -207,6 +207,19 @@ describe('DirTreeNavComponent selection', () => {
     expect(parentRow.querySelector('button.dir-tree-toggle')).toBeTruthy();
   });
 
+  it('shows a leaf folder with the open glyph, like an expanded folder', () => {
+    loadExpandedTree();
+
+    const leafRow = labelText('c').closest('.dir-tree-row') as HTMLElement;
+    const leafIcon = leafRow.querySelector('i') as HTMLElement;
+    const expandedRow = labelText('b').closest('.dir-tree-row') as HTMLElement;
+    const expandedIcon = expandedRow.querySelector('button i') as HTMLElement;
+
+    expect(leafIcon.classList).toContain('bi-folder2-open');
+    expect(leafIcon.classList).not.toContain('bi-folder-fill');
+    expect(expandedIcon.classList).toContain('bi-folder2-open');
+  });
+
   it('sizes leaf and toggle folder glyphs the same', () => {
     loadExpandedTree();
 

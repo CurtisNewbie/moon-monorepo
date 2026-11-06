@@ -82,7 +82,7 @@ interface ApplySelectionOptions {
                   *ngIf="!dirTree.treeHasChild(0, node)"
                   class="dir-tree-toggle dir-tree-icon-slot"
                 >
-                  <i class="bi bi-folder-fill dir-tree-icon"></i>
+                  <i class="bi bi-folder2-open"></i>
                 </span>
 
                 <span
