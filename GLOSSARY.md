@@ -61,3 +61,7 @@ _Avoid_: token, keyword word, n-gram
 **Keyword Search**:
 A listing narrowed to files whose name contains every Search Term. Inside a directory it covers that directory alone; at root it covers every directory.
 _Avoid_: fulltext search, fuzzy search, filter
+
+**Zip Tree Preview**:
+A read-only view of the folders and files inside a Zip file, opened from that file's expanded row. It extracts nothing and writes no rows.
+_Avoid_: zip browser, archive explorer, unzip preview
