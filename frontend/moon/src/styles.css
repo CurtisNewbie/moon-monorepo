@@ -73,6 +73,21 @@ body {
     line-height: 25px;
   }
 
+  /* The auth card (login, register) reads at phone size instead of the dense
+     scale: iOS Safari zooms in on a focused field whose font-size is under
+     16px, so both screens raise the whole field — label, floating-label
+     transform, underline — together. The title is sized in px to sit above
+     that field text; Bootstrap's h3 is a rem-and-vw calc, which under the 9px
+     compact root renders at 14px, below the label. */
+  .auth-card h3 {
+    font-size: 24px;
+  }
+
+  .auth-card mat-form-field,
+  .auth-card mat-label {
+    font-size: 16px;
+  }
+
   /* Cosmetic compact-only differences. !important beats Material defaults. */
   .only-wide {
     display: none !important;
